@@ -43,9 +43,12 @@ The desktop was already using ~1.2 GB of VRAM when measured, leaving roughly
 | `qwen3:8b` / `qwen3:8b-q4_K_M` | 5.2 GB | Generalist; fits with a modest context |
 | `qwen3.5:4b` | 3.4 GB | Fast smoke-test model |
 | `gemini-3-flash-preview:latest` | — | Local wrapper/alias, not a cloud credential |
+| `hf.co/tencent/Hy-MT2-7B-GGUF:Q4_K_M` | 4.6 GB | Official Apache-2.0 translation model; 9.6 GB runtime at 8K on this card; strongest terminology result so far |
+| `hf.co/IndexTeam/Index-Translate-9B-GGUF:Q4_K_M` | 6.4 GB | Official Apache-2.0 model plus 0.62 GB vision projector; 7.4 GB runtime at 8K; faster draft engine |
 
-`ollama list` reports seven entries because the two TranslateGemma tags share a
-blob and `qwen3:8b` and `qwen3:8b-q4_K_M` share another.
+`ollama list` reports nine entries because the two TranslateGemma tags share a
+blob, `qwen3:8b` and `qwen3:8b-q4_K_M` share another, and the Index entry
+includes the multimodal projector.
 
 ### Docker networking
 

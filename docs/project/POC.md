@@ -3,8 +3,8 @@
 This document distinguishes **implemented and executed** from **planned**. No
 cloud API was called. On 2026-11-07 the user authorized a metadata-only Calibre
 update, which was applied through `calibredb` with a backup; the original EPUB
-files were not rewritten. No large model was downloaded beyond the local Ollama
-models already listed.
+files were not rewritten. Two local Apache-2.0 models were downloaded and tested:
+Hy-MT2-7B and Index-Translate-9B (about 10 GB total).
 
 ## 1. Implemented
 
@@ -128,7 +128,7 @@ the four PT files; the original EPUBs were deliberately not rewritten.
 
 ```bash
 python -m src.literary.cli resources validate --root literary-resources
-# 19 files, passed
+# 21 files, passed
 
 python -m src.literary.cli resources compile \
   --root literary-resources \
@@ -194,21 +194,51 @@ would have a broken navigation pane.
 ### 2.7 Benchmark pilot
 
 15 excerpts, 5 per book. Models tested: TranslateGemma 12B, Qwen3 8B, Qwen3
-14B. Results and error analysis are in `BENCHMARK.md`.
+14B, Hy-MT2 7B and Index-Translate 9B. Results and error analysis are in
+`BENCHMARK.md`.
 
 Headline findings:
 
 - TranslateGemma 12B: fluent but critical semantic errors (“pup” → “bread”,
   male narrator → “nua”, invented fauna).
-- Qwen3 8B: best installed throughput/quality trade-off; correct “pup” and
-  narrator gender; omitted a long clause and mistranslated regional terms.
+- Qwen3 8B: best installed generalist throughput/quality trade-off; correct
+  “pup” and narrator gender; omitted a long clause and mistranslated regional
+  terms.
 - Qwen3 14B: slower, better on some long syntax, but reversed “turned away from
   me” and garbled a phrase; not a uniform improvement.
 - A glossary round (`Fugue → Fuga`) fixed the concept in both Qwen models; it
   did not fix syntax or literalism.
+- Hy-MT2 7B: 15/15, mean 15.3 s, kept `Fuga` capitalization and produced
+  `Convenci-me`; residual lexical/regional misses. Stronger terminology
+  candidate.
+- Index-Translate 9B: 15/15, mean 9.9 s, faster draft engine; lowercased the
+  glossary term, produced `Convinquei-me` and an agreement error. Needs PT-BR
+  post-edit.
 
 No tested model passes the production gate on this pilot. That is the finding,
 not a failure of the POC.
+
+### 2.8 EPUBCheck
+
+EPUBCheck 5.4.0 was run in a Java 17 container (the host has Java 8):
+
+```bash
+docker run --rm \
+  -v "$PWD/data/tools/epubcheck-5.4.0:/epubcheck:ro" \
+  -v "$PWD/data/smoke:/books:ro" \
+  eclipse-temurin:17-jre \
+  java -jar /epubcheck/epubcheck.jar /books/sampler_ptbr.epub
+```
+
+Result: 1 error, 1 warning. The warning is the fixture's invalid UUID. The error
+is `RSC-005`: the translated output adds
+`<dc:contributor ... ns0:role="trl">`, which EPUB 3.4 does not allow. The
+original fixture does not have this attribute. This is an upstream EPUB
+conformance bug in the attribution branch, not a literary-layer regression.
+Both candidate fixes were tested with EPUBCheck and remove the error: drop the
+attribute, or keep the role through a canonical
+`<meta refines="#tbl-translator" property="role" scheme="marc:relators">`
+element. The fix is not applied in this fork yet.
 
 ## 3. What is not implemented
 
@@ -216,11 +246,13 @@ not a failure of the POC.
   plans/tracks, it does not launch jobs.
 - Source-aware selective refinement; only designed and priced.
 - Narrative memory; only designed.
-- EPUBCheck; the machine has Java 8 and EPUBCheck 5.x needs 11+. Structural
-  validation is implemented.
+- EPUBCheck is available in a Java 17 container and was run manually, but it is
+  not wired as an automatic gate in the pipeline.
+- The upstream `dc:contributor` EPUB 3.4 conformance error is documented and
+  two fixes were tested with EPUBCheck, but the fix is not applied in this fork
+  yet.
 - Web UI for the queue, glossary conflicts or side-by-side review.
 - Cloud model benchmark; no paid calls.
-- Hy-MT2 and Index-Translate tests; not installed.
 - Calibre/KOReader read test; not run.
 - Full-book translation; explicitly not authorized.
 

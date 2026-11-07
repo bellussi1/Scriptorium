@@ -16,15 +16,15 @@
 
 | # | Task | Why | Effort | Dependency | Acceptance |
 |---|---|---|---|---|---|
-| 4.1 | Approve and download Hy-MT2-7B Q4_K_M and Index-Translate-9B Q4_K_M | The two strongest local candidates cannot be selected without testing | S (download) + M (test) | User approval for ~10 GB download | Both run in Ollama/llama.cpp at 4K and 8K; VRAM/tokens per second recorded |
+| 4.1 | ~~Approve and download Hy-MT2-7B Q4_K_M and Index-Translate-9B Q4_K_M~~ | **Done 2026-11-07.** The two strongest local candidates cannot be selected without testing | S (download) + M (test) | User approval for ~10 GB download | Both installed from the official GGUF repos and run at 8K; VRAM and latency recorded. 16K added CPU offload and is not the default |
 | 4.2 | Curate 12–20 excerpts with human-reviewed categories and 2 consecutive passages per book | The current 15 are auto-selected and isolated | M | Local EPUBs | Corpus reviewed; category and continuity coverage documented |
 | 4.3 | Align official PT references for Farseer 1 and Sun Eater 1; keep the Lonesome Dove draft as a separate revision aid | chrF/reference-based comparison needs alignment | M | Official PT editions; user's unreviewed Lonesome draft | Paragraph alignment with confidence; no fan translation or unreviewed draft as gold |
-| 4.4 | Run the local benchmark with native and glossary/style rounds | Separate model capability from instruction-following | M | 4.1–4.3 | Results for TranslateGemma, Qwen3 8B/14B, Hy-MT2, Index at temperature 0 and one repeat |
+| 4.4 | Run the local benchmark with native and glossary/style rounds | Separate model capability from instruction-following | M | 4.1–4.3 | **Partially done 2026-11-07.** 15 excerpts for TranslateGemma, Qwen3 8B/14B, Hy-MT2 and Index; single run, no repeats. Curated corpus and reference alignment still pending |
 | 4.5 | Approve a cloud budget and run Gemini 3.8 Flash, DeepSeek V4.1 Flash, GPT-6 Luna, Claude Haiku 5.5 | Cloud decision needs PT-BR evidence, not just vendor claims | M | User budget approval | Actual tokens/cost logged; hard cap enforced |
 | 4.6 | Blind judge + human spot-check | Avoid LLM-judge self-preference and fluency bias | M | 4.4–4.5 | Six-dimension scores, gates, confidence, disagreement reported |
 | 4.7 | Select local and cloud winners | Decision, not more data collection | S | 4.6 | Written recommendation with evidence and cost per accepted chapter |
 
-**Approval required before 4.1 and 4.5. Do not start either automatically.**
+**Approval required before 4.5. Do not start it automatically.**
 
 ## Phase 5 — editorial preparation
 

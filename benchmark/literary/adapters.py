@@ -24,6 +24,10 @@ class ModelSpec:
     supports_glossary: bool = False
     native_prompt: bool = True
     think: Optional[bool] = None
+    temperature: float = 0.0
+    top_p: float = 1.0
+    top_k: int = 0
+    repeat_penalty: float = 1.0
     notes: str = ""
 
 
@@ -72,23 +76,28 @@ MODELS: Dict[str, ModelSpec] = {
     ),
     "hy-mt2-7b": ModelSpec(
         key="hy-mt2-7b",
-        label="Tencent Hy-MT2 7B",
+        label="Tencent Hy-MT2 7B (Q4_K_M)",
         provider="ollama",
-        model="hy-mt2:7b",
+        model="hf.co/tencent/Hy-MT2-7B-GGUF:Q4_K_M",
         prompt_style="hy_mt2",
         context_window=8192,
         supports_glossary=True,
-        notes="Not installed yet; install only after approval.",
+        temperature=0.7,
+        top_p=0.6,
+        top_k=20,
+        repeat_penalty=1.05,
+        notes="Apache-2.0; 33 languages; recommended sampling is temperature 0.7, top_p 0.6, top_k 20, repetition_penalty 1.05.",
     ),
     "index-translate-9b": ModelSpec(
         key="index-translate-9b",
-        label="Index-Translate 9B",
+        label="Index-Translate 9B (Q4_K_M)",
         provider="ollama",
-        model="index-translate:9b",
+        model="hf.co/IndexTeam/Index-Translate-9B-GGUF:Q4_K_M",
         prompt_style="index_translate",
-        context_window=32768,
+        context_window=8192,
         supports_glossary=True,
-        notes="Not installed yet; Apache-2.0, glossary/instTrans format.",
+        think=False,
+        notes="Apache-2.0; 150 languages; greedy decoding, instTrans constraints, thinking disabled; 8K context fits the 8 GB card without the 16K CPU offload.",
     ),
     "deepseek-flash": ModelSpec(
         key="deepseek-flash",
@@ -135,6 +144,12 @@ def _glossary_section(glossary: Optional[Dict[str, str]]) -> str:
     return "\n".join(lines) + "\n\n"
 
 
+def _term_pairs(glossary: Optional[Dict[str, str]]) -> str:
+    if not glossary:
+        return ""
+    return "; ".join(f"{source} -> {target}" for source, target in glossary.items())
+
+
 def _style_section(style: Optional[str]) -> str:
     if not style:
         return ""
@@ -162,21 +177,53 @@ def build_prompt(
         return [{"role": "user", "content": content}]
 
     if spec.prompt_style == "hy_mt2":
-        content = (
-            "Translate the following segment into Brazilian Portuguese, without additional explanation.\n\n"
-            + _glossary_section(glossary)
-            + _style_section(style)
-            + text
-        )
+        if glossary or style:
+            tasks = []
+            if glossary:
+                tasks.append("Terminology (mandatory): " + _term_pairs(glossary))
+            if style:
+                tasks.append("Style: " + style.strip())
+            tasks.append(
+                "Translate the [Source Text] into Brazilian Portuguese. "
+                "Output only the translation without any additional explanation."
+            )
+            content = (
+                "[Source Text]\n"
+                + text
+                + "\n\n[Translation Tasks]\n"
+                + "\n".join(f"{index}. {task}" for index, task in enumerate(tasks, 1))
+            )
+        else:
+            content = (
+                "Translate the following text into Brazilian Portuguese. Note that you should "
+                "only output the translated result without any additional explanation:\n\n"
+                + text
+            )
         return [{"role": "user", "content": content}]
 
     if spec.prompt_style == "index_translate":
-        content = (
-            "请将以下英语文本翻译为巴西葡萄牙语，直接输出翻译结果，不要进行任何解释。\n\n"
-            + _glossary_section(glossary)
-            + _style_section(style)
-            + text
-        )
+        if glossary or style:
+            constraints = []
+            if glossary:
+                constraints.append(
+                    "[Hard Constraint] Terminology mapping: " + _term_pairs(glossary)
+                )
+            if style:
+                constraints.append("[Note] Style: " + style.strip())
+            constraints.append("Output only the translation without any explanation.")
+            content = (
+                "Please translate the following text into Brazilian Portuguese and strictly "
+                "follow all constraints.\n\n[Source]\n"
+                + text
+                + "\n\n[Constraints]\n"
+                + "\n".join(f"{index}. {item}" for index, item in enumerate(constraints, 1))
+            )
+        else:
+            content = (
+                "Please translate the following text into Brazilian Portuguese. "
+                "Output the translation directly, without any explanation:\n\n"
+                + text
+            )
         return [{"role": "user", "content": content}]
 
     system = LITERARY_SYSTEM
@@ -217,7 +264,7 @@ def generate_ollama(
     messages: List[Dict[str, str]],
     *,
     endpoint: str = "http://localhost:11434",
-    temperature: float = 0.0,
+    temperature: Optional[float] = None,
     max_tokens: int = 1200,
     timeout: int = 900,
 ) -> Generation:
@@ -227,8 +274,10 @@ def generate_ollama(
         "messages": messages,
         "stream": False,
         "options": {
-            "temperature": temperature,
-            "top_p": 1.0,
+            "temperature": spec.temperature if temperature is None else temperature,
+            "top_p": spec.top_p,
+            "top_k": spec.top_k,
+            "repeat_penalty": spec.repeat_penalty,
             "num_ctx": spec.context_window,
             "num_predict": max_tokens,
         },

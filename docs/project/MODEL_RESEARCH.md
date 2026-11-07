@@ -85,7 +85,15 @@ Official sources:
 **Why it matters.** 7B dense, Apache-2.0, fits an 8 GB card at Q4, supports
 instruction-following and terminology/style constraints, and has a realistic
 8K working context. It is the most plausible local primary engine on paper.
-It is **not installed**; testing requires a download approval.
+
+**Local evidence (2026-11-07).** The official Q4_K_M GGUF is installed as
+`hf.co/tencent/Hy-MT2-7B-GGUF:Q4_K_M` (4.62 GB). On the 15-excerpt benchmark it
+completed 15/15 with no errors, kept the glossary's `Fuga` capitalization, and
+produced correct `Convenci-me`; residual issues were lexical (`Evening` →
+`A noite`, `roadrunners` → `tordos-corretores`). It loaded at 9.6 GB total
+(6.2 GB VRAM, 64% GPU) at 8K context, so the theoretical 5.5 GB estimate in
+section 2.5 is too optimistic. It is the stronger terminology candidate, not yet
+a production engine.
 
 ### 2.3 Index-Translate 9B
 
@@ -112,7 +120,17 @@ specialist in the same family (`Index-NativeLong`, separate model). It is a
 strong candidate for the glossary-heavy workflow. Risks: the prompt format is
 Chinese-centric, the model is optimized for general translation rather than
 literary voice, and 5.78 GB weights + KV cache is tight on 8 GB at 8K context.
-It is **not installed**.
+
+**Local evidence (2026-11-07).** The official Q4_K_M GGUF is installed as
+`hf.co/IndexTeam/Index-Translate-9B-GGUF:Q4_K_M` (5.78 GB plus the 0.62 GB
+vision projector that Ollama also pulls). The English instTrans template works
+and is the adapter default; the Chinese template, under Ollama's chat endpoint,
+produced English chat-style analysis instead of a translation. On the
+15-excerpt benchmark it completed 15/15, was faster than Hy-MT2 (9.9 s vs
+15.3 s mean), and loaded at 7.4 GB total (5.9 GB VRAM, 80% GPU) at 8K. It
+lowercased the glossary term (`fuga`), produced `Convinquei-me`, and had an
+agreement error (`segredos que ... não é seguro compartilhar`). It is a fast
+draft engine, not a publishable one without PT-BR post-edit.
 
 ### 2.4 Installed generalists (pilot evidence)
 
@@ -153,13 +171,16 @@ Approximate examples (Q4 weights, FP16 KV, 2 bytes/element):
 | Model | Approx. KV/token | 4K context | 8K context | Weights | 8K total |
 |---|---:|---:|---:|---:|---:|
 | Qwen3 8B | ~0.15 MB | ~0.6 GB | ~1.2 GB | 5.2 GB | ~6.4 GB |
-| Hy-MT2 7B | ~0.13 MB | ~0.5 GB | ~1.1 GB | ~4.4 GB | ~5.5 GB |
-| Index-Translate 9B | ~0.26 MB | ~1.1 GB | ~2.1 GB | 5.78 GB | ~7.9 GB (tight) |
+| Hy-MT2 7B | ~0.13 MB | ~0.5 GB | ~1.1 GB | 4.62 GB | ~5.7 GB theoretical |
+| Index-Translate 9B | ~0.26 MB | ~1.1 GB | ~2.1 GB | 5.78 GB | ~7.9 GB theoretical |
 | TranslateGemma 12B | ~0.39 MB | ~1.6 GB | ~3.1 GB | 8.1 GB | >11 GB (offload) |
 
 These are approximations, not a substitute for measuring the actual runtime.
-They explain why TranslateGemma 12B offloads and why Index-Translate 9B should
-be tested at 4K before 8K.
+Measured on the RTX 4060 at 8K context: Hy-MT2 loaded at 9.6 GB total (6.2 GB
+VRAM, 64% GPU), well above the theoretical estimate; Index-Translate loaded at
+7.4 GB total (5.9 GB VRAM, 80% GPU). Hy-MT2's extra buffers are the main reason
+it does not fit fully on the card. Index at 16K added CPU offload and was
+slower, so 8K is the practical default.
 
 ## 3. Cloud models
 
@@ -275,8 +296,9 @@ see the source.
 ### Local
 
 1. **Test first:** Hy-MT2-7B (Apache-2.0, 8K, instruction/glossary support,
-   4.4 GB Q4) and Index-Translate-9B (Apache-2.0, glossary hard constraints,
-   5.78 GB Q4). Neither is installed; download requires approval.
+   4.62 GB Q4) and Index-Translate-9B (Apache-2.0, glossary hard constraints,
+   5.78 GB Q4). Both official GGUFs are installed and were tested on
+   2026-11-07; see sections 2.2 and 2.3.
 2. **Installed baseline:** Qwen3 8B. Use it to calibrate prompts and
    throughput; do not treat it as the final literary engine.
 3. **Quality check:** Qwen3 14B. It improves some long-syntax cases but is

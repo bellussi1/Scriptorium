@@ -5,9 +5,10 @@ literary EN→PT-BR benchmark. It uses short public-domain passages, a generic
 rubric and a single LLM judge. This project adds a separate literary track under
 `benchmark/literary/`.
 
-**Status:** harness implemented; pilot run on models already installed. Full
-Phase 4 (Hy-MT2, Index-Translate, cloud candidates, aligned references, blind
-human review) still requires approval.
+**Status:** harness implemented; pilot run on models already installed. The
+first Hy-MT2 and Index-Translate round was completed on 2026-11-07. Full Phase 4
+(cloud candidates, aligned references, blind human review) still requires
+approval.
 
 ## 1. Method
 
@@ -49,15 +50,19 @@ round:
 | TranslateGemma 12B | Official single-user template, two blank lines before text | 4K | 0.0 | 1,200 |
 | Qwen3 8B | Literary system prompt + source user message | 8K | 0.0 | 1,200 |
 | Qwen3 14B | Same as Qwen3 8B | 8K | 0.0 | 1,200 |
-| Hy-MT2 7B | Native instruction prompt | 8K | 0.0 | 1,200 |
-| Index-Translate 9B | Chinese-centric translation prompt + glossary | 32K | 0.0 | 1,200 |
+| Hy-MT2 7B | Native terminology/personalization template | 8K | 0.7 (top_p 0.6, top_k 20, repetition 1.05) | 1,200 |
+| Index-Translate 9B | English instTrans template with hard constraints | 8K | 0.0 | 1,200 |
 
 TranslateGemma has no glossary in its native round because its fixed template
 does not provide a clean place for one. For the other models, the glossary
 round adds the same `Terminology (mandatory)` block. This asymmetry is recorded
-in the run artifacts. The `hy-mt2:7b` and `index-translate:9b` entries in
-`benchmark/literary/adapters.py` are placeholders; replace them with the actual
-Ollama/llama.cpp tags after installation.
+in the run artifacts. The adapters use the official GGUF tags:
+`hf.co/tencent/Hy-MT2-7B-GGUF:Q4_K_M` and
+`hf.co/IndexTeam/Index-Translate-9B-GGUF:Q4_K_M`. The Index prompt is the
+English instTrans template, because the Chinese template produced chat-style
+analysis instead of translation under Ollama's chat endpoint. Both models ran at
+8K context so the comparison reflects the 8 GB card; 16K was tested separately
+and only added CPU offload.
 
 ### 1.3 Metrics
 
@@ -84,12 +89,13 @@ A high average cannot save a unit that fails a gate.
 | TranslateGemma 12B | 6 | 23–66 s | 152–226 | Complete |
 | Qwen3 8B | 6 | 13–51 s | 167–260 | Complete |
 | Qwen3 14B | 3 | 35–86 s | 164–218 | Complete |
-| Hy-MT2 7B | 0 | — | — | Not installed |
-| Index-Translate 9B | 0 | — | — | Not installed |
+| Hy-MT2 7B | 15 | 11–25 s | 150–285 | Complete |
+| Index-Translate 9B | 15 | 7–21 s | 129–251 | Complete |
 | Cloud models | 0 | — | — | Not called; no approval |
 
-All runs are at temperature 0, single run. Latency includes model load when the
-model was cold.
+Single run. The generalist and Index runs use temperature 0; Hy-MT2 uses the
+sampling recommended by its model card (temperature 0.7, top_p 0.6, top_k 20,
+repetition_penalty 1.05). Latency includes model load when the model was cold.
 
 ### 2.2 What the outputs showed
 
@@ -154,9 +160,61 @@ layer works and is not sufficient by itself.
 | TranslateGemma 12B | Fail | Fail | Fail (no glossary round) | Short-passage only |
 | Qwen3 8B | Pass on 5/6 | Fail (omission) | Fail without glossary; improved with it | Baseline, not production |
 | Qwen3 14B | Fail (reversal) | Pass on the 3 tested | Fail on fauna | Not clearly better |
+| Hy-MT2 7B | No critical error in the 3 reviewed | Pass on 15/15 | Pass on the tested term, capitalization kept | Local candidate; needs editorial review |
+| Index-Translate 9B | No critical error in the 3 reviewed | Pass on 15/15 | Partial: recall 1.0, casing ignored | Faster draft; PT-BR post-edit required |
 
 No tested model passes the production gate on this small pilot. That is the
 correct result: a fluent output is not a passing output.
+
+### 2.4 Hy-MT2 7B and Index-Translate 9B (2026-11-07)
+
+Both official GGUF builds were installed and run on the same 15 excerpts with
+the same pilot glossary. This is the first round with the specialized
+translation models; it is not a final model choice.
+
+| Model | Excerpts | Errors | Mean latency | Output tokens | Length ratio | Name recall | English leakage | Repetition |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| Hy-MT2 7B Q4_K_M | 15/15 | 0 | 15.3 s | 2,986 | 0.979 | 1.0 | 0.7% | 0.9% |
+| Index-Translate 9B Q4_K_M | 15/15 | 0 | 9.9 s | 2,625 | 0.995 | 1.0 | 0.5% | 0.9% |
+
+`name_recall` is based on the two excerpts where a glossary term actually
+occurs. The mean latency includes cold loads; it is not a tokens/s benchmark.
+The observed Ollama footprint was 9.6 GB total (6.2 GB VRAM, 64% GPU) for
+Hy-MT2 and 7.4 GB total (80% GPU) for Index, both at 8K context. The numbers are
+hardware-specific and vary with the Ollama scheduler.
+
+**Hy-MT2 7B.** The strongest result of this round on terminology and grammar:
+
+- It kept the glossary's capitalized `Fuga` in the Sun Eater excerpt.
+- It produced `Convenci-me` correctly, and `a médica` for the source's
+  `the doctor ... herself`.
+- It preserved the long Lonesome Dove sentence without dropping the
+  roofless-barn clause.
+- Residual issues: `Evening` became `A noite`; `roadrunners` became
+  `tordos-corretores`; `horned toads` became `sapos com chifres`. These are
+  lexical/regional choices that need a glossary and a reviewer, not structural
+  failures.
+- It uses more memory than the model size suggests: the 7.5B Q4_K_M build
+  loaded at 9.6 GB total and only 64% on the GPU. Speed was acceptable, but this
+  is the main reason it is not automatically the production engine.
+
+**Index-Translate 9B.** Faster and often more fluid, but with language-quality
+errors that block publication without review:
+
+- It ignored the glossary's capitalization: `fuga` instead of `Fuga`.
+- It produced the typo `Convinquei-me` (should be `Convenci-me`).
+- It produced an agreement error: `segredos que, mesmo agora, não é seguro
+  compartilhar`.
+- It rendered `roadrunners` as `corredores-de-strada`.
+- It kept the long-syntax content and read naturally in dialogue, but the errors
+  above are exactly the kind a deterministic language check and a human
+  post-edit must catch.
+
+**Provisional reading.** Hy-MT2 is the better candidate for terminology
+fidelity and grammatical reliability; Index is the faster draft engine but
+needs a PT-BR post-edit and stronger case-sensitive glossary enforcement. Neither
+passes the production gate on this round, and the sample is too small to rank
+them confidently.
 
 ## 3. What the pilot teaches
 
@@ -179,13 +237,14 @@ correct result: a fluent output is not a passing output.
 
 ## 4. Limitations
 
-- 15 excerpts, only 6/3 used in the pilot; not the 12–20 controlled comparison
-  the plan calls for.
+- 15 excerpts; not the 12–20 controlled comparison the plan calls for. The
+  Hy-MT2/Index round ran all 15, but only three outputs were read closely.
 - No aligned PT-BR references; chrF is therefore absent from the pilot.
 - No blind human panel; the error notes are a single reviewer's reading.
-- No Hy-MT2, Index-Translate or cloud models; no large download or paid call was
-  authorized.
-- Single run at temperature 0; no variance estimate.
+- Cloud models were not called; no paid key was used.
+- Single run per model; no variance estimate. Sampling differs by model card
+  (temperature 0 for most, 0.7 for Hy-MT2), so latency and output length are
+  descriptive, not a controlled speed benchmark.
 - The corpus is auto-selected; categories and some excerpts need human review.
 - The benchmark does not yet measure chapter-to-chapter continuity; it measures
   isolated excerpts.
@@ -200,8 +259,10 @@ correct result: a fluent output is not a passing output.
    confidence. Do not use fan translations or the user's unreviewed Lonesome
    Dove draft as gold. The Lonesome draft can be evaluated separately as a
    revision aid, never as a reference standard.
-3. **Install/test Hy-MT2-7B and Index-Translate-9B** after explicit download
-   approval. Test 4K and 8K contexts; record VRAM and tokens/s.
+3. ~~**Install/test Hy-MT2-7B and Index-Translate-9B**~~ **Done 2026-11-07.**
+   Both official Q4_K_M GGUFs installed and tested on 15 excerpts at 8K. A 16K
+   run was tested and rejected for the 8 GB card because it added CPU offload.
+   See 2.4.
 4. **Cloud round:** Gemini 3.8 Flash, DeepSeek V4.1 Flash (only with a privacy
    decision), GPT-6 Luna, Claude Haiku 5.5. Set a hard budget and log actual
    usage.

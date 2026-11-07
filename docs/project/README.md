@@ -1,9 +1,10 @@
 # Literary translation project — diagnosis, architecture and proof of concept
 
 Status: **Phase 1 (discovery) complete; Phase 2 (architecture) complete; Phase 3
-(local proof of concept) implemented and tested.** Phase 4 (full model
-benchmark) is partially done: only models already installed locally were
-tested. No paid cloud call was made.
+(local proof of concept) implemented and tested.** Phase 4 (model benchmark) is
+in progress: the installed generalists plus Hy-MT2-7B and Index-Translate-9B
+were tested locally on 2026-11-07. No paid cloud call was made, and no model
+passes the production gate without editorial review.
 
 This directory is the entry point. The repository code remains the upstream
 TranslateBooksWithLLMs application; the new layer is additive and lives under
@@ -86,14 +87,17 @@ TranslateBooksWithLLMs application; the new layer is additive and lives under
 
 - **Architecture:** fork with additive modules and minimal upstream patches
   (option B), not a rewrite and not an untouched upstream.
-- **Local primary candidate:** **Hy-MT2-7B** or **Index-Translate-9B** on
-  paper, because both support instructions/glossary and larger practical
-  context. Neither is installed yet; the final local winner requires the Phase
-  4 benchmark. Among installed generalists, **Qwen3 8B** is the best
-  throughput/quality trade-off; **Qwen3 14B** is somewhat better on long
-  syntax but much slower and still error-prone. **TranslateGemma 12B** is
-  fluent but its ~2K-token regime, fixed prompt and observed hallucinations
-  make it unsuitable as the primary engine for full novels.
+- **Local primary candidate:** **Hy-MT2-7B** is the stronger terminology
+  candidate after the 2026-11-07 round: it kept glossary capitalization, was
+  grammatically reliable on the reviewed excerpts, and needs editorial review
+  for regional vocabulary. **Index-Translate-9B** is faster (9.9 s vs 15.3 s
+  mean) but produced a typo and an agreement error; use it as a draft engine
+  with PT-BR post-edit. Neither passes the production gate yet. Among
+  generalists, **Qwen3 8B** is the best throughput/quality trade-off;
+  **Qwen3 14B** is somewhat better on long syntax but much slower and still
+  error-prone. **TranslateGemma 12B** is fluent but its ~2K-token regime, fixed
+  prompt and observed hallucinations make it unsuitable as the primary engine
+  for full novels.
 - **Cloud provisional candidate:** **Gemini 3.8 Flash** for quality, with
   **DeepSeek V4.1 Flash** as the cost option only after an explicit privacy
   decision. Both need PT-BR literary tests before commitment.
@@ -113,3 +117,11 @@ TranslateBooksWithLLMs application; the new layer is additive and lives under
 - No DRM circumvention, no credential rotation to evade provider limits.
 - Book text is untrusted data. It must never be able to change system
   instructions or trigger tools.
+
+### Upstream contribution
+
+- Issue: [hydropix/TranslateBooksWithLLMs#331](https://github.com/hydropix/TranslateBooksWithLLMs/issues/331)
+  proposes series-aware resources, a persistent queue, a validation gate and
+  selective refinement.
+- First scoped PR candidate: glossary `forbidden` support (loader, injector and
+  regression test). The larger slices wait for maintainer feedback before a PR.
