@@ -14,6 +14,100 @@ from .models import CompiledResources, Severity, ValidationIssue
 from .epub import count_words, read_epub, validate_epub_structure
 
 _NUMBER_RE = re.compile(r"\d+(?:[.,]\d+)*")
+# Number words that are safe to compare across English and Portuguese. The
+# Portuguese articles "um/uma" are deliberately excluded: they are far more
+# often articles than numbers, and including them would create false matches.
+_NUMBER_WORDS = {
+    "zero": 0,
+    "one": 1,
+    "two": 2,
+    "three": 3,
+    "four": 4,
+    "five": 5,
+    "six": 6,
+    "seven": 7,
+    "eight": 8,
+    "nine": 9,
+    "ten": 10,
+    "eleven": 11,
+    "twelve": 12,
+    "thirteen": 13,
+    "fourteen": 14,
+    "fifteen": 15,
+    "sixteen": 16,
+    "seventeen": 17,
+    "eighteen": 18,
+    "nineteen": 19,
+    "twenty": 20,
+    "thirty": 30,
+    "forty": 40,
+    "fifty": 50,
+    "sixty": 60,
+    "seventy": 70,
+    "eighty": 80,
+    "ninety": 90,
+    "hundred": 100,
+    "thousand": 1000,
+    "million": 1000000,
+    "dois": 2,
+    "duas": 2,
+    "três": 3,
+    "tres": 3,
+    "quatro": 4,
+    "cinco": 5,
+    "seis": 6,
+    "sete": 7,
+    "oito": 8,
+    "nove": 9,
+    "dez": 10,
+    "onze": 11,
+    "doze": 12,
+    "treze": 13,
+    "catorze": 14,
+    "quatorze": 14,
+    "quinze": 15,
+    "dezesseis": 16,
+    "dezessete": 17,
+    "dezoito": 18,
+    "dezenove": 19,
+    "vinte": 20,
+    "trinta": 30,
+    "quarenta": 40,
+    "cinquenta": 50,
+    "sessenta": 60,
+    "setenta": 70,
+    "oitenta": 80,
+    "noventa": 90,
+    "cem": 100,
+    "cento": 100,
+    "duzentos": 200,
+    "duzentas": 200,
+    "trezentos": 300,
+    "trezentas": 300,
+    "quatrocentos": 400,
+    "quatrocentas": 400,
+    "quinhentos": 500,
+    "quinhentas": 500,
+    "seiscentos": 600,
+    "seiscentas": 600,
+    "setecentos": 700,
+    "setecentas": 700,
+    "oitocentos": 800,
+    "oitocentas": 800,
+    "novecentos": 900,
+    "novecentas": 900,
+    "mil": 1000,
+    "milhão": 1000000,
+    "milhao": 1000000,
+    "milhões": 1000000,
+    "milhoes": 1000000,
+}
+_NUMBER_WORD_RE = re.compile(
+    r"\b(" + "|".join(
+        re.escape(word) for word in sorted(_NUMBER_WORDS, key=len, reverse=True)
+    ) + r")\b",
+    re.IGNORECASE | re.UNICODE,
+)
 _PLACEHOLDER_PATTERNS = [
     re.compile(r"\[\[?\s*\d+\s*\]?\]"),
     re.compile(r"\[id\s*\d+\]", re.IGNORECASE),
@@ -54,6 +148,21 @@ def _placeholders(text: str) -> Counter:
 
 def _numbers(text: str) -> Counter:
     return Counter(_NUMBER_RE.findall(text or ""))
+
+
+def numeric_tokens(text: str) -> Counter:
+    """Digit and number-word tokens normalized to a common value.
+
+    ``3`` and ``três`` both become ``"3"`` so a guard does not reject a valid
+    translation merely because the target spells the number out. The mapping is
+    deliberately limited to unambiguous number words.
+    """
+    counts: Counter = Counter()
+    for match in _NUMBER_RE.findall(text or ""):
+        counts[match.replace(",", ".")] += 1
+    for match in _NUMBER_WORD_RE.findall(text or ""):
+        counts[str(_NUMBER_WORDS[match.casefold()])] += 1
+    return counts
 
 
 def detect_language(text: str) -> str:
@@ -126,8 +235,8 @@ def validate_pair(
             )
         )
 
-    source_numbers = _numbers(source)
-    target_numbers = _numbers(target)
+    source_numbers = numeric_tokens(source)
+    target_numbers = numeric_tokens(target)
     missing_numbers = source_numbers - target_numbers
     if missing_numbers:
         issues.append(

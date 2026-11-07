@@ -23,7 +23,15 @@ from .cost import SCENARIOS, estimate_book, estimate_scenario, estimate_series, 
 from .epub import read_epub, update_opf_metadata, validate_epub_structure
 from .models import BookRecord, Severity
 from .queue import QueueStore
+from .refine_runner import (
+    find_flagged_segments,
+    generate_ollama,
+    refine_segments,
+    render_refined_text,
+    split_segments,
+)
 from .resources import (
+    assemble_style,
     compile_for_book,
     glossary_to_prompt_dicts,
     load_tree,
@@ -187,6 +195,142 @@ def cmd_queue_reset(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_queue_start(args: argparse.Namespace) -> int:
+    store = QueueStore(args.db)
+    book = store.get_book(args.book_id)
+    if not book:
+        _print_json({"error": "book not found", "book_id": args.book_id})
+        store.close()
+        return 1
+    job_id = store.create_job(book.id, total_chapters=args.total_chapters)
+    try:
+        store.set_book_state(book.id, "preparing", "book preparing")
+        store.set_job_state(job_id, "preparing")
+        store.add_event("queue job created", book_id=book.id, job_id=job_id)
+    except ValueError as exc:
+        _print_json({"error": str(exc), "job_id": job_id})
+        store.close()
+        return 1
+    _print_json({"job_id": job_id, "book": store.get_book(book.id).to_dict()})
+    store.close()
+    return 0
+
+
+def cmd_queue_jobs(args: argparse.Namespace) -> int:
+    store = QueueStore(args.db)
+    _print_json({"jobs": store.list_jobs(args.limit)})
+    store.close()
+    return 0
+
+
+def cmd_queue_attach(args: argparse.Namespace) -> int:
+    store = QueueStore(args.db)
+    try:
+        store.attach_translation_id(args.job_id, args.translation_id)
+    except ValueError as exc:
+        _print_json({"error": str(exc)})
+        store.close()
+        return 1
+    _print_json({"job": store.get_job(args.job_id)})
+    store.close()
+    return 0
+
+
+def cmd_queue_sync(args: argparse.Namespace) -> int:
+    store = QueueStore(args.db)
+    report = store.sync_from_upstream(args.checkpoint_db)
+    _print_json(report)
+    store.close()
+    return 0 if not report.get("error") else 1
+
+
+def cmd_queue_job_state(args: argparse.Namespace) -> int:
+    store = QueueStore(args.db)
+    try:
+        store.set_job_state(args.job_id, args.state)
+    except ValueError as exc:
+        _print_json({"error": str(exc)})
+        store.close()
+        return 1
+    if args.message:
+        job = store.get_job(args.job_id)
+        store.add_event(
+            args.message,
+            book_id=job["book_id"] if job else None,
+            job_id=args.job_id,
+        )
+    _print_json({"job": store.get_job(args.job_id)})
+    store.close()
+    return 0
+
+
+def cmd_refine(args: argparse.Namespace) -> int:
+    with open(args.source, "r", encoding="utf-8") as handle:
+        source_text = handle.read()
+    with open(args.draft, "r", encoding="utf-8") as handle:
+        draft_text = handle.read()
+
+    compiled = None
+    style = ""
+    if args.author and args.universe:
+        tree = load_tree(args.root)
+        compiled = compile_for_book(
+            tree,
+            args.author,
+            args.universe,
+            args.subseries,
+            args.book,
+        )
+        style = assemble_style(compiled.style).get("refinement", "")
+
+    source_segments = split_segments(source_text)
+    draft_segments = split_segments(draft_text)
+    flagged = find_flagged_segments(
+        source_segments, draft_segments, compiled=compiled
+    )
+    if args.dry_run:
+        _print_json(
+            {
+                "source_segments": len(source_segments),
+                "draft_segments": len(draft_segments),
+                "flagged": [segment.to_report() for segment in flagged],
+            }
+        )
+        return 0
+
+    def generate(messages):
+        return generate_ollama(
+            messages,
+            model=args.model,
+            endpoint=args.endpoint,
+            temperature=args.temperature,
+            max_tokens=args.max_tokens,
+        )
+
+    replacements, report = refine_segments(
+        flagged,
+        generate,
+        compiled=compiled,
+        style=style,
+        limit=args.limit,
+    )
+    output = render_refined_text(draft_text, replacements)
+    with open(args.out, "w", encoding="utf-8") as handle:
+        handle.write(output)
+    report.update(
+        {
+            "source_segments": len(source_segments),
+            "draft_segments": len(draft_segments),
+            "out": os.path.abspath(args.out),
+        }
+    )
+    if args.report:
+        with open(args.report, "w", encoding="utf-8") as handle:
+            json.dump(report, handle, ensure_ascii=False, indent=2)
+    _print_json(report)
+    return 0
+
+
 def cmd_estimate(args: argparse.Namespace) -> int:
     books: List[Dict[str, Any]] = []
     if args.inventory:
@@ -346,6 +490,56 @@ def build_parser() -> argparse.ArgumentParser:
     reset_parser = queue_sub.add_parser("reset")
     reset_parser.add_argument("--db", default="data/literary_queue.db")
     reset_parser.set_defaults(func=cmd_queue_reset)
+
+    start_parser = queue_sub.add_parser("start", help="Create a queue job for a book")
+    start_parser.add_argument("--db", default="data/literary_queue.db")
+    start_parser.add_argument("--book-id", type=int, required=True)
+    start_parser.add_argument("--total-chapters", type=int, default=0)
+    start_parser.set_defaults(func=cmd_queue_start)
+
+    jobs_parser = queue_sub.add_parser("jobs", help="List queue jobs and upstream links")
+    jobs_parser.add_argument("--db", default="data/literary_queue.db")
+    jobs_parser.add_argument("--limit", type=int, default=50)
+    jobs_parser.set_defaults(func=cmd_queue_jobs)
+
+    attach_parser = queue_sub.add_parser("attach", help="Link a job to an upstream translation_id")
+    attach_parser.add_argument("--db", default="data/literary_queue.db")
+    attach_parser.add_argument("--job-id", type=int, required=True)
+    attach_parser.add_argument("--translation-id", required=True)
+    attach_parser.set_defaults(func=cmd_queue_attach)
+
+    sync_parser = queue_sub.add_parser("sync", help="Reconcile with data/jobs.db (read-only)")
+    sync_parser.add_argument("--db", default="data/literary_queue.db")
+    sync_parser.add_argument("--checkpoint-db", default="data/jobs.db")
+    sync_parser.set_defaults(func=cmd_queue_sync)
+
+    job_state_parser = queue_sub.add_parser("set-job-state")
+    job_state_parser.add_argument("--db", default="data/literary_queue.db")
+    job_state_parser.add_argument("--job-id", type=int, required=True)
+    job_state_parser.add_argument("--state", required=True)
+    job_state_parser.add_argument("--message", default="")
+    job_state_parser.set_defaults(func=cmd_queue_job_state)
+
+    refine_parser = sub.add_parser(
+        "refine",
+        help="Source-aware selective refinement for paragraph-aligned text",
+    )
+    refine_parser.add_argument("--source", required=True)
+    refine_parser.add_argument("--draft", required=True)
+    refine_parser.add_argument("--out", required=True)
+    refine_parser.add_argument("--root", default="literary-resources")
+    refine_parser.add_argument("--author", default="")
+    refine_parser.add_argument("--universe", default="")
+    refine_parser.add_argument("--subseries", default="")
+    refine_parser.add_argument("--book", default="")
+    refine_parser.add_argument("--model", required=True)
+    refine_parser.add_argument("--endpoint", default="http://localhost:11434")
+    refine_parser.add_argument("--temperature", type=float, default=0.0)
+    refine_parser.add_argument("--max-tokens", type=int, default=800)
+    refine_parser.add_argument("--limit", type=int, default=0)
+    refine_parser.add_argument("--dry-run", action="store_true")
+    refine_parser.add_argument("--report", default="")
+    refine_parser.set_defaults(func=cmd_refine)
 
     estimate = sub.add_parser("estimate", help="Cost estimate")
     estimate.add_argument("--words", type=int)

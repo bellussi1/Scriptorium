@@ -74,7 +74,10 @@ TranslateBooksWithLLMs application; the new layer is additive and lives under
 - Hierarchical YAML editorial resources with merge precedence, aliases,
   forbidden renderings, first-appearance filtering and compiled prompt assets.
 - Contextual glossary selection with a token budget.
-- Persistent SQLite book/chapter queue with idempotency and explicit states.
+- Persistent SQLite book/chapter queue with idempotency, explicit states and a
+  read-only `translation_id` sync with the upstream checkpoint database.
+- Source-aware selective refinement for paragraph-aligned text, with an
+  injected model call and a deterministic guard. EPUB writing is still separate.
 - Cost model calibrated on the user's EPUBs.
 - Deterministic translation and EPUB validators, including TOC-label checks.
 - Forbidden-rendering support in the upstream glossary prompt path.
@@ -123,5 +126,9 @@ TranslateBooksWithLLMs application; the new layer is additive and lives under
 - Issue: [hydropix/TranslateBooksWithLLMs#331](https://github.com/hydropix/TranslateBooksWithLLMs/issues/331)
   proposes series-aware resources, a persistent queue, a validation gate and
   selective refinement.
-- First scoped PR candidate: glossary `forbidden` support (loader, injector and
-  regression test). The larger slices wait for maintainer feedback before a PR.
+- Issue: [hydropix/TranslateBooksWithLLMs#332](https://github.com/hydropix/TranslateBooksWithLLMs/issues/332)
+  reports the attribution metadata error caught by EPUBCheck 5.4.0.
+- First scoped PR candidates: glossary `forbidden` support (loader, injector and
+  regression test) and the EPUB attribution fix. The attribution fix is tested
+  locally on branch `fix/epub-contributor-role` (commit `513b574`), not pushed.
+  The larger slices wait for maintainer feedback before a PR.

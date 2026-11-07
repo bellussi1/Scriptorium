@@ -286,6 +286,13 @@ refinement; it also warns that refinement gains are mostly fluency/style, with
 limited accuracy improvement. That is exactly why the reviewer must see the
 source and why a validator, not the refiner, decides what is “fixed”.
 
+**Implementation status (2026-11-07).** `src/literary/refine_runner.py` implements
+the segment selector, the Ollama client and the auditable report; the
+`literary refine` CLI applies accepted replacements to paragraph-aligned text.
+The guard now normalizes number words (`3` and `três` are equivalent), after a
+real false positive on a Hy-MT2 refinement. EPUB-level application and the
+upstream `refine_after` hook are still pending.
+
 ## 8. Persistent queue
 
 `src/literary/queue.py` uses a separate SQLite database
@@ -316,8 +323,12 @@ Properties:
 - **Chapter-level:** a failed chapter does not invalidate the book.
 - **No book text in the queue:** only paths and hashes, so logs and DB dumps are
   safer.
-- **Upstream link:** a job stores the upstream `translation_id`; the two
-  checkpoint systems are reconciled by chapter/source hash.
+- **Upstream link:** a job stores the upstream `translation_id`. `queue attach`
+  links a job and `queue sync` reconciles status and chunk progress read-only
+  from `data/jobs.db` (running → translating, paused/interrupted → paused,
+  error → failed, partial → needs_review, completed → validating). Chunk-to-
+  chapter mapping and automatic job launching are still pending; the queue
+  records the upstream chunk counts in `checkpoint_json`.
 - **Saga order:** `series.yaml` supplies order; `priority` allows manual
   override.
 - **Budget:** estimated cost is stored before the run; actual cost is appended

@@ -55,7 +55,7 @@ def test_guard_rejects_omission_number_and_forbidden():
     guard = apply_guard(
         "Fitz rode for 3 days.",
         "Fitz Chivalry cavalgou por 3 dias.",
-        "Ele viajou por três dias.",
+        "Ele viajou por cinco dias.",
         compiled=_compiled(),
     )
     assert not guard.ok
@@ -73,7 +73,7 @@ def test_guard_rejects_omission_number_and_forbidden():
 
 def test_refine_with_guard_keeps_draft_when_rewrite_is_too_large():
     def generate(_messages):
-        return "Ele viajou por três dias e nunca mais voltou."
+        return "Ele viajou por cinco dias e nunca mais voltou."
 
     result = refine_with_guard(
         "Fitz rode for 3 days.",

@@ -240,11 +240,42 @@ attribute, or keep the role through a canonical
 `<meta refines="#tbl-translator" property="role" scheme="marc:relators">`
 element. The fix is not applied in this fork yet.
 
+### 2.9 Source-aware selective refinement
+
+The source-aware runner is wired to a text CLI:
+
+```bash
+python -m src.literary.cli refine \
+  --source data/smoke/refine_test/source.txt \
+  --draft data/smoke/refine_test/draft.txt \
+  --out data/smoke/refine_test/refined.txt \
+  --author robin-hobb --universe realm-of-the-elderlings \
+  --subseries farseer --book assassins-apprentice \
+  --model hf.co/tencent/Hy-MT2-7B-GGUF:Q4_K_M \
+  --temperature 0.0
+```
+
+Synthetic test: the source has `FitzChivalry Farseer`, the digit `3`, and the
+glossary term `The Fool → Bobo`; the draft deliberately contains the forbidden
+`Fitz Chivalry`, omits the digit, and uses `dois`. The deterministic flags found
+five issues. Hy-MT2 revised the paragraph to:
+
+> FitzChivalry Farseer cavalgou por três dias até Buckkeep. O Bobo esperava.
+
+The guard accepted the edit (11.3% edit ratio, no number loss after the new
+number-word normalization) and rejected no content. This is the key difference
+from the blind upstream refine: the model saw the source and the exact flagged
+issues, and the guard had the final say. EPUB-level application is still a
+separate writer step.
+
 ## 3. What is not implemented
 
-- Full queue integration with the upstream `translation_id`; the queue currently
-  plans/tracks, it does not launch jobs.
-- Source-aware selective refinement; only designed and priced.
+- Automatic queue-driven job launching; the queue now stores the upstream
+  `translation_id` and reconciles status/progress read-only through `queue
+  sync`, but it does not launch the upstream runner yet.
+- Source-aware selective refinement is implemented and tested on
+  paragraph-aligned text; the upstream `refine_after` path and an EPUB-level
+  writer are not wired to it yet.
 - Narrative memory; only designed.
 - EPUBCheck is available in a Java 17 container and was run manually, but it is
   not wired as an automatic gate in the pipeline.

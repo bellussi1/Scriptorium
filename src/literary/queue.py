@@ -12,6 +12,7 @@ import json
 import os
 import sqlite3
 import threading
+from collections import deque
 from datetime import datetime, timezone
 from typing import Any, Dict, Iterable, List, Optional
 
@@ -41,6 +42,38 @@ ALLOWED_TRANSITIONS = {
     "needs_review": {"reviewing", "validating", "translating", "paused", "completed"},
     "completed": set(),
 }
+
+# Upstream checkpoint statuses -> queue editorial states. A completed upstream
+# job still has to pass the literary validator before the queue calls it done.
+UPSTREAM_STATE_MAP = {
+    "running": "translating",
+    "paused": "paused",
+    "interrupted": "paused",
+    "error": "failed",
+    "partial": "needs_review",
+    "completed": "validating",
+}
+
+
+def _transition_path(current: str, target: str, max_steps: int = 4) -> List[str]:
+    """Find a short path through ALLOWED_TRANSITIONS, or return []."""
+    if current == target:
+        return [target]
+    if current not in ALLOWED_TRANSITIONS:
+        return []
+    queue = deque([(current, [])])
+    seen = {current}
+    while queue:
+        state, path = queue.popleft()
+        if len(path) >= max_steps:
+            continue
+        for nxt in ALLOWED_TRANSITIONS.get(state, set()):
+            if nxt == target:
+                return path + [nxt]
+            if nxt not in seen:
+                seen.add(nxt)
+                queue.append((nxt, path + [nxt]))
+    return []
 
 
 def hash_file(path: str) -> str:
@@ -104,6 +137,7 @@ class QueueStore:
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     book_id INTEGER NOT NULL REFERENCES books(id) ON DELETE CASCADE,
                     state TEXT NOT NULL DEFAULT 'pending',
+                    translation_id TEXT NOT NULL DEFAULT '',
                     current_chapter INTEGER NOT NULL DEFAULT 0,
                     total_chapters INTEGER NOT NULL DEFAULT 0,
                     checkpoint_json TEXT NOT NULL DEFAULT '{}',
@@ -136,6 +170,18 @@ class QueueStore:
                     created_at TEXT NOT NULL
                 );
                 """
+            )
+            # Migration for databases created before the upstream link existed.
+            job_columns = {
+                row["name"] for row in conn.execute("PRAGMA table_info(jobs)")
+            }
+            if "translation_id" not in job_columns:
+                conn.execute(
+                    "ALTER TABLE jobs ADD COLUMN translation_id TEXT NOT NULL DEFAULT ''"
+                )
+            conn.execute(
+                "CREATE UNIQUE INDEX IF NOT EXISTS idx_jobs_translation_id "
+                "ON jobs(translation_id) WHERE translation_id <> ''"
             )
             conn.commit()
 
@@ -267,6 +313,246 @@ class QueueStore:
             conn.commit()
             return int(cur.lastrowid)
 
+    def attach_translation_id(self, job_id: int, translation_id: str) -> bool:
+        """Link a queue job to the upstream ``translation_id`` (idempotent)."""
+        translation_id = (translation_id or "").strip()
+        if not translation_id:
+            raise ValueError("translation_id is required")
+        now = utc_now()
+        with self._lock, self._connect() as conn:
+            row = conn.execute(
+                "SELECT translation_id FROM jobs WHERE id = ?", (job_id,)
+            ).fetchone()
+            if not row:
+                return False
+            existing = (row["translation_id"] or "").strip()
+            if existing and existing != translation_id:
+                raise ValueError(
+                    f"Job {job_id} is already linked to {existing}"
+                )
+            conflict = conn.execute(
+                "SELECT id FROM jobs WHERE translation_id = ? AND id <> ?",
+                (translation_id, job_id),
+            ).fetchone()
+            if conflict:
+                raise ValueError(
+                    f"translation_id {translation_id} is already linked to job {conflict['id']}"
+                )
+            conn.execute(
+                "UPDATE jobs SET translation_id = ?, updated_at = ? WHERE id = ?",
+                (translation_id, now, job_id),
+            )
+            book_id = conn.execute(
+                "SELECT book_id FROM jobs WHERE id = ?", (job_id,)
+            ).fetchone()["book_id"]
+            conn.execute(
+                "INSERT INTO events (book_id, job_id, level, message, created_at) "
+                "VALUES (?, ?, 'info', ?, ?)",
+                (book_id, job_id, f"linked to upstream translation_id {translation_id}", now),
+            )
+            conn.commit()
+            return True
+
+    def get_job_by_translation_id(self, translation_id: str) -> Optional[Dict[str, Any]]:
+        with self._connect() as conn:
+            row = conn.execute(
+                "SELECT * FROM jobs WHERE translation_id = ?",
+                ((translation_id or "").strip(),),
+            ).fetchone()
+            return dict(row) if row else None
+
+    def list_jobs(self, limit: int = 200) -> List[Dict[str, Any]]:
+        with self._connect() as conn:
+            rows = conn.execute(
+                """
+                SELECT j.*, b.title AS book_title, b.author, b.series, b.series_index
+                FROM jobs j
+                JOIN books b ON b.id = j.book_id
+                ORDER BY j.id DESC
+                LIMIT ?
+                """,
+                (max(1, min(int(limit), 500)),),
+            ).fetchall()
+            return [dict(row) for row in rows]
+
+    def sync_from_upstream(self, checkpoint_db_path: str = "data/jobs.db") -> Dict[str, Any]:
+        """Reconcile queue jobs with the upstream checkpoint database.
+
+        Read-only on the upstream side. The upstream ``translation_jobs`` table
+        is the authority for status and chunk counts; the queue keeps its own
+        editorial states and chapter rows. Completed upstream jobs move to
+        ``validating`` so a validator can decide between ``completed`` and
+        ``needs_review``.
+        """
+        path = os.path.abspath(checkpoint_db_path)
+        report: Dict[str, Any] = {
+            "checkpoint_db": path,
+            "checked": 0,
+            "matched": 0,
+            "updated": 0,
+            "unmatched": [],
+            "error": "",
+        }
+        if not os.path.exists(path):
+            report["error"] = "checkpoint database not found"
+            return report
+
+        upstream = sqlite3.connect(f"file:{path}?mode=ro", uri=True)
+        upstream.row_factory = sqlite3.Row
+        try:
+            rows = upstream.execute(
+                "SELECT translation_id, status, progress, updated_at "
+                "FROM translation_jobs ORDER BY updated_at DESC"
+            ).fetchall()
+        except sqlite3.Error as exc:
+            report["error"] = str(exc)
+            return report
+        finally:
+            upstream.close()
+
+        now = utc_now()
+        with self._lock, self._connect() as conn:
+            for row in rows:
+                report["checked"] += 1
+                translation_id = row["translation_id"]
+                job = conn.execute(
+                    "SELECT * FROM jobs WHERE translation_id = ?",
+                    (translation_id,),
+                ).fetchone()
+                if not job:
+                    report["unmatched"].append(translation_id)
+                    continue
+                report["matched"] += 1
+
+                progress = json.loads(row["progress"] or "{}")
+                target_state = UPSTREAM_STATE_MAP.get(row["status"], "needs_review")
+                checkpoint = json.loads(job["checkpoint_json"] or "{}")
+                upstream_payload = {
+                    "upstream_status": row["status"],
+                    "upstream_current_chunk": progress.get("current_chunk_index"),
+                    "upstream_total_chunks": progress.get("total_chunks"),
+                    "upstream_completed_chunks": progress.get("completed_chunks"),
+                    "upstream_failed_chunks": progress.get("failed_chunks"),
+                    "upstream_updated_at": row["updated_at"],
+                }
+                current_chapter = int(
+                    progress.get("completed_chunks")
+                    if progress.get("completed_chunks") is not None
+                    else job["current_chapter"] or 0
+                )
+                total_chapters = int(
+                    progress.get("total_chunks")
+                    if progress.get("total_chunks") is not None
+                    else job["total_chapters"] or 0
+                )
+
+                state_changed = self._sync_job_state(
+                    conn,
+                    job,
+                    target_state,
+                    now,
+                    f"sync: upstream {row['status']} "
+                    f"({current_chapter}/{total_chapters} chunks)",
+                )
+                book = conn.execute(
+                    "SELECT status FROM books WHERE id = ?", (job["book_id"],)
+                ).fetchone()
+                book_changed = False
+                if book and book["status"] != target_state:
+                    if book["status"] == "completed":
+                        conn.execute(
+                            "INSERT INTO events (book_id, job_id, level, message, created_at) "
+                            "VALUES (?, ?, 'warning', ?, ?)",
+                            (
+                                job["book_id"],
+                                job["id"],
+                                f"sync ignored: completed book cannot return to {target_state}",
+                                now,
+                            ),
+                        )
+                    else:
+                        conn.execute(
+                            "UPDATE books SET status = ?, updated_at = ? WHERE id = ?",
+                            (target_state, now, job["book_id"]),
+                        )
+                        conn.execute(
+                            "INSERT INTO events (book_id, job_id, level, message, created_at) "
+                            "VALUES (?, ?, 'info', ?, ?)",
+                            (
+                                job["book_id"],
+                                job["id"],
+                                f"book state -> {target_state}: sync",
+                                now,
+                            ),
+                        )
+                        book_changed = True
+
+                progress_changed = (
+                    job["current_chapter"] != current_chapter
+                    or job["total_chapters"] != total_chapters
+                    or any(
+                        checkpoint.get(key) != value
+                        for key, value in upstream_payload.items()
+                    )
+                )
+                checkpoint.update(upstream_payload)
+                checkpoint["last_sync_at"] = now
+                serialized_checkpoint = json.dumps(checkpoint, ensure_ascii=False)
+                conn.execute(
+                    "UPDATE jobs SET current_chapter = ?, total_chapters = ?, "
+                    "checkpoint_json = ?, updated_at = ? WHERE id = ?",
+                    (
+                        current_chapter,
+                        total_chapters,
+                        serialized_checkpoint,
+                        now,
+                        job["id"],
+                    ),
+                )
+                if state_changed or book_changed or progress_changed:
+                    report["updated"] += 1
+            conn.commit()
+        return report
+
+    def _sync_job_state(
+        self,
+        conn: sqlite3.Connection,
+        job: sqlite3.Row,
+        target: str,
+        now: str,
+        message: str,
+    ) -> bool:
+        current = job["state"]
+        if current == target:
+            return False
+        if current == "completed":
+            conn.execute(
+                "INSERT INTO events (book_id, job_id, level, message, created_at) "
+                "VALUES (?, ?, 'warning', ?, ?)",
+                (
+                    job["book_id"],
+                    job["id"],
+                    f"sync ignored: completed job cannot return to {target}",
+                    now,
+                ),
+            )
+            return False
+        path = _transition_path(current, target)
+        if not path:
+            path = [target]
+            message += " (forced transition)"
+        for state in path:
+            conn.execute(
+                "UPDATE jobs SET state = ?, updated_at = ? WHERE id = ?",
+                (state, now, job["id"]),
+            )
+            conn.execute(
+                "INSERT INTO events (book_id, job_id, level, message, created_at) "
+                "VALUES (?, ?, 'info', ?, ?)",
+                (job["book_id"], job["id"], f"state -> {state}: {message}", now),
+            )
+        return True
+
     def get_job(self, job_id: int) -> Optional[Dict[str, Any]]:
         with self._connect() as conn:
             row = conn.execute("SELECT * FROM jobs WHERE id = ?", (job_id,)).fetchone()
@@ -387,6 +673,23 @@ class QueueStore:
                 "actual_cost": round(float(totals["cost"]), 4),
                 "by_status": counts,
             }
+
+    def add_event(
+        self,
+        message: str,
+        *,
+        book_id: Optional[int] = None,
+        job_id: Optional[int] = None,
+        level: str = "info",
+    ) -> None:
+        now = utc_now()
+        with self._lock, self._connect() as conn:
+            conn.execute(
+                "INSERT INTO events (book_id, job_id, level, message, created_at) "
+                "VALUES (?, ?, ?, ?, ?)",
+                (book_id, job_id, level, message, now),
+            )
+            conn.commit()
 
     def events(self, book_id: Optional[int] = None, limit: int = 100) -> List[Dict[str, Any]]:
         with self._connect() as conn:

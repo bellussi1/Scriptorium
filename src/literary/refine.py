@@ -16,7 +16,7 @@ from dataclasses import dataclass, field
 from typing import Any, Callable, Dict, Iterable, List, Optional, Sequence
 
 from .models import CompiledResources, Severity, ValidationIssue
-from .validation import _numbers, _placeholders, detect_language
+from .validation import _placeholders, detect_language, numeric_tokens
 
 _NUMBER_RE = re.compile(r"\d+(?:[.,]\d+)*")
 _EN_STOPWORDS = {
@@ -170,8 +170,8 @@ def apply_guard(
     if ratio < min_length_ratio or ratio > max_length_ratio:
         reasons.append(f"length ratio {ratio:.2f} outside [{min_length_ratio}, {max_length_ratio}]")
 
-    source_numbers = _numbers(source)
-    revised_numbers = _numbers(revised)
+    source_numbers = numeric_tokens(source)
+    revised_numbers = numeric_tokens(revised)
     missing = source_numbers - revised_numbers
     if missing:
         reasons.append(f"source numbers missing: {dict(missing)}")

@@ -45,7 +45,7 @@
 | 6.1 | Choose pilot: one chapter of Sun Eater 2 or Lonesome Dove | Test the whole pipeline on a representative text | S | Phase 4/5 | Written pilot brief |
 | 6.2 | Compile glossary + style + cost preview | Preflight | S | Resources | `estimated_cost` and budget cap stored |
 | 6.3 | Translate with the selected local model | Quality/cost baseline | M | 4.7 | Checkpoints per chapter; no lost work |
-| 6.4 | Validate and selectively refine | Test the quality gate | M | 6.3 | Gate report; no silent fallback |
+| 6.4 | Validate and selectively refine | Test the quality gate | M | 6.3 | **Partially done 2026-11-07.** Source-aware runner and guard are implemented and tested on a synthetic paragraph; a real pilot chapter is still pending |
 | 6.5 | Rebuild EPUB, run structural check/EPUBCheck | Reader safety | S | 6.4 | Valid EPUB; TOC labels correct |
 | 6.6 | Read in Calibre and KOReader | Real-world check | S | 6.5 | Notes on layout, TOC, italics, links, notes |
 | 6.7 | Editorial review and acceptance | Human decision | M | 6.6 | Signed-off pilot or rejection with reasons |
@@ -56,10 +56,10 @@
 
 | # | Task | Why | Effort | Dependency | Acceptance |
 |---|---|---|---|---|---|
-| 7.1 | Wire the persistent queue to upstream `translation_id` | The queue must actually drive jobs | M | 6.7 | A paused/resumed book keeps chapter state |
+| 7.1 | Wire the persistent queue to upstream `translation_id` | The queue must actually drive jobs | M | 6.7 | **Partially done 2026-11-07.** Jobs store the upstream `translation_id`; `queue sync` reconciles status and chunk progress read-only from `data/jobs.db`. Automatic job launching and chunk-to-chapter mapping are still pending |
 | 7.2 | Add budget gate and per-chapter cost logging | Avoid surprise spend | S | 7.1 | Job refuses to exceed cap |
 | 7.3 | Add the review/approval UI | Human gate | M | 7.1 | Chapter can be approved/rejected without re-running the book |
-| 7.4 | Automate EPUBCheck | Structural safety | S | JDK 17 + EPUBCheck | CI/queue gate |
+| 7.4 | Automate EPUBCheck | Structural safety | S | JDK 17 + EPUBCheck | **Partially done 2026-11-07.** EPUBCheck 5.4.0 runs in a Java 17 container and found the upstream attribution bug; it is not yet wired as an automatic queue gate |
 | 7.5 | Add saga-level reports | Editorial control | M | 7.1 | Per-book/per-series quality and cost |
 | 7.6 | Translate the first approved saga in order | Production | L | 7.1–7.5 | All acceptance criteria below |
 
@@ -84,7 +84,7 @@
 | Persistent glossary per saga | Hierarchical YAML + compiler | Initial resources created |
 | Terminology across books | `first_appearance`, aliases, forbidden, versionable YAML | Initial; needs expansion |
 | Style differences preserved | Universe/subseries/book profiles | Initial; provisional subseries |
-| Resume interrupted translation | Upstream checkpoints + new queue | Upstream proven; queue integration pending |
+| Resume interrupted translation | Upstream checkpoints + new queue | Upstream proven; `translation_id` sync implemented, automatic runner pending |
 | Valid, readable EPUB | Structural validator + upstream reconstruction | Proven structural; EPUBCheck pending |
 | Catch important errors | Deterministic gates + rubric | TOC corruption caught; pilot errors documented |
 | Compare models objectively | `benchmark/literary` + rubric | Harness + pilot done; full round pending |
