@@ -1,0 +1,13 @@
+# Calibre metadata correction plan (reviewed; applied through calibredb).
+# The PT file is the user's own unreviewed draft, not an official edition.
+series: Lonesome Dove
+author_sort: McMurtry, Larry
+books:
+  - calibre_id: 311
+    title: Lonesome Dove
+    language: eng
+    note: "English original. No series link; keep it standalone for now."
+  - calibre_id: 405
+    title: Pombo Solitário
+    language: por
+    note: "User's unreviewed PT-BR draft; title from the draft's title page."

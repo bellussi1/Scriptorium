@@ -24,9 +24,10 @@ The local corpus is built from the user's EPUBs and stored under
   human-curated corpus.
 - Selection is the first three long spine documents per book; it is not a
   random sample and over-represents chapter openings.
-- No aligned Portuguese references were added in the pilot. The official PT
-  editions exist for Lonesome Dove, Farseer 1 and Sun Eater 1; alignment is the
-  next step.
+- No aligned Portuguese references were added in the pilot. Official PT
+  editions exist for Farseer 1 and Sun Eater 1. The Lonesome Dove PT file is the
+  user's own unreviewed draft and cannot be used as a gold reference; it can
+  only support the user's revision.
 
 Reproduce:
 
@@ -194,9 +195,11 @@ correct result: a fluent output is not a passing output.
 1. **Curate the corpus:** 12–20 excerpts, at least two consecutive passages per
    book, with categories reviewed by hand. Add poetry/epigraph and a document
    fiction sample if present.
-2. **Align references:** use the official PT editions for Lonesome Dove,
-   Farseer 1 and Sun Eater 1; align at paragraph/sentence level and record the
-   alignment confidence. Do not use fan translations as gold.
+2. **Align references:** use the official PT editions for Farseer 1 and Sun
+   Eater 1; align at paragraph/sentence level and record the alignment
+   confidence. Do not use fan translations or the user's unreviewed Lonesome
+   Dove draft as gold. The Lonesome draft can be evaluated separately as a
+   revision aid, never as a reference standard.
 3. **Install/test Hy-MT2-7B and Index-Translate-9B** after explicit download
    approval. Test 4K and 8K contexts; record VRAM and tokens/s.
 4. **Cloud round:** Gemini 3.8 Flash, DeepSeek V4.1 Flash (only with a privacy

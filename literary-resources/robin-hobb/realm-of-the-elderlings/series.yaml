@@ -7,8 +7,9 @@ notes: >-
   is the recommended first-read and first-translation order. The library has
   English originals for all five subseries and official Brazilian editions for
   the three Farseer volumes. The Rain Wild Chronicles is present as a single
-  omnibus (Calibre 331) containing four novels; split it before producing a
-  per-novel queue.
+  omnibus (Calibre 331) containing four novels. It is deferred by the user and
+  is not in the active queue; if it is revisited, split the omnibus before
+  producing a per-novel queue.
 books:
   - slug: assassins-apprentice
     title: Assassin's Apprentice
@@ -21,14 +22,14 @@ books:
     title: Royal Assassin
     order: 2
     kind: novel
-    pt_title: Assassino Real
+    pt_title: O Assassino do Rei
     status: translated_official
     notes: "Farseer 2. EN Calibre 329; official PT Calibre 92."
   - slug: assassins-quest
     title: Assassin's Quest
     order: 3
     kind: novel
-    pt_title: A Busca do Assassino
+    pt_title: A Fúria do Assassino
     status: translated_official
     notes: "Farseer 3. EN Calibre 338; official PT Calibre 71."
   - slug: ship-of-magic
@@ -71,26 +72,26 @@ books:
     title: Dragon Keeper
     order: 10
     kind: novel
-    status: omnibus_in_library
-    notes: "Rain Wild 1. In the Calibre 331 omnibus."
+    status: deferred
+    notes: "Rain Wild 1. Deferred by the user on 2026-11-07; do not queue."
   - slug: dragon-haven
     title: Dragon Haven
     order: 11
     kind: novel
-    status: omnibus_in_library
-    notes: "Rain Wild 2. In the Calibre 331 omnibus."
+    status: deferred
+    notes: "Rain Wild 2. Deferred by the user on 2026-11-07; do not queue."
   - slug: city-of-dragons
     title: City of Dragons
     order: 12
     kind: novel
-    status: omnibus_in_library
-    notes: "Rain Wild 3. In the Calibre 331 omnibus."
+    status: deferred
+    notes: "Rain Wild 3. Deferred by the user on 2026-11-07; do not queue."
   - slug: blood-of-dragons
     title: Blood of Dragons
     order: 13
     kind: novel
-    status: omnibus_in_library
-    notes: "Rain Wild 4. In the Calibre 331 omnibus."
+    status: deferred
+    notes: "Rain Wild 4. Deferred by the user on 2026-11-07; do not queue."
   - slug: fools-assassin
     title: Fool's Assassin
     order: 14

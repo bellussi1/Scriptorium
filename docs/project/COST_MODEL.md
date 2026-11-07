@@ -6,7 +6,8 @@ the same date. All values are USD. The model is implemented in
 
 ## 1. Why a word-to-token conversion would be wrong
 
-The English word count falls by about 3% in the official Portuguese editions,
+The English word count falls by about 3% in the Portuguese samples (official
+editions for Farseer/Sun Eater; the user's unreviewed draft for Lonesome Dove),
 but the **token count rises**. Portuguese accents, contractions and word forms
 tokenize worse under `cl100k_base`. Using a word ratio would underestimate the
 output cost.
@@ -98,9 +99,11 @@ novel is not made cheaper by saving $20 on the API.
 | Hobb + Sun Eater main | 5,006,200 | $15.32 | $7.66 | $35.28 | $46.05 | $23.02 | $103.50 | $10.35 | $0 |
 | All target books incl. Lonesome (hypothetical retranslation) | 5,561,546 | $17.01 | $8.51 | $39.19 | $51.16 | $25.58 | $114.98 | $11.50 | $0 |
 
-The last row is a sensitivity case only: Lonesome Dove already has an official
-PT edition and Farseer 1–3 already have official PT editions, so they are not in
-the production translation queue. They are reference/benchmark material.
+The last row is a sensitivity case only: Lonesome Dove has the user's unreviewed
+PT draft, not an official edition, and Farseer 1–3 already have official PT
+editions. They are not in the production translation queue; they are
+reference/benchmark material. Rain Wild is included in the Hobb total as a
+sensitivity but is deferred by the user and is not in the active queue.
 
 ### Context-rich conservative variant
 

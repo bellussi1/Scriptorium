@@ -105,15 +105,20 @@ any cloud run. Do not send copyrighted books to DeepSeek without informed
 consent. Do not use key rotation to evade limits.
 **Consequences.** Slower initial experiments; avoids legal/privacy surprises.
 
-## ADR-011 — No Calibre database writes
+## ADR-011 — Calibre writes only through the official flow
 
 **Context.** The library is the user's archive; a bad write can corrupt
-metadata or lose data.
-**Decision.** Read `metadata.db` with SQLite `mode=ro`; never write. Correct
-metadata on generated EPUB copies; if Calibre needs updating, use the official
-`calibredb` flow only after explicit approval.
-**Consequences.** The original library stays intact; the queue uses
-`series.yaml` as the source of truth for order.
+metadata or lose data. The user has nevertheless authorized correcting and
+standardizing metadata.
+**Decision.** Read `metadata.db` with SQLite `mode=ro`; never write SQL against
+it. Metadata corrections go through `calibredb set_metadata` only after explicit
+approval. Back up `metadata.db` before every run, record a before/after report,
+and keep the original EPUB files unchanged. Correct metadata on generated EPUB
+copies through `src.literary.epub.update_opf_metadata`.
+**Consequences.** The original library stays recoverable; the queue uses
+`series.yaml` as the source of truth for order. Applied on 2026-11-07: 28
+records, 0 mismatches, backup
+`data/calibre/backup/metadata-20261107-200323.db`.
 
 ## ADR-012 — EPUBCheck is a gate, but not installed yet
 

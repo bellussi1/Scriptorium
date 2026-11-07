@@ -18,7 +18,7 @@
 |---|---|---|---|---|---|
 | 4.1 | Approve and download Hy-MT2-7B Q4_K_M and Index-Translate-9B Q4_K_M | The two strongest local candidates cannot be selected without testing | S (download) + M (test) | User approval for ~10 GB download | Both run in Ollama/llama.cpp at 4K and 8K; VRAM/tokens per second recorded |
 | 4.2 | Curate 12–20 excerpts with human-reviewed categories and 2 consecutive passages per book | The current 15 are auto-selected and isolated | M | Local EPUBs | Corpus reviewed; category and continuity coverage documented |
-| 4.3 | Align official PT references for Lonesome Dove, Farseer 1, Sun Eater 1 | chrF/reference-based comparison needs alignment | M | Official PT editions | Paragraph alignment with confidence; no fan translation as gold |
+| 4.3 | Align official PT references for Farseer 1 and Sun Eater 1; keep the Lonesome Dove draft as a separate revision aid | chrF/reference-based comparison needs alignment | M | Official PT editions; user's unreviewed Lonesome draft | Paragraph alignment with confidence; no fan translation or unreviewed draft as gold |
 | 4.4 | Run the local benchmark with native and glossary/style rounds | Separate model capability from instruction-following | M | 4.1–4.3 | Results for TranslateGemma, Qwen3 8B/14B, Hy-MT2, Index at temperature 0 and one repeat |
 | 4.5 | Approve a cloud budget and run Gemini 3.8 Flash, DeepSeek V4.1 Flash, GPT-6 Luna, Claude Haiku 5.5 | Cloud decision needs PT-BR evidence, not just vendor claims | M | User budget approval | Actual tokens/cost logged; hard cap enforced |
 | 4.6 | Blind judge + human spot-check | Avoid LLM-judge self-preference and fluency bias | M | 4.4–4.5 | Six-dimension scores, gates, confidence, disagreement reported |
@@ -31,11 +31,11 @@
 | # | Task | Why | Effort | Dependency | Acceptance |
 |---|---|---|---|---|---|
 | 5.1 | Expand the Farseer glossary using the three official PT editions | Names/terms are verified; many secondary terms are still missing | M | Read-only library | Reviewed terms with source_reference and confidence |
-| 5.2 | Expand the Lonesome Dove glossary | Confirmed names/places; regional/fauna vocabulary still needs decisions | M | Read-only library | Approved terms + forbidden renderings |
+| 5.2 | Review and expand the Lonesome Dove glossary | Names/places are provisional from the user's unreviewed draft; regional/fauna vocabulary still needs decisions | M | Read-only library; user review | Approved terms + forbidden renderings |
 | 5.3 | Expand the Sun Eater glossary | Only book 1 PT is available; later terms need provisional marking | M | Read-only library | Series glossary with first_appearance |
 | 5.4 | Validate the provisional Hobb subseries profiles against 3 chapters each | Current profiles are structural priors | M | EN books | Revised profiles or explicit “provisional” status |
-| 5.5 | Build the Rain Wild omnibus split manifest | One EPUB contains four novels | S | EPUB structure | Four book units with chapter boundaries |
-| 5.6 | Produce a Sun Eater metadata correction plan | Calibre main novels lack series/index | S | Calibre inventory | YAML/CSV plan; no `metadata.db` write |
+| 5.5 | Build the Rain Wild omnibus split manifest | One EPUB contains four novels | S | EPUB structure | **Deferred by the user.** If revisited: four book units with chapter boundaries |
+| 5.6 | ~~Produce and apply a Calibre metadata correction plan for the target authors~~ | **Done 2026-11-07.** Calibre main novels lacked series/index; Lonesome PT had `author_sort = Unknown` | S | Calibre inventory; user authorization granted | 28 records applied through `calibredb`, 0 mismatches, backup kept, `targets.json` regenerated |
 | 5.7 | Define the PT-BR conventions checklist | Global style/terminology policy | S | Editorial review | Approved `global/pt-br-conventions.yaml` |
 
 ## Phase 6 — pilot translation

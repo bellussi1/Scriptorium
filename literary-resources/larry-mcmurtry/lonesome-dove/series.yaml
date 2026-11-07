@@ -4,7 +4,8 @@ author: Larry McMurtry
 universe: Lonesome Dove
 notes: >-
   The user's library contains the English original (Calibre 311) and the
-  official Brazilian edition (Calibre 405). Start with Lonesome Dove as a
+  user's own unreviewed Brazilian Portuguese draft (Calibre 405). The draft is
+  not an official edition and is not a gold reference. Start with Lonesome Dove as a
   standalone work. The other volumes are related but were not found in the
   library; do not queue them without the files. Publication order below is not
   chronological order: Dead Man's Walk and Comanche Moon are prequels.
@@ -14,10 +15,10 @@ books:
     order: 1
     kind: novel
     pt_title: Pombo Solitário
-    status: translated_official
+    status: human_draft_unreviewed
     notes: >-
-      Pulitzer Prize, 1985. The official Brazilian title is Pombo Solitário;
-      the ranch/place name Lonesome Dove stays in English inside the narrative.
+      Pulitzer Prize, 1985. The user's draft is titled Pombo Solitário; the ranch/place name Lonesome
+      Dove stays in English inside the narrative. Verify the title before any use.
   - slug: streets-of-laredo
     title: Streets of Laredo
     order: 2

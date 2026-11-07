@@ -35,5 +35,5 @@ evidence:
     - "Three-chapter Portuguese sample: 13,946 words; mean sentence 18.40; dialogue-paragraph ratio 0.45; no contraction equivalents; em dashes 21.87 per 1,000 words, largely dialogue punctuation."
   observations:
     - "The narrator alternates long comic catalogs with flat closing sentences; the humor depends on understatement and causal accumulation rather than on punchlines."
-    - "The published Portuguese keeps the comic architecture and concrete imagery, but standardizes dialect and occasionally explicates an elliptical connective."
+    - "The user's unreviewed PT draft keeps the comic architecture and concrete imagery, but standardizes dialect and occasionally explicates an elliptical connective; because the draft is unreviewed, treat this as a comparison draft, not a published reference."
     - "The local Portuguese sample is valid UTF-8; some review panes render the travessão and accents as replacement glyphs. Byte-level checks confirmed the underlying text is correct."

@@ -106,11 +106,11 @@ target EPUB scan is at `data/calibre/targets.json`. Both are gitignored.
 
 | Author | Work / series | Records | Languages | Notes |
 |---|---|---:|---|---|
-| Larry McMurtry | Lonesome Dove | 2 | EN + PT | EN Calibre 311; official PT Calibre 405. Duplicate title/author pair, not a duplicate edition. |
+| Larry McMurtry | Lonesome Dove | 2 | EN + PT draft | EN Calibre 311; the PT file (Calibre 405) is the user's own **unreviewed draft**, not an official edition and not a gold reference. Duplicate title/author pair, not a duplicate edition. |
 | Robin Hobb | The Farseer Trilogy | 6 | EN + PT (3 each) | Both editions for all three volumes. |
 | Robin Hobb | The Liveship Traders | 3 | EN | No PT in the library. |
 | Robin Hobb | The Tawny Man Trilogy | 3 | EN | No PT in the library. |
-| Robin Hobb | The Rain Wild Chronicles | 1 | EN | One omnibus containing four novels (Calibre 331). Split before per-novel queueing. |
+| Robin Hobb | The Rain Wild Chronicles | 1 | EN | One omnibus containing four novels (Calibre 331). **Deferred by the user; not in the active queue.** If revisited, split before per-novel queueing. |
 | Robin Hobb | The Fitz and the Fool Trilogy | 3 | EN | No PT in the library. |
 | Christopher Ruocchio | Sun Eater main novels | 7 | EN (6) + PT (1) | Book 1 is the official PT `Império do Silêncio` (Calibre 436); books 2–7 are EN. |
 | Christopher Ruocchio | Sun Eater novellas | 3 | EN | The Lesser Devil (1.5), Queen Amid Ashes (2.5), The Dregs of Empire (5.5). |
@@ -120,7 +120,7 @@ target EPUB scan is at `data/calibre/targets.json`. Both are gitignored.
 | Work | Words | Chapters / docs | Calibre |
 |---|---:|---:|---|
 | Lonesome Dove EN | 365,575 | 109 | 311 |
-| Lonesome Dove PT | 353,609 | 109 | 405 |
+| Lonesome Dove PT draft (user's, unreviewed) | 353,609 | 109 | 405 |
 | Assassin's Apprentice EN | 165,049 | 35 | 336 |
 | Assassin's Apprentice PT | 163,924 | 33 | 94 |
 | Royal Assassin EN | 260,533 | 39 | 329 |
@@ -155,27 +155,30 @@ TOC count for user-facing chapters.
 
 ### Metadata and structural issues found
 
-1. **Sun Eater main novels have no series link and all carry
-   `series_index = 1.0`.** The novellas are correctly linked to “The Sun Eater”
-   at 1.5 / 2.5 / 5.5. The queue uses
-   `literary-resources/christopher-ruocchio/sun-eater/series.yaml` as the source
-   of truth; Calibre was not edited. A dry-run correction plan is committed at
-   `literary-resources/christopher-ruocchio/sun-eater/metadata.yaml`; the
-   generated `data/calibre/sun-eater-metadata-plan.json` contains the exact
-   `calibredb set_metadata` commands but has not been executed. Review and back
-   up the library before any authorized run.
-2. **Lonesome Dove PT record has `author_sort = Unknown`.** The author field is
-   Larry McMurtry, but sorting and downstream filters can misbehave. Do not fix
-   `metadata.db` without authorization.
+1. **Calibre metadata was standardized on 2026-11-07.** `calibredb
+   set_metadata` updated 28 records for McMurtry, Hobb and Ruocchio: Sun Eater
+   main novels 2–7 now carry `The Sun Eater` and indices 2–7; the PT book 1
+   title is `Império do Silêncio`. The plans remain committed in each
+   `metadata.yaml`; the before/after report is
+   `data/calibre/metadata-apply-report.json` and the backup is
+   `data/calibre/backup/metadata-20261107-200323.db`. Direct SQL writes to
+   `metadata.db` remain forbidden.
+2. **Lonesome Dove PT was renamed `Pombo Solitário` and its `author_sort`
+   changed from `Unknown` to `McMurtry, Larry`.** The file is still the user's
+   unreviewed translation, not an official edition; it must not be used as a
+   reference for terminology or style without revision. The EPUB's internal
+   `dc:title` remains `Lonesome Dove`, so the inventory reports a known
+   informational mismatch.
 3. **Farseer EN/PT pairs look like duplicates to a naive title/author check.**
    They are bilingual pairs. The inventory now classifies same-language copies
    as duplicates and different-language copies as `[info] Bilingual pair`.
 4. **EPUB language tags differ from Calibre codes.** Calibre uses `por`, EPUBs
    use `pt` or `pt-BR`; the inventory normalizes ISO 639-1/2 codes before
    comparing.
-5. **The Rain Wild omnibus is one EPUB for four novels.** It must be split at
-   the four book boundaries before a per-novel queue; the current inventory
-   sees one 672,555-word book.
+5. **The Rain Wild omnibus is one EPUB for four novels.** It is deferred by the
+   user and is not in the active queue. If it is revisited, split it at the four
+   book boundaries before a per-novel queue; the current inventory sees one
+   672,555-word book.
 6. **The Sun Eater PT edition has a future-looking Calibre pubdate
    (2026-11-15) and an ASIN identifier.** Verify the edition and publication
    date before using it as a style/terminology reference; the text itself is
@@ -187,9 +190,10 @@ TOC count for user-facing chapters.
 ### Series order used by the roadmap
 
 - **Realm of the Elderlings:** Farseer (1–3) → Liveship Traders (4–6) → Tawny
-  Man (7–9) → Rain Wild (10–13) → Fitz and the Fool (14–16). Publication order
-  is the default translation and reading order. The optional novella *The
-  Willful Princess and the Piebald Prince* is not in the library.
+  Man (7–9) → Fitz and the Fool (14–16). Rain Wild (10–13) is deferred and is
+  **not** in the current priority order. Publication order is the default
+  translation and reading order. The optional novella *The Willful Princess and
+  the Piebald Prince* is not in the library.
 - **Sun Eater:** main novels 1–7; novellas 1.5, 2.5 and 5.5. The novellas are
   complementary, not prerequisites. Book 1 already exists in PT; the translation
   queue starts at book 2.

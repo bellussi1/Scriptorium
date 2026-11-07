@@ -3,6 +3,7 @@
 # calibredb run. The translated EPUBs get corrected metadata through
 # `src.literary.epub.update_opf_metadata`.
 series: The Sun Eater
+author_sort: Ruocchio, Christopher
 books:
   - calibre_id: 436
     title: Império do Silêncio

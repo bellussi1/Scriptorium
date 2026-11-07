@@ -1,8 +1,10 @@
 # Proof of concept: what was actually built and tested
 
 This document distinguishes **implemented and executed** from **planned**. No
-cloud API was called, no Calibre file was modified and no large model was
-downloaded.
+cloud API was called. On 2026-11-07 the user authorized a metadata-only Calibre
+update, which was applied through `calibredb` with a backup; the original EPUB
+files were not rewritten. No large model was downloaded beyond the local Ollama
+models already listed.
 
 ## 1. Implemented
 
@@ -85,7 +87,42 @@ docker compose -f docker-compose.dev.yml exec app \
 
 Result: 28 records, 28 EPUBs, 7,696,672 words, 6 series. The full metadata
 inventory (220 records) was also produced without scanning unrelated EPUB
-content. Calibre remained read-only.
+content. The inventory itself remains read-only.
+
+### 2.3.1 Calibre metadata standardization (applied 2026-11-07)
+
+```bash
+# Dry-run first; the report lists every planned change.
+python scripts/literary/apply_calibre_metadata.py \
+  --root literary-resources \
+  --library-path "C:/Users/Bellussi/Biblioteca do calibre" \
+  --out data/calibre/metadata-dryrun-report.json
+
+# Apply with an automatic metadata.db backup.
+python scripts/literary/apply_calibre_metadata.py \
+  --root literary-resources \
+  --library-path "C:/Users/Bellussi/Biblioteca do calibre" \
+  --backup-dir data/calibre/backup \
+  --out data/calibre/metadata-apply-report.json --apply
+```
+
+Result: 28 records updated through `calibredb set_metadata`, 28 executed, 0
+mismatches. Backup:
+`data/calibre/backup/metadata-20261107-200323.db`. The main corrections were:
+
+- Sun Eater novels 2–7 received `The Sun Eater` and indices 2–7; the PT book 1
+  title was normalized to `Império do Silêncio`.
+- Farseer PT titles were replaced with the titles on the editions' title pages:
+  `O Aprendiz de Assassino`, `O Assassino do Rei`, `A Fúria do Assassino`.
+- Lonesome Dove PT was renamed `Pombo Solitário`, its `author_sort` changed from
+  `Unknown` to `McMurtry, Larry`, and its language kept as `por`.
+- The Rain Wild omnibus kept its metadata (`The Rain Wild Chronicles`, index 1)
+  but remains deferred in the queue.
+
+`data/calibre/targets.json` was regenerated after the update: 28 records, 28
+EPUBs, 7,696,672 words, 6 series. The inventory reports four informational
+mismatches because the internal EPUB `dc:title` still carries the old title in
+the four PT files; the original EPUBs were deliberately not rewritten.
 
 ### 2.4 Resource compilation
 
@@ -185,9 +222,6 @@ not a failure of the POC.
 - Cloud model benchmark; no paid calls.
 - Hy-MT2 and Index-Translate tests; not installed.
 - Calibre/KOReader read test; not run.
-- Sun Eater metadata correction in Calibre; a dry-run plan
-  (`metadata.yaml` + `scripts/literary/metadata_plan.py`) was generated, but no
-  `calibredb` command was executed and `metadata.db` was not written.
 - Full-book translation; explicitly not authorized.
 
 ## 4. Reproduce

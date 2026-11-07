@@ -20,9 +20,10 @@ The local corpus contains the first three long spine documents of each available
 
 The comparison set is uneven:
 
-- **Aligned English/Portuguese pairs:** *Lonesome Dove*, *Assassin's Apprentice*, and *Royal Assassin*.
+- **Farseer pairs:** *Assassin's Apprentice* and *Royal Assassin* (published PT editions).
+- **Lonesome Dove:** the English original plus the user's own unreviewed PT draft. It is **not** an official edition and cannot serve as a gold reference; it is useful only as a draft comparison for the user's revision.
 - **English only:** *Howling Dark* and *Demon in White*.
-- **Portuguese only:** *Império do Silêncio*, the translation of the first *Sun Eater* book.
+- **Portuguese only:** *Império do Silêncio*, the published translation of the first *Sun Eater* book.
 
 The *Sun Eater* Portuguese comparison is therefore cross-book. It can describe translation strategy and register, but it cannot measure sentence-level equivalence between an English source and its Portuguese rendering. The *Royal Assassin* sample opens with the prologue, not chapter one; its prose is more essayistic than the novel's action chapters, and the sample metrics reflect that.
 
@@ -34,7 +35,7 @@ Counts were made with `scripts/literary/style_metrics.py` and `scripts/literary/
 
 The full-book figures in Section 3.1 were supplied by the project's earlier measurement pass and are treated as the stable baseline. The three-chapter figures in Sections 3.2 to 3.5 were measured for this brief. They are useful for comparing editions under the same script, not for estimating the whole book.
 
-Contraction counts cover English auxiliary and negative contractions. Portuguese has no direct equivalent, so the Portuguese contraction column is zero by construction and should not be read as a stylistic absence. Em-dash counts mix dialogue punctuation with asides; the Portuguese editions use the travessão for speech, which roughly doubles the dash count. The dash figures are therefore evidence about typographic convention, not about prose rhythm.
+Contraction counts cover English auxiliary and negative contractions. Portuguese has no direct equivalent, so the Portuguese contraction column is zero by construction and should not be read as a stylistic absence. Em-dash counts mix dialogue punctuation with asides; the Portuguese samples use the travessão for speech, which roughly doubles the dash count. The dash figures are therefore evidence about typographic convention, not about prose rhythm.
 
 ### 2.3 Labels
 
@@ -47,7 +48,7 @@ Contraction counts cover English auxiliary and negative contractions. Portuguese
 
 - **Three chapters, not the whole book.** The samples are long enough to characterize voice and scene rhythm, but not long enough to prove that a tendency holds across a 300,000-word novel.
 - **Chapter one is not a random sample.** It carries more exposition, backstory, and framing than an average chapter. The full-book metrics are the better baseline.
-- **The Portuguese comparison is partial.** Only three works have aligned English and Portuguese samples. The Sun Eater comparison is cross-book. The provisional Hobb subseries have no Portuguese sample at all.
+- **The Portuguese comparison is partial.** Only three works have aligned English and Portuguese samples, and one of them (Lonesome Dove) is the user's unreviewed draft, not a published reference. The Sun Eater comparison is cross-book. The provisional Hobb subseries have no Portuguese sample at all.
 - **The Portuguese comparanda are not one norm.** The samples mix Brazilian and European-leaning features. They are evidence of editorial choices, not a target standard.
 - **Terminal rendering can misrepresent accents and the travessão.** Byte-level checks confirmed the Portuguese samples are valid UTF-8; this is a display issue, not damaged source text.
 - **The metrics are shallow.** They count sentences, paragraphs, punctuation, and a keyword set of reporting verbs. They do not parse syntax, semantics, or discourse.
@@ -129,9 +130,9 @@ The English Hobb samples spread their reporting verbs more evenly, while the Por
 | *Royal Assassin* PT | 31 | 73 | 98 | 0 | 0 | 11.51 |
 | *Império do Silêncio* PT | 11 | 52 | 30 | 0 | 0 | 3.83 |
 
-**FACT.** These are crude markers, not a dialect test. They show that the Portuguese comparanda are not a single norm. **INFERENCE.** The Hobb samples have a high rate of preposed possessives and enclisis, consistent with European Portuguese. The Lonesome Dove sample is closer to Brazilian colloquial usage: *você* predominates, preposed possessives are almost absent, and *tu* does not occur. The Sun Eater sample is mixed but leans European in its pronominal syntax.
+**FACT.** These are crude markers, not a dialect test. They show that the Portuguese comparanda are not a single norm. **INFERENCE.** The Hobb samples have a high rate of preposed possessives and enclisis, consistent with European Portuguese. The Lonesome Dove PT draft is closer to Brazilian colloquial usage: *você* predominates, preposed possessives are almost absent, and *tu* does not occur. Because it is the user's unreviewed draft, this describes the draft, not an established translation norm. The Sun Eater sample is mixed but leans European in its pronominal syntax.
 
-**EDITORIAL DECISION.** The target is Brazilian Portuguese. The published translations are evidence of editorial choices, not a normative standard. Do not copy European Portuguese morphology, enclisis, or preposed possessives merely because the comparandum uses them. Do not copy the absence of *pra* either: the Lonesome Dove translator's standard colloquialism is one valid solution, not the only one.
+**EDITORIAL DECISION.** The target is Brazilian Portuguese. The published translations (Farseer, Sun Eater) are evidence of editorial choices, not a normative standard; the Lonesome Dove PT is the user's unreviewed draft, not a published reference. Do not copy European Portuguese morphology, enclisis, or preposed possessives merely because a comparandum uses them. Do not copy the absence of *pra* either: the draft's standard colloquialism is one possible solution, not the only one.
 
 ## 4. Lonesome Dove
 
@@ -147,13 +148,13 @@ The English Hobb samples spread their reporting verbs more evenly, while the Por
 
 **INFERENCE.** The regional dialect is carried mainly by syntax, address, and idiom in dialogue, and by a looser version of the same habits in narration. The narration itself is not written in phonetic dialect, but it is not neutral either. It shares the characters' contractions, their casual profanity, and their matter-of-fact approach to violence.
 
-### 4.2 What the published Portuguese appears to preserve and change
+### 4.2 What the user's unreviewed PT draft appears to preserve and change
 
-**FACT.** The Portuguese sample keeps the comic architecture, the concrete imagery, the period setting, the measurements, and the Spanish loanwords. It keeps the narrator's affectionate irony and the free indirect movement between narration and character. It does not reproduce English contractions, which Portuguese cannot mirror directly, and it does not use phonetic misspelling for regional speech.
+**DRAFT EVIDENCE.** The Portuguese sample keeps the comic architecture, the concrete imagery, the period setting, the measurements, and the Spanish loanwords. It keeps the narrator's affectionate irony and the free indirect movement between narration and character. It does not reproduce English contractions, which Portuguese cannot mirror directly, and it does not use phonetic misspelling for regional speech. Because the draft has not been reviewed, these are observations about one possible rendering, not a benchmark of a published translation.
 
-**FACT.** The Portuguese dialogue uses *você* and full *para* rather than *tu* or reduced *pra*. **INFERENCE.** It standardizes nonstandard English syntax into educated Brazilian colloquialism, sometimes makes an elliptical connective explicit, and occasionally chooses a low-frequency verb that shifts the emotional direction of a phrase. **FACT.** The local sample's sentence count is lower than the English (758 against 815), but the full-book mean is shorter in Portuguese; the sample is not representative enough to support a claim about a consistent splitting or merging policy.
+**DRAFT EVIDENCE.** The Portuguese dialogue uses *você* and full *para* rather than *tu* or reduced *pra*. **INFERENCE.** It standardizes nonstandard English syntax into educated Brazilian colloquialism, sometimes makes an elliptical connective explicit, and occasionally chooses a low-frequency verb that shifts the emotional direction of a phrase. **FACT.** The local sample's sentence count is lower than the English (758 against 815), but the full-book mean is shorter in Portuguese; the sample is not representative enough to support a claim about a consistent splitting or merging policy.
 
-**INFERENCE.** The published translation's main gain is readability: the Brazilian reader gets the comedy and the scene without decoding a foreign dialect. The main loss is the social distance between the narrator's idiom and the characters' speech. When every voice is rendered in the same educated colloquial register, the novel can sound more uniformly literate than it does in English.
+**INFERENCE.** The draft's main gain is readability: the Brazilian reader gets the comedy and the scene without decoding a foreign dialect. The main loss is the social distance between the narrator's idiom and the characters' speech. When every voice is rendered in the same educated colloquial register, the novel can sound more uniformly literate than it does in English. This is a hypothesis for revision, not a verdict on a published edition.
 
 **HYPOTHESIS.** A translation that preserves more nonstandard syntax in dialogue, while keeping the narration standard, will better preserve the novel's class and regional texture than one that standardizes both. This is testable by comparing aligned passages for vocatives, verb agreement, and sentence fragments. The current sample does not contain enough aligned dialect density to settle it.
 
@@ -334,7 +335,7 @@ Paragraph isolation and document architecture are both handled by `formatting`, 
 
 ### 7.1 Dialogue punctuation and paragraph splitting
 
-**FACT.** The English editions use quotation marks; the Portuguese editions use the travessão. **INFERENCE.** The higher dialogue-paragraph ratio is consistent with the Portuguese editions giving more speech turns their own paragraph.
+**FACT.** The English editions use quotation marks; the Portuguese samples use the travessão. **INFERENCE.** The higher dialogue-paragraph ratio is consistent with the Portuguese editions and the draft giving more speech turns their own paragraph.
 
 **EDITORIAL DECISION.** Treat this as a typographic convention, not a style difference. Do not increase the dialogue-paragraph ratio to match the Portuguese comparandum. Do not count the Portuguese dash rate as evidence of a more interrupted prose. Preserve the source's paragraph logic for interiority and reflection; use the target convention for speech.
 
@@ -346,7 +347,7 @@ Paragraph isolation and document architecture are both handled by `formatting`, 
 
 ### 7.3 Pronouns and Portuguese variety
 
-**FACT.** The Portuguese comparanda are mixed. **INFERENCE.** The Hobb samples show preposed possessives and enclisis at rates consistent with European Portuguese. The Lonesome Dove sample is closer to Brazilian colloquial usage. The Sun Eater sample is mixed.
+**FACT.** The Portuguese comparanda are mixed. **INFERENCE.** The Hobb samples show preposed possessives and enclisis at rates consistent with European Portuguese. The Lonesome Dove PT draft is closer to Brazilian colloquial usage; it is not a published reference. The Sun Eater sample is mixed.
 
 **EDITORIAL DECISION.** Target Brazilian Portuguese. Do not copy European Portuguese enclisis, preposed possessives, or *a + infinitive* constructions from the comparanda. Do not calque English subject pronouns. Choose *você* or *tu* per character and region, and keep the choice consistent. Avoid the mixed pronominal system of the Hobb sample, which uses *você* as subject with *te* as object.
 
@@ -370,7 +371,7 @@ Paragraph isolation and document architecture are both handled by `formatting`, 
 
 | File | Scope | Rules | Dimensions | Basis | Confidence |
 |---|---|---:|---|---|---|
-| `literary-resources/larry-mcmurtry/lonesome-dove/style.yaml` | Book | 9 | voice, register, rhythm, formatting, dialogue, imagery, lexicon, punctuation, other | EN/PT samples and full-book metrics | Sampled |
+| `literary-resources/larry-mcmurtry/lonesome-dove/style.yaml` | Book | 9 | voice, register, rhythm, formatting, dialogue, imagery, lexicon, punctuation, other | EN sample, user's unreviewed PT draft, full-book metrics | Sampled (EN); PT draft comparison only |
 | `literary-resources/robin-hobb/realm-of-the-elderlings/style.yaml` | Universe | 8 | voice, register, rhythm, dialogue, imagery, lexicon, punctuation, formatting | Farseer 1/2 EN/PT samples and full-book metrics | Sampled, Farseer-weighted |
 | `literary-resources/robin-hobb/realm-of-the-elderlings/farseer/style.yaml` | Subseries | 6 | voice, register, rhythm, formatting, dialogue, lexicon | Farseer 1/2 EN/PT samples | Sampled |
 | `literary-resources/robin-hobb/realm-of-the-elderlings/liveship-traders/style.yaml` | Subseries | 7 | voice, register, rhythm, formatting, dialogue, imagery, lexicon | Structural prior | Provisional |
@@ -383,9 +384,9 @@ The compiled Farseer profile has eight rules because the six overrides replace s
 
 ## 9. Open questions and next checks
 
-1. **Aligned sentence comparison.** Align the English and Portuguese *Lonesome Dove* and Farseer samples at sentence level to measure splitting, merging, and explicitation. The current metrics cannot distinguish translation policy from chapter-level variation.
+1. **Aligned sentence comparison.** Align the English and Portuguese *Lonesome Dove* samples at sentence level to support the user's revision of that draft, and align the Farseer samples to compare with the published translation. The current metrics cannot distinguish translation policy from chapter-level variation.
 2. **Sun Eater book one.** Obtain an English sample of book one to compare with the Portuguese sample. Until then, the Sun Eater PT observations are cross-book.
-3. **Provisional subseries.** Before promoting Liveship Traders, Tawny Man, Rain Wild Chronicles, or Fitz and the Fool, read at least three chapters of each in English and, if available, the published Portuguese. Revise the rules against observed sentence rhythm, dialogue ratio, and viewpoint handling.
+3. **Provisional subseries.** Before promoting Liveship Traders, Tawny Man, or Fitz and the Fool, read at least three chapters of each in English and, if available, the published Portuguese. Revise the rules against observed sentence rhythm, dialogue ratio, and viewpoint handling. Rain Wild Chronicles is deferred and is not part of the current priority.
 4. **Portuguese variety.** Confirm the publication variety of each comparandum. The current samples are mixed, and the Hobb and Sun Eater samples show European-leaning features. Do not let a comparandum with European Portuguese features set the target norm.
 5. **Terminology audit.** The glossary module should settle names, invented terms, titles, and institutional vocabulary. This brief deliberately does not.
 6. **Full-book style extraction.** Run the repository's extractor on the full books and compare its rules with these hand-authored profiles. The extractor may surface tendencies that three chapters cannot show, especially in the later Farseer and Sun Eater books.

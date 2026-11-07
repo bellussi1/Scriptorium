@@ -3,9 +3,10 @@ scope: universe
 source_language: en
 target_language: pt-BR
 notes: >-
-  Terms verified against the official Brazilian edition in the user's Calibre
-  library (ID 405) by frequency and short-context probes on 2026-11-07. Proper
-  names are kept in English by the official translator; do not "translate" them.
+  Terms taken from the user's own unreviewed Brazilian Portuguese draft in the
+  Calibre library (ID 405) by frequency and short-context probes on 2026-11-07.
+  They are provisional and are not an official edition. Proper names are kept
+  in English by the draft; do not "translate" them.
 terms:
   - source: Lonesome Dove
     target: Lonesome Dove
@@ -18,10 +19,10 @@ terms:
       are called Lonesome Dove in the narrative. Keep the English name inside
       the text; use Pombo Solitário only for the book title/metadata. Never use
       the title translation as the place name in dialogue or narration.
-    source_reference: "Official PT-BR edition, Calibre ID 405, title page and narrative"
-    confidence: confirmed
+    source_reference: "User's unreviewed PT-BR draft, Calibre ID 405"
+    confidence: provisional
     first_appearance: lonesome-dove
-    approved: true
+    approved: false
   - source: Augustus McCrae
     target: Augustus McCrae
     category: character
@@ -29,11 +30,11 @@ terms:
     aliases: [Augustus, Gus]
     alias_targets: {Augustus: Augustus, Gus: Gus}
     gender: male
-    notes: "The official PT edition keeps the full name and the short forms."
-    source_reference: "Official PT-BR edition, Calibre ID 405"
-    confidence: confirmed
+    notes: "The user's unreviewed PT draft keeps the full name and the short forms."
+    source_reference: "User's unreviewed PT-BR draft, Calibre ID 405"
+    confidence: provisional
     first_appearance: lonesome-dove
-    approved: true
+    approved: false
   - source: Woodrow Call
     target: Woodrow Call
     category: character
@@ -42,10 +43,10 @@ terms:
     alias_targets: {Call: Call, Captain Call: "Capitão Call"}
     gender: male
     notes: "Call is the narrator's usual form; Capitão Call appears in dialogue."
-    source_reference: "Official PT-BR edition, Calibre ID 405"
-    confidence: confirmed
+    source_reference: "User's unreviewed PT-BR draft, Calibre ID 405"
+    confidence: provisional
     first_appearance: lonesome-dove
-    approved: true
+    approved: false
   - source: Jake Spoon
     target: Jake Spoon
     category: character
@@ -53,10 +54,10 @@ terms:
     aliases: [Jake]
     alias_targets: {Jake: Jake}
     gender: male
-    source_reference: "Official PT-BR edition, Calibre ID 405"
-    confidence: confirmed
+    source_reference: "User's unreviewed PT-BR draft, Calibre ID 405"
+    confidence: provisional
     first_appearance: lonesome-dove
-    approved: true
+    approved: false
   - source: Lorena Wood
     target: Lorena Wood
     category: character
@@ -64,30 +65,30 @@ terms:
     aliases: [Lorena]
     alias_targets: {Lorena: Lorena}
     gender: female
-    source_reference: "Official PT-BR edition, Calibre ID 405"
-    confidence: confirmed
+    source_reference: "User's unreviewed PT-BR draft, Calibre ID 405"
+    confidence: provisional
     first_appearance: lonesome-dove
-    approved: true
+    approved: false
   - source: Newt
     target: Newt
     category: character
     policy: keep
     aliases: []
     gender: male
-    source_reference: "Official PT-BR edition, Calibre ID 405"
-    confidence: confirmed
+    source_reference: "User's unreviewed PT-BR draft, Calibre ID 405"
+    confidence: provisional
     first_appearance: lonesome-dove
-    approved: true
+    approved: false
   - source: Deets
     target: Deets
     category: character
     policy: keep
     aliases: []
     gender: male
-    source_reference: "Official PT-BR edition, Calibre ID 405"
-    confidence: confirmed
+    source_reference: "User's unreviewed PT-BR draft, Calibre ID 405"
+    confidence: provisional
     first_appearance: lonesome-dove
-    approved: true
+    approved: false
   - source: Pea Eye Parker
     target: Pea Eye Parker
     category: character
@@ -95,10 +96,10 @@ terms:
     aliases: [Pea Eye]
     alias_targets: {Pea Eye: Pea Eye}
     gender: male
-    source_reference: "Official PT-BR edition, Calibre ID 405"
-    confidence: confirmed
+    source_reference: "User's unreviewed PT-BR draft, Calibre ID 405"
+    confidence: provisional
     first_appearance: lonesome-dove
-    approved: true
+    approved: false
   - source: Dish Boggett
     target: Dish Boggett
     category: character
@@ -106,10 +107,10 @@ terms:
     aliases: [Dish]
     alias_targets: {Dish: Dish}
     gender: male
-    source_reference: "Official PT-BR edition, Calibre ID 405"
-    confidence: confirmed
+    source_reference: "User's unreviewed PT-BR draft, Calibre ID 405"
+    confidence: provisional
     first_appearance: lonesome-dove
-    approved: true
+    approved: false
   - source: Blue Duck
     target: Blue Duck
     category: character
@@ -117,21 +118,21 @@ terms:
     aliases: []
     forbidden: [Pato Azul]
     gender: male
-    notes: "The official PT edition keeps the English name; do not translate it literally."
-    source_reference: "Official PT-BR edition, Calibre ID 405"
-    confidence: confirmed
+    notes: "The user's unreviewed PT draft keeps the English name; do not translate it literally."
+    source_reference: "User's unreviewed PT-BR draft, Calibre ID 405"
+    confidence: provisional
     first_appearance: lonesome-dove
-    approved: true
+    approved: false
   - source: Po Campo
     target: Po Campo
     category: character
     policy: keep
     aliases: []
     gender: male
-    source_reference: "Official PT-BR edition, Calibre ID 405"
-    confidence: confirmed
+    source_reference: "User's unreviewed PT-BR draft, Calibre ID 405"
+    confidence: provisional
     first_appearance: lonesome-dove
-    approved: true
+    approved: false
   - source: Lippy Jones
     target: Lippy Jones
     category: character
@@ -139,85 +140,85 @@ terms:
     aliases: [Lippy]
     alias_targets: {Lippy: Lippy}
     gender: male
-    source_reference: "Official PT-BR edition, Calibre ID 405"
-    confidence: confirmed
+    source_reference: "User's unreviewed PT-BR draft, Calibre ID 405"
+    confidence: provisional
     first_appearance: lonesome-dove
-    approved: true
+    approved: false
   - source: Bolivar
     target: Bolívar
     category: character
     policy: keep
     aliases: [Bolívar]
     gender: male
-    notes: "The official PT edition accents the name as Bolívar."
-    source_reference: "Official PT-BR edition, Calibre ID 405"
-    confidence: confirmed
+    notes: "The user's unreviewed PT draft accents the name as Bolívar."
+    source_reference: "User's unreviewed PT-BR draft, Calibre ID 405"
+    confidence: provisional
     first_appearance: lonesome-dove
-    approved: true
+    approved: false
   - source: Hat Creek
     target: Hat Creek
     category: location
     policy: keep
     aliases: []
-    source_reference: "Official PT-BR edition, Calibre ID 405"
-    confidence: confirmed
+    source_reference: "User's unreviewed PT-BR draft, Calibre ID 405"
+    confidence: provisional
     first_appearance: lonesome-dove
-    approved: true
+    approved: false
   - source: Dry Bean
     target: Dry Bean
     category: location
     policy: keep
     aliases: []
-    notes: "The only saloon in Lonesome Dove; kept in English by the official edition."
-    source_reference: "Official PT-BR edition, Calibre ID 405"
-    confidence: confirmed
+    notes: "The only saloon in Lonesome Dove; kept in English by the user's draft."
+    source_reference: "User's unreviewed PT-BR draft, Calibre ID 405"
+    confidence: provisional
     first_appearance: lonesome-dove
-    approved: true
+    approved: false
   - source: Fort Smith
     target: Fort Smith
     category: location
     policy: keep
     aliases: []
-    source_reference: "Official PT-BR edition, Calibre ID 405"
-    confidence: confirmed
+    source_reference: "User's unreviewed PT-BR draft, Calibre ID 405"
+    confidence: provisional
     first_appearance: lonesome-dove
-    approved: true
+    approved: false
   - source: Montana
     target: Montana
     category: location
     policy: keep
     aliases: []
-    source_reference: "Official PT-BR edition, Calibre ID 405"
-    confidence: confirmed
+    source_reference: "User's unreviewed PT-BR draft, Calibre ID 405"
+    confidence: provisional
     first_appearance: lonesome-dove
-    approved: true
+    approved: false
   - source: Texas
     target: Texas
     category: location
     policy: keep
     aliases: []
-    source_reference: "Official PT-BR edition, Calibre ID 405"
-    confidence: confirmed
+    source_reference: "User's unreviewed PT-BR draft, Calibre ID 405"
+    confidence: provisional
     first_appearance: lonesome-dove
-    approved: true
+    approved: false
   - source: Rio Grande
     target: Rio Grande
     category: location
     policy: keep
     aliases: []
-    source_reference: "Official PT-BR edition, Calibre ID 405"
-    confidence: confirmed
+    source_reference: "User's unreviewed PT-BR draft, Calibre ID 405"
+    confidence: provisional
     first_appearance: lonesome-dove
-    approved: true
+    approved: false
   - source: Texas Rangers
     target: Rangers
     category: organization
     policy: adapt
     aliases: [Rangers]
     notes: >-
-      The official PT edition keeps Rangers. Use Rangers, not a literal
+      The user's unreviewed PT draft keeps Rangers. Use Rangers, not a literal
       "Patrulheiros do Texas", unless the sentence needs the full institution.
-    source_reference: "Official PT-BR edition, Calibre ID 405"
-    confidence: reviewed
+    source_reference: "User's unreviewed PT-BR draft, Calibre ID 405"
+    confidence: provisional
     first_appearance: lonesome-dove
-    approved: true
+    approved: false

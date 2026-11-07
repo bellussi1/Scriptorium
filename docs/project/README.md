@@ -100,12 +100,14 @@ TranslateBooksWithLLMs application; the new layer is additive and lives under
 - **Refinement:** source-aware, segment-level, selective. Do not run the
   existing blind full-book refine.
 - **Queue:** backend SQLite, not browser storage.
-- **Metadata:** never write to Calibre's `metadata.db`. Generate corrected EPUB
-  copies and, only with explicit authorization, use the official Calibre flow.
+- **Metadata:** Calibre metadata was standardized on 2026-11-07 through the
+  official `calibredb` flow, with backup and a before/after report. Direct SQL
+  writes to `metadata.db` remain forbidden.
 
 ### Non-negotiable safety rules
 
-- Original EPUBs and `metadata.db` are read-only.
+- Original EPUBs stay unmodified; Calibre metadata changes require explicit
+  authorization, a backup and the official `calibredb` flow.
 - No cloud call, large model download or full-book translation without explicit
   approval and a budget.
 - No DRM circumvention, no credential rotation to evade provider limits.

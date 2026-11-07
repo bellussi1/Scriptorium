@@ -1,0 +1,87 @@
+# Calibre metadata correction plan (reviewed; applied through calibredb).
+# This file is not read by the translation prompt; it is an editorial/Calibre
+# inventory. Rain Wild is deferred but its metadata is still standardized.
+series: Realm of the Elderlings
+author_sort: Hobb, Robin
+books:
+  - calibre_id: 336
+    title: Assassin's Apprentice
+    series: The Farseer Trilogy
+    series_index: 1
+    language: eng
+  - calibre_id: 94
+    title: O Aprendiz de Assassino
+    series: The Farseer Trilogy
+    series_index: 1
+    language: por
+  - calibre_id: 329
+    title: Royal Assassin
+    series: The Farseer Trilogy
+    series_index: 2
+    language: eng
+  - calibre_id: 92
+    title: O Assassino do Rei
+    series: The Farseer Trilogy
+    series_index: 2
+    language: por
+  - calibre_id: 338
+    title: Assassin's Quest
+    series: The Farseer Trilogy
+    series_index: 3
+    language: eng
+  - calibre_id: 71
+    title: A Fúria do Assassino
+    series: The Farseer Trilogy
+    series_index: 3
+    language: por
+  - calibre_id: 332
+    title: Ship of Magic
+    series: The Liveship Traders
+    series_index: 1
+    language: eng
+  - calibre_id: 339
+    title: The Mad Ship
+    series: The Liveship Traders
+    series_index: 2
+    language: eng
+  - calibre_id: 340
+    title: Ship of Destiny
+    series: The Liveship Traders
+    series_index: 3
+    language: eng
+  - calibre_id: 334
+    title: Fool's Errand
+    series: The Tawny Man Trilogy
+    series_index: 1
+    language: eng
+  - calibre_id: 328
+    title: The Golden Fool
+    series: The Tawny Man Trilogy
+    series_index: 2
+    language: eng
+  - calibre_id: 337
+    title: Fool's Fate
+    series: The Tawny Man Trilogy
+    series_index: 3
+    language: eng
+  - calibre_id: 331
+    title: The Rain Wild Chronicles
+    series: The Rain Wild Chronicles
+    series_index: 1
+    language: eng
+    note: "Omnibus of four novels; deferred, metadata only."
+  - calibre_id: 335
+    title: Fool's Assassin
+    series: The Fitz and the Fool Trilogy
+    series_index: 1
+    language: eng
+  - calibre_id: 330
+    title: Fool's Quest
+    series: The Fitz and the Fool Trilogy
+    series_index: 2
+    language: eng
+  - calibre_id: 333
+    title: Assassin's Fate
+    series: The Fitz and the Fool Trilogy
+    series_index: 3
+    language: eng
