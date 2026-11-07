@@ -326,7 +326,9 @@ Properties:
 - **Upstream link:** a job stores the upstream `translation_id`. `queue attach`
   links a job and `queue sync` reconciles status and chunk progress read-only
   from `data/jobs.db` (running → translating, paused/interrupted → paused,
-  error → failed, partial → needs_review, completed → validating). Chunk-to-
+  error → failed, partial → needs_review, completed → validating). Because the
+  CLI can exit without flipping the row from `running`, sync infers
+  `completed`/`partial` when `completed_chunks >= total_chunks`. Chunk-to-
   chapter mapping and automatic job launching are still pending; the queue
   records the upstream chunk counts in `checkpoint_json`.
 - **Saga order:** `series.yaml` supplies order; `priority` allows manual

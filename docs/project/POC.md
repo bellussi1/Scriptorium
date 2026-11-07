@@ -62,13 +62,13 @@ Inside the dev container:
 
 ```bash
 pytest -p no:cacheprovider tests/literary -q
-# 26 passed
+# 59 passed
 
 pytest -p no:cacheprovider tests/unit/glossary -q
 # 183 passed
 
 pytest -p no:cacheprovider -q
-# 2825 passed, 2 skipped, 10 deselected, 14 failed
+# 2858 passed, 2 skipped, 10 deselected, 14 failed
 ```
 
 The same 14 failures reproduce on a clean worktree at upstream `b5ed606` under
@@ -178,6 +178,39 @@ Observed:
 This is the expected POC result: the infrastructure works; the small model is
 not production quality; the validator does its job.
 
+### 2.5.1 Hy-MT2 7B pilot (2026-11-07)
+
+The same fixture was translated with the official Hy-MT2 Q4_K_M GGUF:
+
+```bash
+docker compose -f docker-compose.dev.yml exec app \
+  python translate.py -i tests/fixtures/translation_sampler.epub \
+  -o /app/data/smoke/sampler_hy_ptbr.epub -sl English -tl "Portuguese (Brazil)" \
+  --provider ollama -m hf.co/tencent/Hy-MT2-7B-GGUF:Q4_K_M
+```
+
+Observed:
+
+- 10 content files, 12 chunks, 0 failed, 3:03 total.
+- Placeholder validation failed on 4 chunks (`ch02`, `ch04`, `ch05`, glossary)
+  and the token-alignment fallback repositioned the tags. The output is
+  structurally valid, but approximate tag positions remain a layout risk.
+- Our validator returned `passed: true`, 0 blocking issues and 1 warning
+  (`epub.spine_extra`, the attribution page). The title became
+  `Amostra do Tradutor`; TOC labels were preserved without concatenation. Three
+  labels kept trailing punctuation (`II. ... –`, `IV. ... ,`, `V. ... ,`), a
+  minor editorial issue.
+- EPUBCheck 5.4.0 still reports the upstream `ns0:role` attribution error plus
+  the fixture UUID warning. This is the same bug as 2.8, not a Hy-MT2
+  regression.
+- The upstream CLI left the checkpoint row in `running` even after 12/12
+  chunks. `queue sync` inferred completion from progress, moved the queue job to
+  `validating`, and the EPUBCheck failure then moved it to `needs_review`.
+
+This is a better structural result than the 4B model: Hy-MT2 did not corrupt the
+TOC or the title. The remaining blockers are the upstream attribution metadata
+and the placeholder fallback, not the translation model itself.
+
 ### 2.6 Validation
 
 ```bash
@@ -186,10 +219,15 @@ python -m src.literary.cli validate epub \
   --target /app/data/smoke/sampler_ptbr.epub --language pt-BR
 ```
 
-Result: `passed: false`; one blocking `epub.toc_concatenated` error
+Qwen3.5 4B result: `passed: false`; one blocking `epub.toc_concatenated` error
 (“PrefácioUma”), plus warnings for an extra attribution document and truncated
 TOC labels. This is a deliberate gate, not a false positive: the final EPUB
 would have a broken navigation pane.
+
+Hy-MT2 7B result: `passed: true`, 0 blocking issues and one warning
+(`epub.spine_extra`, the optional attribution page). The TOC labels were
+preserved. The gate distinguishes a small model failure from a publishable
+structure.
 
 ### 2.7 Benchmark pilot
 
@@ -233,8 +271,9 @@ docker run --rm \
 Result: 1 error, 1 warning. The warning is the fixture's invalid UUID. The error
 is `RSC-005`: the translated output adds
 `<dc:contributor ... ns0:role="trl">`, which EPUB 3.4 does not allow. The
-original fixture does not have this attribute. This is an upstream EPUB
-conformance bug in the attribution branch, not a literary-layer regression.
+original fixture does not have this attribute. The same error was reproduced on
+both the Qwen3.5 and Hy-MT2 outputs. This is an upstream EPUB conformance bug in
+the attribution branch, not a literary-layer regression.
 Both candidate fixes were tested with EPUBCheck and remove the error: drop the
 attribute, or keep the role through a canonical
 `<meta refines="#tbl-translator" property="role" scheme="marc:relators">`

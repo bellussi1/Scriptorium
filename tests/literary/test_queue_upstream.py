@@ -8,7 +8,7 @@ from pathlib import Path
 import pytest
 
 from src.literary.models import BookRecord
-from src.literary.queue import QueueStore
+from src.literary.queue import QueueStore, _transition_path
 
 from .conftest import make_epub
 
@@ -63,6 +63,12 @@ def _linked_job(tmp_path: Path, translation_id: str = "trans_test"):
     job_id = store.create_job(book_id, total_chapters=10)
     assert store.attach_translation_id(job_id, translation_id)
     return store, book_id, job_id
+
+
+def test_state_transition_paths_are_deterministic():
+    assert _transition_path("pending", "translating") == ["preparing", "translating"]
+    assert _transition_path("preparing", "validating") == ["translating", "validating"]
+    assert _transition_path("completed", "translating") == []
 
 
 def test_attach_and_lookup_translation_id(tmp_path: Path):
@@ -169,6 +175,47 @@ def test_sync_maps_upstream_statuses(tmp_path: Path, upstream_status: str, queue
     store.sync_from_upstream(str(upstream))
     assert store.get_job(job_id)["state"] == queue_state
     assert store.get_book(book_id).status == queue_state
+    store.close()
+
+
+def test_sync_infers_completion_from_full_progress(tmp_path: Path):
+    store, book_id, job_id = _linked_job(tmp_path)
+    upstream = tmp_path / "jobs.db"
+    _upstream_db(
+        upstream,
+        [
+            (
+                "trans_test",
+                "running",
+                {"current_chunk_index": 11, "total_chunks": 12, "completed_chunks": 12, "failed_chunks": 0},
+            )
+        ],
+    )
+    store.sync_from_upstream(str(upstream))
+    job = store.get_job(job_id)
+    assert job["state"] == "validating"
+    checkpoint = json.loads(job["checkpoint_json"])
+    assert checkpoint["upstream_status"] == "running"
+    assert checkpoint["upstream_effective_status"] == "completed"
+    assert store.get_book(book_id).status == "validating"
+    store.close()
+
+
+def test_sync_treats_full_progress_with_failures_as_needs_review(tmp_path: Path):
+    store, _, job_id = _linked_job(tmp_path)
+    upstream = tmp_path / "jobs.db"
+    _upstream_db(
+        upstream,
+        [
+            (
+                "trans_test",
+                "running",
+                {"current_chunk_index": 11, "total_chunks": 12, "completed_chunks": 12, "failed_chunks": 1},
+            )
+        ],
+    )
+    store.sync_from_upstream(str(upstream))
+    assert store.get_job(job_id)["state"] == "needs_review"
     store.close()
 
 

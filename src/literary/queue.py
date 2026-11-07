@@ -54,9 +54,31 @@ UPSTREAM_STATE_MAP = {
     "completed": "validating",
 }
 
+# Deterministic preference for intermediate states. Without this, a set
+# iteration could route "preparing -> validating" through "paused", which is
+# semantically wrong for a job that is actually running.
+TRANSITION_PREFERENCE = [
+    "preparing",
+    "translating",
+    "reviewing",
+    "validating",
+    "completed",
+    "needs_review",
+    "paused",
+    "failed",
+    "pending",
+]
+
+
+def _ordered_transitions(state: str) -> List[str]:
+    allowed = ALLOWED_TRANSITIONS.get(state, set())
+    ordered = [candidate for candidate in TRANSITION_PREFERENCE if candidate in allowed]
+    remainder = sorted(allowed - set(ordered))
+    return ordered + remainder
+
 
 def _transition_path(current: str, target: str, max_steps: int = 4) -> List[str]:
-    """Find a short path through ALLOWED_TRANSITIONS, or return []."""
+    """Find a deterministic short path through ALLOWED_TRANSITIONS."""
     if current == target:
         return [target]
     if current not in ALLOWED_TRANSITIONS:
@@ -67,7 +89,7 @@ def _transition_path(current: str, target: str, max_steps: int = 4) -> List[str]
         state, path = queue.popleft()
         if len(path) >= max_steps:
             continue
-        for nxt in ALLOWED_TRANSITIONS.get(state, set()):
+        for nxt in _ordered_transitions(state):
             if nxt == target:
                 return path + [nxt]
             if nxt not in seen:
@@ -425,16 +447,6 @@ class QueueStore:
                 report["matched"] += 1
 
                 progress = json.loads(row["progress"] or "{}")
-                target_state = UPSTREAM_STATE_MAP.get(row["status"], "needs_review")
-                checkpoint = json.loads(job["checkpoint_json"] or "{}")
-                upstream_payload = {
-                    "upstream_status": row["status"],
-                    "upstream_current_chunk": progress.get("current_chunk_index"),
-                    "upstream_total_chunks": progress.get("total_chunks"),
-                    "upstream_completed_chunks": progress.get("completed_chunks"),
-                    "upstream_failed_chunks": progress.get("failed_chunks"),
-                    "upstream_updated_at": row["updated_at"],
-                }
                 current_chapter = int(
                     progress.get("completed_chunks")
                     if progress.get("completed_chunks") is not None
@@ -445,13 +457,38 @@ class QueueStore:
                     if progress.get("total_chunks") is not None
                     else job["total_chapters"] or 0
                 )
+                # The CLI can exit after a full run without flipping the
+                # upstream row to completed. Infer completion from progress
+                # instead of leaving the queue stuck in "translating".
+                effective_status = row["status"]
+                if (
+                    effective_status == "running"
+                    and total_chapters > 0
+                    and current_chapter >= total_chapters
+                ):
+                    effective_status = (
+                        "partial" if progress.get("failed_chunks") else "completed"
+                    )
+                target_state = UPSTREAM_STATE_MAP.get(
+                    effective_status, "needs_review"
+                )
+                checkpoint = json.loads(job["checkpoint_json"] or "{}")
+                upstream_payload = {
+                    "upstream_status": row["status"],
+                    "upstream_effective_status": effective_status,
+                    "upstream_current_chunk": progress.get("current_chunk_index"),
+                    "upstream_total_chunks": progress.get("total_chunks"),
+                    "upstream_completed_chunks": progress.get("completed_chunks"),
+                    "upstream_failed_chunks": progress.get("failed_chunks"),
+                    "upstream_updated_at": row["updated_at"],
+                }
 
                 state_changed = self._sync_job_state(
                     conn,
                     job,
                     target_state,
                     now,
-                    f"sync: upstream {row['status']} "
+                    f"sync: upstream {row['status']} -> {effective_status} "
                     f"({current_chapter}/{total_chapters} chunks)",
                 )
                 book = conn.execute(

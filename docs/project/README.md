@@ -128,7 +128,9 @@ TranslateBooksWithLLMs application; the new layer is additive and lives under
   selective refinement.
 - Issue: [hydropix/TranslateBooksWithLLMs#332](https://github.com/hydropix/TranslateBooksWithLLMs/issues/332)
   reports the attribution metadata error caught by EPUBCheck 5.4.0.
-- First scoped PR candidates: glossary `forbidden` support (loader, injector and
-  regression test) and the EPUB attribution fix. The attribution fix is tested
-  locally on branch `fix/epub-contributor-role` (commit `513b574`), not pushed.
+- First scoped PR candidates, both tested locally and not pushed:
+  - glossary `forbidden` support on branch `fix/glossary-forbidden`
+    (commit `f9217ed`), with loader, injector and regression tests;
+  - EPUB attribution fix on branch `fix/epub-contributor-role`
+    (commit `513b574`), with a unit test and EPUBCheck evidence.
   The larger slices wait for maintainer feedback before a PR.
