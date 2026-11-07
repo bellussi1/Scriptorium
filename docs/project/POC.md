@@ -351,6 +351,19 @@ that the model dropped entirely. A manual read still found an article migration
 in ch04 (`Os` moved into the attribution paragraph), which is exactly the kind
 of issue the source-aware reviewer must catch.
 
+### 2.11 Calibre read test
+
+```bash
+ebook-meta data/smoke/sampler_hy_ptbr_fixed.epub
+ebook-convert data/smoke/sampler_hy_ptbr_fixed.epub data/smoke/sampler_hy_ptbr_fixed.txt
+```
+
+`ebook-meta` reports `Amostra do Tradutor`, author `Various (public domain)`,
+language `por`, and the translated description. `ebook-convert` reads the EPUB
+and writes an 11.5 KB TXT without errors. This is a CLI read/convert test, not a
+GUI or KOReader test; it proves Calibre's EPUB reader accepts the file, not that
+the layout is visually perfect.
+
 ## 3. What is not implemented
 
 - Automatic queue-driven job launching; the queue now stores the upstream
@@ -370,7 +383,8 @@ of issue the source-aware reviewer must catch.
   and ambiguous or dropped letters still require review.
 - Web UI for the queue, glossary conflicts or side-by-side review.
 - Cloud model benchmark; no paid calls.
-- Calibre/KOReader read test; not run.
+- KOReader/GUI read test; not run. Calibre `ebook-meta` and `ebook-convert`
+  succeeded on the repaired pilot.
 - Full-book translation; explicitly not authorized.
 
 ## 4. Reproduce
