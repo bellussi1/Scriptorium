@@ -1,10 +1,10 @@
 # Literary translation project — diagnosis, architecture and proof of concept
 
-Status: **Phase 1 (discovery) complete; Phase 2 (architecture) complete; Phase 3
-(local proof of concept) implemented and tested.** Phase 4 (model benchmark) is
-in progress: the installed generalists plus Hy-MT2-7B and Index-Translate-9B
-were tested locally on 2026-11-07. No paid cloud call was made, and no model
-passes the production gate without editorial review.
+Status: **Phases 1–3 complete. Phase 4 benchmark in progress; Phase 5 editorial
+resources and Calibre metadata applied; Phase 6 pilot done on a public-domain
+fixture.** The installed generalists plus Hy-MT2-7B and Index-Translate-9B were
+tested locally on 2026-11-07. No paid cloud call was made and no full book was
+translated. No model passes the production gate without editorial review.
 
 This directory is the entry point. The repository code remains the upstream
 TranslateBooksWithLLMs application; the new layer is additive and lives under
