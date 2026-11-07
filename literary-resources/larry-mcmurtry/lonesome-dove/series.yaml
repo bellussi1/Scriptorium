@@ -1,0 +1,38 @@
+name: Lonesome Dove
+slug: lonesome-dove
+author: Larry McMurtry
+universe: Lonesome Dove
+notes: >-
+  The user's library contains the English original (Calibre 311) and the
+  official Brazilian edition (Calibre 405). Start with Lonesome Dove as a
+  standalone work. The other volumes are related but were not found in the
+  library; do not queue them without the files. Publication order below is not
+  chronological order: Dead Man's Walk and Comanche Moon are prequels.
+books:
+  - slug: lonesome-dove
+    title: Lonesome Dove
+    order: 1
+    kind: novel
+    pt_title: Pombo Solitário
+    status: translated_official
+    notes: >-
+      Pulitzer Prize, 1985. The official Brazilian title is Pombo Solitário;
+      the ranch/place name Lonesome Dove stays in English inside the narrative.
+  - slug: streets-of-laredo
+    title: Streets of Laredo
+    order: 2
+    kind: novel
+    status: not_in_library
+    notes: Sequel to Lonesome Dove (1993). Not present in the Calibre library.
+  - slug: dead-mans-walk
+    title: Dead Man's Walk
+    order: 3
+    kind: novel
+    status: not_in_library
+    notes: Prequel (1995), chronologically first. Not present in the library.
+  - slug: comanche-moon
+    title: Comanche Moon
+    order: 4
+    kind: novel
+    status: not_in_library
+    notes: Prequel (1997), chronologically second. Not present in the library.

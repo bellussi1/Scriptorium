@@ -1,0 +1,42 @@
+# Style profile for Realm of the Elderlings (universe base).
+# Hand-authored from the local editorial samples; safe to edit by hand.
+description: Close interiority, formal retrospective narration, and material fantasy for the shared world.
+mode: source
+context: A pre-industrial secondary world of coastal and inland duchies, where literacy, animal husbandry, and household craft coexist with inherited magic and a rigid court hierarchy. Travel is slow, medicine is herbal, and ships, horses, and messengers carry information.
+rules:
+  - dimension: narrative_voice
+    instruction: Anchor narration in a single perceiving consciousness, whether first person or limited third, and let a retrospective or reflective cast color what is seen; do not drift into omniscient summary beyond what that consciousness could know or later reconstruct.
+  - dimension: register
+    instruction: Maintain a formal, slightly archaic literary register that remains readable; avoid modern slang and pseudo-medieval pastiche, and let class and occupation show through address forms and syntax rather than costume diction.
+  - dimension: sentence_rhythm
+    instruction: Build long subordinate sentences that accumulate sensory and emotional detail, then cut against them with short declarative or verbless sentences at moments of shock, exhaustion, or realization; preserve the uneven distribution.
+  - dimension: dialogue
+    instruction: Keep speech tags plain and unobtrusive; differentiate speakers through syntax, address, and habitual reticence rather than phonetic spelling, and preserve evasions, riddles, and unfinished sentences instead of completing them for clarity.
+  - dimension: imagery
+    instruction: Draw figurative language from animal husbandry and weather, household craft, and bodily sensation; prefer homely tactile comparisons to ornamental or epic ones, and let a physical detail recur when the scene itself returns to it.
+  - dimension: lexicon
+    instruction: Use concrete pre-industrial material vocabulary for work and clothing, for buildings and animals; admit technical and regional terms when the viewpoint would know them, but avoid anachronistic modern abstractions.
+  - dimension: punctuation
+    instruction: Use semicolons and dashes sparingly for reflective extension or interruption; let ellipses mark hesitation and trailing speech, and do not multiply exclamation marks or dashes for emphasis.
+  - dimension: formatting
+    instruction: Let paragraphs follow shifts in attention rather than topic sentences, allow a single line to stand alone for an emotional beat, and preserve chapter-opening documents, epigraphs, and framed retrospectives as distinct registers.
+notes: "Evidence is weighted toward the two sampled Farseer books; the base is deliberately broad so third-person subseries can inherit it without importing the first-person memoir voice."
+evidence:
+  samples:
+    - data/editorial_samples/farseer1_en/chapter_01.txt
+    - data/editorial_samples/farseer1_en/chapter_02.txt
+    - data/editorial_samples/farseer1_en/chapter_03.txt
+    - data/editorial_samples/farseer1_pt/chapter_01.txt
+    - data/editorial_samples/farseer2_en/chapter_01.txt
+    - data/editorial_samples/farseer2_en/chapter_02.txt
+    - data/editorial_samples/farseer2_pt/chapter_01.txt
+    - data/editorial_samples/farseer2_pt/chapter_02.txt
+  measurements:
+    - "Farseer 1 full book, English: 165,049 words; mean sentence 14.16; median 12; p90 26; dialogue-paragraph ratio 0.346."
+    - "Farseer 1 full book, Portuguese: 163,924 words; mean sentence 13.47; median 11; p90 26; dialogue-paragraph ratio 0.473."
+    - "Farseer 2 full book, English: 260,533 words; mean sentence 12.20; median 11; p90 23; dialogue-paragraph ratio 0.421."
+    - "Farseer 2 full book, Portuguese: 257,065 words; mean sentence 10.62; median 9; p90 21; dialogue-paragraph ratio 0.509."
+  observations:
+    - "The samples show a writerly, self-aware narrator who frames recollection as written history and then yields to scene-level sensory immediacy."
+    - "The published Portuguese preserves the interiority and material detail, but modernizes regional speech and often unpacks elliptical English clauses."
+    - "The dialogue-paragraph ratio rises sharply in Portuguese because the edition gives each speech turn its own paragraph; this is a formatting convention, not evidence of a faster prose rhythm."

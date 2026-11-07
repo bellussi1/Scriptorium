@@ -1,0 +1,41 @@
+version: 1
+scope: universe
+source_language: en
+target_language: pt-BR
+notes: >-
+  Title-level and series-level terminology. Book titles are metadata, not prose:
+  do not insert a title translation into a sentence unless the source does.
+terms:
+  - source: Empire of Silence
+    target: Império do Silêncio
+    category: title
+    policy: translate
+    aliases: []
+    notes: "Official Brazilian title of book 1 (Aleph, 2026)."
+    source_reference: "Official PT-BR edition, Calibre 436"
+    confidence: confirmed
+    first_appearance: empire-of-silence
+    approved: true
+  - source: Sun Eater
+    target: Devorador do Sol
+    category: title
+    policy: translate
+    aliases: [Sun-Eater, The Sun Eater]
+    forbidden: [Comedor de Sol, Devorador de Sóis]
+    notes: >-
+      The series title and Hadrian's epithet. The official PT edition uses
+      O Devorador do Sol. Do not use "Comedor de Sol" or a literal calque.
+    source_reference: "Official PT-BR edition, Calibre 436"
+    confidence: confirmed
+    first_appearance: empire-of-silence
+    approved: true
+  - source: The Sun Eater
+    target: O Devorador do Sol
+    category: title
+    policy: translate
+    aliases: []
+    notes: "Series title with the definite article."
+    source_reference: "Official PT-BR edition, Calibre 436"
+    confidence: confirmed
+    first_appearance: empire-of-silence
+    approved: true

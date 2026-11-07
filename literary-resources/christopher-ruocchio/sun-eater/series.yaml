@@ -1,0 +1,74 @@
+name: The Sun Eater
+slug: sun-eater
+author: Christopher Ruocchio
+universe: Sun Eater
+notes: >-
+  Seven main novels plus three novellas. The library has the official Brazilian
+  edition of book 1 (Império do Silêncio, Calibre 436) and English originals for
+  books 2-7 and the novellas. Calibre metadata for the main novels is broken:
+  they have no series link and all carry series_index 1.0. This file is the
+  source of truth for the translation queue; do not edit metadata.db without
+  explicit authorization. The novellas are optional and should not block the
+  main sequence.
+books:
+  - slug: empire-of-silence
+    title: Empire of Silence
+    order: 1
+    kind: novel
+    pt_title: Império do Silêncio
+    status: translated_official
+    notes: "Official PT Calibre 436 (Aleph, 2026)."
+  - slug: the-lesser-devil
+    title: The Lesser Devil
+    order: 1.5
+    kind: novella
+    status: source
+    notes: "Novella. EN Calibre 295."
+  - slug: howling-dark
+    title: Howling Dark
+    order: 2
+    kind: novel
+    status: source
+    notes: "EN Calibre 430."
+  - slug: queen-amid-ashes
+    title: Queen Amid Ashes
+    order: 2.5
+    kind: novella
+    status: source
+    notes: "Novella. EN Calibre 296."
+  - slug: demon-in-white
+    title: Demon in White
+    order: 3
+    kind: novel
+    status: source
+    notes: "EN Calibre 431."
+  - slug: kingdoms-of-death
+    title: Kingdoms of Death
+    order: 4
+    kind: novel
+    status: source
+    notes: "EN Calibre 432."
+  - slug: ashes-of-man
+    title: Ashes of Man
+    order: 5
+    kind: novel
+    status: source
+    notes: "EN Calibre 433."
+  - slug: the-dregs-of-empire
+    title: "The Dregs of Empire: A Tale of the Sun Eater"
+    order: 5.5
+    kind: novella
+    status: source
+    notes: "Novella. EN Calibre 297."
+  - slug: disquiet-gods
+    title: Disquiet Gods
+    order: 6
+    kind: novel
+    status: source
+    notes: "EN Calibre 434."
+  - slug: shadows-upon-time
+    title: Shadows Upon Time
+    order: 7
+    kind: novel
+    status: source
+    notes: "EN Calibre 435. Publication date 2025-11-18 in Calibre; verify the edition."

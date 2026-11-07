@@ -1,0 +1,37 @@
+# Style profile for the Farseer trilogy (subseries override).
+# Hand-authored from the local editorial samples; safe to edit by hand.
+description: First-person memoir, double time, and unstable focalization in the Farseer trilogy.
+mode: source
+context: A pre-industrial kingdom seen from inside a royal household and its stables; court politics, apprenticeship, and animal work shape daily life, and magic is an inherited, dangerous aptitude.
+rules:
+  - dimension: narrative_voice
+    instruction: Keep the first-person memoir frame and its double time; when the consciousness of the narrator enters the body or memory of another person, or enters a dream, preserve the ambiguity of who is speaking and feeling, and do not add names or clarifying tags that resolve it.
+  - dimension: register
+    instruction: Render the retrospective vocabulary of the adult narrator without erasing the limited understanding of the child; keep the prose literary and self-conscious, and let the gap between what the boy sees and what the man knows remain visible.
+  - dimension: sentence_rhythm
+    instruction: In dialogue-heavy or crisis chapters, shorten the sentence and paragraph units and let question-and-answer exchanges carry panic; reserve the long embedded period for retrospective explanation and sensory accumulation.
+  - dimension: formatting
+    instruction: Use white space to mark the shift between the memoir frame and the remembered scene, preserve chapter-opening documents and framed retrospectives as distinct registers, and do not merge a one-line emotional beat into the surrounding paragraph.
+  - dimension: dialogue
+    instruction: Preserve the riddling register of the court fool and the clipped authority of the stablemaster, keep speech tags plain, keep the silent observations of the narrator between speeches, and do not turn indirect or unfinished speech into polished explanation.
+  - dimension: lexicon
+    instruction: Keep the invented magics and institutions consistent in the target language, and use concrete pre-industrial material vocabulary around them; do not add explanatory glosses inside the narrative.
+evidence:
+  samples:
+    - data/editorial_samples/farseer1_en/chapter_01.txt
+    - data/editorial_samples/farseer1_en/chapter_02.txt
+    - data/editorial_samples/farseer1_en/chapter_03.txt
+    - data/editorial_samples/farseer1_pt/chapter_01.txt
+    - data/editorial_samples/farseer2_en/chapter_01.txt
+    - data/editorial_samples/farseer2_en/chapter_02.txt
+    - data/editorial_samples/farseer2_pt/chapter_01.txt
+    - data/editorial_samples/farseer2_pt/chapter_02.txt
+  measurements:
+    - "Farseer 1 three-chapter sample, English: 23,506 words; mean sentence 14.27; median 13; p90 27; dialogue-paragraph ratio 0.28; short-fragment share 11.3%."
+    - "Farseer 1 three-chapter sample, Portuguese: 24,410 words; mean sentence 16.00; median 14; p90 30; dialogue-paragraph ratio 0.443."
+    - "Farseer 2 three-chapter sample, English: 18,184 words; mean sentence 11.16; median 10; p90 21; dialogue-paragraph ratio 0.401; short-fragment share 15.5%."
+    - "Farseer 2 three-chapter sample, Portuguese: 18,678 words; mean sentence 11.93; median 10; p90 23; dialogue-paragraph ratio 0.489."
+  observations:
+    - "Farseer 2 is measurably shorter and more dialogue-driven than Farseer 1 in the same three-chapter window, and its opening is a prologue rather than a chapter."
+    - "The possession sequence in Farseer 2 makes the first person refer to two different minds; the translation must not clarify that ambiguity for the reader."
+    - "The Portuguese sample uses a mixed pronominal system and a European-leaning syntax; those features are translation artifacts, not a target norm."

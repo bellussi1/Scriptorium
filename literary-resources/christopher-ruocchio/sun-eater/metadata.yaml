@@ -1,0 +1,57 @@
+# Metadata correction plan for the Calibre records, not an instruction to write.
+# Calibre's metadata.db stays untouched until the user explicitly authorizes a
+# calibredb run. The translated EPUBs get corrected metadata through
+# `src.literary.epub.update_opf_metadata`.
+series: The Sun Eater
+books:
+  - calibre_id: 436
+    title: Império do Silêncio
+    series: The Sun Eater
+    series_index: 1
+    language: por
+    note: "Official PT-BR edition of Empire of Silence (Aleph). Calibre currently has no series link."
+  - calibre_id: 430
+    title: Howling Dark
+    series: The Sun Eater
+    series_index: 2
+    language: eng
+  - calibre_id: 431
+    title: Demon in White
+    series: The Sun Eater
+    series_index: 3
+    language: eng
+  - calibre_id: 432
+    title: Kingdoms of Death
+    series: The Sun Eater
+    series_index: 4
+    language: eng
+  - calibre_id: 433
+    title: Ashes of Man
+    series: The Sun Eater
+    series_index: 5
+    language: eng
+  - calibre_id: 434
+    title: Disquiet Gods
+    series: The Sun Eater
+    series_index: 6
+    language: eng
+  - calibre_id: 435
+    title: Shadows Upon Time
+    series: The Sun Eater
+    series_index: 7
+    language: eng
+  - calibre_id: 295
+    title: The Lesser Devil
+    series: The Sun Eater
+    series_index: 1.5
+    language: eng
+  - calibre_id: 296
+    title: Queen Amid Ashes
+    series: The Sun Eater
+    series_index: 2.5
+    language: eng
+  - calibre_id: 297
+    title: "The Dregs of Empire: A Tale of the Sun Eater"
+    series: The Sun Eater
+    series_index: 5.5
+    language: eng

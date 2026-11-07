@@ -1,0 +1,24 @@
+# Style profile for the Fitz and the Fool trilogy (provisional).
+# Hand-authored structural prior; no local sample of this subseries was supplied.
+description: Late-series first-person intimacy, grief, and inheritance (provisional).
+mode: source
+context: A pre-industrial kingdom in the later years of a long reign, with an aging narrator, a divided court, and travel by horse and ship. Magic and old bonds remain part of ordinary life, and the past returns through people rather than through exposition.
+rules:
+  - dimension: narrative_voice
+    instruction: Keep the late-series first-person frame dominant, with an older narrator who knows more than he says; where the narration hands over to a younger focalizer, preserve the distinct idiom and limited knowledge of that consciousness rather than smoothing it into the older voice.
+  - dimension: register
+    instruction: Sustain an elegiac, intimate, sometimes brutal register; let family love and old companionship coexist with political suspicion, and avoid both heroic nostalgia and modern therapeutic language.
+  - dimension: sentence_rhythm
+    instruction: Alternate long retrospective passages with short flat sentences at moments of grief, violence, or recognition; do not decorate the flat sentences or explain why they land.
+  - dimension: dialogue
+    instruction: Write family intimacy and old partnership as shorthand, teasing, and withheld information; let the past press on the present through what is not said, and do not turn every reunion into exposition.
+  - dimension: imagery
+    instruction: Draw images from age and inheritance and from wolves and dreams; draw them too from scars and hands and from the routines of a household, and keep the oneiric material grounded in physical detail.
+  - dimension: lexicon
+    instruction: Maintain continuity with the earlier first-person books, and let new terms arrive through use rather than gloss; avoid pseudo-archaic diction and anachronistic psychology.
+evidence:
+  samples: []
+  basis:
+    - "No local sample of this subseries. The profile is a structural prior derived from the known narrative situation and from the universe-level profile."
+    - "The main differences from the sampled Farseer books are the narrator's later age, the second younger focalizer, and the weight of return, inheritance, and grief."
+notes: "confidence: provisional. No sample of this subseries was supplied. Validate against at least three chapters before treating any rule as a close-reading finding; the profile avoids quantitative claims about sentence length or dialogue ratio that cannot be observed locally."

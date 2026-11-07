@@ -1,0 +1,43 @@
+# Style profile for the Sun Eater series.
+# Hand-authored from the local editorial samples; safe to edit by hand.
+description: Retrospective first-person grandeur, cosmic scale, and ironic self-mythology.
+mode: source
+context: A far-future interstellar empire with faster-than-light travel, cryonic fugue, hereditary titles, and a state religion. Technology is advanced but socially archaic, and imperial power is exercised through court ritual, military rank, and religious law.
+rules:
+  - dimension: narrative_voice
+    instruction: Keep the first-person retrospective frame of a narrator writing history after the fact; let him address the reader, dramatize his own memory, and mythologize himself while also undercutting the myth.
+  - dimension: register
+    instruction: Sustain an elevated literary register with classical, religious, and military diction; let irony and self-awareness prevent the grandeur from becoming solemn, and avoid modern colloquialisms in narration.
+  - dimension: sentence_rhythm
+    instruction: Vary by scene, using long accumulative periods for court ritual and exposition and short fragments or one-line paragraphs for disorientation and combat, and for moments of revelation; do not even out the extremes.
+  - dimension: dialogue
+    instruction: Keep dialogue clipped and title-conscious; let rank and nation shape diction, and let ideology shape what a speaker will not say, while preserving interruptions and non-answers, and keeping verbal duels intact instead of smoothing them into cooperative exchange.
+  - dimension: imagery
+    instruction: Draw images from light and darkness and from fire and glass; draw them too from flesh and machinery and from imperial architecture, and keep them cosmic in scale but physically precise rather than generically picturesque.
+  - dimension: lexicon
+    instruction: Use techno-archaic and Latinate vocabulary with confidence, keep invented terms consistent, and do not gloss them inside the narrative; avoid modern technical jargon that breaks the archaic frame.
+  - dimension: punctuation
+    instruction: Use em dashes for interruption and aside, semicolons for rhetorical accumulation, and fragments for shock; do not inflate exclamation marks or scatter ellipses for atmosphere.
+  - dimension: formatting
+    instruction: Allow a single sentence or a single word to stand as a paragraph at a turn or shock, use longer paragraphs for argument and worldbuilding, and preserve chapter titles, epigraph-like openings, direct address to the reader, and white space around isolated lines as part of the narrative architecture.
+evidence:
+  samples:
+    - data/editorial_samples/sun2_en/chapter_01.txt
+    - data/editorial_samples/sun2_en/chapter_02.txt
+    - data/editorial_samples/sun2_en/chapter_03.txt
+    - data/editorial_samples/sun3_en/chapter_01.txt
+    - data/editorial_samples/sun3_en/chapter_02.txt
+    - data/editorial_samples/sun3_en/chapter_03.txt
+    - data/editorial_samples/sun1_pt/chapter_01.txt
+  measurements:
+    - "Sun Eater 2 full book, English: 264,961 words; mean sentence 13.25; median 11; p90 27; dialogue-paragraph ratio 0.344."
+    - "Sun Eater 3 full book, English: 295,868 words; mean sentence 13.64; median 11; p90 28; dialogue-paragraph ratio 0.361."
+    - "Sun Eater 1 full book, Portuguese: 262,581 words; mean sentence 12.26; median 10; p90 25; dialogue-paragraph ratio 0.462."
+    - "Three-chapter sample, book 2: 13,828 words; mean sentence 13.28; median 11; p90 26; dialogue-paragraph ratio 0.432; fragments 14.9%."
+    - "Three-chapter sample, book 3: 11,268 words; mean sentence 13.84; median 11; p90 27; dialogue-paragraph ratio 0.418; fragments 14.9%."
+    - "Three-chapter Portuguese sample, book 1: 10,453 words; mean sentence 15.58; median 14; p90 30; dialogue-paragraph ratio 0.485; semicolons 1.24 per 1,000 words."
+  observations:
+    - "Both English samples sustain a retrospective first person that addresses the reader and comments on the act of remembering; book 3 widens the frame into court ritual and imperial history."
+    - "The prose moves between clipped scene work and long expository periods; the short paragraph is a structural device, not an occasional flourish."
+    - "The Portuguese comparison is cross-book: there is no aligned English sample of book 1, so sentence-level equivalence cannot be measured."
+    - "The Portuguese sample preserves the high register, fragments, and direct address, but expands some periods and uses a European-leaning pronominal syntax."

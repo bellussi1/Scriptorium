@@ -1,0 +1,26 @@
+# Style profile for the Tawny Man trilogy (provisional).
+# Hand-authored structural prior; no local sample of this subseries was supplied.
+description: Older first-person retrospect, elegiac register, and political weariness (provisional).
+mode: source
+context: A pre-industrial kingdom some years after a long war, with a mature narrator moving between court, country estate, and frontier. Travel and communication remain slow and animal-powered, and old obligations outlast the institutions that created them.
+rules:
+  - dimension: narrative_voice
+    instruction: Keep the first-person narration of an aging narrator, still retrospective but more measured than in his youth; let him read his own past with irony and regret, and do not restore the unguarded voice of the boy.
+  - dimension: register
+    instruction: Sustain an elegiac, dryly humorous register; let domestic detail and political weariness coexist, and avoid both heroic posturing and modern therapeutic vocabulary.
+  - dimension: sentence_rhythm
+    instruction: Favor long reflective periods that circle a memory before settling on a plain statement; shorten sharply for action, and let the plain statement carry more weight than the surrounding period.
+  - dimension: dialogue
+    instruction: Write adult intimacy as evasion and shared history rather than exposition; let old companions interrupt and tease, and leave important things unsaid, without making the court fool merely cryptic.
+  - dimension: imagery
+    instruction: Draw images from age and scar tissue, winter and hearth, animal care, and the failures of the body; keep the imagery domestic and physical rather than cosmic.
+  - dimension: lexicon
+    instruction: Maintain continuity with the earlier first-person books and avoid new pseudo-archaic diction; let change in the world appear through institutions and manners, not through a changed vocabulary.
+  - dimension: other
+    instruction: Let reunions and returns carry their weight through understatement and concrete habit; do not stage them as explanatory set pieces.
+evidence:
+  samples: []
+  basis:
+    - "No local sample of this subseries. The profile is a structural prior derived from the known narrative situation and from the universe-level profile."
+    - "The main differences from the sampled Farseer books are the narrator's age, the more measured retrospective pace, and the adult social and political frame."
+notes: "confidence: provisional. No sample of this subseries was supplied. Validate against at least three chapters before treating any rule as a close-reading finding; the profile avoids quantitative claims about sentence length or dialogue ratio that cannot be observed locally."

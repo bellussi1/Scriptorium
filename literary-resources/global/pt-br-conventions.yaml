@@ -1,0 +1,54 @@
+# Global Brazilian Portuguese conventions for literary prose.
+# These are editorial defaults, not rigid rules. The source edition's own
+# typographic conventions win when they are deliberate.
+version: 1
+source_language: en
+target_language: pt-BR
+
+conventions:
+  proper_nouns: >-
+    Keep personal, place and invented names in the form established by the
+    official Brazilian edition when one exists. The glossary is authoritative;
+    do not transliterate a name on the fly.
+  dialogue: >-
+    Preserve the edition's dialogue punctuation. Brazilian literary prose often
+    uses the travessão (—), but do not convert quotation marks mechanically if
+    the source edition uses them as a deliberate stylistic choice.
+  register: >-
+    Render register and social distance, not phonetic accent. Do not map
+    American regional speech to a stereotyped Brazilian rural accent.
+  contractions: >-
+    Portuguese naturally contracts more than English. Prefer the natural
+    contraction when the register allows it; do not preserve English contraction
+    counts as a metric.
+  sentence_length: >-
+    Preserve the tendency of the rhythm, not the exact sentence length. Brazilian
+    Portuguese often needs a shorter sentence where English sustains a long
+    subordinate clause. Split only when the Portuguese syntax demands it, and
+    keep the paragraph's rhetorical shape.
+  numbers_and_dates: >-
+    Never change a number, date, measurement or currency value. Keep the
+    source's unit system in historical fiction unless the edition already
+    converts it. Spell out a number only when the source does.
+  italics_and_emphasis: >-
+    Preserve italics, bold, small caps and other emphasis. They carry voice,
+    interiority and emphasis; losing them is a translation error.
+  forms_of_address: >-
+    Use Sr./Sra./Srta. for Mr./Mrs./Miss only when the title is functioning as
+    a form of address. Do not translate military ranks or invented titles
+    without a glossary decision.
+  profanity: >-
+    Match the intensity and social register of the original. Do not upgrade a
+    mild oath into a strong one, or neutralize a deliberately coarse voice.
+  cultural_references: >-
+    Prefer a brief natural rendering over an explanatory footnote. If the
+    reference is load-bearing and untranslatable, flag it for editorial review
+    instead of silently inventing an equivalent.
+  repetition: >-
+    Deliberate repetition is voice, not an error. Do not replace a repeated word
+    with a synonym merely to vary the vocabulary; the refinement pass must
+    preserve source repetition.
+  ambiguity: >-
+    When the source withholds information (ambiguous pronoun, unnamed speaker,
+    unresolved image), preserve the ambiguity. Do not explain it in the
+    translation.

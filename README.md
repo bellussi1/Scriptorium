@@ -226,6 +226,7 @@ Two things stay local to the device: if you queue several files, other devices o
 
 | Guide | Description |
 |-------|-------------|
+| [docs/project/README.md](docs/project/README.md) | **Literary fork:** audit, model research, architecture, cost model and proof of concept |
 | [docs/PROVIDERS.md](docs/PROVIDERS.md) | Detailed provider setup (Ollama, LM Studio, OpenRouter, OpenAI, Gemini) |
 | [docs/API_KEY_ROTATION.md](docs/API_KEY_ROTATION.md) | Use multiple API keys per provider with automatic failover on rate-limit |
 | [docs/NOTIFICATIONS.md](docs/NOTIFICATIONS.md) | Webhook notifications on completion (ntfy, gotify, Discord, Slack, custom) |

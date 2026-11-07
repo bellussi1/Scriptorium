@@ -1,0 +1,88 @@
+version: 1
+scope: universe
+source_language: en
+target_language: pt-BR
+notes: >-
+  Non-character terminology verified in the official Brazilian editions of the
+  Farseer trilogy. Terms that could not be verified in an official edition are
+  deliberately absent rather than guessed.
+terms:
+  - source: Six Duchies
+    target: Seis Ducados
+    category: location
+    policy: translate
+    aliases: [Six Duchies]
+    source_reference: "Official PT-BR editions, Calibre 94/92/71"
+    confidence: confirmed
+    first_appearance: assassins-apprentice
+    approved: true
+  - source: Farseer
+    target: Farseer
+    category: organization
+    policy: keep
+    aliases: []
+    notes: "The ruling dynasty; the official PT edition keeps the name."
+    source_reference: "Official PT-BR edition, Calibre 94"
+    confidence: confirmed
+    first_appearance: assassins-apprentice
+    approved: true
+  - source: Red-Ship
+    target: Navio Vermelho
+    category: item
+    policy: translate
+    aliases: [Red Ship, Red Ships]
+    alias_targets: {Red Ships: "Navios Vermelhos"}
+    notes: >-
+      The official PT edition uses Navio Vermelho; plural contexts use Navios
+      Vermelhos. Let Portuguese inflection handle the plural.
+    source_reference: "Official PT-BR editions, Calibre 94/92/71"
+    confidence: confirmed
+    first_appearance: assassins-apprentice
+    approved: true
+  - source: Forged
+    target: Forjados
+    category: concept
+    policy: translate
+    aliases: [Forged ones, The Forged]
+    alias_targets: {The Forged: "Os Forjados"}
+    notes: "The official PT edition uses Forjados."
+    source_reference: "Official PT-BR editions, Calibre 94/92/71"
+    confidence: confirmed
+    first_appearance: assassins-apprentice
+    approved: true
+  - source: Out Islands
+    target: Ilhas Externas
+    category: location
+    policy: translate
+    aliases: [Out Islanders]
+    alias_targets: {Out Islanders: "habitantes das Ilhas Externas"}
+    notes: "Out Islanders may need a natural periphrase; the place is Ilhas Externas."
+    source_reference: "Official PT-BR editions, Calibre 94/92/71"
+    confidence: confirmed
+    first_appearance: assassins-apprentice
+    approved: true
+  - source: Chyurda
+    target: chyurda
+    category: organization
+    policy: transliterate
+    aliases: [Chyurdas]
+    notes: >-
+      Ethnic group; the official PT edition uses lowercase chyurda / chyurdas.
+      Do not capitalize in mid-sentence unless the source does.
+    source_reference: "Official PT-BR editions, Calibre 94/92"
+    confidence: confirmed
+    first_appearance: assassins-apprentice
+    approved: true
+  - source: Assassin
+    target: Assassino
+    category: title
+    policy: translate
+    aliases: [Assassins]
+    alias_targets: {Assassins: Assassinos}
+    notes: >-
+      The trade and the book title use Assassino (O Aprendiz de Assassino).
+      Do not use "executor" or "matador" for the formal trade.
+    source_reference: "Official PT-BR edition, Calibre 94"
+    confidence: confirmed
+    first_appearance: assassins-apprentice
+    approved: true

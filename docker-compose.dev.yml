@@ -1,0 +1,53 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: deployment/Dockerfile.dev
+    image: translatebook-literary:dev
+    container_name: translatebook-literary-dev
+    init: true
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:5000:5000"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    environment:
+      HOST: 0.0.0.0
+      PORT: 5000
+      DEBUG_MODE: "false"
+      OUTPUT_DIR: /app/translated_files
+      OUTPUT_FILENAME_PATTERN: "{originalName} ({targetLang}).{ext}"
+      LLM_PROVIDER: ollama
+      DEFAULT_MODEL: translategemma:12b
+      OLLAMA_API_ENDPOINT: http://host.docker.internal:11434/api/generate
+      OLLAMA_NUM_CTX: "4096"
+      DEFAULT_SOURCE_LANGUAGE: English
+      DEFAULT_TARGET_LANGUAGE: Portuguese
+      MAX_TOKENS_PER_CHUNK: "450"
+      PARALLEL_TRANSLATIONS: "1"
+      EPUB_TRANSLATE_METADATA_ENABLED: "true"
+      ATTRIBUTION_ENABLED: "true"
+      PYTHONPATH: /app:/app/src
+    volumes:
+      - ./src:/app/src:ro
+      - ./tests:/app/tests:ro
+      - ./benchmark:/app/benchmark:ro
+      - ./literary-resources:/app/literary-resources:ro
+      - ./Custom_Instructions:/app/Custom_Instructions
+      - ./data:/app/data
+      - ./translated_files:/app/translated_files
+      - ./logs:/app/logs
+      - "${CALIBRE_LIBRARY_PATH:-C:/Users/Bellussi/Biblioteca do calibre}:/library:ro"
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s

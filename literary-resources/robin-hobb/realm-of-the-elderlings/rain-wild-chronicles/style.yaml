@@ -1,0 +1,26 @@
+# Style profile for the Rain Wild Chronicles (provisional).
+# Hand-authored structural prior; no local sample of this subseries was supplied.
+description: Third-person young viewpoints, river expedition, and faster pacing (provisional).
+mode: source
+context: A pre-industrial expedition up a vast jungle river, with small boats, unreliable maps, oppressive heat, and dragons as part of the natural world. The travelers are young, socially unequal, and dependent on one another for survival.
+rules:
+  - dimension: narrative_voice
+    instruction: Use third-person limited narration with multiple young viewpoints; keep each viewpoint inside its own limited knowledge and let the understanding of the group change by accumulation, not by omniscient explanation.
+  - dimension: register
+    instruction: Keep the register concrete and physical, close to the limited vocabulary of young travelers; avoid the formal retrospective archaism of the earlier first-person books, and do not make the narration sound like a memoir.
+  - dimension: sentence_rhythm
+    instruction: Move faster than the earlier series, with shorter paragraphs, more dialogue, and sensory detail that arrives in quick impressions; slow down only when physical strain or wonder requires it.
+  - dimension: formatting
+    instruction: Break scenes on movement, discovery, or conflict; keep chapters short and end sections on a physical image or a decision, not on a summary of the theme.
+  - dimension: dialogue
+    instruction: Let adolescent voices differ by class, confidence, and family habit; allow bickering, embarrassment, and practical negotiation, and do not make every young character equally articulate.
+  - dimension: imagery
+    instruction: Draw images from heat and water, from insects and rot, and from scales and cramped bodies; keep the river and the creatures physical and inconvenient rather than decorative.
+  - dimension: lexicon
+    instruction: Use precise rivercraft, expedition, and animal-anatomy vocabulary, and keep invented terms consistent; avoid modern outdoor-sports jargon and explanatory glosses.
+evidence:
+  samples: []
+  basis:
+    - "No local sample of this subseries. The profile is a structural prior derived from the known narrative situation and from the universe-level profile."
+    - "The main differences from the sampled first-person series are the ensemble of young third-person viewpoints and the expedition's faster, more physical pacing."
+notes: "confidence: provisional. No sample of this subseries was supplied. Validate against at least three chapters before treating any rule as a close-reading finding; the profile avoids quantitative claims about sentence length or dialogue ratio that cannot be observed locally."

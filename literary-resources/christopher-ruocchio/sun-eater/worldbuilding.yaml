@@ -1,0 +1,147 @@
+version: 1
+scope: universe
+source_language: en
+target_language: pt-BR
+notes: >-
+  Species, polities, institutions and concepts verified in the official
+  Brazilian edition of book 1 (Calibre 436). Lowercase renderings in the
+  official edition are recorded where the translator chose them; the model may
+  capitalize at sentence start when Portuguese syntax requires it. Terms that
+  were not verified are absent, not guessed.
+terms:
+  - source: Cielcin
+    target: cielcin
+    category: other
+    policy: transliterate
+    aliases: [Cielcins]
+    alias_targets: {Cielcins: cielcins}
+    notes: >-
+      Alien species. The official PT edition uses lowercase cielcin in running
+      text. Keep the spelling stable across the series; capitalize only at a
+      sentence start if the edition does.
+    source_reference: "Official PT-BR edition, Calibre 436"
+    confidence: confirmed
+    first_appearance: empire-of-silence
+    approved: true
+  - source: Mericanii
+    target: mericanii
+    category: organization
+    policy: transliterate
+    aliases: []
+    notes: "The dead machine-lords; lowercase mericanii in the official PT edition."
+    source_reference: "Official PT-BR edition, Calibre 436"
+    confidence: confirmed
+    first_appearance: empire-of-silence
+    approved: true
+  - source: Sollan Empire
+    target: Império Sollano
+    category: organization
+    policy: translate
+    aliases: [Sollan Imperium, Sollan]
+    alias_targets: {Sollan: sollano}
+    notes: >-
+      The official PT edition uses Império Sollano. Do not reduce every
+      occurrence of "Empire" to "Império Sollano"; only translate the full
+      polity name or a clear anaphor.
+    source_reference: "Official PT-BR edition, Calibre 436"
+    confidence: confirmed
+    first_appearance: empire-of-silence
+    approved: true
+  - source: Vorgossos
+    target: Vorgossos
+    category: location
+    policy: keep
+    aliases: []
+    source_reference: "Official PT-BR edition, Calibre 436"
+    confidence: confirmed
+    first_appearance: empire-of-silence
+    approved: true
+  - source: Delos
+    target: Delos
+    category: location
+    policy: keep
+    aliases: []
+    source_reference: "Official PT-BR edition, Calibre 436"
+    confidence: confirmed
+    first_appearance: empire-of-silence
+    approved: true
+  - source: Jaddian
+    target: jaddiano
+    category: organization
+    policy: adapt
+    aliases: [Jaddians]
+    alias_targets: {Jaddians: jaddianos}
+    notes: "The official PT edition uses jaddiano; the language is jaddiano."
+    source_reference: "Official PT-BR edition, Calibre 436"
+    confidence: confirmed
+    first_appearance: empire-of-silence
+    approved: true
+  - source: Palatine
+    target: palatino
+    category: title
+    policy: translate
+    aliases: [Palatines]
+    alias_targets: {Palatines: palatinos}
+    notes: >-
+      The official PT edition uses palatino (lowercase as a title/common noun).
+      Do not confuse with the English historical term "palatine".
+    source_reference: "Official PT-BR edition, Calibre 436"
+    confidence: confirmed
+    first_appearance: empire-of-silence
+    approved: true
+  - source: Scholiast
+    target: Escoliasta
+    category: title
+    policy: translate
+    aliases: [Scholiasts]
+    alias_targets: {Scholiasts: escoliastas}
+    notes: "The official PT edition uses Escoliasta."
+    source_reference: "Official PT-BR edition, Calibre 436"
+    confidence: confirmed
+    first_appearance: empire-of-silence
+    approved: true
+  - source: Legion
+    target: Legião
+    category: organization
+    policy: translate
+    aliases: [Legions, Imperial Legion]
+    alias_targets: {Legions: "Legiões", Imperial Legion: "Legião Imperial"}
+    notes: "The official PT edition uses Legião (e.g. 617ª Legião)."
+    source_reference: "Official PT-BR edition, Calibre 436"
+    confidence: confirmed
+    first_appearance: empire-of-silence
+    approved: true
+  - source: Halfmortal
+    target: Semimortal
+    category: title
+    policy: translate
+    aliases: [Halfmortals]
+    alias_targets: {Halfmortals: Semimortais}
+    notes: "One of Hadrian's epithets; the official PT edition uses Semimortal."
+    source_reference: "Official PT-BR edition, Calibre 436"
+    confidence: confirmed
+    first_appearance: empire-of-silence
+    approved: true
+  - source: Homunculus
+    target: Homúnculo
+    category: concept
+    policy: translate
+    aliases: [Homunculi]
+    alias_targets: {Homunculi: Homúnculos}
+    notes: "The official PT edition uses Homúnculo."
+    source_reference: "Official PT-BR edition, Calibre 436"
+    confidence: confirmed
+    first_appearance: empire-of-silence
+    approved: true
+  - source: Fugue
+    target: Fuga
+    category: concept
+    policy: translate
+    aliases: []
+    notes: >-
+      The fugue state; the official PT edition uses Fuga. Do not confuse with
+      the musical form or with Fúria, which is a different concept.
+    source_reference: "Official PT-BR edition, Calibre 436"
+    confidence: confirmed
+    first_appearance: empire-of-silence
+    approved: true

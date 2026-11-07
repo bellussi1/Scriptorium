@@ -1,0 +1,39 @@
+# Style profile for Lonesome Dove.
+# Hand-authored from the local editorial samples; safe to edit by hand.
+description: Oral third-person omniscience, deadpan frontier humor, and unsentimental realism.
+mode: source
+context: A late-nineteenth-century continental cattle frontier, before mechanization, with horse transport, ranching, saloons, and a small-town economy. Social relations are shaped by settler colonialism, racial hierarchy, and casual violence.
+rules:
+  - dimension: narrative_voice
+    instruction: Keep an omniscient, oral-tradition narrator who moves between summary, anecdote, and the unmarked thoughts of a character; let the judgment of the narrator and the idiom of the character blur without adding thought tags or quotation marks.
+  - dimension: register
+    instruction: Sustain a conversational, unsentimental register with deadpan humor and no literary polish; let coarse talk, ignorance, and period prejudice stand where the source has them, without sanitizing or amplifying them.
+  - dimension: sentence_rhythm
+    instruction: Favor long cumulative sentences that pile up concrete detail and comic escalation, then cut against them with short flat declaratives; keep parataxis and sentence-initial conjunctions where they carry the oral voice.
+  - dimension: formatting
+    instruction: Let paragraphs follow the attention of a character, a comic riff, or a shift in scene rather than a topic sentence; allow short verbless paragraphs at moments of shock or refusal, and do not merge them into the surrounding narration.
+  - dimension: dialogue
+    instruction: Render regional speech through syntax, address forms, and idiom rather than phonetic misspelling; keep speech tags plain and let boasts and insults, interruptions, and tall tales run their full length.
+  - dimension: imagery
+    instruction: Draw comparisons from weather and animals, from food and bodies, and from ranch work; keep them homely, tactile, and comic rather than lyrical, and let a physical detail return when the scene returns to it.
+  - dimension: lexicon
+    instruction: Use concrete period vocabulary for cattle work and horses, for tools and clothing, and for domestic life; retain the measurements and loanwords of the source, and avoid modern abstractions or explanatory glosses.
+  - dimension: punctuation
+    instruction: Use dashes for asides and self-correction, semicolons rarely, and question or exclamation marks only where the voice actually rises; do not multiply punctuation to supply emphasis the syntax already carries.
+  - dimension: other
+    instruction: Keep the commentary of the narrator and the free indirect thought of the characters continuous; do not assign every judgment a speech tag, and do not resolve an irony the source leaves suspended.
+evidence:
+  samples:
+    - data/editorial_samples/lonesome_en/chapter_01.txt
+    - data/editorial_samples/lonesome_en/chapter_02.txt
+    - data/editorial_samples/lonesome_en/chapter_03.txt
+    - data/editorial_samples/lonesome_pt/chapter_01.txt
+  measurements:
+    - "Full book, English: 365,575 words; mean sentence 15.34; median 14; p90 27; dialogue-paragraph ratio 0.542."
+    - "Full book, Portuguese: 353,609 words; mean sentence 13.64; median 12; p90 25; dialogue-paragraph ratio 0.544."
+    - "Three-chapter English sample: 14,424 words; mean sentence 17.70; median 16; p90 32; dialogue-paragraph ratio 0.45; contractions 21.56 per 1,000 words."
+    - "Three-chapter Portuguese sample: 13,946 words; mean sentence 18.40; dialogue-paragraph ratio 0.45; no contraction equivalents; em dashes 21.87 per 1,000 words, largely dialogue punctuation."
+  observations:
+    - "The narrator alternates long comic catalogs with flat closing sentences; the humor depends on understatement and causal accumulation rather than on punchlines."
+    - "The published Portuguese keeps the comic architecture and concrete imagery, but standardizes dialect and occasionally explicates an elliptical connective."
+    - "The local Portuguese sample is valid UTF-8; some review panes render the travessão and accents as replacement glyphs. Byte-level checks confirmed the underlying text is correct."

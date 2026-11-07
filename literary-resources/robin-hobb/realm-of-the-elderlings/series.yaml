@@ -1,0 +1,120 @@
+name: Realm of the Elderlings
+slug: realm-of-the-elderlings
+author: Robin Hobb
+universe: Realm of the Elderlings
+notes: >-
+  Sixteen novels in five subseries, plus one optional novella. Publication order
+  is the recommended first-read and first-translation order. The library has
+  English originals for all five subseries and official Brazilian editions for
+  the three Farseer volumes. The Rain Wild Chronicles is present as a single
+  omnibus (Calibre 331) containing four novels; split it before producing a
+  per-novel queue.
+books:
+  - slug: assassins-apprentice
+    title: Assassin's Apprentice
+    order: 1
+    kind: novel
+    pt_title: O Aprendiz de Assassino
+    status: translated_official
+    notes: "Farseer 1. EN Calibre 336; official PT Calibre 94."
+  - slug: royal-assassin
+    title: Royal Assassin
+    order: 2
+    kind: novel
+    pt_title: Assassino Real
+    status: translated_official
+    notes: "Farseer 2. EN Calibre 329; official PT Calibre 92."
+  - slug: assassins-quest
+    title: Assassin's Quest
+    order: 3
+    kind: novel
+    pt_title: A Busca do Assassino
+    status: translated_official
+    notes: "Farseer 3. EN Calibre 338; official PT Calibre 71."
+  - slug: ship-of-magic
+    title: Ship of Magic
+    order: 4
+    kind: novel
+    status: source
+    notes: "Liveship Traders 1. EN Calibre 332. No official PT in the library."
+  - slug: the-mad-ship
+    title: The Mad Ship
+    order: 5
+    kind: novel
+    status: source
+    notes: "Liveship Traders 2. EN Calibre 339."
+  - slug: ship-of-destiny
+    title: Ship of Destiny
+    order: 6
+    kind: novel
+    status: source
+    notes: "Liveship Traders 3. EN Calibre 340."
+  - slug: fools-errand
+    title: Fool's Errand
+    order: 7
+    kind: novel
+    status: source
+    notes: "Tawny Man 1. EN Calibre 334."
+  - slug: the-golden-fool
+    title: The Golden Fool
+    order: 8
+    kind: novel
+    status: source
+    notes: "Tawny Man 2. EN Calibre 328."
+  - slug: fools-fate
+    title: Fool's Fate
+    order: 9
+    kind: novel
+    status: source
+    notes: "Tawny Man 3. EN Calibre 337."
+  - slug: dragon-keeper
+    title: Dragon Keeper
+    order: 10
+    kind: novel
+    status: omnibus_in_library
+    notes: "Rain Wild 1. In the Calibre 331 omnibus."
+  - slug: dragon-haven
+    title: Dragon Haven
+    order: 11
+    kind: novel
+    status: omnibus_in_library
+    notes: "Rain Wild 2. In the Calibre 331 omnibus."
+  - slug: city-of-dragons
+    title: City of Dragons
+    order: 12
+    kind: novel
+    status: omnibus_in_library
+    notes: "Rain Wild 3. In the Calibre 331 omnibus."
+  - slug: blood-of-dragons
+    title: Blood of Dragons
+    order: 13
+    kind: novel
+    status: omnibus_in_library
+    notes: "Rain Wild 4. In the Calibre 331 omnibus."
+  - slug: fools-assassin
+    title: Fool's Assassin
+    order: 14
+    kind: novel
+    status: source
+    notes: "Fitz and the Fool 1. EN Calibre 335."
+  - slug: fools-quest
+    title: Fool's Quest
+    order: 15
+    kind: novel
+    status: source
+    notes: "Fitz and the Fool 2. EN Calibre 330."
+  - slug: assassins-fate
+    title: Assassin's Fate
+    order: 16
+    kind: novel
+    status: source
+    notes: "Fitz and the Fool 3. EN Calibre 333."
+  - slug: the-willful-princess-and-the-piebald-prince
+    title: The Willful Princess and the Piebald Prince
+    order: 9.5
+    kind: novella
+    status: not_in_library
+    notes: >-
+      Optional novella set before the Farseer trilogy. Not present in the
+      library. Do not queue it before the main novels; it is a companion, not a
+      prerequisite.

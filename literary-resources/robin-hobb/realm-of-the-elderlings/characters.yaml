@@ -1,0 +1,139 @@
+version: 1
+scope: universe
+source_language: en
+target_language: pt-BR
+notes: >-
+  Character names verified against the official Brazilian editions of the
+  Farseer trilogy (Calibre 94, 92, 71) on 2026-11-07. The official translator
+  keeps the English names. Gender is given only where the source text or the
+  official edition makes it unambiguous.
+terms:
+  - source: FitzChivalry Farseer
+    target: FitzChivalry Farseer
+    category: character
+    policy: keep
+    aliases: [Fitz, FitzChivalry]
+    alias_targets: {Fitz: Fitz, FitzChivalry: FitzChivalry}
+    forbidden: ["Fitz Chivalry", "Fitz, o Farseer"]
+    gender: male
+    notes: >-
+      Narrator and protagonist. The official PT edition keeps the full name and
+      the short form Fitz. Do not translate the name or split FitzChivalry into
+      a first and last name.
+    source_reference: "Official PT-BR editions, Calibre 94/92/71"
+    confidence: confirmed
+    first_appearance: assassins-apprentice
+    approved: true
+  - source: Burrich
+    target: Burrich
+    category: character
+    policy: keep
+    aliases: []
+    gender: male
+    source_reference: "Official PT-BR edition, Calibre 94"
+    confidence: confirmed
+    first_appearance: assassins-apprentice
+    approved: true
+  - source: Chade
+    target: Chade
+    category: character
+    policy: keep
+    aliases: []
+    gender: male
+    source_reference: "Official PT-BR edition, Calibre 94"
+    confidence: confirmed
+    first_appearance: assassins-apprentice
+    approved: true
+  - source: Verity
+    target: Verity
+    category: character
+    policy: keep
+    aliases: [Prince Verity]
+    alias_targets: {Prince Verity: "Príncipe Verity"}
+    gender: male
+    source_reference: "Official PT-BR edition, Calibre 94"
+    confidence: confirmed
+    first_appearance: assassins-apprentice
+    approved: true
+  - source: Regal
+    target: Regal
+    category: character
+    policy: keep
+    aliases: [Prince Regal]
+    alias_targets: {Prince Regal: "Príncipe Regal"}
+    gender: male
+    source_reference: "Official PT-BR edition, Calibre 94"
+    confidence: confirmed
+    first_appearance: assassins-apprentice
+    approved: true
+  - source: Shrewd
+    target: Shrewd
+    category: character
+    policy: keep
+    aliases: [King Shrewd]
+    alias_targets: {King Shrewd: "Rei Shrewd"}
+    gender: male
+    source_reference: "Official PT-BR edition, Calibre 94"
+    confidence: confirmed
+    first_appearance: assassins-apprentice
+    approved: true
+  - source: Patience
+    target: Patience
+    category: character
+    policy: keep
+    aliases: []
+    gender: female
+    source_reference: "Official PT-BR edition, Calibre 94"
+    confidence: confirmed
+    first_appearance: assassins-apprentice
+    approved: true
+  - source: Chivalry
+    target: Chivalry
+    category: character
+    policy: keep
+    aliases: [Prince Chivalry]
+    alias_targets: {Prince Chivalry: "Príncipe Chivalry"}
+    gender: male
+    source_reference: "Official PT-BR edition, Calibre 94"
+    confidence: confirmed
+    first_appearance: assassins-apprentice
+    approved: true
+  - source: Molly
+    target: Molly
+    category: character
+    policy: keep
+    aliases: [Molly Chandler]
+    alias_targets: {Molly Chandler: "Molly Chandler"}
+    gender: female
+    source_reference: "Official PT-BR edition, Calibre 94"
+    confidence: confirmed
+    first_appearance: assassins-apprentice
+    approved: true
+  - source: Smithy
+    target: Ferreirinho
+    category: character
+    policy: translate
+    aliases: []
+    gender: male
+    notes: >-
+      The puppy's name. The official PT edition renders it as Ferreirinho; this
+      is a rare case where the translator translates a name. Keep the official
+      rendering.
+    source_reference: "Official PT-BR edition, Calibre 94"
+    confidence: confirmed
+    first_appearance: assassins-apprentice
+    approved: true
+  - source: The Fool
+    target: Bobo
+    category: character
+    policy: translate
+    aliases: [Fool]
+    gender: ""
+    notes: >-
+      The official PT edition uses Bobo. The character's gender and nature are
+      deliberately ambiguous; do not force a gendered reading in passages where
+      the source withholds it.
+    source_reference: "Official PT-BR editions, Calibre 94/92/71"
+    confidence: confirmed
+    first_appearance: assassins-apprentice
+    approved: true
