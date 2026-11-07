@@ -79,7 +79,9 @@ TranslateBooksWithLLMs application; the new layer is additive and lives under
 - Source-aware selective refinement for paragraph-aligned text, with an
   injected model call and a deterministic guard. EPUB writing is still separate.
 - Cost model calibrated on the user's EPUBs.
-- Deterministic translation and EPUB validators, including TOC-label checks.
+- Deterministic translation and EPUB validators, including TOC-label and
+  dropcap content checks.
+- A deterministic dropcap repair for the unambiguous corruption patterns.
 - Forbidden-rendering support in the upstream glossary prompt path.
 - A literary benchmark harness with model-specific prompts and deterministic
   metrics.
@@ -128,6 +130,9 @@ TranslateBooksWithLLMs application; the new layer is additive and lives under
   selective refinement.
 - Issue: [hydropix/TranslateBooksWithLLMs#332](https://github.com/hydropix/TranslateBooksWithLLMs/issues/332)
   reports the attribution metadata error caught by EPUBCheck 5.4.0.
+- Issue: [hydropix/TranslateBooksWithLLMs#333](https://github.com/hydropix/TranslateBooksWithLLMs/issues/333)
+  reports the dropcap content corruption (lost or duplicated first letters)
+  found in the end-to-end pilot.
 - First scoped PR candidates, both tested locally and not pushed:
   - glossary `forbidden` support on branch `fix/glossary-forbidden`
     (commit `f9217ed`), with loader, injector and regression tests;

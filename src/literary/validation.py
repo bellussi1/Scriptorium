@@ -7,6 +7,7 @@ benchmark, not in the save path.
 from __future__ import annotations
 
 import re
+import zipfile
 from collections import Counter
 from typing import Any, Dict, Iterable, List, Optional, Sequence, Tuple
 
@@ -114,6 +115,14 @@ _PLACEHOLDER_PATTERNS = [
     re.compile(r"\{\{?\s*[A-Za-z_][A-Za-z0-9_]*\s*\}?\}"),
 ]
 _TAG_RE = re.compile(r"</?[A-Za-z][^>]*>")
+_DROPCAP_RE = re.compile(
+    r'<span[^>]*class="[^"]*\bdropcap\b[^"]*"[^>]*>(.*?)</span>(.{0,120})',
+    re.IGNORECASE | re.DOTALL,
+)
+_DROPCAP_SELF_CLOSING_RE = re.compile(
+    r'<span[^>]*class="[^"]*\bdropcap\b[^"]*"[^>]*/>',
+    re.IGNORECASE,
+)
 _WORD_RE = re.compile(r"[^\W\d_]+(?:['\u2019\-][^\W\d_]+)*", re.UNICODE)
 
 _EN_STOPWORDS = {
@@ -391,6 +400,75 @@ def _toc_label_issues(source_label: str, target_label: str, href: str) -> List[V
     return issues
 
 
+def _dropcap_html_issues(html: str, href: str) -> List[ValidationIssue]:
+    """Catch silent content corruption around dropcap spans.
+
+    A dropcap span must contain exactly the first character of the following
+    word. Empty spans, full words and a source letter kept in front of a
+    translated word are content errors, not layout warnings.
+    """
+    issues: List[ValidationIssue] = []
+    for _match in _DROPCAP_SELF_CLOSING_RE.finditer(html or ""):
+        issues.append(
+            ValidationIssue(
+                "epub.dropcap_empty",
+                "dropcap span is empty; the first letter was lost",
+                Severity.ERROR,
+                href,
+            )
+        )
+    for match in _DROPCAP_RE.finditer(html or ""):
+        content = re.sub(r"<[^>]+>", "", match.group(1)).strip()
+        following = re.sub(r"<[^>]+>", "", match.group(2)).lstrip()
+        if not content:
+            issues.append(
+                ValidationIssue(
+                    "epub.dropcap_empty",
+                    "dropcap span is empty; the first letter was lost",
+                    Severity.ERROR,
+                    href,
+                )
+            )
+            continue
+        if len(content) > 1 or "[" in content or "]" in content:
+            issues.append(
+                ValidationIssue(
+                    "epub.dropcap_invalid",
+                    f"dropcap span contains '{content[:40]}'; expected one character",
+                    Severity.ERROR,
+                    href,
+                    {"content": content[:80]},
+                )
+            )
+            continue
+        if following and following[0].isupper():
+            issues.append(
+                ValidationIssue(
+                    "epub.dropcap_letter",
+                    f"dropcap '{content}' is not the first letter of the following "
+                    f"word ('{following[:40]}')",
+                    Severity.ERROR,
+                    href,
+                    {"dropcap": content, "following": following[:80]},
+                )
+            )
+    return issues
+
+
+def _dropcap_issues(target_epub: str) -> List[ValidationIssue]:
+    issues: List[ValidationIssue] = []
+    try:
+        with zipfile.ZipFile(target_epub) as archive:
+            for name in archive.namelist():
+                if not name.lower().endswith((".xhtml", ".html", ".htm")):
+                    continue
+                html = archive.read(name).decode("utf-8", "replace")
+                issues.extend(_dropcap_html_issues(html, name))
+    except Exception:
+        return issues
+    return issues
+
+
 def summarize_issues(issues: Sequence[ValidationIssue]) -> Dict[str, Any]:
     counts = Counter(issue.severity.value for issue in issues)
     blocking = counts.get(Severity.CRITICAL.value, 0) + counts.get(Severity.ERROR.value, 0)
@@ -411,6 +489,7 @@ def validate_epub_pair(
     """Structural + coarse content validation of a translated EPUB."""
     issues: List[ValidationIssue] = []
     issues.extend(validate_epub_structure(target_epub))
+    issues.extend(_dropcap_issues(target_epub))
     source = read_epub(source_epub, include_text=False)
     target = read_epub(target_epub, include_text=False)
     if source.issues:

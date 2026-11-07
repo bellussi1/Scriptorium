@@ -348,7 +348,7 @@ dated, auditable registry and use the literary cost model for decisions.
 The upstream suite is substantial. In the dev container:
 
 ```
-2858 passed, 2 skipped, 10 deselected, 14 failed
+2868 passed, 2 skipped, 10 deselected, 14 failed
 ```
 
 The same 14 failures reproduce on a clean worktree at upstream `b5ed606`
@@ -362,7 +362,7 @@ not caused by this project:
 
 New tests added by this project:
 
-- 59 tests under `tests/literary/` (inventory, EPUB, hierarchy, glossary
+- 69 tests under `tests/literary/` (inventory, EPUB, hierarchy, glossary
   selection, forbidden rendering, queue, cost, validation).
 - All 183 upstream glossary tests pass, including the byte-identical
   no-forbidden block regression.

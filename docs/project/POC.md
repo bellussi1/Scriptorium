@@ -62,13 +62,13 @@ Inside the dev container:
 
 ```bash
 pytest -p no:cacheprovider tests/literary -q
-# 59 passed
+# 69 passed
 
 pytest -p no:cacheprovider tests/unit/glossary -q
 # 183 passed
 
 pytest -p no:cacheprovider -q
-# 2858 passed, 2 skipped, 10 deselected, 14 failed
+# 2868 passed, 2 skipped, 10 deselected, 14 failed
 ```
 
 The same 14 failures reproduce on a clean worktree at upstream `b5ed606` under
@@ -195,21 +195,33 @@ Observed:
 - Placeholder validation failed on 4 chunks (`ch02`, `ch04`, `ch05`, glossary)
   and the token-alignment fallback repositioned the tags. The output is
   structurally valid, but approximate tag positions remain a layout risk.
-- Our validator returned `passed: true`, 0 blocking issues and 1 warning
-  (`epub.spine_extra`, the attribution page). The title became
-  `Amostra do Tradutor`; TOC labels were preserved without concatenation. Three
-  labels kept trailing punctuation (`II. ... –`, `IV. ... ,`, `V. ... ,`), a
-  minor editorial issue.
+- The first validator run, before the dropcap gate existed, returned
+  `passed: true` with 0 blocking issues and 1 warning (`epub.spine_extra`, the
+  attribution page). The title became `Amostra do Tradutor`; TOC labels were
+  preserved without concatenation. Three labels kept trailing punctuation
+  (`II. ... –`, `IV. ... ,`, `V. ... ,`), a minor editorial issue.
+- Adding the dropcap gate (2.10) changed the result to `passed: false` with 4
+  blocking errors: `AUma` (foreword), `AAlice` (ch01), the whole word `estudos`
+  inside the span (ch04), and `TOs` (ch06). EPUBCheck cannot see any of these:
+  the XHTML is valid, but the text is corrupted.
+- `literary repair-dropcaps` fixed all four unambiguous cases. The repaired
+  output passes the structural gate with 0 blocking issues and 1 warning.
+  Manual reading still found one unresolved issue in ch04: the article `Os` was
+  moved into the attribution paragraph (`... 1597 Os`), leaving the body without
+  its article. The deterministic gate does not catch that kind of migration;
+  source-aware review does.
 - EPUBCheck 5.4.0 still reports the upstream `ns0:role` attribution error plus
   the fixture UUID warning. This is the same bug as 2.8, not a Hy-MT2
   regression.
 - The upstream CLI left the checkpoint row in `running` even after 12/12
   chunks. `queue sync` inferred completion from progress, moved the queue job to
-  `validating`, and the EPUBCheck failure then moved it to `needs_review`.
+  `validating`, and the EPUBCheck/dropcap failures then moved it to
+  `needs_review`.
 
 This is a better structural result than the 4B model: Hy-MT2 did not corrupt the
-TOC or the title. The remaining blockers are the upstream attribution metadata
-and the placeholder fallback, not the translation model itself.
+TOC or the title, and the dropcap repair recovered all four first words. The
+remaining blockers are the upstream attribution metadata, the article migration,
+and the placeholder fallback; the pilot is not publish-ready.
 
 ### 2.6 Validation
 
@@ -224,10 +236,12 @@ Qwen3.5 4B result: `passed: false`; one blocking `epub.toc_concatenated` error
 TOC labels. This is a deliberate gate, not a false positive: the final EPUB
 would have a broken navigation pane.
 
-Hy-MT2 7B result: `passed: true`, 0 blocking issues and one warning
-(`epub.spine_extra`, the optional attribution page). The TOC labels were
-preserved. The gate distinguishes a small model failure from a publishable
-structure.
+Hy-MT2 7B result before the dropcap gate: `passed: true`, 0 blocking issues and
+one warning (`epub.spine_extra`, the optional attribution page). After the
+dropcap gate was added: `passed: false`, 4 blocking `epub.dropcap_*` errors.
+After `literary repair-dropcaps`: `passed: true` again, with the same warning.
+The gate distinguishes a small model failure from a structurally valid file,
+and the dropcap check distinguishes valid XHTML from correct text.
 
 ### 2.7 Benchmark pilot
 
@@ -307,6 +321,36 @@ from the blind upstream refine: the model saw the source and the exact flagged
 issues, and the guard had the final say. EPUB-level application is still a
 separate writer step.
 
+### 2.10 Dropcap content gate and repair
+
+The pilot exposed a content bug that a structural check cannot see: dropcap
+spans were empty, contained a whole word, or kept the source letter in front of
+the translated word. `validate epub` now flags:
+
+- `epub.dropcap_empty`: `<span class="dropcap"/>` (first letter lost);
+- `epub.dropcap_invalid`: a full word or placeholder inside the span;
+- `epub.dropcap_letter`: the span letter is not the first letter of the
+  following word (`A` + `Uma`, `T` + `Os`).
+
+These are `ERROR` severity because they corrupt the text. On the Hy-MT2 pilot
+the gate found four blocking errors that EPUBCheck did not report.
+
+The safe repair is deterministic:
+
+```bash
+python -m src.literary.cli repair-dropcaps \
+  --source data/smoke/sampler_hy_ptbr.epub \
+  --out data/smoke/sampler_hy_ptbr_fixed.epub \
+  --report data/smoke/repair_report.json
+```
+
+Result: four changes (foreword, ch01, ch04, ch06). The repaired EPUB passes the
+structural gate with 0 blocking issues and 1 warning; Calibre reads and converts
+it. It does not repair ambiguous cases, and it cannot recover a source letter
+that the model dropped entirely. A manual read still found an article migration
+in ch04 (`Os` moved into the attribution paragraph), which is exactly the kind
+of issue the source-aware reviewer must catch.
+
 ## 3. What is not implemented
 
 - Automatic queue-driven job launching; the queue now stores the upstream
@@ -321,6 +365,9 @@ separate writer step.
 - The upstream `dc:contributor` EPUB 3.4 conformance error is documented and
   two fixes were tested with EPUBCheck, but the fix is not applied in this fork
   yet.
+- The upstream dropcap corruption is reported in #333. The local gate and the
+  unambiguous repair are implemented; the translation-time fix is not applied,
+  and ambiguous or dropped letters still require review.
 - Web UI for the queue, glossary conflicts or side-by-side review.
 - Cloud model benchmark; no paid calls.
 - Calibre/KOReader read test; not run.

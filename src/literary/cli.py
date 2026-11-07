@@ -30,6 +30,7 @@ from .refine_runner import (
     render_refined_text,
     split_segments,
 )
+from .repair import repair_dropcaps_in_epub
 from .resources import (
     assemble_style,
     compile_for_book,
@@ -331,6 +332,15 @@ def cmd_refine(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_repair_dropcaps(args: argparse.Namespace) -> int:
+    report = repair_dropcaps_in_epub(args.source, args.out)
+    if args.report:
+        with open(args.report, "w", encoding="utf-8") as handle:
+            json.dump(report, handle, ensure_ascii=False, indent=2)
+    _print_json(report)
+    return 0
+
+
 def cmd_estimate(args: argparse.Namespace) -> int:
     books: List[Dict[str, Any]] = []
     if args.inventory:
@@ -540,6 +550,15 @@ def build_parser() -> argparse.ArgumentParser:
     refine_parser.add_argument("--dry-run", action="store_true")
     refine_parser.add_argument("--report", default="")
     refine_parser.set_defaults(func=cmd_refine)
+
+    repair_parser = sub.add_parser(
+        "repair-dropcaps",
+        help="Repair unambiguous dropcap corruption in an EPUB",
+    )
+    repair_parser.add_argument("--source", required=True)
+    repair_parser.add_argument("--out", required=True)
+    repair_parser.add_argument("--report", default="")
+    repair_parser.set_defaults(func=cmd_repair_dropcaps)
 
     estimate = sub.add_parser("estimate", help="Cost estimate")
     estimate.add_argument("--words", type=int)

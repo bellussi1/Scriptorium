@@ -350,6 +350,8 @@ Two layers:
 - untranslated English leakage;
 - glossary target missing / forbidden rendering present;
 - TOC label concatenation, truncation or length anomaly;
+- dropcap span empty, over-long or not starting the following word; a
+  deterministic repair handles the unambiguous cases;
 - repeated n-grams not present in the source;
 - language metadata (`pt-BR`);
 - EPUB ZIP/OPF/spine/manifest/internal links/XML;
@@ -372,6 +374,8 @@ Reuse the upstream tag/placeholder architecture. Add:
 
 - `validate_epub_structure` before and after;
 - TOC label validation (the smoke test proved this is necessary);
+- dropcap validation and a conservative repair pass (the Hy-MT2 pilot proved
+  both are necessary);
 - metadata `dc:language = pt-BR` and series/index correction on the output;
 - EPUBcheck once a modern JDK is installed (the machine currently has Java 8;
   EPUBCheck 5.x needs 11+);
