@@ -11,7 +11,9 @@ import { t } from '../i18n/i18n.js';
 const QUEUE_URL = '/api/literary/queue';
 const LIBRARY_URL = '/api/literary/library';
 const ADD_URL = '/api/literary/queue/books';
+const MODELS_URL = '/api/models?provider=ollama';
 const REFRESH_MS = 10000;
+const PROVIDERS = ['ollama', 'openai', 'gemini', 'deepseek', 'openrouter', 'mistral', 'poe', 'nim'];
 
 const STATUS_KEYS = {
     pending: 'status_pending',
@@ -27,6 +29,10 @@ const STATUS_KEYS = {
 
 let refreshTimer = null;
 let libraryBooks = [];
+let lastBooks = [];
+let editingBookId = null;
+let modelsLoaded = false;
+let modelsLoading = false;
 let actionInFlight = false;
 
 function byId(id) {
@@ -108,11 +114,16 @@ function renderSummary(data) {
         : '';
 }
 
-function moveButtons(book, isFirst, isLast) {
+function actionButtons(book, isFirst, isLast) {
     if (book.status !== 'pending') return '<span class="queue-muted">—</span>';
+    const editLabel = escapeHtml(t('queue:edit_model'));
     const upLabel = escapeHtml(t('queue:move_up'));
     const downLabel = escapeHtml(t('queue:move_down'));
     return `
+        <button type="button" class="queue-move-btn" data-edit-model="${book.id}"
+                title="${editLabel}" aria-label="${editLabel}">
+            <span class="material-symbols-outlined" aria-hidden="true">edit</span>
+        </button>
         <button type="button" class="queue-move-btn" data-move="up" data-book-id="${book.id}"
                 title="${upLabel}" aria-label="${upLabel}" ${isFirst ? 'disabled' : ''}>
             <span class="material-symbols-outlined" aria-hidden="true">arrow_upward</span>
@@ -129,6 +140,7 @@ function renderRows(data) {
     const empty = byId('queueEmpty');
     const tableWrap = document.querySelector('#tab-queue .queue-table-wrap');
     const books = Array.isArray(data.books) ? data.books : [];
+    lastBooks = books;
     const pending = books.filter((book) => book.status === 'pending');
     const firstPending = pending.length ? pending[0].id : null;
     const lastPending = pending.length ? pending[pending.length - 1].id : null;
@@ -162,7 +174,7 @@ function renderRows(data) {
                     <td title="${escapeHtml(book.model || '')}">${escapeHtml(modelLabel(book))}</td>
                     <td>${translationId}</td>
                     <td class="queue-updated-cell">${formatDate(book.job_updated_at || book.updated_at)}</td>
-                    <td class="queue-actions-cell">${moveButtons(book, book.id === firstPending, book.id === lastPending)}</td>
+                    <td class="queue-actions-cell">${actionButtons(book, book.id === firstPending, book.id === lastPending)}</td>
                 </tr>
             `;
         })
@@ -339,6 +351,114 @@ async function addSelectedBooks() {
     }
 }
 
+function showModelError(message) {
+    const error = byId('queueModelError');
+    if (!error) return;
+    error.textContent = message;
+    error.classList.remove('hidden');
+}
+
+function clearModelError() {
+    const error = byId('queueModelError');
+    if (!error) return;
+    error.textContent = '';
+    error.classList.add('hidden');
+}
+
+function closeModelModal() {
+    const modal = byId('queueModelModal');
+    if (modal) modal.classList.add('hidden');
+    editingBookId = null;
+    clearModelError();
+}
+
+function openModelModal(bookId) {
+    const book = lastBooks.find((item) => item.id === bookId);
+    if (!book || book.status !== 'pending') return;
+    editingBookId = book.id;
+    const label = byId('queueModelBook');
+    if (label) label.textContent = `${book.title} — ${book.author || ''}`.trim();
+    const modelInput = byId('queueModelInput');
+    if (modelInput) modelInput.value = book.model || '';
+    const providerInput = byId('queueProviderInput');
+    if (providerInput) providerInput.value = book.provider || 'ollama';
+    clearModelError();
+    const modal = byId('queueModelModal');
+    if (modal) modal.classList.remove('hidden');
+    if (modelInput) modelInput.focus();
+    loadModelOptions();
+}
+
+async function loadModelOptions() {
+    const providers = byId('queueProviderOptions');
+    if (providers && !providers.dataset.ready) {
+        providers.innerHTML = PROVIDERS
+            .map((provider) => `<option value="${escapeHtml(provider)}"></option>`)
+            .join('');
+        providers.dataset.ready = '1';
+    }
+    if (modelsLoaded || modelsLoading) return;
+    modelsLoading = true;
+    try {
+        const response = await fetch(MODELS_URL, {
+            headers: apiHeaders(),
+            cache: 'no-store',
+        });
+        if (!response.ok) return;
+        const data = await response.json().catch(() => ({}));
+        const names = Array.isArray(data.model_names)
+            ? data.model_names
+            : (Array.isArray(data.models)
+                ? data.models.map((model) => (typeof model === 'string' ? model : (model.id || model.name)))
+                : []);
+        const list = byId('queueModelOptions');
+        if (!list) return;
+        list.innerHTML = names
+            .filter(Boolean)
+            .map((name) => `<option value="${escapeHtml(name)}"></option>`)
+            .join('');
+        modelsLoaded = true;
+    } catch (error) {
+        // Suggestions are optional; typing the model name still works.
+    } finally {
+        modelsLoading = false;
+    }
+}
+
+async function saveModel() {
+    if (!editingBookId) return;
+    const modelInput = byId('queueModelInput');
+    const providerInput = byId('queueProviderInput');
+    const model = String(modelInput?.value || '').trim();
+    const provider = String(providerInput?.value || '').trim();
+    if (!model) {
+        showModelError(t('queue:model_required'));
+        return;
+    }
+
+    const button = byId('queueModelSave');
+    if (button) button.disabled = true;
+    clearModelError();
+    try {
+        const response = await fetch(`${ADD_URL}/${editingBookId}`, {
+            method: 'PATCH',
+            headers: { ...apiHeaders(), 'Content-Type': 'application/json' },
+            body: JSON.stringify({ model, provider }),
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok || data.status === 'error') {
+            throw new Error(data.error || `HTTP ${response.status}`);
+        }
+        applySnapshot(data);
+        closeModelModal();
+        setActionStatus(t('queue:model_updated'));
+    } catch (error) {
+        showModelError(t('queue:model_error', { message: error.message || String(error) }));
+    } finally {
+        if (button) button.disabled = false;
+    }
+}
+
 async function moveBook(bookId, direction) {
     if (actionInFlight) return;
     actionInFlight = true;
@@ -375,11 +495,35 @@ function initialize() {
     const table = byId('queueTableBody');
     if (table) {
         table.addEventListener('click', (event) => {
+            const edit = event.target.closest('[data-edit-model]');
+            if (edit) {
+                openModelModal(Number(edit.dataset.editModel));
+                return;
+            }
             const move = event.target.closest('[data-move]');
             if (!move || move.disabled) return;
             moveBook(Number(move.dataset.bookId), move.dataset.move);
         });
     }
+
+    const modelModal = byId('queueModelModal');
+    if (modelModal) {
+        modelModal.addEventListener('click', (event) => {
+            if (event.target === modelModal) closeModelModal();
+        });
+    }
+    const modelClose = byId('queueModelModalClose');
+    if (modelClose) modelClose.addEventListener('click', closeModelModal);
+    const modelCancel = byId('queueModelCancel');
+    if (modelCancel) modelCancel.addEventListener('click', closeModelModal);
+    const modelSave = byId('queueModelSave');
+    if (modelSave) modelSave.addEventListener('click', saveModel);
+
+    document.addEventListener('keydown', (event) => {
+        if (event.key !== 'Escape') return;
+        const modal = byId('queueModelModal');
+        if (modal && !modal.classList.contains('hidden')) closeModelModal();
+    });
 
     if (refreshTimer) clearInterval(refreshTimer);
     refreshTimer = setInterval(() => {

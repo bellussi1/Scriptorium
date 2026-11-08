@@ -286,6 +286,31 @@ def create_literary_queue_blueprint() -> Blueprint:
         snapshot["not_found"] = not_found
         return jsonify(snapshot), (201 if added else 200)
 
+    @bp.route("/api/literary/queue/books/<int:book_id>", methods=["PATCH"])
+    def update_literary_queue_book(book_id: int):
+        payload = request.get_json(silent=True) or {}
+        model = str(payload.get("model") or "").strip()
+        provider = str(payload.get("provider") or "").strip()
+        if not model:
+            return _json_error("model is required")
+
+        store = QueueStore(str(_db_path()))
+        try:
+            if not store.update_book_model(book_id, model, provider):
+                return _json_error("book not found", 404)
+            snapshot = build_queue_snapshot(_db_path())
+        except ValueError as exc:
+            return _json_error(str(exc), 409)
+        finally:
+            store.close()
+
+        snapshot["updated"] = {
+            "book_id": book_id,
+            "model": model,
+            "provider": provider,
+        }
+        return jsonify(snapshot)
+
     @bp.route("/api/literary/queue/books/<int:book_id>/move", methods=["POST"])
     def move_literary_queue_book(book_id: int):
         payload = request.get_json(silent=True) or {}

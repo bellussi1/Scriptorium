@@ -68,7 +68,7 @@ pytest -p no:cacheprovider tests/unit/glossary -q
 # 183 passed
 
 pytest -p no:cacheprovider -q
-# 2894 passed, 2 skipped, 10 deselected, 14 failed
+# 2896 passed, 2 skipped, 10 deselected, 14 failed
 ```
 
 The same 14 failures reproduce on a clean worktree at upstream `b5ed606` under
@@ -421,6 +421,13 @@ the two controlled actions the queue needs from the browser:
 - `POST /api/literary/queue/books/<id>/move` moves a **pending** book up or
   down and renumbers pending priorities; non-pending entries are rejected with
   `409`.
+- `PATCH /api/literary/queue/books/<id>` changes the stored `model` and
+  `provider` of a **pending** book. Non-pending entries are rejected with
+  `409`; the value is saved for the next run and does not alter a job already in
+  progress.
+- The Queue tab has an edit button per pending row. The modal pre-fills the
+  current model/provider, suggests the installed Ollama models from
+  `/api/models`, and reports the result without reloading the page.
 - `src/web/static/queue.css` uses the existing design tokens (surfaces, borders,
   status colors, dark mode) instead of duplicating the palette.
 - `src/web/static/js/queue/queue-manager.js` renders the table and refreshes
@@ -428,18 +435,19 @@ the two controlled actions the queue needs from the browser:
   disables move buttons at the queue edges, and reports action results.
 - The strings are in a new `queue` i18n namespace across all seven supported
   locales.
-- The boundary is explicit: the UI can enqueue and reorder, but never starts,
-  pauses or validates a translation job.
+- The boundary is explicit: the UI can enqueue, reorder and set the model for
+  pending books, but never starts, pauses or validates a translation job.
 
 The active UI on port 5000 gets the tab after a restart. For validation I ran a
 second isolated app on **`http://127.0.0.1:5001`** with a copy of the queue
 database; it showed the 15 books, the active *Howling Dark* row, progress,
 `translation_id`, events and 8 available inventory books. Moving *The Mad Ship*
-above *Ship of Magic* and adding *Assassin's Apprentice* worked against the copy;
-both actions were then reverted by restoring the copy from the live queue. The
-second instance does not touch the real `data/jobs.db`.
+above *Ship of Magic*, adding *Assassin's Apprentice* and saving a different
+model for *Ship of Magic* worked against the copy; all three actions were then
+reverted by restoring the copy from the live queue. The second instance does not
+touch the real `data/jobs.db`.
 
-Validation: **11** route tests, **90** targeted tests, full suite **2,894
+Validation: **12** route tests, **92** targeted tests, full suite **2,896
 passed, 2 skipped, 14 pre-existing failures**.
 
 ## 3. What is not implemented

@@ -47,5 +47,16 @@
   "actions": "操作",
   "moved": "队列顺序已更新。",
   "moving": "正在更新顺序...",
-  "move_error": "无法移动书籍：{{message}}"
+  "move_error": "无法移动书籍：{{message}}",
+  "edit_model": "编辑模型",
+  "model_modal_title": "本书的模型",
+  "model_label": "模型",
+  "provider_label": "提供方",
+  "model_placeholder": "例如 hf.co/tencent/Hy-MT2-7B-GGUF:Q4_K_M",
+  "provider_placeholder": "ollama",
+  "model_hint": "这会更改本书下次运行所使用的模型。正在进行的任务不受影响。",
+  "save_model": "保存模型",
+  "model_updated": "模型已更新。",
+  "model_error": "无法更新模型：{{message}}",
+  "model_required": "请选择或输入模型。"
 }

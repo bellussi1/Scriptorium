@@ -319,3 +319,22 @@ def test_move_book_rejects_non_pending_and_unknown_direction(tmp_path: Path):
     with pytest.raises(ValueError):
         store.move_book(book_id, "left")
     store.close()
+
+def test_update_book_model_only_for_pending_books(tmp_path: Path):
+    store = QueueStore(str(tmp_path / "queue.db"))
+    first = store.add_book(_record(make_epub(tmp_path / "a.epub"), 1, "Alpha"))
+    second = store.add_book(_record(make_epub(tmp_path / "b.epub"), 2, "Beta"))
+
+    assert store.update_book_model(first, "hf.co/tencent/Hy-MT2-7B-GGUF:Q5_K_M", "ollama")
+    book = store.get_book(first)
+    assert book.model == "hf.co/tencent/Hy-MT2-7B-GGUF:Q5_K_M"
+    assert book.provider == "ollama"
+    assert any("model ->" in event["message"] for event in store.events(book_id=first))
+
+    store.set_book_state(second, "preparing")
+    with pytest.raises(ValueError):
+        store.update_book_model(second, "other", "ollama")
+    assert store.update_book_model(9999, "other", "ollama") is False
+    with pytest.raises(ValueError):
+        store.update_book_model(first, "", "ollama")
+    store.close()

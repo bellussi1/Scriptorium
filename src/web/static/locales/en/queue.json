@@ -47,5 +47,16 @@
   "actions": "Actions",
   "moved": "Queue order updated.",
   "moving": "Updating order...",
-  "move_error": "Could not move the book: {{message}}"
+  "move_error": "Could not move the book: {{message}}",
+  "edit_model": "Edit model",
+  "model_modal_title": "Model for this book",
+  "model_label": "Model",
+  "provider_label": "Provider",
+  "model_placeholder": "e.g. hf.co/tencent/Hy-MT2-7B-GGUF:Q4_K_M",
+  "provider_placeholder": "ollama",
+  "model_hint": "This changes the model saved for the next run of this book. A job already in progress is not affected.",
+  "save_model": "Save model",
+  "model_updated": "Model updated.",
+  "model_error": "Could not update the model: {{message}}",
+  "model_required": "Choose or type a model."
 }

@@ -47,5 +47,16 @@
   "actions": "Aktionen",
   "moved": "Reihenfolge aktualisiert.",
   "moving": "Reihenfolge wird aktualisiert...",
-  "move_error": "Buch konnte nicht verschoben werden: {{message}}"
+  "move_error": "Buch konnte nicht verschoben werden: {{message}}",
+  "edit_model": "Modell bearbeiten",
+  "model_modal_title": "Modell für dieses Buch",
+  "model_label": "Modell",
+  "provider_label": "Anbieter",
+  "model_placeholder": "z. B. hf.co/tencent/Hy-MT2-7B-GGUF:Q4_K_M",
+  "provider_placeholder": "ollama",
+  "model_hint": "Dies ändert das für den nächsten Lauf dieses Buchs gespeicherte Modell. Ein bereits laufender Job ist nicht betroffen.",
+  "save_model": "Modell speichern",
+  "model_updated": "Modell aktualisiert.",
+  "model_error": "Modell konnte nicht aktualisiert werden: {{message}}",
+  "model_required": "Wählen Sie ein Modell oder geben Sie eines ein."
 }

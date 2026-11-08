@@ -325,6 +325,33 @@ class QueueStore:
             conn.commit()
             return True
 
+    def update_book_model(self, book_id: int, model: str, provider: str) -> bool:
+        """Set the model/provider a pending book should use on its next run."""
+        model = (model or "").strip()
+        provider = (provider or "").strip()
+        if not model:
+            raise ValueError("model is required")
+        now = utc_now()
+        with self._lock, self._connect() as conn:
+            row = conn.execute(
+                "SELECT status FROM books WHERE id = ?", (book_id,)
+            ).fetchone()
+            if not row:
+                return False
+            if row["status"] != "pending":
+                raise ValueError("only pending books can change model")
+            conn.execute(
+                "UPDATE books SET model = ?, provider = ?, updated_at = ? WHERE id = ?",
+                (model, provider, now, book_id),
+            )
+            conn.execute(
+                "INSERT INTO events (book_id, level, message, created_at) "
+                "VALUES (?, 'info', ?, ?)",
+                (book_id, f"model -> {model} ({provider or 'default'})", now),
+            )
+            conn.commit()
+            return True
+
     def next_pending_priority(self) -> int:
         """Priority that appends a new book after every pending entry."""
         with self._connect() as conn:

@@ -309,3 +309,38 @@ def test_snapshot_puts_active_books_first(tmp_path: Path, monkeypatch):
     assert payload["books"][0]["title"] == "Third"
     assert payload["books"][0]["job_state"] is None
     assert payload["books"][0]["status"] == "preparing"
+
+def test_patch_updates_model_only_for_pending_books(tmp_path: Path, monkeypatch):
+    rows = [_inventory_row(10, "First"), _inventory_row(11, "Second")]
+    client = _client(tmp_path, monkeypatch, rows=rows).test_client()
+    client.post("/api/literary/queue/books", json={"calibre_ids": [10, 11]})
+    store = QueueStore(str(tmp_path / "queue.db"))
+    pending = store.list_books()
+    store.close()
+    first_id, second_id = pending[0].id, pending[1].id
+
+    response = client.patch(
+        f"/api/literary/queue/books/{first_id}",
+        json={"model": "hf.co/tencent/Hy-MT2-7B-GGUF:Q5_K_M", "provider": "ollama"},
+    )
+    assert response.status_code == 200
+    payload = response.get_json()
+    assert payload["updated"]["model"] == "hf.co/tencent/Hy-MT2-7B-GGUF:Q5_K_M"
+    assert payload["books"][0]["model"] == "hf.co/tencent/Hy-MT2-7B-GGUF:Q5_K_M"
+    assert payload["books"][0]["provider"] == "ollama"
+
+    store = QueueStore(str(tmp_path / "queue.db"))
+    store.set_book_state(second_id, "preparing")
+    store.close()
+    blocked = client.patch(
+        f"/api/literary/queue/books/{second_id}",
+        json={"model": "other", "provider": "ollama"},
+    )
+    assert blocked.status_code == 409
+
+    assert client.patch(
+        f"/api/literary/queue/books/{first_id}", json={"model": "  ", "provider": "ollama"}
+    ).status_code == 400
+    assert client.patch(
+        "/api/literary/queue/books/9999", json={"model": "other", "provider": "ollama"}
+    ).status_code == 404

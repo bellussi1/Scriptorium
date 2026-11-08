@@ -47,5 +47,16 @@
   "actions": "操作",
   "moved": "キューの順序を更新しました。",
   "moving": "順序を更新中...",
-  "move_error": "書籍を移動できませんでした: {{message}}"
+  "move_error": "書籍を移動できませんでした: {{message}}",
+  "edit_model": "モデルを編集",
+  "model_modal_title": "この書籍のモデル",
+  "model_label": "モデル",
+  "provider_label": "プロバイダー",
+  "model_placeholder": "例: hf.co/tencent/Hy-MT2-7B-GGUF:Q4_K_M",
+  "provider_placeholder": "ollama",
+  "model_hint": "この書籍の次回実行に使うモデルを変更します。実行中のジョブには影響しません。",
+  "save_model": "モデルを保存",
+  "model_updated": "モデルを更新しました。",
+  "model_error": "モデルを更新できませんでした: {{message}}",
+  "model_required": "モデルを選択するか入力してください。"
 }

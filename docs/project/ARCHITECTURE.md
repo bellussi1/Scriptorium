@@ -340,9 +340,10 @@ The browser queue is not the system of record. The UI has a Queue tab backed by
 `GET /api/literary/queue`, which reads the same SQLite store in `mode=ro`. It can
 also call `GET /api/literary/library` and `POST /api/literary/queue/books` to
 enqueue English inventory books, and `POST /api/literary/queue/books/<id>/move`
-to reorder pending entries. Starting, pausing and validation remain CLI
-operations. The browser's localStorage stays a fallback for the upstream
-single-job flow.
+to reorder pending entries. `PATCH /api/literary/queue/books/<id>` sets the
+model/provider for a pending entry; an in-progress job is not changed. Starting,
+pausing and validation remain CLI operations. The browser's localStorage stays
+a fallback for the upstream single-job flow.
 
 ## 9. Validation and quality gates
 

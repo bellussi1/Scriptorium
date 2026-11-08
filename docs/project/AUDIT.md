@@ -348,7 +348,7 @@ dated, auditable registry and use the literary cost model for decisions.
 The upstream suite is substantial. In the dev container:
 
 ```
-2894 passed, 2 skipped, 10 deselected, 14 failed
+2896 passed, 2 skipped, 10 deselected, 14 failed
 ```
 
 The same 14 failures reproduce on a clean worktree at upstream `b5ed606`

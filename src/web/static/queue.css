@@ -365,3 +365,31 @@
 .queue-move-btn .material-symbols-outlined {
     font-size: 18px;
 }
+
+/* Model editor modal */
+
+.queue-model-modal {
+    width: 100%;
+    max-width: 520px;
+}
+
+.queue-model-book {
+    margin: 0 0 14px;
+    font-weight: 600;
+    color: var(--text-dark);
+}
+
+.queue-model-modal .form-group {
+    margin-bottom: 14px;
+}
+
+.queue-model-modal .form-control {
+    width: 100%;
+}
+
+.queue-hint {
+    margin: 0 0 12px;
+    font-size: 0.78rem;
+    line-height: 1.45;
+    color: var(--text-muted-light);
+}

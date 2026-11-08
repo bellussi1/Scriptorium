@@ -47,5 +47,16 @@
   "actions": "작업",
   "moved": "대기열 순서가 업데이트되었습니다.",
   "moving": "순서 업데이트 중...",
-  "move_error": "책을 이동할 수 없습니다: {{message}}"
+  "move_error": "책을 이동할 수 없습니다: {{message}}",
+  "edit_model": "모델 편집",
+  "model_modal_title": "이 책의 모델",
+  "model_label": "모델",
+  "provider_label": "제공자",
+  "model_placeholder": "예: hf.co/tencent/Hy-MT2-7B-GGUF:Q4_K_M",
+  "provider_placeholder": "ollama",
+  "model_hint": "이 책의 다음 실행에 사용할 모델을 변경합니다. 이미 진행 중인 작업에는 영향을 주지 않습니다.",
+  "save_model": "모델 저장",
+  "model_updated": "모델이 업데이트되었습니다.",
+  "model_error": "모델을 업데이트할 수 없습니다: {{message}}",
+  "model_required": "모델을 선택하거나 입력하세요."
 }

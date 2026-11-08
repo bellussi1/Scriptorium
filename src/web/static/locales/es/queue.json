@@ -47,5 +47,16 @@
   "actions": "Acciones",
   "moved": "Orden de la cola actualizado.",
   "moving": "Actualizando el orden...",
-  "move_error": "No se pudo mover el libro: {{message}}"
+  "move_error": "No se pudo mover el libro: {{message}}",
+  "edit_model": "Editar modelo",
+  "model_modal_title": "Modelo de este libro",
+  "model_label": "Modelo",
+  "provider_label": "Proveedor",
+  "model_placeholder": "p. ej. hf.co/tencent/Hy-MT2-7B-GGUF:Q4_K_M",
+  "provider_placeholder": "ollama",
+  "model_hint": "Esto cambia el modelo guardado para la próxima ejecución de este libro. Un trabajo ya en curso no se ve afectado.",
+  "save_model": "Guardar modelo",
+  "model_updated": "Modelo actualizado.",
+  "model_error": "No se pudo actualizar el modelo: {{message}}",
+  "model_required": "Elija o escriba un modelo."
 }

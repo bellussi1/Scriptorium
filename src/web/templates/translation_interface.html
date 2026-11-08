@@ -1806,6 +1806,46 @@
                     <ul id="queueEvents" class="queue-events"></ul>
                 </div>
             </div>
+
+            <div id="queueModelModal" class="modal-overlay hidden" role="dialog" aria-modal="true"
+                 aria-labelledby="queueModelModalTitle">
+                <div class="modal-content queue-model-modal">
+                    <div class="modal-header">
+                        <h3 id="queueModelModalTitle" data-i18n="queue:model_modal_title">Model for this book</h3>
+                        <button type="button" class="close-btn" id="queueModelModalClose"
+                                data-i18n-attr="aria-label:common:close" aria-label="Close">&times;</button>
+                    </div>
+                    <div class="modal-body">
+                        <p id="queueModelBook" class="queue-model-book"></p>
+                        <div class="form-group">
+                            <label for="queueModelInput" data-i18n="queue:model_label">Model</label>
+                            <input type="text" id="queueModelInput" class="form-control"
+                                   list="queueModelOptions"
+                                   data-i18n-attr="placeholder:queue:model_placeholder"
+                                   placeholder="e.g. hf.co/tencent/Hy-MT2-7B-GGUF:Q4_K_M">
+                            <datalist id="queueModelOptions"></datalist>
+                        </div>
+                        <div class="form-group">
+                            <label for="queueProviderInput" data-i18n="queue:provider_label">Provider</label>
+                            <input type="text" id="queueProviderInput" class="form-control"
+                                   list="queueProviderOptions"
+                                   data-i18n-attr="placeholder:queue:provider_placeholder"
+                                   placeholder="ollama">
+                            <datalist id="queueProviderOptions"></datalist>
+                        </div>
+                        <p class="queue-hint" data-i18n="queue:model_hint">
+                            This changes the model saved for the next run of this book. A job already in progress is not affected.
+                        </p>
+                        <div id="queueModelError" class="queue-error hidden" role="alert"></div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" id="queueModelCancel"
+                                data-i18n="common:cancel">Cancel</button>
+                        <button type="button" class="btn btn-primary" id="queueModelSave"
+                                data-i18n="queue:save_model">Save model</button>
+                    </div>
+                </div>
+            </div>
         </div><!-- /#tab-queue -->
 
         <!-- Tab: Styles -->

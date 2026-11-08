@@ -47,5 +47,16 @@
   "actions": "Actions",
   "moved": "Ordre de la file mis à jour.",
   "moving": "Mise à jour de l'ordre...",
-  "move_error": "Impossible de déplacer le livre : {{message}}"
+  "move_error": "Impossible de déplacer le livre : {{message}}",
+  "edit_model": "Modifier le modèle",
+  "model_modal_title": "Modèle de ce livre",
+  "model_label": "Modèle",
+  "provider_label": "Fournisseur",
+  "model_placeholder": "ex. hf.co/tencent/Hy-MT2-7B-GGUF:Q4_K_M",
+  "provider_placeholder": "ollama",
+  "model_hint": "Cela change le modèle enregistré pour la prochaine exécution de ce livre. Un job déjà en cours n'est pas affecté.",
+  "save_model": "Enregistrer le modèle",
+  "model_updated": "Modèle mis à jour.",
+  "model_error": "Impossible de mettre à jour le modèle : {{message}}",
+  "model_required": "Choisissez ou saisissez un modèle."
 }
