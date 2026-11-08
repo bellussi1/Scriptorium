@@ -68,7 +68,7 @@ pytest -p no:cacheprovider tests/unit/glossary -q
 # 183 passed
 
 pytest -p no:cacheprovider -q
-# 2896 passed, 2 skipped, 10 deselected, 14 failed
+# 2936 passed, 2 skipped, 10 deselected, 14 failed
 ```
 
 The same 14 failures reproduce on a clean worktree at upstream `b5ed606` under
@@ -452,7 +452,7 @@ model for *Ship of Magic* worked against the copy; all three actions were then
 reverted by restoring the copy from the live queue. The second instance does not
 touch the real `data/jobs.db`.
 
-Validation: **12** route tests, full suite **2,933 passed, 2 skipped, 14
+Validation: **12** route tests, full suite **2,936 passed, 2 skipped, 14
 pre-existing failures**.
 
 ### 2.14 PT-BR grammar layer
