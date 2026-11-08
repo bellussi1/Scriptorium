@@ -562,8 +562,9 @@ Removed as weak/duplicate: `qwen3.5:4b`, the stale
 `gemini-3-flash-preview` manifest, the duplicate `qwen3:8b` tag and the duplicate
 `translategemma:12b-it-q4_K_M` tag. After the pilot evidence, TranslateGemma 12B
 (failed the semantic gate) and Qwen3 14B (slower and not uniformly better) were
-also removed. Index-Translate 9B and Qwen3 8B remain as comparison baselines for
-the quantization round.
+also removed. Index-Translate 9B and Qwen3 8B remain as comparison baselines; Q8_0 was
+removed after the round (no quality gain and heavy CPU offload). Q6_K stays until
+a blind human comparison, if one is run.
 
 ## 3. What is not implemented
 
