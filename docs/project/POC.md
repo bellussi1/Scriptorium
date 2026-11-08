@@ -68,7 +68,7 @@ pytest -p no:cacheprovider tests/unit/glossary -q
 # 183 passed
 
 pytest -p no:cacheprovider -q
-# 2873 passed, 2 skipped, 10 deselected, 14 failed
+# 2884 passed, 2 skipped, 10 deselected, 14 failed
 ```
 
 The same 14 failures reproduce on a clean worktree at upstream `b5ed606` under
@@ -403,6 +403,32 @@ language `por`, and the translated description. `ebook-convert` reads the EPUB
 and writes an 11.5 KB TXT without errors. This is a CLI read/convert test, not a
 GUI or KOReader test; it proves Calibre's EPUB reader accepts the file, not that
 the layout is visually perfect.
+
+### 2.13 Read-only queue UI
+
+The SPA now has a **Queue** tab that reads the persistent literary queue without
+starting or changing jobs:
+
+- `GET /api/literary/queue` reads `data/literary_queue.db` in SQLite
+  `mode=ro` and returns the book list, summary, latest job/progress and recent
+  events.
+- `src/web/static/queue.css` uses the existing design tokens (surfaces, borders,
+  status colors, dark mode) instead of duplicating the palette.
+- `src/web/static/js/queue/queue-manager.js` renders the table and refreshes
+  every 10 s only while the tab is visible.
+- The strings are in a new `queue` i18n namespace across all seven supported
+  locales.
+- The view is deliberately read-only: start, pause, reorder and validate remain
+  CLI/queue operations.
+
+The active UI on port 5000 gets the tab after a restart. For validation I ran a
+second isolated app on **`http://127.0.0.1:5001`** with a copy of the queue
+database; it showed the 15 books, the active *Howling Dark* row, progress,
+`translation_id` and events. The second instance does not touch the real
+`data/jobs.db`.
+
+Validation: **3** route tests, **65** i18n/route tests, full suite **2,884
+passed, 2 skipped, 14 pre-existing failures**.
 
 ## 3. What is not implemented
 

@@ -1,0 +1,251 @@
+/* Read-only persistent literary queue. Uses the existing design tokens so it
+   follows the light and dark themes without duplicating the palette. */
+
+.queue-intro {
+    margin: 0 0 14px;
+    color: var(--text-muted-light);
+    font-size: 0.9rem;
+    line-height: 1.5;
+}
+
+.queue-intro code {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 0.85em;
+    color: var(--text-dark);
+    background: var(--background-light);
+    border: 1px solid var(--border-light);
+    border-radius: 4px;
+    padding: 1px 4px;
+}
+
+.queue-summary {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    gap: 10px;
+    margin-bottom: 14px;
+}
+
+.queue-stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    padding: 12px 10px;
+    background: var(--background-light);
+    border: 1px solid var(--border-light);
+    border-radius: 10px;
+}
+
+.queue-stat-value {
+    font-size: 1.35rem;
+    font-weight: 700;
+    color: var(--text-dark);
+    font-variant-numeric: tabular-nums;
+}
+
+.queue-stat-label {
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-muted-light);
+}
+
+.queue-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 12px;
+}
+
+.queue-updated {
+    font-size: 0.75rem;
+    color: var(--text-muted-light);
+}
+
+.queue-table-wrap {
+    overflow-x: auto;
+    border: 1px solid var(--border-light);
+    border-radius: 10px;
+}
+
+.queue-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.84rem;
+}
+
+.queue-table th {
+    text-align: left;
+    padding: 10px;
+    background: var(--background-light);
+    color: var(--text-muted-light);
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.queue-table td {
+    padding: 10px;
+    border-top: 1px solid var(--border-light);
+    vertical-align: middle;
+    color: var(--text-dark);
+}
+
+.queue-table tbody tr:hover {
+    background: var(--background-light);
+}
+
+.queue-book-title {
+    font-weight: 600;
+    color: var(--text-dark);
+}
+
+.queue-book-author {
+    font-size: 0.74rem;
+    color: var(--text-muted-light);
+    margin-top: 2px;
+}
+
+.queue-status {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.queue-status-translating,
+.queue-status-preparing {
+    background: var(--info-light-bg);
+    color: var(--info-light);
+}
+
+.queue-status-pending {
+    background: var(--background-light);
+    color: var(--text-muted-light);
+    border: 1px solid var(--border-light);
+}
+
+.queue-status-completed {
+    background: var(--success-light-bg);
+    color: var(--success-light);
+}
+
+.queue-status-failed {
+    background: var(--danger-light-bg);
+    color: var(--danger-light-text);
+}
+
+.queue-status-needs_review,
+.queue-status-paused,
+.queue-status-validating,
+.queue-status-reviewing {
+    background: var(--warning-light-bg);
+    color: var(--warning-light-text);
+}
+
+.queue-progress {
+    width: 100%;
+    max-width: 180px;
+    height: 6px;
+    background: var(--border-light);
+    border-radius: 999px;
+    overflow: hidden;
+}
+
+.queue-progress > span {
+    display: block;
+    height: 100%;
+    background: var(--primary-light);
+    border-radius: 999px;
+}
+
+.queue-progress-text {
+    display: block;
+    margin-top: 3px;
+    font-size: 0.72rem;
+    color: var(--text-muted-light);
+    font-variant-numeric: tabular-nums;
+}
+
+.queue-updated-cell {
+    white-space: nowrap;
+    color: var(--text-muted-light);
+    font-size: 0.74rem;
+}
+
+.queue-muted {
+    color: var(--text-muted-light);
+}
+
+.queue-empty {
+    padding: 28px 12px;
+    text-align: center;
+    color: var(--text-muted-light);
+    font-size: 0.88rem;
+}
+
+.queue-empty code {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 0.85em;
+}
+
+.queue-error {
+    margin-bottom: 12px;
+    padding: 10px 12px;
+    border: 1px solid var(--danger-light-border);
+    border-radius: 8px;
+    background: var(--danger-light-bg);
+    color: var(--danger-light-text);
+    font-size: 0.85rem;
+}
+
+.queue-events-title {
+    margin: 18px 0 8px;
+    color: var(--text-muted-light);
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.queue-events {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    max-height: 190px;
+    overflow-y: auto;
+}
+
+.queue-event {
+    display: flex;
+    gap: 10px;
+    padding: 6px 0;
+    border-top: 1px solid var(--border-light);
+    font-size: 0.8rem;
+    color: var(--text-dark);
+}
+
+.queue-event:first-child {
+    border-top: 0;
+}
+
+.queue-event-time {
+    flex: 0 0 auto;
+    color: var(--text-muted-light);
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+}
+
+.queue-event-warning {
+    color: var(--warning-light-text);
+}
+
+.queue-event-error {
+    color: var(--danger-light-text);
+}

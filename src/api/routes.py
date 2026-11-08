@@ -21,6 +21,7 @@ from .blueprints import (
     create_tts_blueprint,
     create_glossary_blueprint,
     create_custom_instruction_blueprint,
+    create_literary_queue_blueprint,
     create_cost_blueprint,
     create_version_blueprint,
     create_sample_blueprint,
@@ -70,6 +71,10 @@ def configure_routes(app, state_manager, output_dir, start_translation_job, sock
     # Register custom-instruction (style preset) CRUD + extraction routes
     custom_instruction_bp = create_custom_instruction_blueprint()
     app.register_blueprint(custom_instruction_bp)
+
+    # Register the read-only persistent literary queue view
+    literary_queue_bp = create_literary_queue_blueprint()
+    app.register_blueprint(literary_queue_bp)
 
     # Register TTS routes (requires socketio for progress updates)
     if socketio:

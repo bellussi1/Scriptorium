@@ -48,7 +48,7 @@ JS_DIR = ROOT / "src" / "web" / "static" / "js"
 # src/web/static/js/i18n/i18n.js — the test will fail loudly if a locale
 # directory or namespace file is missing.
 SUPPORTED_LOCALES = ["en", "fr", "es", "de", "zh-CN", "ja", "ko"]
-NAMESPACES = ["common", "translation", "settings", "glossary", "files", "tts", "errors", "sample", "style"]
+NAMESPACES = ["common", "translation", "settings", "glossary", "files", "tts", "errors", "sample", "style", "queue"]
 REFERENCE_LOCALE = "en"
 
 

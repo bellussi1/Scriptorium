@@ -25,6 +25,7 @@ import { PreflightModal } from './ui/preflight-modal.js';
 import { NotificationsManager } from './ui/notifications-manager.js';
 import { GlossaryManager } from './glossary/glossary-manager.js';
 import { StyleManager } from './style/style-manager.js';
+import { QueueManager } from './queue/queue-manager.js';
 
 // ========================================
 // Provider Modules
@@ -439,6 +440,7 @@ async function initializeModules() {
     NotificationsManager.initialize();
     GlossaryManager.initialize();
     StyleManager.initialize();
+    QueueManager.initialize();
     StatusManager.initialize();
     initializePreviewHeight();
     ProviderManager.initialize();

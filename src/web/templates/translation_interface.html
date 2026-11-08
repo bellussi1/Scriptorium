@@ -56,6 +56,7 @@
 
     <!-- Custom Styles -->
     <link rel="stylesheet" href="/static/style.css">
+    <link rel="stylesheet" href="/static/queue.css">
     <style>
         /* Top tabs sit flush with the card below. Active tab is marked
            by an accent stripe on top so it stays visible in light + dark. */
@@ -314,6 +315,10 @@
             <button type="button" class="tab-btn" data-tab="styles" onclick="switchTopTab('styles')">
                 <span class="material-symbols-outlined" style="vertical-align: middle; font-size: 1.1rem;">brush</span>
                 <span data-i18n="common:tab_styles">Styles</span>
+            </button>
+            <button type="button" class="tab-btn" data-tab="queue" onclick="switchTopTab('queue')">
+                <span class="material-symbols-outlined" style="vertical-align: middle; font-size: 1.1rem;">list_alt</span>
+                <span data-i18n="queue:tab">Queue</span>
             </button>
             <button type="button" class="tab-btn" data-tab="files" onclick="switchTopTab('files')">
                 <span class="material-symbols-outlined" style="vertical-align: middle; font-size: 1.1rem;">folder_open</span>
@@ -1713,6 +1718,53 @@
                 </div>
             </div>
         </div><!-- /#tab-glossaries -->
+
+        <!-- Tab: Queue -->
+        <div id="tab-queue" class="hidden">
+            <div class="main-card">
+                <div class="card-header">
+                    <span class="material-symbols-outlined">list_alt</span>
+                    <h2 data-i18n="queue:title">Persistent Queue</h2>
+                </div>
+                <div class="card-body">
+                    <p class="queue-intro" data-i18n-html="queue:intro_html">
+                        Read-only view of <code>data/literary_queue.db</code>. The queue is
+                        written by the local CLI and the translation wrapper; this page
+                        never starts, pauses or changes a job.
+                    </p>
+                    <div id="queueSummary" class="queue-summary" aria-live="polite"></div>
+                    <div class="queue-toolbar">
+                        <button type="button" id="queueRefreshBtn" class="btn btn-secondary">
+                            <span class="material-symbols-outlined" style="font-size: 18px; vertical-align: middle;">refresh</span>
+                            <span data-i18n="queue:refresh">Refresh</span>
+                        </button>
+                        <span id="queueUpdatedAt" class="queue-updated"></span>
+                    </div>
+                    <div id="queueError" class="queue-error hidden" role="alert"></div>
+                    <div class="queue-table-wrap">
+                        <table class="queue-table">
+                            <thead>
+                                <tr>
+                                    <th data-i18n="queue:book">Book</th>
+                                    <th data-i18n="queue:series">Series</th>
+                                    <th data-i18n="queue:status">Status</th>
+                                    <th data-i18n="queue:progress">Progress</th>
+                                    <th data-i18n="queue:model">Model</th>
+                                    <th data-i18n="queue:translation_id">Translation ID</th>
+                                    <th data-i18n="queue:updated_col">Updated</th>
+                                </tr>
+                            </thead>
+                            <tbody id="queueTableBody"></tbody>
+                        </table>
+                    </div>
+                    <div id="queueEmpty" class="queue-empty hidden">
+                        <p data-i18n-html="queue:empty_html">No queue entries yet. Use <code>python -m src.literary.cli queue add ...</code> to plan a run.</p>
+                    </div>
+                    <h3 class="queue-events-title" data-i18n="queue:events_title">Recent events</h3>
+                    <ul id="queueEvents" class="queue-events"></ul>
+                </div>
+            </div>
+        </div><!-- /#tab-queue -->
 
         <!-- Tab: Styles -->
         <div id="tab-styles" class="hidden">
