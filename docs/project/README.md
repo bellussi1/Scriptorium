@@ -131,16 +131,19 @@ TranslateBooksWithLLMs application; the new layer is additive and lives under
 ### Upstream contribution
 
 - Issue: [hydropix/TranslateBooksWithLLMs#331](https://github.com/hydropix/TranslateBooksWithLLMs/issues/331)
-  proposes series-aware resources, a persistent queue, a validation gate and
-  selective refinement.
+  is the umbrella for series-aware resources, a persistent queue, a validation
+  gate and selective refinement. It now has the current evidence, acceptance
+  criteria and a ready-vs-design split.
 - Issue: [hydropix/TranslateBooksWithLLMs#332](https://github.com/hydropix/TranslateBooksWithLLMs/issues/332)
   reports the attribution metadata error caught by EPUBCheck 5.4.0.
 - Issue: [hydropix/TranslateBooksWithLLMs#333](https://github.com/hydropix/TranslateBooksWithLLMs/issues/333)
   reports the dropcap content corruption (lost or duplicated first letters)
   found in the end-to-end pilot.
-- First scoped PR candidates, both tested locally and not pushed:
-  - glossary `forbidden` support on branch `fix/glossary-forbidden`
-    (commit `f9217ed`), with loader, injector and regression tests;
-  - EPUB attribution fix on branch `fix/epub-contributor-role`
-    (commit `513b574`), with a unit test and EPUBCheck evidence.
+- Open PRs:
+  - [PR #334](https://github.com/hydropix/TranslateBooksWithLLMs/pull/334) —
+    EPUB attribution fix, 10 targeted tests, full branch suite 2,801 passed,
+    EPUBCheck evidence;
+  - [PR #335](https://github.com/hydropix/TranslateBooksWithLLMs/pull/335) —
+    glossary `forbidden` support, 3 targeted tests, full branch suite 2,802
+    passed.
   The larger slices wait for maintainer feedback before a PR.
