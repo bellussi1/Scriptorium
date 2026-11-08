@@ -9,7 +9,7 @@ import json
 
 import pytest
 
-from benchmark.literary import adapters
+from benchmark.literary import adapters, runner
 from benchmark.literary.runner import load_glossary_file, load_style_file
 
 
@@ -166,3 +166,36 @@ def test_compiled_glossary_and_style_files_are_accepted(tmp_path: Path) -> None:
         encoding="utf-8",
     )
     assert "retrospective" in load_style_file(str(style_path))
+
+
+def test_dry_run_returns_prompt_rows(tmp_path: Path) -> None:
+    corpus = tmp_path / "corpus.jsonl"
+    corpus.write_text(
+        json.dumps(
+            {
+                "id": "book-1-0",
+                "book": "Book",
+                "author": "Author",
+                "chapter_href": "ch1.xhtml",
+                "category": "narration",
+                "text": "The Fugue was quiet.",
+                "source_language": "en",
+                "reference_pt": "",
+                "notes": "",
+            }
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    summary = runner.run(
+        str(corpus),
+        ["hy-mt2-7b"],
+        output_root=str(tmp_path / "runs"),
+        glossary={"Fugue": "Fuga"},
+        style="Keep the voice.",
+        dry_run=True,
+    )
+    assert len(summary["results"]) == 1
+    prompt = summary["results"][0]["prompt_messages"][0]["content"]
+    assert "The Fugue was quiet." in prompt
+    assert "Fugue -> Fuga" in prompt

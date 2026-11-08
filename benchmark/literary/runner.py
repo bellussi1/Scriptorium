@@ -96,7 +96,16 @@ def run(
         for excerpt in corpus:
             messages = build_prompt(spec, excerpt.text, glossary=glossary if spec.supports_glossary else None, style=style if spec.supports_glossary else None)
             if dry_run:
-                rows.append({"id": excerpt.id, "book": excerpt.book, "category": excerpt.category, "scenario": spec.key, "dry_run": True, "prompt_messages": messages})
+                row = {
+                    "id": excerpt.id,
+                    "book": excerpt.book,
+                    "category": excerpt.category,
+                    "scenario": spec.key,
+                    "dry_run": True,
+                    "prompt_messages": messages,
+                }
+                rows.append(row)
+                summary["results"].append(row)
                 continue
             if spec.provider == "ollama":
                 generation = generate_ollama(spec, messages, endpoint=endpoint)
