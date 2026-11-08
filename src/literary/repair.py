@@ -20,6 +20,10 @@ _DROPCAP_RE = re.compile(
     re.IGNORECASE | re.DOTALL,
 )
 _TAG_RE = re.compile(r"<[^>]+>")
+_BODY_DOC_ROLE_RE = re.compile(
+    r'(<body\b[^>]*?)\s+role=(?:"doc-[^"]*"|\'doc-[^\']*\')',
+    re.IGNORECASE,
+)
 
 
 @dataclass
@@ -98,6 +102,47 @@ def repair_dropcaps_in_epub(source_path: str, output_path: str) -> Dict[str, obj
                             "changes": [change.to_dict() for change in changes],
                         }
                     )
+            target.writestr(item, data)
+    return {
+        "source": source_path,
+        "out": output_path,
+        "changed_files": changed_files,
+        "total_changes": total,
+    }
+
+
+def repair_invalid_doc_roles_html(html: str) -> Tuple[str, List[Dict[str, str]]]:
+    """Remove DPUB-ARIA ``role="doc-*"`` from ``<body>``.
+
+    EPUBCheck 5.4.0 rejects those roles on the XHTML body element even though
+    the same documents carry the semantic in ``epub:type``. Removing the
+    redundant role is non-destructive and keeps the EPUB 3 type.
+    """
+    changes: List[Dict[str, str]] = []
+
+    def replace(match: re.Match) -> str:
+        changes.append({"removed": match.group(0)[len(match.group(1)) :].strip()})
+        return match.group(1)
+
+    return _BODY_DOC_ROLE_RE.sub(replace, html or ""), changes
+
+
+def repair_doc_roles_in_epub(source_path: str, output_path: str) -> Dict[str, object]:
+    """Copy an EPUB, removing invalid DPUB-ARIA roles from body elements."""
+    changed_files: List[Dict[str, object]] = []
+    total = 0
+    with zipfile.ZipFile(source_path, "r") as source, zipfile.ZipFile(
+        output_path, "w", zipfile.ZIP_DEFLATED
+    ) as target:
+        for item in source.infolist():
+            data = source.read(item.filename)
+            if item.filename.lower().endswith((".xhtml", ".html", ".htm")):
+                text = data.decode("utf-8", "replace")
+                repaired, changes = repair_invalid_doc_roles_html(text)
+                if changes:
+                    data = repaired.encode("utf-8")
+                    total += len(changes)
+                    changed_files.append({"file": item.filename, "changes": changes})
             target.writestr(item, data)
     return {
         "source": source_path,
