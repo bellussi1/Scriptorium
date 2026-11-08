@@ -86,7 +86,9 @@ Backup and rollback:
 The external handoff report and structured benchmarks are at
 `C:\Users\Bellussi\Documents\RELATORIO-LLM-2026-11-07.md` and
 `C:\Users\Bellussi\Documents\benchmarks-llm-2026-11-07.json`; they are not
-committed to the repository.
+committed to the repository. The JSON `three_run_median` block is the
+authoritative performance reference; the first-pass table is kept for
+traceability.
 
 Measured medians (3 runs, final server, 8192 context unless noted):
 
