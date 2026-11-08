@@ -68,7 +68,7 @@ pytest -p no:cacheprovider tests/unit/glossary -q
 # 183 passed
 
 pytest -p no:cacheprovider -q
-# 2936 passed, 2 skipped, 10 deselected, 14 failed
+# 2940 passed, 2 skipped, 10 deselected, 14 failed
 ```
 
 The same 14 failures reproduce on a clean worktree at upstream `b5ed606` under
@@ -452,7 +452,7 @@ model for *Ship of Magic* worked against the copy; all three actions were then
 reverted by restoring the copy from the live queue. The second instance does not
 touch the real `data/jobs.db`.
 
-Validation: **12** route tests, full suite **2,936 passed, 2 skipped, 14
+Validation: **12** route tests, full suite **2,940 passed, 2 skipped, 14
 pre-existing failures**.
 
 ### 2.14 PT-BR grammar layer
@@ -532,18 +532,31 @@ White*, *Kingdoms of Death*, *Ashes of Man*, *The Lesser Devil* and *Queen Amid
 Ashes*. The builder now spreads chapters and categories instead of always taking
 the first paragraphs.
 
-Quantization models downloaded:
+Quantization models downloaded and tested:
 
-| Model | Size | Status |
-|---|---:|---|
-| Hy-MT2 7B Q4_K_M | 4.6 GB | baseline, active full-book run |
-| Hy-MT2 7B Q6_K | 6.2 GB | downloaded; benchmark pending GPU |
-| Hy-MT2 7B Q8_0 | 8.0 GB | downloaded; likely offloads on 8 GB, benchmark at 4K |
+| Model | Size | Context | GPU/CPU | Excerpts | Mean latency | Length ratio | Name recall | Leakage |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| Hy-MT2 7B Q4_K_M | 4.6 GB | 8K | 100% GPU | 50 | 5.52 s | 1.0023 | 1.0 | 0.0% |
+| Hy-MT2 7B Q6_K | 6.2 GB | 8K | 78% GPU / 22% CPU | 50 | 14.48 s | 1.0118 | 1.0 | 0.0% |
+| Hy-MT2 7B Q8_0 | 8.0 GB | 4K | 67% GPU / 33% CPU | 5 | 35.69 s | 1.0021 | n/a | 0.0% |
 
-The official Hy-MT2 GGUF repository does **not** publish Q5_K_M; Q6_K is the
-next available step. The benchmark runner now accepts the compiled glossary
-shape and a YAML style preset, and can produce an anonymized review sheet plus a
-separate label key (`runner report-blind`).
+Q4 and Q6 are indistinguishable on the deterministic quality metrics; Q6 is
+2.6× slower because it does not fit the 8 GB card at 8K. Q8 is slower still.
+**Q4_K_M remains the practical local choice.** The official Hy-MT2 GGUF
+repository does **not** publish Q5_K_M; Q6_K is the next available step. The
+benchmark runner accepts the compiled glossary shape and a YAML style preset, and
+can produce an anonymized review sheet plus a separate label key
+(`runner report-blind`).
+
+**Full-book result.** *Howling Dark* completed all **1,074/1,074 chunks** with
+0 failures. The deterministic EPUB validation passed with 0 blocking issues (69
+warnings); EPUBCheck 5.4.0 reported 3 errors inherited from the source EPUB's
+`role="doc-*"` attributes on `<body>`, which were removed; both the repaired and
+refined outputs then passed with **0 errors / 0 warnings**. The source-aware
+refinement compared 6,259 paragraphs, skipped 1,875 with inline markup,
+flagged 180, accepted 120 and rejected 60; the refined EPUB passed validation
+and EPUBCheck. The queue state is `needs_review`, not `completed`: machine output
+still requires human review.
 
 Removed as weak/duplicate: `qwen3.5:4b`, the stale
 `gemini-3-flash-preview` manifest, the duplicate `qwen3:8b` tag and the duplicate
@@ -561,19 +574,19 @@ the quantization round.
   queue runner; the full-book style/refine path is still manual.
 - Narrative memory is implemented as a continuity block, but not yet passed to
   the upstream full-book translation prompt (only the refinement prompt).
-- EPUBCheck is available in a Java 17 container and was run manually, but it is
-  not wired as an automatic gate in the queue runner.
-- The upstream `dc:contributor` EPUB 3.4 conformance error is documented and
-  two fixes were tested with EPUBCheck, but the fix is not applied in this fork
-  yet.
+- EPUBCheck is a manual gate; it is not yet enforced inside the queue runner.
+- The upstream `dc:contributor` EPUB 3.4 conformance error is fixed by #334 but
+  not applied in this fork.
 - The upstream dropcap corruption is reported in #333. The local gate and the
   unambiguous repair are implemented; the translation-time fix is not applied,
   and ambiguous or dropped letters still require review.
-- Web UI for the queue, glossary conflicts or side-by-side review.
+- Side-by-side review and glossary-conflict UI are not implemented; the Queue
+  tab covers enqueue, reorder and model selection.
 - Cloud model benchmark; no paid calls.
 - KOReader/GUI read test; not run. Calibre `ebook-meta` and `ebook-convert`
   succeeded on the repaired pilot.
-- Full-book translation; explicitly not authorized.
+- The 50-excerpt corpus still has no aligned PT-BR references or blind human
+  panel; `report-blind` prepares the latter.
 
 ## 4. Reproduce
 

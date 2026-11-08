@@ -5,11 +5,12 @@ literary EN→PT-BR benchmark. It uses short public-domain passages, a generic
 rubric and a single LLM judge. This project adds a separate literary track under
 `benchmark/literary/`.
 
-**Status:** harness implemented; pilot run on models already installed. The
-first Hy-MT2 and Index-Translate round was completed on 2026-11-07, then re-run
-after the Ollama configuration fix (parallel 2, 8K, FA, q8_0 KV). Full Phase 4
-(cloud candidates, aligned references, blind human review) still requires
-approval.
+**Status:** harness implemented and run on the 50-excerpt context corpus. The
+quantization round (Q4/Q6/Q8) is complete; Q4 remains the practical local choice.
+The full *Howling Dark* translation completed (1,074/1,074 chunks, 0 failures)
+and the EPUB passed deterministic validation and EPUBCheck after a source-role
+repair. Full Phase 4 (cloud candidates, aligned references, blind human review)
+still requires approval.
 
 ## 1. Method
 
@@ -264,11 +265,25 @@ python -m benchmark.literary.runner run \
   --style-file /app/data/compiled/sun-eater-2-style.yaml
 ```
 
-The run is intentionally deferred while the full *Howling Dark* translation owns
-the GPU. Q8_0 will be tested on a small subset at 4K first; if it offloads, the
-latency/quality trade-off is reported rather than hidden. `runner report-blind`
-produces an anonymized review sheet and a separate A/B/C key for the human
-panel.
+The run was executed after the full *Howling Dark* translation released the GPU.
+All three models completed without generation errors:
+
+| Model | Context | GPU/CPU | Excerpts | Mean latency | Length ratio | Name recall | Number recall | Leakage | Repetition |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| Hy-MT2 7B Q4_K_M | 8K | 100% GPU | 50 | 5.52 s | 1.0023 | 1.0 | 1.0 | 0.0% | 1.04% |
+| Hy-MT2 7B Q6_K | 8K | 78% GPU / 22% CPU | 50 | 14.48 s | 1.0118 | 1.0 | 1.0 | 0.0% | 1.03% |
+| Hy-MT2 7B Q8_0 | 4K | 67% GPU / 33% CPU | 5 | 35.69 s | 1.0021 | n/a | n/a | 0.0% | 0.86% |
+
+**Reading.** Q4 and Q6 are indistinguishable on the deterministic quality metrics;
+Q6 is 2.6× slower because its 7.9 GB footprint does not fit the 8 GB card at 8K.
+Q8 is slower still and also offloads. The quantization round therefore does not
+justify changing the primary model: **Q4_K_M remains the practical local
+choice**. A human/blind quality round could still find a difference that these
+metrics do not measure, but there is no throughput/VRAM case for Q6 or Q8 on this
+hardware.
+
+`runner report-blind` produces an anonymized review sheet and a separate A/B/C
+key for that human round.
 
 ## 3. What the pilot teaches
 

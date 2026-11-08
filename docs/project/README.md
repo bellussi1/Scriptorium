@@ -129,6 +129,9 @@ TranslateBooksWithLLMs application; the new layer is additive and lives under
   decision. Both need PT-BR literary tests before commitment.
 - **Refinement:** source-aware, segment-level, selective. Do not run the
   existing blind full-book refine.
+- **Quantization (2026-11-08):** Q4_K_M and Q6_K are indistinguishable on the
+  50-excerpt deterministic suite; Q6 is 2.6× slower because it offloads 78% to
+  CPU at 8K, and Q8 is slower still. Q4_K_M remains the practical local choice.
 - **Queue:** backend SQLite, not browser storage.
 - **Metadata:** Calibre metadata was standardized on 2026-11-07 through the
   official `calibredb` flow, with backup and a before/after report. Direct SQL
