@@ -24,6 +24,19 @@ is off; TPM is present, Secure Boot is active, VBS is running and Defender is
 the only AV. TRIM and scheduled optimization are enabled, with no disk errors in
 60 days.
 
+### Hardware pending verification
+
+- Repeat the local benchmarks 3× and use the median (the main four models
+  already have 3-run medians; keep the practice for new models).
+- Measure CPU temperature under load; GPU stayed at 40–56 °C without throttling,
+  but the free HWiNFO did not log CPU temperature.
+- Confirm the motherboard revision (likely Rev 1.1), the exact PSU model, the
+  AG400 installation and whether XMP is enabled.
+- Decide on startup and storage cleanup (~100 GB low-risk candidates: Docker
+  ~70 GB, compaction, ATLAS worktrees).
+- BIOS FGc only with a UPS and a confirmed board revision; it is not an LLM
+  throughput gain.
+
 ## 2. Software
 
 | Tool | Version / state |
