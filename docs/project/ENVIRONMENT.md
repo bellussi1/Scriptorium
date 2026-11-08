@@ -11,7 +11,7 @@ snapshot, not an assumption about what is installed.
 | RAM | 2×16 GB Asgard VAM4UX32C18AG-DVALWN, DDR4-3200, 18-22-22-42, dual-channel |
 | GPU | GIGABYTE GeForce RTX 4060 AERO OC 8G (GV-N4060AERO OC-8GD), 8,188 MiB VRAM |
 | Driver | 610.88 (CUDA UMD 13.3) |
-| Disk | XrayDisk 1TB PRO NVMe, firmware APF1M3R1, 952.86 GB; C: 279.97 GB free |
+| Disk | XrayDisk 1TB PRO NVMe, firmware APF1M3R1, 952.86 GB; C: ~300.9 GB free after cleanup (300.51 GB at verification); the 70 GB Docker VHDX is not yet compacted |
 | Motherboard | Gigabyte A520M DS3H V2, BIOS FA (13/04/2023), probable Rev 1.1 |
 | PSU | MSI MAG 650 W; exact model not detected (A650BN/A650GL are candidates) |
 | Cooler | DeepCool AG400 (visual confirmation pending) |
@@ -29,11 +29,16 @@ the only AV. TRIM and scheduled optimization are enabled, with no disk errors in
 - Repeat the local benchmarks 3× and use the median (the main four models
   already have 3-run medians; keep the practice for new models).
 - Measure CPU temperature under load; GPU stayed at 40–56 °C without throttling,
-  but the free HWiNFO did not log CPU temperature.
+  but the free HWiNFO did not log CPU temperature. The sensor window is open;
+  start the CSV log manually before the next load test.
 - Confirm the motherboard revision (likely Rev 1.1), the exact PSU model, the
   AG400 installation and whether XMP is enabled.
-- Decide on startup and storage cleanup (~100 GB low-risk candidates: Docker
-  ~70 GB, compaction, ATLAS worktrees).
+- Measure the boot time on the next reboot to confirm the Lote A gain; the
+  tasks are already disabled but the post-change boot has not been measured.
+- Decide the remaining storage items: Docker VHDX compaction (70 GB, needs a
+  maintenance window), Recycle Bin (~45.5 GB), Downloads (~27.3 GB), old
+  koreader builds (~17.4 GB), clean ATLAS worktrees (~14.4 GB) and Docker
+  volumes (~4.94 GB, backup required).
 - BIOS FGc only with a UPS and a confirmed board revision; it is not an LLM
   throughput gain.
 
@@ -137,6 +142,43 @@ model cache; containerizing it would add a second GPU runtime, a second model
 store and a `host.docker.internal` hop without improving quality. The
 application container does not need GPU access. This is the simpler correct
 architecture for this machine.
+
+### Storage, startup and Docker cleanup (applied 2026-11-07)
+
+| Lote | Action | Result |
+|---|---|---|
+| A — startup | Disabled `Cloud` and `GigabyteSsdFirmwareUpdateTask`; changed `AdGuardHome` from Automatic to Manual | Tasks Disabled; service Stopped/Manual; boot gain still unmeasured |
+| B — caches | npm and pnpm cache cleanup; removed node-compile-cache, CrashDumps and `.gradle\caches` | C: 279.74 → 300.95 GB; npm 13.87 → 3.59 GB; pnpm 9.32 → 6.65 GB |
+| C — Docker | Removed 15 old image tags, 3 stopped `switchshop` containers and build cache older than 7 days | Images 46 → 30 (33.73 → 21.54 GB); build cache 35.93 → 32.35 GB; containers 4 → 1 (the active one preserved) |
+
+Verification after the cleanup: C: **300.51 GB free**; Docker reports 30 images
+(21.54 GB), 8 volumes (4.936 GB, untouched), build cache 32.35 GB and one
+running container (`translatebook-literary-dev`, healthy). The
+`translatebook-literary:dev` image is still present and the app `/api/health`
+returns 200.
+
+Not touched: Recycle Bin, Downloads, `%TEMP%\claude`, `%TEMP%\opencode`, active
+`_npx`, old koreader builds, project `node_modules`, Docker volumes, the
+`translatebook-literary-dev` container, BIOS, drivers and security services.
+
+Pending, by design:
+
+- **Docker VHDX compaction** (70 GB): only returns space to C: when Docker/WSL
+  and the active container are stopped. This needs a maintenance window; it was
+  not executed.
+- **CPU temperature** under load: the HWiNFO sensor window is open, but the CSV
+  log was not started.
+- **Boot measurement** after Lote A on the next reboot.
+- **Deletion decisions:** Recycle Bin ~45.5 GB, Downloads ~27.3 GB, old koreader
+  builds ~17.4 GB, clean ATLAS worktrees ~14.4 GB, Docker volumes ~4.94 GB
+  (backup required).
+- **BIOS FGc** only with a UPS and a confirmed board revision.
+
+Rollback: Ollama has
+`...\ollama-change\rollback-ollama-config.ps1 -Apply`; Lote A has
+`...\cleanup-lote-a\rollback-lote-a.ps1 -Apply`; Lote B regenerates caches;
+Lote C recreates images/containers and did not remove volumes. There is no
+Windows restore point.
 
 ## 3. Repository state
 

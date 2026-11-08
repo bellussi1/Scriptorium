@@ -7,6 +7,10 @@ generalists plus Hy-MT2-7B and Index-Translate-9B were tested locally on
 2026-11-07. No paid cloud call was made and no full book was translated. No
 model passes the production gate without editorial review.
 
+Environment: Ollama is tuned for the 8 GB card; the Lote A/B/C cleanup is
+applied (C: ~301 GB free, active container preserved). Docker VHDX compaction
+is pending a maintenance window; see [ENVIRONMENT.md](ENVIRONMENT.md).
+
 This directory is the entry point. The repository code remains the upstream
 TranslateBooksWithLLMs application; the new layer is additive and lives under
 `src/literary/` and `benchmark/literary/`.
