@@ -3,6 +3,7 @@ from __future__ import annotations
 
 from src.literary.models import CompiledResources, GlossaryBundle, Term
 from src.literary.refine import RefinementIssue, apply_guard
+from src.literary.validation import numbers_compatible, numeric_tokens, target_present
 from src.literary.refine_runner import (
     FlaggedSegment,
     find_flagged_segments,
@@ -50,6 +51,42 @@ def test_number_words_are_equivalent_to_digits():
     assert flags_for_segment("It lasted 3 days.", "Durou três dias.") == []
     guard = apply_guard("It lasted 3 days.", "Durou três dias.", "Durou três dias.")
     assert guard.ok, guard.reasons
+
+
+def test_ambiguous_one_does_not_create_numeric_false_positive():
+    assert flags_for_segment(
+        "There’s no one here but us.", "Não há ninguém aqui além de nós."
+    ) == []
+    assert flags_for_segment("One of the men arrived.", "Um dos homens chegou.") == []
+
+
+def test_millions_plural_matches():
+    assert numeric_tokens("Millions dead") == numeric_tokens("Milhões mortos")
+
+
+def test_compound_numbers_are_compatible():
+    assert numbers_compatible(
+        numeric_tokens("two hundred and fifty meters"),
+        numeric_tokens("duzentos e cinquenta metros"),
+    )
+    assert flags_for_segment(
+        "Two hundred and fifty meters.", "Duzentos e cinquenta metros."
+    ) == []
+
+
+def test_coordinate_strings_skip_numeric_comparison():
+    assert flags_for_segment(
+        "The code is two-nineteen point one-one.",
+        "O código é dois-um-nove ponto um-um.",
+    ) == []
+
+
+def test_glossary_target_tolerates_regular_inflection():
+    assert target_present("palatino", "a casa palatina")
+    assert not target_present("Fuga", "Fugitivo")
+    assert flags_for_segment(
+        "The palatine house fell.", "A casa palatina caiu."
+    ) == []
 
 
 def test_empty_and_english_drafts_are_flagged():

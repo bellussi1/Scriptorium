@@ -16,11 +16,11 @@ from .epub import count_words, read_epub, validate_epub_structure
 
 _NUMBER_RE = re.compile(r"\d+(?:[.,]\d+)*")
 # Number words that are safe to compare across English and Portuguese. The
-# Portuguese articles "um/uma" are deliberately excluded: they are far more
-# often articles than numbers, and including them would create false matches.
+# English "one" and the Portuguese "um/uma" are deliberately excluded: they are
+# far more often pronouns/articles than numbers ("no one", "one of", "um clã"),
+# and including them creates false missing-number flags.
 _NUMBER_WORDS = {
     "zero": 0,
-    "one": 1,
     "two": 2,
     "three": 3,
     "four": 4,
@@ -50,6 +50,7 @@ _NUMBER_WORDS = {
     "hundred": 100,
     "thousand": 1000,
     "million": 1000000,
+    "millions": 1000000,
     "dois": 2,
     "duas": 2,
     "três": 3,
@@ -127,7 +128,7 @@ _WORD_RE = re.compile(r"[^\W\d_]+(?:['\u2019\-][^\W\d_]+)*", re.UNICODE)
 
 _EN_STOPWORDS = {
     "the", "and", "of", "to", "in", "that", "he", "she", "it", "was", "were",
-    "with", "for", "on", "as", "at", "but", "his", "her", "they", "had",
+    "with", "for", "on", "at", "but", "his", "her", "they", "had",
     "you", "not", "this", "from", "have", "by", "be", "which", "or", "an",
 }
 _PT_STOPWORDS = {
@@ -172,6 +173,61 @@ def numeric_tokens(text: str) -> Counter:
     for match in _NUMBER_WORD_RE.findall(text or ""):
         counts[str(_NUMBER_WORDS[match.casefold()])] += 1
     return counts
+
+
+def target_present(expected: str, text: str) -> bool:
+    """Check a glossary target, tolerating regular gender/number inflection.
+
+    ``palatino`` should match ``casa palatina``; ``Fuga`` should match ``Fuga``.
+    The stem is only tried for targets ending in ``o``/``a`` and only as a whole
+    word, so ``Fugitivo`` does not satisfy ``Fuga``.
+    """
+    expected = (expected or "").strip()
+    text = text or ""
+    if not expected:
+        return True
+    if expected.casefold() in text.casefold():
+        return True
+    if len(expected) >= 5 and expected[-1].casefold() in {"o", "a"}:
+        stem = re.escape(expected[:-1])
+        return re.search(rf"\b{stem}[ao]s?\b", text, re.IGNORECASE) is not None
+    return False
+
+
+def numbers_compatible(source: Counter, target: Counter) -> bool:
+    """Treat common compound-number renderings as equivalent.
+
+    ``two hundred and fifty`` tokenizes as 2 + 100 + 50, while ``duzentos e
+    cinquenta`` is 200 + 50. The product rule keeps the guard from rejecting a
+    correct translation just because the target writes the compound as one word.
+    """
+    if source == target:
+        return True
+    source = Counter(source)
+    target = Counter(target)
+    introduced = target - source
+    for candidate, count in list(introduced.items()):
+        if not candidate.isdigit():
+            continue
+        value = int(candidate)
+        for factor in sorted(source, key=lambda item: (not item.isdigit(), item)):
+            if not factor.isdigit() or int(factor) == 0:
+                continue
+            if value % int(factor):
+                continue
+            quotient = str(value // int(factor))
+            while (
+                count > 0
+                and source[factor] > 0
+                and source[quotient] > 0
+            ):
+                source[factor] -= 1
+                source[quotient] -= 1
+                target[candidate] -= 1
+                count -= 1
+            if count == 0:
+                break
+    return source == target
 
 
 def detect_language(text: str) -> str:

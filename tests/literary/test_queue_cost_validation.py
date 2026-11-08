@@ -75,7 +75,7 @@ def test_queue_reset_marks_in_progress_paused(tmp_path: Path):
 
 def test_validation_flags_missing_paragraph_number_and_glossary():
     source = "Chapter One\n\nJohn rode for 3 days.\n\nHe reached Fort Smith."
-    target = "Capítulo Um\n\nJohn cavalgou por três dias.\n\nChegou a Fort Smith."
+    target = "Capítulo Um\n\nJohn cavalgou por dois dias.\n\nChegou a Fort Smith."
     issues = validate_pair(source, target)
     codes = {issue.code for issue in issues}
     assert "target.numbers" in codes

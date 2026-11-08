@@ -16,12 +16,18 @@ from dataclasses import dataclass, field
 from typing import Any, Callable, Dict, Iterable, List, Optional, Sequence
 
 from .models import CompiledResources, Severity, ValidationIssue
-from .validation import _placeholders, detect_language, numeric_tokens
+from .validation import (
+    _placeholders,
+    detect_language,
+    numbers_compatible,
+    numeric_tokens,
+    target_present,
+)
 
 _NUMBER_RE = re.compile(r"\d+(?:[.,]\d+)*")
 _EN_STOPWORDS = {
     "the", "and", "of", "to", "in", "that", "he", "she", "it", "was", "were",
-    "with", "for", "on", "as", "at", "but", "his", "her", "they", "had",
+    "with", "for", "on", "at", "but", "his", "her", "they", "had",
     "you", "not", "this", "from", "have", "by", "be", "which", "or", "an",
 }
 
@@ -172,12 +178,13 @@ def apply_guard(
 
     source_numbers = numeric_tokens(source)
     revised_numbers = numeric_tokens(revised)
-    missing = source_numbers - revised_numbers
-    if missing:
-        reasons.append(f"source numbers missing: {dict(missing)}")
-    introduced = revised_numbers - source_numbers
-    if introduced:
-        reasons.append(f"numbers not in source: {dict(introduced)}")
+    if not numbers_compatible(source_numbers, revised_numbers):
+        missing = source_numbers - revised_numbers
+        if missing:
+            reasons.append(f"source numbers missing: {dict(missing)}")
+        introduced = revised_numbers - source_numbers
+        if introduced:
+            reasons.append(f"numbers not in source: {dict(introduced)}")
 
     if _placeholders(source) != _placeholders(revised):
         reasons.append("placeholder/tag multiset differs from source")
@@ -190,7 +197,7 @@ def apply_guard(
             ]
             for form in matched_forms:
                 expected = term.target_for_form(form)
-                if expected and expected.casefold() not in revised.casefold():
+                if expected and not target_present(expected, revised):
                     reasons.append(f"glossary target missing: {form} -> {expected}")
             for forbidden in term.forbidden:
                 if forbidden and forbidden.casefold() in revised.casefold():

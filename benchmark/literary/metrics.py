@@ -15,7 +15,7 @@ WORD_RE = re.compile(r"[^\W\d_]+(?:['\u2019\-][^\W\d_]+)*", re.UNICODE)
 NUMBER_RE = re.compile(r"\d+(?:[.,]\d+)*")
 EN_STOPWORDS = {
     "the", "and", "of", "to", "in", "that", "he", "she", "it", "was", "were",
-    "with", "for", "on", "as", "at", "but", "his", "her", "they", "had",
+    "with", "for", "on", "at", "but", "his", "her", "they", "had",
     "you", "not", "this", "from", "have", "by", "be", "which", "or", "an",
 }
 

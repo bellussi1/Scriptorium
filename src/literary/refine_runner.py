@@ -17,7 +17,13 @@ import requests
 
 from .models import CompiledResources
 from .refine import RefinementIssue, _EN_STOPWORDS, refine_with_guard
-from .validation import _placeholders, detect_language, numeric_tokens
+from .validation import (
+    _placeholders,
+    detect_language,
+    numbers_compatible,
+    numeric_tokens,
+    target_present,
+)
 
 
 @dataclass
@@ -65,7 +71,7 @@ def _glossary_issues(
             if not expected:
                 continue
             key = expected.casefold()
-            if key not in expected_seen and key not in draft.casefold():
+            if key not in expected_seen and not target_present(expected, draft):
                 expected_seen.add(key)
                 issues.append(
                     RefinementIssue(
@@ -97,14 +103,18 @@ def flags_for_segment(
 
     source_numbers = numeric_tokens(source)
     draft_numbers = numeric_tokens(draft)
-    missing_numbers = source_numbers - draft_numbers
-    if missing_numbers:
-        issues.append(
-            RefinementIssue(
-                "segment.numbers",
-                "source numbers missing: " + ", ".join(sorted(missing_numbers)),
+    # Coordinate/ID strings such as "two-nineteen point one-one" are
+    # transliterated as words, so a numeric multiset is not meaningful there.
+    coordinate_hint = re.search(r"\b(?:point|ponto)\b", source or "", re.IGNORECASE)
+    if not coordinate_hint and not numbers_compatible(source_numbers, draft_numbers):
+        missing_numbers = source_numbers - draft_numbers
+        if missing_numbers:
+            issues.append(
+                RefinementIssue(
+                    "segment.numbers",
+                    "source numbers missing: " + ", ".join(sorted(missing_numbers)),
+                )
             )
-        )
     if _placeholders(source) != _placeholders(draft):
         issues.append(
             RefinementIssue("segment.placeholders", "placeholder/tag multiset differs")
