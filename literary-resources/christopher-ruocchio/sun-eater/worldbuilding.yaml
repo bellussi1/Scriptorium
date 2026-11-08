@@ -90,12 +90,28 @@ terms:
     first_appearance: empire-of-silence
     approved: true
   - source: Scholiast
-    target: Escoliasta
+    target: escoliasta
     category: title
     policy: translate
     aliases: [Scholiasts]
     alias_targets: {Scholiasts: escoliastas}
-    notes: "The official PT edition uses Escoliasta."
+    notes: >-
+      The official PT edition uses lowercase escoliasta in running text;
+      capitalize only as a title or vocative before a name.
+    source_reference: "Official PT-BR edition, Calibre 436"
+    confidence: confirmed
+    first_appearance: empire-of-silence
+    approved: true
+  - source: Chantry
+    target: Chantria
+    category: organization
+    policy: translate
+    aliases: [Holy Terran Chantry]
+    alias_targets: {Holy Terran Chantry: Chantria}
+    forbidden: [Chantry, Cantaria]
+    notes: >-
+      The official PT edition uses Chantria, never the English Chantry. The
+      institution is a proper name and stays capitalized.
     source_reference: "Official PT-BR edition, Calibre 436"
     confidence: confirmed
     first_appearance: empire-of-silence
@@ -123,24 +139,27 @@ terms:
     first_appearance: empire-of-silence
     approved: true
   - source: Homunculus
-    target: Homúnculo
+    target: homúnculo
     category: concept
     policy: translate
     aliases: [Homunculi]
-    alias_targets: {Homunculi: Homúnculos}
-    notes: "The official PT edition uses Homúnculo."
+    alias_targets: {Homunculi: homúnculos}
+    notes: >-
+      The official PT edition uses lowercase homúnculo in running text;
+      capitalize only as a title or at the start of a sentence if needed.
     source_reference: "Official PT-BR edition, Calibre 436"
     confidence: confirmed
     first_appearance: empire-of-silence
     approved: true
   - source: Fugue
-    target: Fuga
+    target: fuga
     category: concept
     policy: translate
     aliases: []
     notes: >-
-      The fugue state; the official PT edition uses Fuga. Do not confuse with
-      the musical form or with Fúria, which is a different concept.
+      The fugue state; the official PT edition uses lowercase fuga in running
+      text. Do not confuse with the musical form or with Fúria, which is a
+      different concept.
     source_reference: "Official PT-BR edition, Calibre 436"
     confidence: confirmed
     first_appearance: empire-of-silence

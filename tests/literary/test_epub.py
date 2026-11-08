@@ -88,3 +88,36 @@ def test_update_opf_metadata_standardizes_series_tags_and_translator(tmp_path: P
     assert 'name="calibre:title_sort"' in opf
     assert 'name="calibre:author_sort"' in opf
     assert "Descri??o editorial." in opf
+
+def test_update_opf_metadata_uses_content_for_calibre_name_metas(tmp_path: Path):
+    import xml.etree.ElementTree as ET
+
+    source = make_epub(tmp_path / "source.epub")
+    output = tmp_path / "output.epub"
+    update_opf_metadata(
+        str(source),
+        str(output),
+        title="Titulo",
+        language="pt-BR",
+        series="The Sun Eater",
+        series_index=2,
+        translator="TranslateBook with LLM (TBL)",
+        title_sort="Titulo",
+        author_sort="Ruocchio, Christopher",
+    )
+    with zipfile.ZipFile(output) as archive:
+        opf_path = next(name for name in archive.namelist() if name.endswith(".opf"))
+        root = ET.fromstring(archive.read(opf_path))
+
+    def local_name(tag: str) -> str:
+        return tag.rsplit("}", 1)[-1]
+
+    for element in root.iter():
+        if local_name(element.tag) != "meta":
+            continue
+        if element.attrib.get("name"):
+            assert "content" in element.attrib, element.attrib
+            assert not (element.text or "").strip(), element.attrib
+        if element.attrib.get("property"):
+            assert "content" not in element.attrib, element.attrib
+            assert (element.text or "").strip(), element.attrib

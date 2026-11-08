@@ -481,13 +481,22 @@ def _set_meta(
     element_id: str = "",
     scheme: str = "",
 ) -> None:
+    # EPUB 2-style Calibre metadata uses name/content; EPUB 3 properties use
+    # property/refines with text content.  Mixing the two shapes makes
+    # EPUBCheck reject the OPF with "meta missing required attribute content".
+    use_content = bool(name) and not property_name
     for el in metadata:
         if _local_name(el.tag) != "meta":
             continue
         if refines and el.attrib.get("refines") != refines:
             continue
         if name and el.attrib.get("name") == name:
-            el.text = value
+            if use_content:
+                el.set("content", value)
+                el.text = None
+            else:
+                el.text = value
+                el.attrib.pop("content", None)
             if element_id:
                 el.set("id", element_id)
             if scheme:
@@ -495,6 +504,7 @@ def _set_meta(
             return
         if property_name and el.attrib.get("property") == property_name:
             el.text = value
+            el.attrib.pop("content", None)
             if element_id:
                 el.set("id", element_id)
             if scheme:
@@ -511,8 +521,11 @@ def _set_meta(
         attrs["id"] = element_id
     if scheme:
         attrs["scheme"] = scheme
+    if use_content:
+        attrs["content"] = value
     el = ET.SubElement(metadata, f"{{{OPF_NS}}}meta", attrs)
-    el.text = value
+    if not use_content:
+        el.text = value
 
 
 def _set_subjects(metadata: ET.Element, subjects: list[str], dc_ns: str = DC_NS) -> None:
