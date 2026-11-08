@@ -68,7 +68,7 @@ pytest -p no:cacheprovider tests/unit/glossary -q
 # 183 passed
 
 pytest -p no:cacheprovider -q
-# 2968 passed, 2 skipped, 10 deselected, 14 failed
+# 2981 passed, 2 skipped, 10 deselected, 14 failed
 ```
 
 The same 14 failures reproduce on a clean worktree at upstream `b5ed606` under
@@ -456,7 +456,7 @@ model for *Ship of Magic* worked against the copy; all three actions were then
 reverted by restoring the copy from the live queue. The second instance does not
 touch the real `data/jobs.db`.
 
-Validation: **12** route tests, full suite **2,968 passed, 2 skipped, 14
+Validation: **19** route tests, full suite **2,981 passed, 2 skipped, 14
 pre-existing failures**.
 
 ### 2.14 PT-BR grammar layer
@@ -634,6 +634,42 @@ python -m src.literary.cli queue run-all \
 EPUB is accepted by Amazon Send to Kindle; the folder is also ready for a
 Calibre import.
 
+### 2.20 Queue operational view
+
+The Queue tab now answers the daily operational questions without a terminal:
+it has a compact **Now** panel (current book, chunks, ETA, last meaningful log
+line and model), status/series/search filters, pending positions with a
+**Next** badge, and a quality drawer per completed artifact. The drawer exposes
+the artifact kind/size, EPUB structure, word/chapter/paragraph counts, quote and
+bracket counters, the Sun Eater terminology audit, the queue report and a
+filtered log tail.
+
+Backend read-only endpoints:
+
+- `GET /api/literary/queue/books/<id>/log?lines=80` — meaningful log tail
+  (`sync:` noise removed);
+- `GET /api/literary/queue/books/<id>/quality` — artifact metadata, reader
+  metrics, terminology counts and the latest queue report;
+- `GET /api/literary/queue/kindle.zip` — the whole Kindle library as a zip.
+
+Safe queue actions:
+
+- `POST /api/literary/queue/books/<id>/approve` — close a `needs_review` book;
+- `POST /api/literary/queue/books/<id>/retry` — return a failed, paused or
+  needs-review book to `pending` for the next runner invocation.
+
+The queue remains local-only in the UI: the model picker lists Ollama models and
+rejects a non-`ollama` provider for pending books. A book whose upstream
+checkpoint briefly says `interrupted` while the log is still being written is
+marked `live` and displayed as translating, so a retry race does not hide the
+active run.
+
+For Sun Eater books, `queue run` now runs the reader repair after the optional
+semantic refinement: chunk seams are joined, dialogue is normalized, terminology
+is fixed, headings/TOC/nav are localized and the result is revalidated before it
+can be marked completed. The reader report is stored in the queue report and
+surfaced in the quality drawer.
+
 ## 3. What is not implemented
 
 - Automatic chaining of all books: `queue run` translates one book and returns
@@ -648,7 +684,10 @@ Calibre import.
   unambiguous repair are implemented; the translation-time fix is not applied,
   and ambiguous or dropped letters still require review.
 - Side-by-side review and glossary-conflict UI are not implemented; the Queue
-  tab covers enqueue, reorder and model selection.
+  tab covers enqueue, reorder, model selection, live progress, logs, quality
+  metrics, approve/retry and the Kindle zip.
+- Starting or pausing the host runner from the browser is not implemented; that
+  needs a supervisor/control channel, not just a UI button.
 - Cloud model benchmark; no paid calls.
 - KOReader/GUI read test; not run. Calibre `ebook-meta` and `ebook-convert`
   succeeded on the repaired pilot.
