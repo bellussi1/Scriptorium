@@ -226,7 +226,9 @@ def refine_epub(
             continue
 
         selected = flagged
-        if remaining:
+        if limit and limit > 0:
+            if remaining <= 0:
+                break
             selected = flagged[:remaining]
             remaining -= len(selected)
 

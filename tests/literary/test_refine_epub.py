@@ -159,3 +159,42 @@ def test_refine_epub_dry_run_flags_without_calling_model(tmp_path: Path):
     assert report["flagged"] >= 1
     assert report["accepted"] == 0
     assert output.exists()
+
+
+def test_limit_stops_after_the_requested_number_of_segments(tmp_path: Path):
+    source_chapters = [
+        "<html xmlns='http://www.w3.org/1999/xhtml'><body>"
+        "<p>I walked two miles and convinced myself that it was true.</p>"
+        "<p>A second plain paragraph with enough words for the length guard.</p>"
+        "</body></html>",
+        "<html xmlns='http://www.w3.org/1999/xhtml'><body>"
+        "<p>I walked three miles and convinced myself that it was true.</p>"
+        "<p>A fourth plain paragraph with enough words for the length guard.</p>"
+        "</body></html>",
+    ]
+    draft_chapters = [
+        "<html xmlns='http://www.w3.org/1999/xhtml'><body>"
+        "<p>Andei quatro milhas e Convinci-me de que era verdade.</p>"
+        "<p>Um segundo paragrafo simples com palavras suficientes para o guarda.</p>"
+        "</body></html>",
+        "<html xmlns='http://www.w3.org/1999/xhtml'><body>"
+        "<p>Andei cinco milhas e Convinci-me de que era verdade.</p>"
+        "<p>Um quarto paragrafo simples com palavras suficientes para o guarda.</p>"
+        "</body></html>",
+    ]
+    source = make_epub(tmp_path / "source.epub", chapters=source_chapters)
+    target = make_epub(tmp_path / "draft.epub", chapters=draft_chapters)
+    output = tmp_path / "refined.epub"
+
+    report = refine_epub(
+        str(source),
+        str(target),
+        str(output),
+        model="test-model",
+        generate=lambda messages: "Andei duas milhas e convenci-me de que era verdade.",
+        limit=1,
+    )
+
+    assert report["attempted"] == 1
+    assert report["flagged"] >= 2
+    assert report["documents_refined"] == 1
