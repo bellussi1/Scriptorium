@@ -182,7 +182,9 @@ These are the re-run numbers after the final Ollama configuration (parallel 2,
 8K, FA on, q8_0 KV). The first run, before the correct restart, measured 15.3 s
 for Hy-MT2 and 9.9 s for Index; it is kept only in the gitignored artifacts and
 in the git history. The configuration change is the reason the same 15 excerpts
-now take 4.5-5.2 s instead of 10-15 s.
+now take 4.5-5.2 s instead of 10-15 s. The run directories are
+`data/benchmark/literary/runs/20261107T231354Z/` (before) and
+`.../20261107T235601Z/` (after); both are gitignored.
 
 `name_recall` is based on the two excerpts where a glossary term actually
 occurs. The mean latency includes cold loads; it is not a tokens/s benchmark.
