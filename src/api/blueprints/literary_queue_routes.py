@@ -99,6 +99,19 @@ def _queued_calibre_ids(db_path: Path) -> set[int]:
         conn.close()
 
 
+def _book_title(db_path: Path, book_id: int) -> Optional[str]:
+    if not db_path.exists():
+        return None
+    conn = sqlite3.connect(f"file:{db_path.resolve().as_posix()}?mode=ro", uri=True)
+    try:
+        row = conn.execute("SELECT title FROM books WHERE id = ?", (book_id,)).fetchone()
+    except sqlite3.Error:
+        return None
+    finally:
+        conn.close()
+    return str(row[0]) if row and row[0] else None
+
+
 def _container_epub_path(row: Dict[str, Any]) -> str:
     """Prefer the /library container mount, then the original host path."""
     calibre_path = str(row.get("calibre_path") or "").replace("\\", "/").strip("/")
@@ -363,10 +376,10 @@ def create_literary_queue_blueprint() -> Blueprint:
 
     @bp.route("/api/literary/queue/books/<int:book_id>/download", methods=["GET"])
     def download_literary_queue_book(book_id: int):
-        book = QueueStore.get_book_readonly(str(_db_path()), book_id)
-        if book is None:
+        title = _book_title(_db_path(), book_id)
+        if title is None:
             return _json_error("book not found", 404)
-        artifact = _artifact_for(book.title)
+        artifact = _artifact_for(title)
         if artifact is None:
             return _json_error("translated EPUB not found", 404)
         return send_file(

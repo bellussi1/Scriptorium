@@ -69,3 +69,23 @@ def test_host_source_falls_back_to_inventory_epub(tmp_path: Path, monkeypatch):
     monkeypatch.setattr(queue_runner, "INVENTORY", inventory)
     book = SimpleNamespace(source_path="/library/missing.epub", calibre_id=42)
     assert queue_runner.host_source(book) == epub
+import sqlite3
+from pathlib import Path
+
+def test_find_translation_id_since_skips_old_jobs(tmp_path: Path, monkeypatch):
+    db = tmp_path / "jobs.db"
+    con = sqlite3.connect(db)
+    con.execute("CREATE TABLE translation_jobs (translation_id TEXT, config TEXT, created_at TEXT)")
+    con.execute(
+        "INSERT INTO translation_jobs VALUES (?, ?, ?)",
+        ("cli_old", '{"input_file_path":"/library/Ship of Magic.epub"}', "2026-11-08 18:20:00"),
+    )
+    con.execute(
+        "INSERT INTO translation_jobs VALUES (?, ?, ?)",
+        ("cli_new", '{"input_file_path":"/library/Ship of Magic.epub"}', "2026-11-08 18:21:00"),
+    )
+    con.commit(); con.close()
+    monkeypatch.setattr(queue_runner, "CHECKPOINT_DB", db)
+    assert queue_runner._find_translation_id("Ship of Magic") == "cli_new"
+    assert queue_runner._find_translation_id("Ship of Magic", "2026-11-08 18:21:00") == "cli_new"
+    assert queue_runner._find_translation_id("Ship of Magic", "2026-11-08 18:22:00") is None

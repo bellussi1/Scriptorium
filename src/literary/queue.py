@@ -563,6 +563,12 @@ class QueueStore:
                     continue
                 report["matched"] += 1
 
+                latest = conn.execute(
+                    "SELECT MAX(id) FROM jobs WHERE book_id = ?", (job["book_id"],)
+                ).fetchone()[0]
+                if int(job["id"]) != int(latest):
+                    continue
+
                 # Editorial review is a human decision. Once a job is
                 # needs_review/completed, a stale upstream row (the CLI often
                 # leaves "interrupted" after a complete run) must not pull it

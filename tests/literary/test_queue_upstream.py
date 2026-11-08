@@ -395,3 +395,30 @@ def test_sync_infers_completion_from_an_interrupted_full_run(tmp_path: Path):
     assert store.get_job(job_id)["state"] == "validating"
     assert store.get_book(book_id).status == "validating"
     store.close()
+
+def test_sync_only_updates_the_latest_job_for_a_book(tmp_path: Path):
+    store = QueueStore(str(tmp_path / "queue.db"))
+    book_id = store.add_book(_record(make_epub(tmp_path / "a.epub"), 1, "Alpha"))
+    old_job = store.create_job(book_id, total_chapters=10)
+    store.attach_translation_id(old_job, "trans_old")
+    store.set_book_state(book_id, "preparing")
+    store.set_job_state(old_job, "preparing")
+    store.set_book_state(book_id, "paused")
+    store.set_job_state(old_job, "paused")
+    new_job = store.create_job(book_id, total_chapters=10)
+    store.attach_translation_id(new_job, "trans_new")
+    store.set_book_state(book_id, "preparing")
+    store.set_job_state(new_job, "preparing")
+    upstream = tmp_path / "jobs.db"
+    _upstream_db(
+        upstream,
+        [
+            ("trans_old", "interrupted", {"current_chunk_index": 5, "total_chunks": 10, "completed_chunks": 5, "failed_chunks": 0}),
+            ("trans_new", "running", {"current_chunk_index": 1, "total_chunks": 10, "completed_chunks": 2, "failed_chunks": 0}),
+        ],
+    )
+    store.sync_from_upstream(str(upstream))
+    assert store.get_job(new_job)["state"] == "translating"
+    assert store.get_book(book_id).status == "translating"
+    assert store.get_job(old_job)["state"] == "paused"
+    store.close()

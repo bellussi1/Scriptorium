@@ -18,7 +18,7 @@ import re
 import subprocess
 import sys
 import time
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
@@ -214,7 +214,7 @@ def _upstream_progress(translation_id: Optional[str] = None) -> Tuple[str, int, 
     )
 
 
-def _find_translation_id(title: str) -> Optional[str]:
+def _find_translation_id(title: str, since: Optional[str] = None) -> Optional[str]:
     import sqlite3
 
     if not CHECKPOINT_DB.exists():
@@ -223,12 +223,14 @@ def _find_translation_id(title: str) -> Optional[str]:
     conn.row_factory = sqlite3.Row
     try:
         rows = conn.execute(
-            "SELECT translation_id, config FROM translation_jobs "
+            "SELECT translation_id, config, created_at FROM translation_jobs "
             "ORDER BY created_at DESC LIMIT 50"
         ).fetchall()
     finally:
         conn.close()
     for row in rows:
+        if since and str(row["created_at"] or "") < since:
+            continue
         cfg = json.loads(row["config"] or "{}")
         haystack = " ".join(
             str(cfg.get(key, ""))
@@ -421,27 +423,29 @@ def run_queue_book(
     thread.start()
 
     started = time.time()
+    since = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
     translation_id = None
     last_sync = 0.0
     complete_since = None
     stuck_terminated = False
     while process.poll() is None:
         if translation_id is None and time.time() - started > 5:
-            translation_id = _find_translation_id(book.title)
-            if translation_id:
+            candidate = _find_translation_id(book.title, since)
+            if candidate:
                 store = QueueStore(db_path)
                 try:
-                    store.attach_translation_id(job_id, translation_id)
+                    store.attach_translation_id(job_id, candidate)
                     store.add_event(
-                        f"queue runner linked translation_id {translation_id}",
+                        f"queue runner linked translation_id {candidate}",
                         book_id=book.id,
                         job_id=job_id,
                     )
+                    translation_id = candidate
+                    log(book.title, f"translation_id {candidate}")
                 except ValueError as exc:
                     log(book.title, f"attach translation_id failed: {exc}")
                 finally:
                     store.close()
-                log(book.title, f"translation_id {translation_id}")
         if time.time() - last_sync >= 30:
             report = _sync(book)
             log(
@@ -469,7 +473,7 @@ def run_queue_book(
     final_sync = _sync(book)
     log(book.title, f"translation process exited with {returncode}; final sync={final_sync}")
     if translation_id is None:
-        translation_id = _find_translation_id(book.title)
+        translation_id = _find_translation_id(book.title, since)
 
     if not output_host.exists():
         store = QueueStore(db_path)

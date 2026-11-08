@@ -479,6 +479,7 @@ def _set_meta(
     value: str,
     refines: str = "",
     element_id: str = "",
+    scheme: str = "",
 ) -> None:
     for el in metadata:
         if _local_name(el.tag) != "meta":
@@ -489,11 +490,15 @@ def _set_meta(
             el.text = value
             if element_id:
                 el.set("id", element_id)
+            if scheme:
+                el.set("scheme", scheme)
             return
         if property_name and el.attrib.get("property") == property_name:
             el.text = value
             if element_id:
                 el.set("id", element_id)
+            if scheme:
+                el.set("scheme", scheme)
             return
     attrs = {}
     if name:
@@ -504,6 +509,8 @@ def _set_meta(
         attrs["refines"] = refines
     if element_id:
         attrs["id"] = element_id
+    if scheme:
+        attrs["scheme"] = scheme
     el = ET.SubElement(metadata, f"{{{OPF_NS}}}meta", attrs)
     el.text = value
 
@@ -535,6 +542,7 @@ def _set_translator(metadata: ET.Element, translator: str, dc_ns: str = DC_NS) -
         property_name="role",
         value="trl",
         refines="#tbl-translator",
+        scheme="marc:relators",
     )
 
 
