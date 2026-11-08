@@ -165,7 +165,14 @@ Pending, by design:
 
 - **Docker VHDX compaction** (70 GB): only returns space to C: when Docker/WSL
   and the active container are stopped. This needs a maintenance window; it was
-  not executed.
+  not executed. The file is
+  `C:\Users\Bellussi\AppData\Local\Docker\wsl\disk\docker_data.vhdx` (70.03 GB).
+  `Optimize-VHD` is not available here; `diskpart.exe` is. Planned sequence:
+  finish/stop translations, `docker compose down`, quit Docker Desktop,
+  `wsl --shutdown`, then run an elevated `diskpart` script:
+  `select vdisk file=...`, `attach vdisk readonly`, `compact vdisk`,
+  `detach vdisk`. Restart Docker and the app afterwards, then verify
+  `/api/health` and the free space. Do not run it while the container is active.
 - **CPU temperature** under load: the HWiNFO sensor window is open, but the CSV
   log was not started.
 - **Boot measurement** after Lote A on the next reboot.
