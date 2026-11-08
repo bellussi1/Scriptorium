@@ -42,10 +42,10 @@
 
 | # | Task | Why | Effort | Dependency | Acceptance |
 |---|---|---|---|---|---|
-| 6.1 | Choose pilot: one chapter of Sun Eater 2 or Lonesome Dove | Test the whole pipeline on a representative text | S | Phase 4/5 | Written pilot brief |
+| 6.1 | Choose pilot: one chapter of Sun Eater 2 or Lonesome Dove | Test the whole pipeline on a representative text | S | Phase 4/5 | **Done 2026-11-07.** Chose *Howling Dark* Chapter 1; brief and results in POC 2.11 |
 | 6.2 | Compile glossary + style + cost preview | Preflight | S | Resources | `estimated_cost` and budget cap stored |
-| 6.3 | Translate with the selected local model | Quality/cost baseline | M | 4.7 | Checkpoints per chapter; no lost work |
-| 6.4 | Validate and selectively refine | Test the quality gate | M | 6.3 | **Partially done 2026-11-07.** Source-aware runner and guard are implemented and tested on a synthetic paragraph; a real pilot chapter is still pending |
+| 6.3 | Translate with the selected local model | Quality/cost baseline | M | 4.7 | **Partially done 2026-11-07.** One real chapter (4,668 words) translated with Hy-MT2, 116/116 paragraphs; full-book run not started |
+| 6.4 | Validate and selectively refine | Test the quality gate | M | 6.3 | **Partially done 2026-11-07.** Source-aware runner and guard were tested on the real chapter: automatic gate found 0 flags after heuristic fixes; a manually flagged `dois milhas` was corrected to `duas milhas` and accepted at 6.7% edit ratio. Full-chapter editorial review still pending |
 | 6.5 | Rebuild EPUB, run structural check/EPUBCheck | Reader safety | S | 6.4 | **Partially done 2026-11-07.** Hy-MT2 rebuilt a valid EPUB with correct TOC labels; the new dropcap gate found four content errors, the repair fixed them, and the structural gate passed. EPUBCheck still fails on the upstream attribution metadata |
 | 6.6 | Read in Calibre and KOReader | Real-world check | S | 6.5 | Notes on layout, TOC, italics, links, notes |
 | 6.7 | Editorial review and acceptance | Human decision | M | 6.6 | Signed-off pilot or rejection with reasons |

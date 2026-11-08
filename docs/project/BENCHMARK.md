@@ -73,7 +73,8 @@ Deterministic, cheap, and explicitly not a verdict:
 - output/source **length ratio**;
 - **number recall**;
 - **name/term recall** against the glossary;
-- **English leakage** (English stopword density in the output);
+- **English leakage** (English stopword density in the output, excluding tokens
+  that are also common Portuguese words such as `as`);
 - **repetition ratio** (most frequent 6-gram / distinct 6-grams).
 
 The decision layer is the six-dimension rubric in
@@ -175,8 +176,13 @@ translation models; it is not a final model choice.
 
 | Model | Excerpts | Errors | Mean latency | Output tokens | Length ratio | Name recall | English leakage | Repetition |
 |---|---:|---:|---:|---:|---:|---:|---:|---:|
-| Hy-MT2 7B Q4_K_M | 15/15 | 0 | 4.5 s | 3,000 | 0.983 | 1.0 | 0.7% | 0.9% |
-| Index-Translate 9B Q4_K_M | 15/15 | 0 | 5.2 s | 2,629 | 0.998 | 1.0 | 0.5% | 0.9% |
+| Hy-MT2 7B Q4_K_M | 15/15 | 0 | 4.5 s | 3,000 | 0.983 | 1.0 | 0.0% | 0.9% |
+| Index-Translate 9B Q4_K_M | 15/15 | 0 | 5.2 s | 2,629 | 0.998 | 1.0 | 0.0% | 0.9% |
+
+The leakage metric now excludes `as`, which is both an English stopword and a
+common Portuguese word; the earlier 0.7% / 0.5% figures were false positives from
+that overlap. Recomputing the stored outputs with the corrected metric gives
+0.0% for both models.
 
 These are the re-run numbers after the final Ollama configuration (parallel 2,
 8K, FA on, q8_0 KV). The first run, before the correct restart, measured 15.3 s

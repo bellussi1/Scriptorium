@@ -62,13 +62,13 @@ Inside the dev container:
 
 ```bash
 pytest -p no:cacheprovider tests/literary -q
-# 69 passed
+# 74 passed
 
 pytest -p no:cacheprovider tests/unit/glossary -q
 # 183 passed
 
 pytest -p no:cacheprovider -q
-# 2868 passed, 2 skipped, 10 deselected, 14 failed
+# 2873 passed, 2 skipped, 10 deselected, 14 failed
 ```
 
 The same 14 failures reproduce on a clean worktree at upstream `b5ed606` under
@@ -353,7 +353,45 @@ that the model dropped entirely. A manual read still found an article migration
 in ch04 (`Os` moved into the attribution paragraph), which is exactly the kind
 of issue the source-aware reviewer must catch.
 
-### 2.11 Calibre read test
+### 2.11 Sun Eater 2 chapter pilot (real book)
+
+The first real-book pilot used *Howling Dark* (Calibre 430), Chapter 1 “The Red
+Company” (`xhtml/08_Chapter_1_The_Red_Com.xhtml`), with Hy-MT2-7B and the Sun
+Eater glossary/style. The text stayed local under `data/pilots/` (gitignored).
+
+| Metric | Result |
+|---|---:|
+| Source | 4,668 words, 116 paragraphs |
+| Chunks | 12 |
+| Total latency | 301.8 s |
+| Output tokens | 8,070 |
+| Paragraph alignment | 116/116 |
+| Draft length ratio | 0.985 |
+| Name recall | 0.966 |
+| English leakage | 0.0% |
+| Repetition ratio | 3.9% |
+
+The first attempt let the model merge 116 source paragraphs into 80, which
+invalidated paragraph-level refinement and metrics. A marker protocol
+(`[[P001]]`, ...) fixed it: every chunk preserved its markers, with one fallback
+paragraph in chunk 8 and four in the final short chunk. The final draft is
+116/116 aligned.
+
+After fixing three false-positive classes (`as` as an English stopword, compound
+numbers, and regular glossary inflection), the automatic gate found **0 flags**
+on this chapter. Manual reading still found a real grammar error: `dois milhas`
+(milha is feminine). A targeted source-aware refinement with an explicit
+`grammar.gender` issue was accepted by the guard at a 6.7% edit ratio, producing
+`duas milhas` without number or glossary loss.
+
+What this proves: the official Hy-MT2 template, Sun Eater glossary and style work
+at chapter scale; the marker protocol preserves paragraph alignment; the guard
+can apply a specific, source-backed repair. What it does not prove: EPUB-level
+rebuild, TOC/footnote/italic preservation, chapter-to-chapter continuity or
+publication quality. The draft still keeps `Lord Commandant` and `shuttles` in
+English, and Book 2 has no PT reference in the library.
+
+### 2.12 Calibre read test
 
 ```bash
 ebook-meta data/smoke/sampler_hy_ptbr_fixed.epub

@@ -2,9 +2,10 @@
 
 Status: **Phases 1–3 complete. Phase 4 benchmark in progress; Phase 5 editorial
 resources and Calibre metadata applied; Phase 6 pilot done on a public-domain
-fixture.** The installed generalists plus Hy-MT2-7B and Index-Translate-9B were
-tested locally on 2026-11-07. No paid cloud call was made and no full book was
-translated. No model passes the production gate without editorial review.
+fixture and on one real chapter (*Howling Dark* Chapter 1).** The installed
+generalists plus Hy-MT2-7B and Index-Translate-9B were tested locally on
+2026-11-07. No paid cloud call was made and no full book was translated. No
+model passes the production gate without editorial review.
 
 This directory is the entry point. The repository code remains the upstream
 TranslateBooksWithLLMs application; the new layer is additive and lives under
@@ -85,6 +86,8 @@ TranslateBooksWithLLMs application; the new layer is additive and lives under
 - Forbidden-rendering support in the upstream glossary prompt path.
 - A literary benchmark harness with model-specific prompts and deterministic
   metrics.
+- A real chapter pilot (*Howling Dark* Chapter 1) with 116/116 paragraph
+  alignment, Sun Eater glossary/style and a targeted source-aware repair.
 - A development Docker Compose that builds the local source, binds Calibre
   read-only and reaches host Ollama.
 
