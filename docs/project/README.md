@@ -98,6 +98,9 @@ TranslateBooksWithLLMs application; the new layer is additive and lives under
 - A one-book queue runner (`queue run`) that compiles glossary/style, launches
   the translation, attaches `translation_id`, repairs/validates/refines, marks
   the book completed when the gates pass, and exposes the best EPUB for download.
+- A standardized Kindle export (`queue export-kindle`) with series folders,
+  reading order, OPF series metadata, genre/language tags, translator role,
+  manifest and README.
 - Cost model calibrated on the user's EPUBs.
 - Deterministic translation and EPUB validators, including TOC-label and
   dropcap content checks.

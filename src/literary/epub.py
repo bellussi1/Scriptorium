@@ -471,23 +471,72 @@ def _set_dc_text(metadata: ET.Element, tag: str, value: str, dc_ns: str = DC_NS)
     el.text = value
 
 
-def _set_meta(metadata: ET.Element, *, name: str = "", property_name: str = "", value: str) -> None:
+def _set_meta(
+    metadata: ET.Element,
+    *,
+    name: str = "",
+    property_name: str = "",
+    value: str,
+    refines: str = "",
+    element_id: str = "",
+) -> None:
     for el in metadata:
         if _local_name(el.tag) != "meta":
             continue
+        if refines and el.attrib.get("refines") != refines:
+            continue
         if name and el.attrib.get("name") == name:
             el.text = value
+            if element_id:
+                el.set("id", element_id)
             return
         if property_name and el.attrib.get("property") == property_name:
             el.text = value
+            if element_id:
+                el.set("id", element_id)
             return
     attrs = {}
     if name:
         attrs["name"] = name
     if property_name:
         attrs["property"] = property_name
+    if refines:
+        attrs["refines"] = refines
+    if element_id:
+        attrs["id"] = element_id
     el = ET.SubElement(metadata, f"{{{OPF_NS}}}meta", attrs)
     el.text = value
+
+
+def _set_subjects(metadata: ET.Element, subjects: list[str], dc_ns: str = DC_NS) -> None:
+    for el in list(metadata):
+        if _local_name(el.tag) == "subject":
+            metadata.remove(el)
+    for subject in subjects:
+        if not str(subject).strip():
+            continue
+        el = ET.SubElement(metadata, f"{{{dc_ns}}}subject")
+        el.text = str(subject).strip()
+
+
+def _set_translator(metadata: ET.Element, translator: str, dc_ns: str = DC_NS) -> None:
+    for el in list(metadata):
+        if _local_name(el.tag) == "contributor" and el.attrib.get("id") == "tbl-translator":
+            metadata.remove(el)
+    for el in list(metadata):
+        if _local_name(el.tag) == "meta" and el.attrib.get("refines") == "#tbl-translator":
+            metadata.remove(el)
+    contributor = ET.SubElement(
+        metadata, f"{{{dc_ns}}}contributor", {"id": "tbl-translator"}
+    )
+    contributor.text = translator
+    _set_meta(
+        metadata,
+        property_name="role",
+        value="trl",
+        refines="#tbl-translator",
+    )
+
 
 
 def update_opf_metadata(
@@ -499,6 +548,11 @@ def update_opf_metadata(
     identifier: Optional[str] = None,
     series: Optional[str] = None,
     series_index: Optional[float] = None,
+    subjects: Optional[List[str]] = None,
+    description: Optional[str] = None,
+    translator: str = "",
+    title_sort: Optional[str] = None,
+    author_sort: Optional[str] = None,
 ) -> str:
     """Write a copy of ``source_path`` with selected OPF metadata updated.
 
@@ -526,12 +580,38 @@ def update_opf_metadata(
             _set_dc_text(metadata, "language", language)
         if identifier is not None:
             _set_dc_text(metadata, "identifier", identifier)
+        if description is not None:
+            _set_dc_text(metadata, "description", description)
+        if subjects:
+            _set_subjects(metadata, subjects)
+        if translator:
+            _set_translator(metadata, translator)
+        if title_sort:
+            _set_meta(metadata, name="calibre:title_sort", value=title_sort)
+        if author_sort:
+            _set_meta(metadata, name="calibre:author_sort", value=author_sort)
         if series is not None:
-            _set_meta(metadata, property_name="belongs-to-collection", value=series)
+            _set_meta(
+                metadata,
+                property_name="belongs-to-collection",
+                value=series,
+                element_id="tbl-series",
+            )
+            _set_meta(
+                metadata,
+                property_name="collection-type",
+                value="series",
+                refines="#tbl-series",
+            )
             _set_meta(metadata, name="calibre:series", value=series)
         if series_index is not None:
             value = f"{series_index:g}"
-            _set_meta(metadata, property_name="group-position", value=value)
+            _set_meta(
+                metadata,
+                property_name="group-position",
+                value=value,
+                refines="#tbl-series",
+            )
             _set_meta(metadata, name="calibre:series_index", value=value)
 
         new_opf = ET.tostring(opf, encoding="utf-8", xml_declaration=True)

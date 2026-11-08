@@ -229,6 +229,67 @@ def cmd_queue_run(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_queue_run_all(args: argparse.Namespace) -> int:
+    from .kindle import build_kindle_library
+    from .queue_runner import run_queue_book
+
+    results = []
+    processed = 0
+    while not args.max_books or processed < args.max_books:
+        store = QueueStore(args.db)
+        try:
+            book = store.next_pending()
+        finally:
+            store.close()
+        if not book:
+            break
+        processed += 1
+        try:
+            result = run_queue_book(
+                db_path=args.db,
+                book_id=book.id,
+                resources_root=args.resources,
+                refine_limit=args.refine_limit,
+                refine=not args.no_refine,
+                dry_run=False,
+                pov=args.pov,
+            )
+            results.append({"book_id": book.id, "title": book.title, "state": result.get("queue_state"), "report": result})
+            if args.stop_on_review and result.get("queue_state") == "needs_review":
+                break
+        except Exception as exc:
+            results.append({"book_id": book.id, "title": book.title, "error": str(exc)})
+            if args.stop_on_error:
+                break
+
+    kindle_result = None
+    if args.export_kindle:
+        kindle_result = build_kindle_library(
+            db_path=args.db,
+            outputs_dir=args.outputs,
+            output_root=args.kindle_out,
+        )
+    _print_json({"processed": processed, "results": results, "kindle": kindle_result})
+    return 0
+
+
+def cmd_queue_export_kindle(args: argparse.Namespace) -> int:
+    from .kindle import build_kindle_library
+
+    try:
+        result = build_kindle_library(
+            db_path=args.db,
+            outputs_dir=args.outputs,
+            output_root=args.out,
+            include_needs_review=not args.completed_only,
+        )
+    except Exception as exc:
+        _print_json({"error": str(exc)})
+        return 1
+    _print_json(result)
+    return 0
+
+
 def cmd_queue_set_model(args: argparse.Namespace) -> int:
     store = QueueStore(args.db)
     try:
@@ -652,6 +713,25 @@ def build_parser() -> argparse.ArgumentParser:
     run_parser.add_argument("--dry-run", action="store_true")
     run_parser.add_argument("--pov", default="", help="Narrator/POV note for refinement")
     run_parser.set_defaults(func=cmd_queue_run)
+    export_parser = queue_sub.add_parser("export-kindle", help="Build a standardized Kindle folder from queue artifacts")
+    export_parser.add_argument("--db", default="data/literary_queue.db")
+    export_parser.add_argument("--outputs", default="translated_files")
+    export_parser.add_argument("--out", default="translated_files/kindle")
+    export_parser.add_argument("--completed-only", action="store_true")
+    export_parser.set_defaults(func=cmd_queue_export_kindle)
+    run_all_parser = queue_sub.add_parser("run-all", help="Translate pending books sequentially and export Kindle files")
+    run_all_parser.add_argument("--db", default="data/literary_queue.db")
+    run_all_parser.add_argument("--resources", default="literary-resources")
+    run_all_parser.add_argument("--refine-limit", type=int, default=0)
+    run_all_parser.add_argument("--no-refine", action="store_true")
+    run_all_parser.add_argument("--pov", default="")
+    run_all_parser.add_argument("--max-books", type=int, default=0)
+    run_all_parser.add_argument("--stop-on-review", action="store_true")
+    run_all_parser.add_argument("--stop-on-error", action="store_true")
+    run_all_parser.add_argument("--export-kindle", action="store_true")
+    run_all_parser.add_argument("--outputs", default="translated_files")
+    run_all_parser.add_argument("--kindle-out", default="translated_files/kindle")
+    run_all_parser.set_defaults(func=cmd_queue_run_all)
     state_parser = queue_sub.add_parser("set-state")
     state_parser.add_argument("--db", default="data/literary_queue.db")
     state_parser.add_argument("--book-id", type=int, required=True)

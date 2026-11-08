@@ -602,6 +602,30 @@ python -m src.literary.cli queue approve \
 upstream sync preserves `needs_review`/`completed` states even when a killed CLI
 leaves its row `interrupted`.
 
+### 2.19 Kindle export and metadata standardization
+
+`queue export-kindle` builds a reading-order folder from completed queue
+artifacts:
+
+```text
+translated_files/kindle/<Author>/<Series>/<NN> - <Title> (pt-BR).epub
+```
+
+Each EPUB is rewritten with standardized OPF metadata:
+
+- translated `dc:title` and `pt-BR` language;
+- `calibre:series`, `calibre:series_index`, EPUB 3
+  `belongs-to-collection`/`collection-type`/`group-position`;
+- `dc:subject` tags for genre, series, `Brazilian Portuguese` and
+  `Machine Translation`;
+- translator contributor with the `trl` role refinement;
+- `calibre:title_sort`, `calibre:author_sort` and a standard description.
+
+The export also writes `manifest.csv` and `README.md` with reading order.
+`queue run-all` translates pending books sequentially and can call the export at
+the end. EPUB is accepted by Amazon Send to Kindle; the folder is also ready for
+a Calibre import.
+
 ## 3. What is not implemented
 
 - Automatic chaining of all books: `queue run` translates one book and returns
