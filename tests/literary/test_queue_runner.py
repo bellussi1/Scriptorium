@@ -89,3 +89,17 @@ def test_find_translation_id_since_skips_old_jobs(tmp_path: Path, monkeypatch):
     assert queue_runner._find_translation_id("Ship of Magic") == "cli_new"
     assert queue_runner._find_translation_id("Ship of Magic", "2026-11-08 18:21:00") == "cli_new"
     assert queue_runner._find_translation_id("Ship of Magic", "2026-11-08 18:22:00") is None
+
+def test_is_sun_eater_detects_author_and_series():
+    from src.literary.queue_runner import _is_sun_eater
+
+    class Book:
+        author = "Christopher Ruocchio"
+        series = "The Sun Eater"
+
+    class Other:
+        author = "Robin Hobb"
+        series = "The Liveship Traders"
+
+    assert _is_sun_eater(Book())
+    assert not _is_sun_eater(Other())

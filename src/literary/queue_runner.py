@@ -23,6 +23,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
 from .queue import QueueStore
+from .reading_repair import repair_reading_epub
 from .repair import repair_doc_roles_in_epub, repair_dropcaps_in_epub
 from .resources import (
     write_glossary_json,
@@ -60,6 +61,13 @@ def _report_path(title: str) -> Path:
 def _slug(value: str) -> str:
     slug = re.sub(r"[^A-Za-z0-9]+", "-", value or "").strip("-").lower()
     return slug or "book"
+
+
+def _is_sun_eater(book: Any) -> bool:
+    """The reader pass has Sun Eater-specific terms and heading fixes."""
+    author = str(getattr(book, "author", "") or "").casefold()
+    series = str(getattr(book, "series", "") or "").casefold()
+    return "ruocchio" in author or "sun eater" in series or "devorador do sol" in series
 
 
 def log(title: str, message: str) -> None:
@@ -521,6 +529,47 @@ def run_queue_book(
             )
             epubcheck = _epubcheck(refined_host)
 
+    reader_report = None
+    if _is_sun_eater(book):
+        reader_input = refined_host if refined_host.exists() else v2_host
+        reader_temp = OUTPUT_DIR / f".{output_host.stem}.reader.tmp.epub"
+        log(book.title, "reader repair: joining chunk seams and normalising dialogue")
+        try:
+            reader_report = repair_reading_epub(
+                str(reader_input),
+                str(reader_temp),
+                apply_terms=True,
+            )
+            reader_validation = validate_epub_pair(
+                str(host_source(book)), str(reader_temp), expected_language="pt-BR"
+            )
+            reader_epubcheck = _epubcheck(reader_temp)
+            if bool(reader_validation.get("passed")) and reader_epubcheck.get("errors") == 0:
+                os.replace(reader_temp, refined_host)
+                validation = reader_validation
+                epubcheck = reader_epubcheck
+                reader_report["accepted"] = True
+                reader_report["final"] = str(refined_host)
+                log(
+                    book.title,
+                    "reader repair accepted: merged={} quotes={} splits={}".format(
+                        reader_report.get("merged"),
+                        reader_report.get("quote_paragraphs"),
+                        (reader_report.get("artefact_changes") or {}).get("split_dialogue_paragraphs"),
+                    ),
+                )
+            else:
+                reader_report["accepted"] = False
+                reader_report["reason"] = "reader validation gate failed"
+                log(book.title, "reader repair rejected: validation gate failed")
+                if reader_temp.exists():
+                    reader_temp.unlink()
+        except Exception as exc:
+            reader_report = {"accepted": False, "error": str(exc)}
+            log(book.title, f"reader repair failed; keeping the previous artifact: {exc}")
+            if reader_temp.exists():
+                reader_temp.unlink()
+
     store = QueueStore(db_path)
     gate_ok = bool(validation.get("passed")) and epubcheck.get("errors") == 0
     target_state = "completed" if gate_ok else "needs_review"
@@ -576,6 +625,7 @@ def run_queue_book(
         "validation": validation,
         "epubcheck": epubcheck,
         "refine": refine_report,
+        "reader_repair": reader_report,
         "queue_state": target_state,
         "review_required": target_state != "completed",
         "queue_job": job,

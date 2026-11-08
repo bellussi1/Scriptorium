@@ -12,6 +12,7 @@ import json
 import os
 import re
 import sqlite3
+import time
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional
@@ -19,7 +20,16 @@ from typing import Any, Dict, List, Optional
 from flask import Blueprint, jsonify, request, send_file
 
 from src.literary.models import BookRecord
-from src.literary.queue import QueueStore
+from src.literary.queue import QueueStore, _transition_path
+from src.literary.queue_insights import (
+    DEFAULT_KINDLE_DIR,
+    DEFAULT_PILOT_DIR,
+    DEFAULT_RUN_DIR,
+    find_log,
+    kindle_zip,
+    quality_payload,
+    tail_lines,
+)
 
 MAX_BOOKS_PER_ADD = 100
 
@@ -34,6 +44,18 @@ def _inventory_path() -> Path:
 
 def _outputs_dir() -> Path:
     return Path(os.getenv("LITERARY_OUTPUT_DIR", "translated_files"))
+
+
+def _run_dir() -> Path:
+    return Path(os.getenv("LITERARY_RUN_DIR", str(DEFAULT_RUN_DIR)))
+
+
+def _pilot_dir() -> Path:
+    return Path(os.getenv("LITERARY_PILOT_DIR", str(DEFAULT_PILOT_DIR)))
+
+
+def _kindle_dir() -> Path:
+    return Path(os.getenv("LITERARY_KINDLE_DIR", str(DEFAULT_KINDLE_DIR)))
 
 
 def _artifact_rank(filename: str, title: str) -> int:
@@ -110,6 +132,41 @@ def _book_title(db_path: Path, book_id: int) -> Optional[str]:
     finally:
         conn.close()
     return str(row[0]) if row and row[0] else None
+
+
+def _book_meta(db_path: Path, book_id: int) -> Optional[Dict[str, Any]]:
+    if not db_path.exists():
+        return None
+    conn = sqlite3.connect(f"file:{db_path.resolve().as_posix()}?mode=ro", uri=True)
+    conn.row_factory = sqlite3.Row
+    try:
+        row = conn.execute(
+            "SELECT id, title, author, series, series_index, status "
+            "FROM books WHERE id = ?",
+            (book_id,),
+        ).fetchone()
+    except sqlite3.Error:
+        return None
+    finally:
+        conn.close()
+    return dict(row) if row else None
+
+
+def _latest_job(db_path: Path, book_id: int) -> Optional[Dict[str, Any]]:
+    if not db_path.exists():
+        return None
+    conn = sqlite3.connect(f"file:{db_path.resolve().as_posix()}?mode=ro", uri=True)
+    conn.row_factory = sqlite3.Row
+    try:
+        row = conn.execute(
+            "SELECT * FROM jobs WHERE book_id = ? ORDER BY id DESC LIMIT 1",
+            (book_id,),
+        ).fetchone()
+    except sqlite3.Error:
+        return None
+    finally:
+        conn.close()
+    return dict(row) if row else None
 
 
 def _container_epub_path(row: Dict[str, Any]) -> str:
@@ -197,6 +254,7 @@ def build_queue_snapshot(db_path: str | Path) -> Dict[str, Any]:
                     b.series_index, b.status, b.word_count, b.model, b.provider,
                     j.id AS job_id, j.state AS job_state, j.translation_id,
                     j.current_chapter, j.total_chapters, j.error,
+                    j.created_at AS job_created_at,
                     j.updated_at AS job_updated_at
                 FROM books b
                 LEFT JOIN jobs j
@@ -222,6 +280,7 @@ def build_queue_snapshot(db_path: str | Path) -> Dict[str, Any]:
         conn.close()
 
     by_status: Dict[str, int] = {}
+    position = 0
     for book in books:
         artifact = _artifact_for(str(book.get("title") or ""))
         if artifact:
@@ -231,7 +290,28 @@ def build_queue_snapshot(db_path: str | Path) -> Dict[str, Any]:
                 "size": artifact["size"],
                 "download_url": f"/api/literary/queue/books/{book['id']}/download",
             }
-        state = book.get("job_state") or book.get("status") or "pending"
+        # The book status is the editorial truth; a stale job row must not
+        # make a retried pending book look like it is still in review.
+        state = str(book.get("status") or book.get("job_state") or "pending")
+        book["state"] = state
+        # A paused editorial state with a recently written upstream log means
+        # the translation process is still alive; some upstream checkpoints
+        # briefly report "interrupted" while a retry is in flight.
+        book["live"] = state in {"preparing", "translating", "reviewing", "validating"}
+        if not book["live"] and state == "paused" and book.get("translation_id"):
+            log_path = find_log(str(book.get("title") or ""), _run_dir(), _pilot_dir())
+            if log_path is not None:
+                try:
+                    book["live"] = (time.time() - log_path.stat().st_mtime) < 180
+                except OSError:
+                    book["live"] = False
+        if state == "pending":
+            position += 1
+            book["position"] = position
+            book["is_next"] = position == 1
+        else:
+            book["position"] = None
+            book["is_next"] = False
         by_status[state] = by_status.get(state, 0) + 1
 
     return {
@@ -373,6 +453,106 @@ def create_literary_queue_blueprint() -> Blueprint:
             "provider": provider,
         }
         return jsonify(snapshot)
+
+    @bp.route("/api/literary/queue/books/<int:book_id>/log", methods=["GET"])
+    def get_literary_queue_book_log(book_id: int):
+        book = _book_meta(_db_path(), book_id)
+        if book is None:
+            return _json_error("book not found", 404)
+        path = find_log(str(book["title"]), _run_dir(), _pilot_dir())
+        if path is None:
+            return _json_error("log not found", 404)
+        lines = tail_lines(
+            path,
+            request.args.get("lines", 80, type=int),
+            skip_sync=True,
+        )
+        return jsonify(
+            {
+                "status": "ok",
+                "filename": path.name,
+                "lines": lines,
+            }
+        )
+
+    @bp.route("/api/literary/queue/books/<int:book_id>/quality", methods=["GET"])
+    def get_literary_queue_book_quality(book_id: int):
+        book = _book_meta(_db_path(), book_id)
+        if book is None:
+            return _json_error("book not found", 404)
+        artifact = _artifact_for(str(book["title"]))
+        if artifact is None:
+            return _json_error("translated EPUB not found", 404)
+        job = _latest_job(_db_path(), book_id)
+        if job:
+            book["translation_id"] = job.get("translation_id") or ""
+        artifact["download_url"] = f"/api/literary/queue/books/{book_id}/download"
+        try:
+            payload = quality_payload(book, artifact, run_dir=_run_dir(), pilot_dir=_pilot_dir())
+        except FileNotFoundError as exc:
+            return _json_error(str(exc), 404)
+        except Exception as exc:  # pragma: no cover - defensive boundary
+            return _json_error(str(exc), 500)
+        return jsonify(payload)
+
+    @bp.route("/api/literary/queue/books/<int:book_id>/approve", methods=["POST"])
+    def approve_literary_queue_book(book_id: int):
+        db_path = _db_path()
+        book = _book_meta(db_path, book_id)
+        if book is None:
+            return _json_error("book not found", 404)
+        job = _latest_job(db_path, book_id)
+        if book["status"] != "needs_review" and (job is None or job.get("state") != "needs_review"):
+            return _json_error("book does not need review", 409)
+        message = "human review approved from Queue UI"
+        store = QueueStore(str(db_path))
+        try:
+            if job is not None:
+                for state in _transition_path(str(job.get("state") or ""), "completed"):
+                    store.set_job_state(int(job["id"]), state, message)
+            for state in _transition_path(str(book["status"]), "completed"):
+                store.set_book_state(book_id, state, message)
+            store.add_event(message, book_id=book_id, job_id=int(job["id"]) if job else None)
+            snapshot = build_queue_snapshot(db_path)
+        except ValueError as exc:
+            return _json_error(str(exc), 409)
+        finally:
+            store.close()
+        return jsonify(snapshot)
+
+    @bp.route("/api/literary/queue/books/<int:book_id>/retry", methods=["POST"])
+    def retry_literary_queue_book(book_id: int):
+        db_path = _db_path()
+        book = _book_meta(db_path, book_id)
+        if book is None:
+            return _json_error("book not found", 404)
+        if book["status"] not in {"failed", "needs_review", "paused"}:
+            return _json_error("only failed, paused or needs-review books can be retried", 409)
+        message = "retry requested from Queue UI"
+        store = QueueStore(str(db_path))
+        try:
+            for state in _transition_path(str(book["status"]), "pending"):
+                store.set_book_state(book_id, state, message)
+            store.add_event(message, book_id=book_id)
+            snapshot = build_queue_snapshot(db_path)
+        except ValueError as exc:
+            return _json_error(str(exc), 409)
+        finally:
+            store.close()
+        return jsonify(snapshot)
+
+    @bp.route("/api/literary/queue/kindle.zip", methods=["GET"])
+    def download_literary_queue_kindle_zip():
+        try:
+            buffer = kindle_zip(_kindle_dir())
+        except FileNotFoundError as exc:
+            return _json_error(str(exc), 404)
+        return send_file(
+            buffer,
+            as_attachment=True,
+            download_name="kindle-library.zip",
+            mimetype="application/zip",
+        )
 
     @bp.route("/api/literary/queue/books/<int:book_id>/download", methods=["GET"])
     def download_literary_queue_book(book_id: int):

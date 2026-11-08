@@ -41,6 +41,7 @@ def _queue_db(path: Path) -> None:
             current_chapter INTEGER,
             total_chapters INTEGER,
             error TEXT,
+            created_at TEXT,
             updated_at TEXT
         );
         CREATE TABLE events (
@@ -61,7 +62,7 @@ def _queue_db(path: Path) -> None:
     )
     conn.execute(
         "INSERT INTO jobs VALUES (1, 1, 'translating', 'cli_test', 10, 100, '', "
-        "'2026-11-08T00:00:00+00:00')"
+        "'2026-11-08T00:00:00+00:00', '2026-11-08T00:00:00+00:00')"
     )
     conn.execute(
         "INSERT INTO events (level, message, created_at) VALUES "
@@ -98,11 +99,11 @@ def _client(tmp_path: Path, monkeypatch, *, rows: list[dict]) -> Flask:
     return app
 
 
-def _seed_book(tmp_path: Path, calibre_id: int, title: str) -> None:
+def _seed_book(tmp_path: Path, calibre_id: int, title: str) -> int:
     store = QueueStore(str(tmp_path / "queue.db"))
     epub = tmp_path / f"{calibre_id}.epub"
     epub.write_bytes(b"fake epub")
-    store.add_book(
+    book_id = store.add_book(
         BookRecord(
             calibre_id=calibre_id,
             title=title,
@@ -114,6 +115,7 @@ def _seed_book(tmp_path: Path, calibre_id: int, title: str) -> None:
         )
     )
     store.close()
+    return book_id
 
 
 def test_snapshot_summarizes_books_jobs_and_events(tmp_path: Path):
@@ -132,8 +134,15 @@ def test_snapshot_summarizes_books_jobs_and_events(tmp_path: Path):
     assert first["translation_id"] == "cli_test"
     assert first["current_chapter"] == 10
     assert first["total_chapters"] == 100
+    assert first["state"] == "translating"
+    assert first["live"] is True
+    assert first["job_created_at"] == "2026-11-08T00:00:00+00:00"
     assert "source_path" not in first
     assert snapshot["events"][0]["message"].startswith("full-book translation")
+    second = snapshot["books"][1]
+    assert second["state"] == "pending"
+    assert second["position"] == 1
+    assert second["is_next"] is True
 
 
 def test_missing_database_is_an_empty_queue(tmp_path: Path):
@@ -381,3 +390,96 @@ def test_download_route_returns_the_best_epub(tmp_path: Path, monkeypatch):
 
     missing = client.get("/api/literary/queue/books/2/download")
     assert missing.status_code == 404
+
+def test_log_route_returns_the_tail(tmp_path: Path, monkeypatch):
+    db = tmp_path / "queue.db"
+    _queue_db(db)
+    run_dir = tmp_path / "runs"
+    run_dir.mkdir()
+    (run_dir / "howling-dark.log").write_text("first\nsecond\nthird", encoding="utf-8")
+    monkeypatch.setenv("LITERARY_QUEUE_DB", str(db))
+    monkeypatch.setenv("LITERARY_RUN_DIR", str(run_dir))
+
+    app = Flask(__name__)
+    app.register_blueprint(create_literary_queue_blueprint())
+    response = app.test_client().get("/api/literary/queue/books/1/log?lines=2")
+
+    assert response.status_code == 200
+    payload = response.get_json()
+    assert payload["lines"] == ["second", "third"]
+
+
+def test_quality_route_reads_the_best_artifact(tmp_path: Path, monkeypatch):
+    from tests.literary.conftest import make_epub
+
+    db = tmp_path / "queue.db"
+    _queue_db(db)
+    outputs = tmp_path / "outputs"
+    outputs.mkdir()
+    make_epub(outputs / "Howling Dark (pt-BR).refined.epub", title="Howling Dark")
+    monkeypatch.setenv("LITERARY_QUEUE_DB", str(db))
+    monkeypatch.setenv("LITERARY_OUTPUT_DIR", str(outputs))
+
+    app = Flask(__name__)
+    app.register_blueprint(create_literary_queue_blueprint())
+    response = app.test_client().get("/api/literary/queue/books/1/quality")
+
+    assert response.status_code == 200
+    payload = response.get_json()
+    assert payload["artifact"]["kind"] == "refined"
+    assert payload["metrics"]["words"] > 0
+    assert payload["book"]["title"] == "Howling Dark"
+
+
+def test_kindle_zip_route_packages_the_library(tmp_path: Path, monkeypatch):
+    import io
+    import zipfile
+
+    kindle = tmp_path / "kindle"
+    kindle.mkdir()
+    (kindle / "book.epub").write_bytes(b"epub")
+    monkeypatch.setenv("LITERARY_KINDLE_DIR", str(kindle))
+
+    app = Flask(__name__)
+    app.register_blueprint(create_literary_queue_blueprint())
+    response = app.test_client().get("/api/literary/queue/kindle.zip")
+
+    assert response.status_code == 200
+    with zipfile.ZipFile(io.BytesIO(response.data)) as archive:
+        assert "book.epub" in archive.namelist()
+
+
+def test_approve_route_completes_a_needs_review_book(tmp_path: Path, monkeypatch):
+    app = _client(tmp_path, monkeypatch, rows=[])
+    book_id = _seed_book(tmp_path, 20, "Needs Review")
+    store = QueueStore(str(tmp_path / "queue.db"))
+    job_id = store.create_job(book_id)
+    for state in ("preparing", "translating", "needs_review"):
+        store.set_book_state(book_id, state)
+        store.set_job_state(job_id, state)
+    store.close()
+
+    response = app.test_client().post(f"/api/literary/queue/books/{book_id}/approve")
+
+    assert response.status_code == 200
+    snapshot = response.get_json()
+    book = next(item for item in snapshot["books"] if item["id"] == book_id)
+    assert book["state"] == "completed"
+
+
+def test_retry_route_returns_a_failed_book_to_pending(tmp_path: Path, monkeypatch):
+    app = _client(tmp_path, monkeypatch, rows=[])
+    book_id = _seed_book(tmp_path, 21, "Failed Book")
+    store = QueueStore(str(tmp_path / "queue.db"))
+    job_id = store.create_job(book_id)
+    store.set_book_state(book_id, "failed")
+    store.set_job_state(job_id, "failed")
+    store.close()
+
+    response = app.test_client().post(f"/api/literary/queue/books/{book_id}/retry")
+
+    assert response.status_code == 200
+    snapshot = response.get_json()
+    book = next(item for item in snapshot["books"] if item["id"] == book_id)
+    assert book["state"] == "pending"
+    assert book["position"] == 1
