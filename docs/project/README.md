@@ -83,8 +83,18 @@ TranslateBooksWithLLMs application; the new layer is additive and lives under
   read-only `translation_id` sync with the upstream checkpoint database, and a
   Queue tab in the web UI for enqueueing inventory books, reordering pending
   entries and setting their model/provider.
-- Source-aware selective refinement for paragraph-aligned text, with an
-  injected model call and a deterministic guard. EPUB writing is still separate.
+- Source-aware selective refinement for paragraph-aligned text and for EPUB
+  paragraphs, with an injected model call, a deterministic guard and an atomic
+  output EPUB; inline-markup paragraphs are reported and skipped.
+- High-confidence PT-BR grammar checks (verb forms, contractions, pronoun case,
+  impersonal *haver*, elapsed-time *fazer*) with an optional local LanguageTool
+  adapter.
+- Continuity context (previous chapter summary/ending, POV, character sheet from
+  glossary metadata) and deterministic best-of-N selection.
+- A reproducible `queue plan` that resolves model/provider, glossary, style and
+  pipeline flags for a book.
+- A 50-excerpt, 10-book context benchmark corpus, quantization model specs and an
+  anonymized review sheet (`runner report-blind`).
 - Cost model calibrated on the user's EPUBs.
 - Deterministic translation and EPUB validators, including TOC-label and
   dropcap content checks.

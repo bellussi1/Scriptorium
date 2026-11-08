@@ -145,3 +145,75 @@ terms:
     confidence: confirmed
     first_appearance: empire-of-silence
     approved: true
+  - source: Emesh
+    target: Emesh
+    category: location
+    policy: keep
+    source_reference: "Source text (Howling Dark); place name kept"
+    confidence: provisional
+    first_appearance: howling-dark
+    approved: false
+  - source: Pharos
+    target: Pharos
+    category: location
+    policy: keep
+    source_reference: "Source text (Howling Dark); place name kept"
+    confidence: provisional
+    first_appearance: howling-dark
+    approved: false
+  - source: Borosevo
+    target: Borosevo
+    category: location
+    policy: keep
+    source_reference: "Source text (Howling Dark); place name kept"
+    confidence: provisional
+    first_appearance: howling-dark
+    approved: false
+  - source: Meidua
+    target: Meidua
+    category: location
+    policy: keep
+    notes: "Meidua Red Company is the narrator's old unit; keep the place name."
+    source_reference: "Source text (Howling Dark); place name kept"
+    confidence: provisional
+    first_appearance: howling-dark
+    approved: false
+  - source: Red Company
+    target: Companhia Vermelha
+    category: organization
+    policy: translate
+    aliases: [Meidua Red Company]
+    alias_targets: {Meidua Red Company: "Companhia Vermelha de Meidua"}
+    forbidden: [Companhia Rubra]
+    notes: >-
+      Hadrian's old military company. Prefer Companhia Vermelha; the full name
+      with Meidua is used only when the source uses it.
+    source_reference: "Source text (Howling Dark); editorial rendering"
+    confidence: provisional
+    first_appearance: howling-dark
+    approved: false
+  - source: Extrasolarian
+    target: extrassolar
+    category: other
+    policy: translate
+    aliases: [Extrasolarians]
+    alias_targets: {Extrasolarians: extrassolares}
+    forbidden: [extrassolariano]
+    source_reference: "Source text (Howling Dark); editorial rendering"
+    confidence: provisional
+    first_appearance: howling-dark
+    approved: false
+  - source: The Painted Man
+    target: O Homem Pintado
+    category: title
+    policy: translate
+    aliases: [Painted Man]
+    alias_targets: {Painted Man: Homem Pintado}
+    forbidden: [O Homem da Tinta]
+    notes: >-
+      Recurring epithet from Howling Dark onward. Keep the definite article when
+      the source has it; do not turn the paint into ink.
+    source_reference: "Source text (Howling Dark); editorial rendering"
+    confidence: provisional
+    first_appearance: howling-dark
+    approved: false

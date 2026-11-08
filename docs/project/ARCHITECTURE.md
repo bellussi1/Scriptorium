@@ -83,7 +83,12 @@ planning, editorial resources, queue, cost, validation and the quality gate.
 | EPUB utilities | `src/literary/epub.py` | Metadata/TOC/text extraction, structural validation, safe metadata rewrite |
 | Resource hierarchy | `src/literary/resources.py` | Load/merge/validate YAML, compile glossary + style for a book |
 | Glossary selection | `src/literary/glossary.py` | Aliases, forbidden renderings, first-appearance filtering, token budget |
-| Persistent queue | `src/literary/queue.py` | Book/chapter states, idempotency, checkpoints, events |
+| Persistent queue | `src/literary/queue.py` | Book/chapter states, idempotency, checkpoints, events, model metadata |
+| Run plan | `src/literary/run_plan.py` | Resolve model, scopes, glossary, style and pipeline flags for a queued book |
+| PT-BR checks | `src/literary/ptbr.py` | High-confidence grammar/spelling rules and optional LanguageTool adapter |
+| Continuity | `src/literary/continuity.py` | POV, character sheet, previous-chapter summary/ending |
+| Best-of-N | `src/literary/best_of_n.py` | Deterministic candidate ranking and fallback reporting |
+| EPUB refinement | `src/literary/refine_epub.py` | Paragraph alignment, guarded source-aware revisions, atomic EPUB write |
 | Cost model | `src/literary/cost.py` | Dated pricing registry, measured token ratios, scenarios A–E |
 | Validation | `src/literary/validation.py` | Pair-level and EPUB-level deterministic checks |
 | CLI | `src/literary/cli.py` | Inventory, resources, queue, estimate, validate, metadata |

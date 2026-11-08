@@ -239,6 +239,37 @@ verb-form error in the re-run. Both need a PT-BR post-edit and stronger
 case-sensitive glossary enforcement. Neither passes the production gate on this
 round, and the sample is too small to rank them confidently.
 
+### 2.5 Context corpus and quantization round (in progress)
+
+The original 15-excerpt pilot is too small to rank models. A second corpus now
+covers **50 excerpts from 10 books in the active queue**:
+
+- Hobb: *Assassin's Apprentice*, *Ship of Magic*, *The Mad Ship*, *Fool's Errand*;
+- Ruocchio: *Howling Dark*, *Demon in White*, *Kingdoms of Death*, *Ashes of
+  Man*, *The Lesser Devil*, *Queen Amid Ashes*.
+
+The builder samples chapters and categories across each book instead of always
+taking the first paragraphs. The corpus is local-only under
+`data/benchmark/literary/corpus_context.jsonl`.
+
+Quantization round: the official Hy-MT2 GGUF repository publishes Q4_K_M, Q6_K and
+Q8_0, **not Q5_K_M**. Q6_K and Q8_0 are downloaded. The benchmark command
+accepts the compiled glossary shape and the compiled YAML style preset:
+
+```bash
+python -m benchmark.literary.runner run \
+  --corpus /app/data/benchmark/literary/corpus_context.jsonl \
+  --models hy-mt2-7b hy-mt2-7b-q6 \
+  --glossary /app/data/compiled/sun-eater-2-glossary.json \
+  --style-file /app/data/compiled/sun-eater-2-style.yaml
+```
+
+The run is intentionally deferred while the full *Howling Dark* translation owns
+the GPU. Q8_0 will be tested on a small subset at 4K first; if it offloads, the
+latency/quality trade-off is reported rather than hidden. `runner report-blind`
+produces an anonymized review sheet and a separate A/B/C key for the human
+panel.
+
 ## 3. What the pilot teaches
 
 1. **Fluency is not fidelity.** The most fluent model produced the most

@@ -137,3 +137,114 @@ terms:
     confidence: confirmed
     first_appearance: assassins-apprentice
     approved: true
+  - source: Althea Vestrit
+    target: Althea Vestrit
+    category: character
+    policy: keep
+    aliases: [Althea]
+    alias_targets: {Althea: Althea}
+    gender: female
+    source_reference: "Source text (Liveship Traders); name kept"
+    confidence: provisional
+    first_appearance: ship-of-magic
+    approved: false
+  - source: Brashen Trell
+    target: Brashen Trell
+    category: character
+    policy: keep
+    aliases: [Brashen]
+    alias_targets: {Brashen: Brashen}
+    gender: male
+    source_reference: "Source text (Liveship Traders); name kept"
+    confidence: provisional
+    first_appearance: ship-of-magic
+    approved: false
+  - source: Wintrow Vestrit
+    target: Wintrow Vestrit
+    category: character
+    policy: keep
+    aliases: [Wintrow]
+    alias_targets: {Wintrow: Wintrow}
+    gender: male
+    source_reference: "Source text (Liveship Traders); name kept"
+    confidence: provisional
+    first_appearance: ship-of-magic
+    approved: false
+  - source: Malta Vestrit
+    target: Malta Vestrit
+    category: character
+    policy: keep
+    aliases: [Malta]
+    alias_targets: {Malta: Malta}
+    gender: female
+    source_reference: "Source text (Liveship Traders); name kept"
+    confidence: provisional
+    first_appearance: ship-of-magic
+    approved: false
+  - source: Ronica Vestrit
+    target: Ronica Vestrit
+    category: character
+    policy: keep
+    aliases: [Ronica]
+    alias_targets: {Ronica: Ronica}
+    gender: female
+    source_reference: "Source text (Liveship Traders); name kept"
+    confidence: provisional
+    first_appearance: ship-of-magic
+    approved: false
+  - source: Kennit
+    target: Kennit
+    category: character
+    policy: keep
+    gender: male
+    source_reference: "Source text (Liveship Traders); name kept"
+    confidence: provisional
+    first_appearance: ship-of-magic
+    approved: false
+  - source: Paragon
+    target: Paragon
+    category: character
+    policy: keep
+    notes: "Liveship with a voice; keep the ship's name."
+    source_reference: "Source text (Liveship Traders); name kept"
+    confidence: provisional
+    first_appearance: ship-of-magic
+    approved: false
+  - source: Vivacia
+    target: Vivacia
+    category: character
+    policy: keep
+    notes: "Liveship with a voice; keep the ship's name."
+    source_reference: "Source text (Liveship Traders); name kept"
+    confidence: provisional
+    first_appearance: ship-of-magic
+    approved: false
+  - source: Nettle
+    target: Nettle
+    category: character
+    policy: keep
+    gender: female
+    source_reference: "Source text (Tawny Man); name kept"
+    confidence: provisional
+    first_appearance: fools-errand
+    approved: false
+  - source: Dutiful
+    target: Dutiful
+    category: character
+    policy: keep
+    aliases: [Prince Dutiful]
+    alias_targets: {Prince Dutiful: "Príncipe Dutiful"}
+    gender: male
+    source_reference: "Source text (Tawny Man); name kept"
+    confidence: provisional
+    first_appearance: fools-errand
+    approved: false
+  - source: Kettricken
+    target: Kettricken
+    category: character
+    policy: keep
+    gender: female
+    source_reference: "Official PT-BR editions, Calibre 94/92/71"
+    confidence: confirmed
+    first_appearance: assassins-apprentice
+    approved: true

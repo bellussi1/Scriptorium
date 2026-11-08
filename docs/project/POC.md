@@ -425,9 +425,10 @@ the two controlled actions the queue needs from the browser:
   `provider` of a **pending** book. Non-pending entries are rejected with
   `409`; the value is saved for the next run and does not alter a job already in
   progress.
-- The Queue tab has an edit button per pending row. The modal pre-fills the
-  current model/provider, suggests the installed Ollama models from
-  `/api/models`, and reports the result without reloading the page.
+- The Queue tab's **Model** cell is a native dropdown for pending rows, fed by
+  the installed Ollama models from `/api/models`. Choosing a model PATCHes the
+  row immediately. A `Custom...` option opens the modal for a model/provider
+  combination that is not installed or not listed.
 - `src/web/static/queue.css` uses the existing design tokens (surfaces, borders,
   status colors, dark mode) instead of duplicating the palette.
 - `src/web/static/js/queue/queue-manager.js` renders the table and refreshes
@@ -447,20 +448,105 @@ model for *Ship of Magic* worked against the copy; all three actions were then
 reverted by restoring the copy from the live queue. The second instance does not
 touch the real `data/jobs.db`.
 
-Validation: **12** route tests, **92** targeted tests, full suite **2,896
-passed, 2 skipped, 14 pre-existing failures**.
+Validation: **12** route tests, full suite **2,933 passed, 2 skipped, 14
+pre-existing failures**.
+
+### 2.14 PT-BR grammar layer
+
+`src/literary/ptbr.py` adds high-confidence Brazilian Portuguese checks without
+a required external service:
+
+- verb forms seen in the pilot (`Convinci-me`, `Convinquei-me` -> `Convenci-me`);
+- accents and common misspellings (`convem`, `menas`, `seje`, `derrepente`,
+  `concerteza`, `atraves`);
+- contractions (`de o` -> `do`, `em os` -> `nos`, `por o` -> `pelo`);
+- pronoun case (`para mim fazer` -> `para eu fazer`, `entre eu e` -> `entre mim e`);
+- impersonal *haver*, *existir* agreement and elapsed-time *fazer*;
+- final `por quê`, repeated words (warning only, because repetition can be voice).
+
+The checks carry exact character spans and suggestions. `flags_for_segment`
+turns them into refinement issues, so a flagged paragraph reaches the
+source-aware reviewer with the grammar reason attached. `check_with_languagetool`
+is an optional adapter for a local LanguageTool server (`LANGUAGETOOL_URL`); the
+pipeline never downloads or starts one by itself.
+
+### 2.15 Continuity, best-of-N and run plan
+
+- `src/literary/continuity.py` derives a character sheet from curated glossary
+  metadata, keeps the previous chapter's summary and ending, and builds a compact
+  continuity block (POV, characters, gender, aliases, address rules).
+- `src/literary/best_of_n.py` ranks sampled candidates on glossary/name recall,
+  number recall, length ratio, English leakage, repetition and high-confidence
+  PT-BR errors. Case-sensitive glossary targets outrank lowercase matches.
+  Ineligible candidates are reported with reasons; ties keep generation order.
+- `src/literary/run_plan.py` resolves a queue row into a reproducible plan:
+  model/provider, source path, resource scopes, glossary preview, style text,
+  continuity block and pipeline flags. `queue plan --book-id` prints it. A
+  compiled glossary path in `glossary_scope` is not mistaken for resource-tree
+  coordinates.
+- `translate.py` now accepts `--custom-instruction <file>` so a CLI full-book run
+  can use the same curated style preset as the web UI. `docker-compose.dev.yml`
+  mounts that file into the dev container; the image must be recreated for the
+  mount to take effect.
+
+### 2.16 Source-aware EPUB refinement
+
+`src/literary/refine_epub.py` and the `refine-epub` CLI close the gap between
+paragraph-aligned refinement and a real book:
+
+- pairs source and target spine documents by `href`, then by order;
+- extracts `<p>` paragraphs and compares them by index;
+- skips paragraphs with inline markup instead of destroying italics/spans, and
+  reports the count;
+- flags only segments with deterministic issues, asks the model to revise with
+  the source, glossary, style and continuity block in view;
+- applies only guard-accepted revisions and writes a new EPUB atomically;
+- emits a JSON report with flagged/attempted/accepted/rejected counts and
+  per-document skips.
+
+`refine-epub --dry-run` reports the flagged segments without calling the model.
+The active *Howling Dark* run was started before this layer existed and is not
+modified; the post-pass can run on its output after completion.
+
+### 2.17 Expanded benchmark corpus and quantization round
+
+The original pilot corpus had 15 excerpts from 3 books. The context corpus now
+has **50 excerpts from 10 books** in the active queue: *Assassin's Apprentice*,
+*Ship of Magic*, *The Mad Ship*, *Fool's Errand*, *Howling Dark*, *Demon in
+White*, *Kingdoms of Death*, *Ashes of Man*, *The Lesser Devil* and *Queen Amid
+Ashes*. The builder now spreads chapters and categories instead of always taking
+the first paragraphs.
+
+Quantization models downloaded:
+
+| Model | Size | Status |
+|---|---:|---|
+| Hy-MT2 7B Q4_K_M | 4.6 GB | baseline, active full-book run |
+| Hy-MT2 7B Q6_K | 6.2 GB | downloaded; benchmark pending GPU |
+| Hy-MT2 7B Q8_0 | 8.0 GB | downloaded; likely offloads on 8 GB, benchmark at 4K |
+
+The official Hy-MT2 GGUF repository does **not** publish Q5_K_M; Q6_K is the
+next available step. The benchmark runner now accepts the compiled glossary
+shape and a YAML style preset, and can produce an anonymized review sheet plus a
+separate label key (`runner report-blind`).
+
+Removed as weak/duplicate: `qwen3.5:4b`, the stale
+`gemini-3-flash-preview` manifest, the duplicate `qwen3:8b` tag and the duplicate
+`translategemma:12b-it-q4_K_M` tag. `qwen3:8b-q4_K_M`, `qwen3:14b`,
+TranslateGemma and Index-Translate are kept as comparison baselines until the
+quantization round is analyzed.
 
 ## 3. What is not implemented
 
-- Automatic queue-driven job launching; the queue now stores the upstream
-  `translation_id` and reconciles status/progress read-only through `queue
-  sync`, but it does not launch the upstream runner yet.
-- Source-aware selective refinement is implemented and tested on
-  paragraph-aligned text; the upstream `refine_after` path and an EPUB-level
-  writer are not wired to it yet.
-- Narrative memory; only designed.
+- Automatic queue-driven job launching; the queue stores the model, editorial
+  scopes and upstream `translation_id`, and `queue plan` resolves them, but no
+  runner launches the next pending book yet.
+- The source-aware EPUB writer exists (`refine-epub`) but is not wired into the
+  queue runner; the full-book style/refine path is still manual.
+- Narrative memory is implemented as a continuity block, but not yet passed to
+  the upstream full-book translation prompt (only the refinement prompt).
 - EPUBCheck is available in a Java 17 container and was run manually, but it is
-  not wired as an automatic gate in the pipeline.
+  not wired as an automatic gate in the queue runner.
 - The upstream `dc:contributor` EPUB 3.4 conformance error is documented and
   two fixes were tested with EPUBCheck, but the fix is not applied in this fork
   yet.

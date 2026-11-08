@@ -22,3 +22,100 @@ terms:
     confidence: confirmed
     first_appearance: empire-of-silence
     approved: true
+  - source: Valka
+    target: Valka
+    category: character
+    policy: keep
+    gender: female
+    notes: >-
+      Recurring companion from Howling Dark onward. The source keeps the short
+      form; do not invent a Portuguese expansion. Gender is recorded for
+      agreement and forms of address.
+    source_reference: "Source text (Howling Dark); name kept"
+    confidence: provisional
+    first_appearance: howling-dark
+    approved: false
+  - source: Switch
+    target: Switch
+    category: character
+    policy: keep
+    gender: female
+    notes: >-
+      Recurring crew member. Keep the English call sign; do not translate it as
+      a common noun. Gender is recorded for agreement.
+    source_reference: "Source text (Howling Dark); name kept"
+    confidence: provisional
+    first_appearance: howling-dark
+    approved: false
+  - source: Ghen
+    target: Ghen
+    category: character
+    policy: keep
+    source_reference: "Source text (Howling Dark); name kept"
+    confidence: provisional
+    first_appearance: howling-dark
+    approved: false
+  - source: Samir
+    target: Samir
+    category: character
+    policy: keep
+    source_reference: "Source text (Howling Dark); name kept"
+    confidence: provisional
+    first_appearance: howling-dark
+    approved: false
+  - source: Crim
+    target: Crim
+    category: character
+    policy: keep
+    source_reference: "Source text (Howling Dark); name kept"
+    confidence: provisional
+    first_appearance: howling-dark
+    approved: false
+  - source: Bassander Lin
+    target: Bassander Lin
+    category: character
+    policy: keep
+    aliases: [Bassander]
+    alias_targets: {Bassander: Bassander}
+    source_reference: "Source text (Howling Dark); name kept"
+    confidence: provisional
+    first_appearance: howling-dark
+    approved: false
+  - source: Jinan Azhar
+    target: Jinan Azhar
+    category: character
+    policy: keep
+    aliases: [Jinan]
+    alias_targets: {Jinan: Jinan}
+    source_reference: "Source text (Howling Dark); name kept"
+    confidence: provisional
+    first_appearance: howling-dark
+    approved: false
+  - source: Marius Whent
+    target: Marius Whent
+    category: character
+    policy: keep
+    aliases: [Marius]
+    alias_targets: {Marius: Marius}
+    source_reference: "Source text (Howling Dark); name kept"
+    confidence: provisional
+    first_appearance: howling-dark
+    approved: false
+  - source: Emil Bordelon
+    target: Emil Bordelon
+    category: character
+    policy: keep
+    aliases: [Bordelon]
+    alias_targets: {Bordelon: Bordelon}
+    source_reference: "Source text (Howling Dark); name kept"
+    confidence: provisional
+    first_appearance: howling-dark
+    approved: false
+  - source: Pallino
+    target: Pallino
+    category: character
+    policy: keep
+    source_reference: "Source text (Howling Dark); name kept"
+    confidence: provisional
+    first_appearance: howling-dark
+    approved: false

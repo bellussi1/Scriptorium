@@ -39,3 +39,52 @@ terms:
     confidence: confirmed
     first_appearance: empire-of-silence
     approved: true
+  - source: Pharaoh
+    target: Faraó
+    category: title
+    policy: translate
+    notes: "Cielcin ruler title; translate as the Portuguese historical title."
+    source_reference: "Source text (Howling Dark); editorial rendering"
+    confidence: provisional
+    first_appearance: howling-dark
+    approved: false
+  - source: Lord Commandant
+    target: Lorde Comandante
+    category: title
+    policy: translate
+    source_reference: "Source text (Howling Dark); editorial rendering"
+    confidence: provisional
+    first_appearance: howling-dark
+    approved: false
+  - source: Commandant
+    target: Comandante
+    category: title
+    policy: translate
+    source_reference: "Source text (Howling Dark); editorial rendering"
+    confidence: provisional
+    first_appearance: howling-dark
+    approved: false
+  - source: Commodore
+    target: Comodoro
+    category: title
+    policy: translate
+    source_reference: "Source text (Howling Dark); editorial rendering"
+    confidence: provisional
+    first_appearance: howling-dark
+    approved: false
+  - source: Admiral
+    target: Almirante
+    category: title
+    policy: translate
+    source_reference: "Source text (Howling Dark); editorial rendering"
+    confidence: provisional
+    first_appearance: howling-dark
+    approved: false
+  - source: Emperor
+    target: Imperador
+    category: title
+    policy: translate
+    source_reference: "Source text (Howling Dark); editorial rendering"
+    confidence: provisional
+    first_appearance: howling-dark
+    approved: false
