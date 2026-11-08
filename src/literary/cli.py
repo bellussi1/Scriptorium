@@ -209,6 +209,67 @@ def cmd_queue_plan(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_queue_run(args: argparse.Namespace) -> int:
+    from .queue_runner import run_queue_book
+
+    try:
+        result = run_queue_book(
+            db_path=args.db,
+            book_id=args.book_id,
+            resources_root=args.resources,
+            refine_limit=args.refine_limit,
+            refine=not args.no_refine,
+            dry_run=args.dry_run,
+            pov=args.pov,
+        )
+    except Exception as exc:
+        _print_json({"error": str(exc)})
+        return 1
+    _print_json(result)
+    return 0
+
+
+def cmd_queue_set_model(args: argparse.Namespace) -> int:
+    store = QueueStore(args.db)
+    try:
+        if not store.update_book_model(args.book_id, args.model, args.provider):
+            _print_json({"error": "book not found", "book_id": args.book_id})
+            store.close()
+            return 1
+    except ValueError as exc:
+        _print_json({"error": str(exc)})
+        store.close()
+        return 1
+    _print_json(store.get_book(args.book_id).to_dict())
+    store.close()
+    return 0
+
+
+def cmd_queue_approve(args: argparse.Namespace) -> int:
+    store = QueueStore(args.db)
+    book = store.get_book(args.book_id)
+    job = store.get_job(args.job_id)
+    if not book or not job:
+        _print_json({"error": "book or job not found", "book_id": args.book_id, "job_id": args.job_id})
+        store.close()
+        return 1
+    try:
+        store.set_job_state(args.job_id, "completed", args.message or "human review approved")
+        store.set_book_state(args.book_id, "completed", args.message or "human review approved")
+        store.add_event(
+            args.message or "human review approved",
+            book_id=args.book_id,
+            job_id=args.job_id,
+        )
+    except ValueError as exc:
+        _print_json({"error": str(exc)})
+        store.close()
+        return 1
+    _print_json({"book": store.get_book(args.book_id).to_dict(), "job": store.get_job(args.job_id)})
+    store.close()
+    return 0
+
+
 def cmd_queue_state(args: argparse.Namespace) -> int:
     store = QueueStore(args.db)
     store.set_book_state(args.book_id, args.state, message=args.message or "")
@@ -570,6 +631,27 @@ def build_parser() -> argparse.ArgumentParser:
     plan_parser.add_argument("--pov", default="", help="Narrator/person note for the continuity block")
     plan_parser.add_argument("--continuity-notes", default="", help="Extra continuity/address rules")
     plan_parser.set_defaults(func=cmd_queue_plan)
+    approve_parser = queue_sub.add_parser("approve", help="Mark a needs_review book/job as completed after human review")
+    approve_parser.add_argument("--db", default="data/literary_queue.db")
+    approve_parser.add_argument("--book-id", type=int, required=True)
+    approve_parser.add_argument("--job-id", type=int, required=True)
+    approve_parser.add_argument("--message", default="human review approved")
+    approve_parser.set_defaults(func=cmd_queue_approve)
+    set_model_parser = queue_sub.add_parser("set-model", help="Change model/provider for a pending book")
+    set_model_parser.add_argument("--db", default="data/literary_queue.db")
+    set_model_parser.add_argument("--book-id", type=int, required=True)
+    set_model_parser.add_argument("--model", required=True)
+    set_model_parser.add_argument("--provider", default="ollama")
+    set_model_parser.set_defaults(func=cmd_queue_set_model)
+    run_parser = queue_sub.add_parser("run", help="Translate the next pending book end to end and stop at needs_review")
+    run_parser.add_argument("--db", default="data/literary_queue.db")
+    run_parser.add_argument("--book-id", type=int, default=0, help="0 = next pending book")
+    run_parser.add_argument("--resources", default="literary-resources")
+    run_parser.add_argument("--refine-limit", type=int, default=0, help="0 = refine every flagged segment")
+    run_parser.add_argument("--no-refine", action="store_true")
+    run_parser.add_argument("--dry-run", action="store_true")
+    run_parser.add_argument("--pov", default="", help="Narrator/POV note for refinement")
+    run_parser.set_defaults(func=cmd_queue_run)
     state_parser = queue_sub.add_parser("set-state")
     state_parser.add_argument("--db", default="data/literary_queue.db")
     state_parser.add_argument("--book-id", type=int, required=True)

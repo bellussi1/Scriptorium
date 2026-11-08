@@ -354,3 +354,44 @@ def test_queue_uses_rollback_journal_for_bind_mount_compatibility(tmp_path: Path
     with store._connect() as conn:
         assert str(conn.execute("PRAGMA journal_mode").fetchone()[0]).lower() == "delete"
     store.close()
+
+def test_needs_review_can_be_completed_after_human_review(tmp_path: Path):
+    store = QueueStore(str(tmp_path / "queue.db"))
+    book_id = store.add_book(_record(make_epub(tmp_path / "a.epub"), 1, "Alpha"))
+    job_id = store.create_job(book_id, total_chapters=1)
+    for state in ("preparing", "translating", "needs_review"):
+        store.set_book_state(book_id, state)
+        store.set_job_state(job_id, state)
+    assert store.set_job_state(job_id, "completed", "human review approved")
+    assert store.set_book_state(book_id, "completed", "human review approved")
+    assert store.get_job(job_id)["state"] == "completed"
+    assert store.get_book(book_id).status == "completed"
+    store.close()
+
+def test_sync_does_not_pull_needs_review_back_to_paused(tmp_path: Path):
+    store, book_id, job_id = _linked_job(tmp_path)
+    for state in ("preparing", "translating", "needs_review"):
+        store.set_book_state(book_id, state)
+        store.set_job_state(job_id, state)
+    upstream = tmp_path / "jobs.db"
+    _upstream_db(
+        upstream,
+        [("trans_test", "interrupted", {"current_chunk_index": 10, "total_chunks": 10, "completed_chunks": 10, "failed_chunks": 0})],
+    )
+    store.sync_from_upstream(str(upstream))
+    assert store.get_job(job_id)["state"] == "needs_review"
+    assert store.get_book(book_id).status == "needs_review"
+    store.close()
+
+
+def test_sync_infers_completion_from_an_interrupted_full_run(tmp_path: Path):
+    store, book_id, job_id = _linked_job(tmp_path)
+    upstream = tmp_path / "jobs.db"
+    _upstream_db(
+        upstream,
+        [("trans_test", "interrupted", {"current_chunk_index": 10, "total_chunks": 10, "completed_chunks": 10, "failed_chunks": 0})],
+    )
+    store.sync_from_upstream(str(upstream))
+    assert store.get_job(job_id)["state"] == "validating"
+    assert store.get_book(book_id).status == "validating"
+    store.close()

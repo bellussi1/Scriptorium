@@ -563,6 +563,13 @@ class QueueStore:
                     continue
                 report["matched"] += 1
 
+                # Editorial review is a human decision. Once a job is
+                # needs_review/completed, a stale upstream row (the CLI often
+                # leaves "interrupted" after a complete run) must not pull it
+                # backwards to paused/translating.
+                if job["state"] in {"needs_review", "completed"}:
+                    continue
+
                 progress = json.loads(row["progress"] or "{}")
                 current_chapter = int(
                     progress.get("completed_chunks")
@@ -579,13 +586,17 @@ class QueueStore:
                 # instead of leaving the queue stuck in "translating".
                 effective_status = row["status"]
                 if (
+                    total_chapters > 0
+                    and current_chapter >= total_chapters
+                    and not progress.get("failed_chunks")
+                ):
+                    effective_status = "completed"
+                elif (
                     effective_status == "running"
                     and total_chapters > 0
                     and current_chapter >= total_chapters
                 ):
-                    effective_status = (
-                        "partial" if progress.get("failed_chunks") else "completed"
-                    )
+                    effective_status = "partial"
                 target_state = UPSTREAM_STATE_MAP.get(
                     effective_status, "needs_review"
                 )
