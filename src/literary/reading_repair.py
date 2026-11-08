@@ -636,7 +636,10 @@ def _replace_text_nodes(raw: str, transform) -> Tuple[str, int]:
     cursor = 0
     for match in matches:
         attrs, inner = match.group("attrs"), match.group("inner")
-        if not _is_dialogue_body(attrs) and 'x08-Table-Body' not in attrs:
+        # Apply glossary and artefact fixes to every prose paragraph, including
+        # scene-break first paragraphs and the Dramatis Personae lists.  Verse
+        # is left alone because its punctuation and casing are deliberate.
+        if "x06-Verse" in attrs:
             continue
         fixed = _map_text_nodes(inner, transform)
         if fixed != inner:
