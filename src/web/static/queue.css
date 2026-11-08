@@ -419,3 +419,13 @@
     opacity: 0.55;
     cursor: wait;
 }
+
+.queue-download-btn {
+    color: var(--primary-light);
+    border-color: var(--primary-light);
+}
+
+.queue-download-btn:hover:not(:disabled) {
+    background: var(--primary-light);
+    color: #ffffff;
+}

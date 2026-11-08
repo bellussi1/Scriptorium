@@ -60,5 +60,8 @@
   "model_error": "No se pudo actualizar el modelo: {{message}}",
   "model_required": "Elija o escriba un modelo.",
   "change_model": "Cambiar modelo",
-  "custom_model": "Personalizado..."
+  "custom_model": "Personalizado...",
+  "download": "Descargar",
+  "download_started": "Descarga iniciada: {{filename}}",
+  "download_error": "No se pudo descargar el EPUB: {{message}}"
 }

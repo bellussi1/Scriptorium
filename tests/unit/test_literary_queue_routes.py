@@ -344,3 +344,40 @@ def test_patch_updates_model_only_for_pending_books(tmp_path: Path, monkeypatch)
     assert client.patch(
         "/api/literary/queue/books/9999", json={"model": "other", "provider": "ollama"}
     ).status_code == 404
+
+def test_snapshot_exposes_best_download_artifact(tmp_path: Path, monkeypatch):
+    db = tmp_path / "queue.db"
+    _queue_db(db)
+    outputs = tmp_path / "translated_files"
+    outputs.mkdir()
+    (outputs / "Howling Dark (pt-BR).epub").write_bytes(b"draft")
+    (outputs / "Howling Dark (pt-BR) - fixed.epub").write_bytes(b"fixed")
+    (outputs / "Howling Dark (pt-BR).refined.epub").write_bytes(b"refined")
+    monkeypatch.setenv("LITERARY_OUTPUT_DIR", str(outputs))
+
+    snapshot = build_queue_snapshot(db)
+    artifact = snapshot["books"][0]["artifact"]
+    assert artifact["kind"] == "refined"
+    assert artifact["filename"] == "Howling Dark (pt-BR).refined.epub"
+    assert artifact["download_url"].endswith("/1/download")
+
+
+def test_download_route_returns_the_best_epub(tmp_path: Path, monkeypatch):
+    db = tmp_path / "queue.db"
+    _queue_db(db)
+    outputs = tmp_path / "translated_files"
+    outputs.mkdir()
+    (outputs / "Howling Dark (pt-BR).refined.epub").write_bytes(b"refined-bytes")
+    monkeypatch.setenv("LITERARY_QUEUE_DB", str(db))
+    monkeypatch.setenv("LITERARY_OUTPUT_DIR", str(outputs))
+    app = Flask(__name__)
+    app.register_blueprint(create_literary_queue_blueprint())
+    client = app.test_client()
+
+    response = client.get("/api/literary/queue/books/1/download")
+    assert response.status_code == 200
+    assert response.data == b"refined-bytes"
+    assert "Howling Dark (pt-BR).refined.epub" in response.headers["Content-Disposition"]
+
+    missing = client.get("/api/literary/queue/books/2/download")
+    assert missing.status_code == 404

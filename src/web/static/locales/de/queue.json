@@ -60,5 +60,8 @@
   "model_error": "Modell konnte nicht aktualisiert werden: {{message}}",
   "model_required": "Wählen Sie ein Modell oder geben Sie eines ein.",
   "change_model": "Modell ?ndern",
-  "custom_model": "Benutzerdefiniert..."
+  "custom_model": "Benutzerdefiniert...",
+  "download": "Herunterladen",
+  "download_started": "Download gestartet: {{filename}}",
+  "download_error": "EPUB konnte nicht heruntergeladen werden: {{message}}"
 }

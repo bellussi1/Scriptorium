@@ -60,5 +60,8 @@
   "model_error": "Could not update the model: {{message}}",
   "model_required": "Choose or type a model.",
   "change_model": "Change model",
-  "custom_model": "Custom..."
+  "custom_model": "Custom...",
+  "download": "Download",
+  "download_started": "Download started: {{filename}}",
+  "download_error": "Could not download the EPUB: {{message}}"
 }

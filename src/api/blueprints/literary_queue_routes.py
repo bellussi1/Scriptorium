@@ -10,12 +10,13 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import sqlite3
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, request, send_file
 
 from src.literary.models import BookRecord
 from src.literary.queue import QueueStore
@@ -29,6 +30,47 @@ def _db_path() -> Path:
 
 def _inventory_path() -> Path:
     return Path(os.getenv("LITERARY_INVENTORY", "data/calibre/targets.json"))
+
+
+def _outputs_dir() -> Path:
+    return Path(os.getenv("LITERARY_OUTPUT_DIR", "translated_files"))
+
+
+def _artifact_rank(filename: str, title: str) -> int:
+    safe_title = re.sub(r'[<>:"/\\|?*]', "", title).strip().strip(".")
+    prefix = f"{safe_title} (pt-BR)"
+    if not filename.startswith(prefix) or not filename.endswith(".epub"):
+        return 0
+    if filename.endswith(".refined.epub"):
+        return 4
+    if filename.endswith(" - fixed-v2.epub"):
+        return 3
+    if filename.endswith(" - fixed.epub"):
+        return 2
+    return 1
+
+
+def _artifact_for(title: str) -> Optional[Dict[str, Any]]:
+    directory = _outputs_dir()
+    if not directory.exists():
+        return None
+    candidates = []
+    for path in directory.iterdir():
+        if not path.is_file():
+            continue
+        rank = _artifact_rank(path.name, title)
+        if rank:
+            candidates.append((rank, path))
+    if not candidates:
+        return None
+    rank, path = max(candidates, key=lambda item: (item[0], item[1].stat().st_mtime))
+    kind = {4: "refined", 3: "validated", 2: "dropcap_repaired", 1: "draft"}[rank]
+    return {
+        "filename": path.name,
+        "kind": kind,
+        "size": path.stat().st_size,
+        "path": path,
+    }
 
 
 def _load_inventory() -> List[Dict[str, Any]]:
@@ -168,6 +210,14 @@ def build_queue_snapshot(db_path: str | Path) -> Dict[str, Any]:
 
     by_status: Dict[str, int] = {}
     for book in books:
+        artifact = _artifact_for(str(book.get("title") or ""))
+        if artifact:
+            book["artifact"] = {
+                "filename": artifact["filename"],
+                "kind": artifact["kind"],
+                "size": artifact["size"],
+                "download_url": f"/api/literary/queue/books/{book['id']}/download",
+            }
         state = book.get("job_state") or book.get("status") or "pending"
         by_status[state] = by_status.get(state, 0) + 1
 
@@ -310,6 +360,21 @@ def create_literary_queue_blueprint() -> Blueprint:
             "provider": provider,
         }
         return jsonify(snapshot)
+
+    @bp.route("/api/literary/queue/books/<int:book_id>/download", methods=["GET"])
+    def download_literary_queue_book(book_id: int):
+        book = QueueStore.get_book_readonly(str(_db_path()), book_id)
+        if book is None:
+            return _json_error("book not found", 404)
+        artifact = _artifact_for(book.title)
+        if artifact is None:
+            return _json_error("translated EPUB not found", 404)
+        return send_file(
+            str(artifact["path"]),
+            as_attachment=True,
+            download_name=artifact["filename"],
+            mimetype="application/epub+zip",
+        )
 
     @bp.route("/api/literary/queue/books/<int:book_id>/move", methods=["POST"])
     def move_literary_queue_book(book_id: int):

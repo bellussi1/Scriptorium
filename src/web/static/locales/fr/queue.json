@@ -60,5 +60,8 @@
   "model_error": "Impossible de mettre à jour le modèle : {{message}}",
   "model_required": "Choisissez ou saisissez un modèle.",
   "change_model": "Changer le mod?le",
-  "custom_model": "Personnalis?..."
+  "custom_model": "Personnalis?...",
+  "download": "T?l?charger",
+  "download_started": "T?l?chargement lanc? : {{filename}}",
+  "download_error": "Impossible de t?l?charger l'EPUB : {{message}}"
 }

@@ -151,19 +151,33 @@ function renderSummary(data) {
 }
 
 function actionButtons(book, isFirst, isLast) {
-    if (book.status !== 'pending') return '<span class="queue-muted">—</span>';
-    const upLabel = escapeHtml(t('queue:move_up'));
-    const downLabel = escapeHtml(t('queue:move_down'));
-    return `
-        <button type="button" class="queue-move-btn" data-move="up" data-book-id="${book.id}"
-                title="${upLabel}" aria-label="${upLabel}" ${isFirst ? 'disabled' : ''}>
-            <span class="material-symbols-outlined" aria-hidden="true">arrow_upward</span>
-        </button>
-        <button type="button" class="queue-move-btn" data-move="down" data-book-id="${book.id}"
-                title="${downLabel}" aria-label="${downLabel}" ${isLast ? 'disabled' : ''}>
-            <span class="material-symbols-outlined" aria-hidden="true">arrow_downward</span>
-        </button>
-    `;
+    const buttons = [];
+    if (book.artifact) {
+        const downloadLabel = escapeHtml(t('queue:download'));
+        buttons.push(`
+            <button type="button" class="queue-move-btn queue-download-btn"
+                    data-download-book-id="${book.id}"
+                    data-download-name="${escapeHtml(book.artifact.filename || '')}"
+                    title="${downloadLabel}" aria-label="${downloadLabel}">
+                <span class="material-symbols-outlined" aria-hidden="true">download</span>
+            </button>
+        `);
+    }
+    if (book.status === 'pending') {
+        const upLabel = escapeHtml(t('queue:move_up'));
+        const downLabel = escapeHtml(t('queue:move_down'));
+        buttons.push(`
+            <button type="button" class="queue-move-btn" data-move="up" data-book-id="${book.id}"
+                    title="${upLabel}" aria-label="${upLabel}" ${isFirst ? 'disabled' : ''}>
+                <span class="material-symbols-outlined" aria-hidden="true">arrow_upward</span>
+            </button>
+            <button type="button" class="queue-move-btn" data-move="down" data-book-id="${book.id}"
+                    title="${downLabel}" aria-label="${downLabel}" ${isLast ? 'disabled' : ''}>
+                <span class="material-symbols-outlined" aria-hidden="true">arrow_downward</span>
+            </button>
+        `);
+    }
+    return buttons.length ? buttons.join('') : '<span class="queue-muted">—</span>';
 }
 
 function renderRows(data) {
@@ -518,6 +532,35 @@ async function changeBookModel(bookId, model) {
     }
 }
 
+async function downloadArtifact(bookId, filename) {
+    const button = document.querySelector(`[data-download-book-id="${bookId}"]`);
+    if (button) button.disabled = true;
+    try {
+        const response = await fetch(`${ADD_URL}/${bookId}/download`, {
+            headers: apiHeaders(),
+            cache: 'no-store',
+        });
+        if (!response.ok) {
+            const data = await response.json().catch(() => ({}));
+            throw new Error(data.error || `HTTP ${response.status}`);
+        }
+        const blob = await response.blob();
+        const url = URL.createObjectURL(blob);
+        const anchor = document.createElement('a');
+        anchor.href = url;
+        anchor.download = filename || 'book.epub';
+        document.body.appendChild(anchor);
+        anchor.click();
+        anchor.remove();
+        URL.revokeObjectURL(url);
+        setActionStatus(t('queue:download_started', { filename: filename || 'book.epub' }));
+    } catch (error) {
+        setActionStatus(t('queue:download_error', { message: error.message || String(error) }), true);
+    } finally {
+        if (button) button.disabled = false;
+    }
+}
+
 async function moveBook(bookId, direction) {
     if (actionInFlight) return;
     actionInFlight = true;
@@ -554,6 +597,14 @@ function initialize() {
     const table = byId('queueTableBody');
     if (table) {
         table.addEventListener('click', (event) => {
+            const download = event.target.closest('[data-download-book-id]');
+            if (download) {
+                downloadArtifact(
+                    Number(download.dataset.downloadBookId),
+                    download.dataset.downloadName || ''
+                );
+                return;
+            }
             const move = event.target.closest('[data-move]');
             if (!move || move.disabled) return;
             moveBook(Number(move.dataset.bookId), move.dataset.move);

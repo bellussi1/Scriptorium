@@ -425,6 +425,10 @@ the two controlled actions the queue needs from the browser:
   `provider` of a **pending** book. Non-pending entries are rejected with
   `409`; the value is saved for the next run and does not alter a job already in
   progress.
+- `GET /api/literary/queue/books/<id>/download` serves the best available EPUB
+  artifact (refined > validated > dropcap-repaired > draft). The Queue table
+  shows a Download button whenever the file exists, matching the single-book
+  flow.
 - The Queue tab's **Model** cell is a native dropdown for pending rows, fed by
   the installed Ollama models from `/api/models`. Choosing a model PATCHes the
   row immediately. A `Custom...` option opens the modal for a model/provider
@@ -555,8 +559,9 @@ warnings); EPUBCheck 5.4.0 reported 3 errors inherited from the source EPUB's
 refined outputs then passed with **0 errors / 0 warnings**. The source-aware
 refinement compared 6,259 paragraphs, skipped 1,875 with inline markup,
 flagged 180, accepted 120 and rejected 60; the refined EPUB passed validation
-and EPUBCheck. The queue state is `needs_review`, not `completed`: machine output
-still requires human review.
+and EPUBCheck. The queue state is `completed` and the refined EPUB is available
+for download; human review is optional. The machine output is still a draft, so
+reading before publishing remains advisable.
 
 Removed as weak/duplicate: `qwen3.5:4b`, the stale
 `gemini-3-flash-preview` manifest, the duplicate `qwen3:8b` tag and the duplicate
@@ -578,10 +583,14 @@ a blind human comparison, if one is run.
 5. repairs dropcaps and invalid DPUB-ARIA roles, runs the deterministic gate and
    EPUBCheck;
 6. runs the source-aware `refine-epub` pass when enabled;
-7. stops at **`needs_review`**, never at `completed`.
+7. marks the book **completed** when the gates pass, and makes the best EPUB
+   available for download.
 
-The runner deliberately handles one book per invocation. `needs_review` is a
-human gate: read the output and, if it is acceptable, run:
+`needs_review` is now only for a **failed gate** (blocking validation issue or an
+EPUBCheck error), not the normal path. Human review is optional: the Queue table
+has a Download button for completed books, and `queue approve` can still close a
+gate-failed book after manual inspection. The runner handles one book per
+invocation; it does not chain all pending books automatically.
 
 ```bash
 python -m src.literary.cli queue approve \
@@ -595,13 +604,12 @@ leaves its row `interrupted`.
 
 ## 3. What is not implemented
 
-- Automatic chaining of all books: `queue run` translates one book and stops at
-  `needs_review`; no daemon advances to the next book after approval.
-- The source-aware EPUB writer exists (`refine-epub`) but is not wired into the
-  queue runner; the full-book style/refine path is still manual.
+- Automatic chaining of all books: `queue run` translates one book and returns
+  when it is completed or needs review; no daemon launches the next book.
 - Narrative memory is implemented as a continuity block, but not yet passed to
   the upstream full-book translation prompt (only the refinement prompt).
-- EPUBCheck is a manual gate; it is not yet enforced inside the queue runner.
+- EPUBCheck is run by `queue run` and by the Howling Dark post-pass, but there
+  is no independent daemon enforcing it for every manual run.
 - The upstream `dc:contributor` EPUB 3.4 conformance error is fixed by #334 but
   not applied in this fork.
 - The upstream dropcap corruption is reported in #333. The local gate and the

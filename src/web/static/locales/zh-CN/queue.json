@@ -60,5 +60,8 @@
   "model_error": "无法更新模型：{{message}}",
   "model_required": "请选择或输入模型。",
   "change_model": "????",
-  "custom_model": "???..."
+  "custom_model": "???...",
+  "download": "??",
+  "download_started": "??????{{filename}}",
+  "download_error": "???? EPUB?{{message}}"
 }

@@ -3,8 +3,9 @@
 The queue stores what to run; this module is the missing executor. It compiles
 the book's glossary/style, launches the upstream ``translate.py`` in the dev
 container, attaches the upstream ``translation_id``, repairs and validates the
-EPUB, optionally runs the source-aware refinement, and stops at
-``needs_review`` so a human can approve the result.
+EPUB, optionally runs the source-aware refinement, and marks the book completed
+when the gates pass. A failed gate leaves it in ``needs_review`` for optional
+manual inspection.
 
 It deliberately runs **one** book per invocation. The next book is not launched
 until the previous result has been reviewed and the queue is advanced.
@@ -517,15 +518,28 @@ def run_queue_book(
             epubcheck = _epubcheck(refined_host)
 
     store = QueueStore(db_path)
+    gate_ok = bool(validation.get("passed")) and epubcheck.get("errors") == 0
+    target_state = "completed" if gate_ok else "needs_review"
     try:
-        try:
-            store.set_job_state(job_id, "needs_review", "machine translation ready for human review")
-        except ValueError:
-            store.set_job_state(job_id, "validating")
-            store.set_job_state(job_id, "needs_review", "machine translation ready for human review")
-        store.set_book_state(book.id, "needs_review", "machine translation ready for human review")
+        if target_state == "completed":
+            for state in ("reviewing", "validating", "completed"):
+                try:
+                    store.set_job_state(job_id, state, "machine translation complete; review optional")
+                except ValueError:
+                    pass
+                try:
+                    store.set_book_state(book.id, state, "machine translation complete; review optional")
+                except ValueError:
+                    pass
+        else:
+            try:
+                store.set_job_state(job_id, "needs_review", "validation gate failed; review required")
+            except ValueError:
+                store.set_job_state(job_id, "validating")
+                store.set_job_state(job_id, "needs_review", "validation gate failed; review required")
+            store.set_book_state(book.id, "needs_review", "validation gate failed; review required")
         store.add_event(
-            "queue runner finished: needs_review",
+            f"queue runner finished: {target_state}",
             book_id=book.id,
             job_id=job_id,
         )
@@ -558,6 +572,8 @@ def run_queue_book(
         "validation": validation,
         "epubcheck": epubcheck,
         "refine": refine_report,
+        "queue_state": target_state,
+        "review_required": target_state != "completed",
         "queue_job": job,
         "queue_book": final_book.to_dict() if final_book else None,
     }
