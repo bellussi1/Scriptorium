@@ -348,3 +348,9 @@ def test_get_book_readonly_does_not_open_for_writing(tmp_path: Path):
     assert book is not None
     assert book.title == "Alpha"
     assert QueueStore.get_book_readonly(str(tmp_path / "missing.db"), book_id) is None
+
+def test_queue_uses_rollback_journal_for_bind_mount_compatibility(tmp_path: Path):
+    store = QueueStore(str(tmp_path / "queue.db"))
+    with store._connect() as conn:
+        assert str(conn.execute("PRAGMA journal_mode").fetchone()[0]).lower() == "delete"
+    store.close()

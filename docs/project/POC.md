@@ -429,6 +429,10 @@ the two controlled actions the queue needs from the browser:
   the installed Ollama models from `/api/models`. Choosing a model PATCHes the
   row immediately. A `Custom...` option opens the modal for a model/provider
   combination that is not installed or not listed.
+- The live queue uses SQLite's rollback journal (`journal_mode=DELETE`), not
+  WAL: the app container cannot open the WAL `-shm` file on the Windows bind
+  mount. The switch is applied after the active full-book run, when the wrapper
+  is no longer writing.
 - `src/web/static/queue.css` uses the existing design tokens (surfaces, borders,
   status colors, dark mode) instead of duplicating the palette.
 - `src/web/static/js/queue/queue-manager.js` renders the table and refreshes
@@ -506,7 +510,18 @@ paragraph-aligned refinement and a real book:
 
 `refine-epub --dry-run` reports the flagged segments without calling the model.
 The active *Howling Dark* run was started before this layer existed and is not
-modified; the post-pass can run on its output after completion.
+modified; the post-pass can run on its output after completion:
+
+```bash
+python -m src.literary.cli refine-epub \
+  --source "data/uploads/cli_7e498fc1/Howling Dark - Christopher Ruocchio.epub" \
+  --target "translated_files/Howling Dark (pt-BR).epub" \
+  --out "translated_files/Howling Dark (pt-BR).refined.epub" \
+  --author christopher-ruocchio --universe sun-eater --book howling-dark \
+  --model hf.co/tencent/Hy-MT2-7B-GGUF:Q4_K_M \
+  --pov "First-person retrospective, male narrator." \
+  --limit 30 --report data/pilots/sun-eater-2/howling-dark-refine.report.json
+```
 
 ### 2.17 Expanded benchmark corpus and quantization round
 
