@@ -122,7 +122,12 @@ class QueueStore:
         conn = sqlite3.connect(self.db_path, timeout=30)
         conn.row_factory = sqlite3.Row
         conn.execute("PRAGMA foreign_keys = ON")
-        conn.execute("PRAGMA journal_mode = WAL")
+        # The queue lives on a Windows bind mount shared with the Docker app.
+        # SQLite's WAL mode is not readable from the container's read-only
+        # connection (the -shm file cannot be opened through that mount), so
+        # use the rollback journal. Queue writes are infrequent enough that
+        # this costs nothing measurable and keeps the web UI working.
+        conn.execute("PRAGMA journal_mode = DELETE")
         return conn
 
     def _initialize(self) -> None:
@@ -288,6 +293,24 @@ class QueueStore:
         with self._connect() as conn:
             row = conn.execute("SELECT * FROM books WHERE id = ?", (book_id,)).fetchone()
             return QueueBook(**dict(row)) if row else None
+
+    @classmethod
+    def get_book_readonly(cls, db_path: str, book_id: int) -> Optional[QueueBook]:
+        """Read one book without opening the database for writing.
+
+        Planning and inspection must not take a write lock or run the WAL
+        pragma while a translation is appending to the queue.
+        """
+        path = os.path.abspath(db_path)
+        if not os.path.exists(path):
+            return None
+        conn = sqlite3.connect(f"file:{path}?mode=ro", uri=True)
+        conn.row_factory = sqlite3.Row
+        try:
+            row = conn.execute("SELECT * FROM books WHERE id = ?", (book_id,)).fetchone()
+        finally:
+            conn.close()
+        return QueueBook(**dict(row)) if row else None
 
     def list_books(self, status: Optional[str] = None, limit: int = 200) -> List[QueueBook]:
         with self._connect() as conn:

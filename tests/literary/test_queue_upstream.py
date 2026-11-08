@@ -338,3 +338,13 @@ def test_update_book_model_only_for_pending_books(tmp_path: Path):
     with pytest.raises(ValueError):
         store.update_book_model(first, "", "ollama")
     store.close()
+
+def test_get_book_readonly_does_not_open_for_writing(tmp_path: Path):
+    store = QueueStore(str(tmp_path / "queue.db"))
+    book_id = store.add_book(_record(make_epub(tmp_path / "a.epub"), 1, "Alpha"))
+    store.close()
+
+    book = QueueStore.get_book_readonly(str(tmp_path / "queue.db"), book_id)
+    assert book is not None
+    assert book.title == "Alpha"
+    assert QueueStore.get_book_readonly(str(tmp_path / "missing.db"), book_id) is None

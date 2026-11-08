@@ -303,6 +303,11 @@ upstream `refine_after` hook are still pending.
 `src/literary/queue.py` uses a separate SQLite database
 (`data/literary_queue.db`) with:
 
+- rollback journal (`journal_mode=DELETE`), not WAL: the live database is on a
+  Windows bind mount read by the app container, and SQLite's WAL `-shm` file is
+  not accessible from a read-only container connection. Queue writes are
+  infrequent enough that the rollback journal is the safer trade-off.
+
 - `books` — identity, series, source hash, config hash, status, priority,
   model/provider, estimated/actual cost.
 - `jobs` — a run of a book, current chapter, total chapters, checkpoint JSON,

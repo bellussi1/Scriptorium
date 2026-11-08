@@ -186,11 +186,9 @@ def cmd_queue_next(args: argparse.Namespace) -> int:
 def cmd_queue_plan(args: argparse.Namespace) -> int:
     from .run_plan import build_run_plan
 
-    store = QueueStore(args.db)
-    book = store.get_book(args.book_id)
+    book = QueueStore.get_book_readonly(args.db, args.book_id)
     if not book:
         _print_json({"error": "book not found", "book_id": args.book_id})
-        store.close()
         return 1
     plan = build_run_plan(
         book,
@@ -208,7 +206,6 @@ def cmd_queue_plan(args: argparse.Namespace) -> int:
         continuity_notes=args.continuity_notes,
     )
     _print_json(plan)
-    store.close()
     return 0
 
 
