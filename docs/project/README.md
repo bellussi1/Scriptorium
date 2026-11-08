@@ -93,16 +93,18 @@ TranslateBooksWithLLMs application; the new layer is additive and lives under
 - **Architecture:** fork with additive modules and minimal upstream patches
   (option B), not a rewrite and not an untouched upstream.
 - **Local primary candidate:** **Hy-MT2-7B** is the stronger terminology
-  candidate after the 2026-11-07 round: it kept glossary capitalization, was
-  grammatically reliable on the reviewed excerpts, and needs editorial review
-  for regional vocabulary. **Index-Translate-9B** is faster (9.9 s vs 15.3 s
-  mean) but produced a typo and an agreement error; use it as a draft engine
-  with PT-BR post-edit. Neither passes the production gate yet. Among
-  generalists, **Qwen3 8B** is the best throughput/quality trade-off;
-  **Qwen3 14B** is somewhat better on long syntax but much slower and still
-  error-prone. **TranslateGemma 12B** is fluent but its ~2K-token regime, fixed
-  prompt and observed hallucinations make it unsuitable as the primary engine
-  for full novels.
+  candidate after the 2026-11-07 round: it kept glossary capitalization and
+  preserved long syntax. Its grammar is not flawless: the re-run produced
+  `Convinci-me` instead of `Convenci-me`. **Index-Translate-9B** is similarly
+  fluent but produced `Convinquei-me` and ignores glossary case; use it as a
+  draft engine with PT-BR post-edit. After the Ollama configuration fix both
+  run at 4.5–5.2 s per 15-excerpt round, with 3-run medians of 49.1 and
+  43.5 tok/s; Index is no longer clearly faster. Neither passes the production
+  gate yet. Among generalists, **Qwen3 8B** is the best throughput/quality
+  trade-off; **Qwen3 14B** is somewhat better on long syntax but much slower
+  and still error-prone. **TranslateGemma 12B** is fluent but its ~2K-token
+  regime, fixed prompt and observed hallucinations make it unsuitable as the
+  primary engine for full novels.
 - **Cloud provisional candidate:** **Gemini 3.8 Flash** for quality, with
   **DeepSeek V4.1 Flash** as the cost option only after an explicit privacy
   decision. Both need PT-BR literary tests before commitment.

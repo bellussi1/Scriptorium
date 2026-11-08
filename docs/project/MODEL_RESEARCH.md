@@ -88,12 +88,15 @@ instruction-following and terminology/style constraints, and has a realistic
 
 **Local evidence (2026-11-07).** The official Q4_K_M GGUF is installed as
 `hf.co/tencent/Hy-MT2-7B-GGUF:Q4_K_M` (4.62 GB). On the 15-excerpt benchmark it
-completed 15/15 with no errors, kept the glossary's `Fuga` capitalization, and
-produced correct `Convenci-me`; residual issues were lexical (`Evening` →
-`A noite`, `roadrunners` → `tordos-corretores`). It loaded at 9.6 GB total
-(6.2 GB VRAM, 64% GPU) at 8K context, so the theoretical 5.5 GB estimate in
-section 2.5 is too optimistic. It is the stronger terminology candidate, not yet
-a production engine.
+completed 15/15 with no errors and kept the glossary's `Fuga` capitalization.
+Grammar is not flawless: the first run produced `Convenci-me`, the re-run
+produced `Convinci-me`; residual issues were lexical (`Evening` → `A noite`,
+`roadrunners` → `tordos-corretores`). After the Ollama configuration
+change (parallel 2, 8K, FA on, q8_0 KV) it loads at **5.49 GB, 100% GPU**, and
+the 3-run median is **49.1 tok/s** with a 6.07 s cold TTFT / 0.03 s warm. The
+older 9.6 GB / 64% GPU reading was taken before the correct restart and is
+superseded. It is the stronger terminology candidate, not yet a production
+engine.
 
 ### 2.3 Index-Translate 9B
 
@@ -125,12 +128,16 @@ literary voice, and 5.78 GB weights + KV cache is tight on 8 GB at 8K context.
 `hf.co/IndexTeam/Index-Translate-9B-GGUF:Q4_K_M` (5.78 GB plus the 0.62 GB
 vision projector that Ollama also pulls). The English instTrans template works
 and is the adapter default; the Chinese template, under Ollama's chat endpoint,
-produced English chat-style analysis instead of a translation. On the
-15-excerpt benchmark it completed 15/15, was faster than Hy-MT2 (9.9 s vs
-15.3 s mean), and loaded at 7.4 GB total (5.9 GB VRAM, 80% GPU) at 8K. It
-lowercased the glossary term (`fuga`), produced `Convinquei-me`, and had an
-agreement error (`segredos que ... não é seguro compartilhar`). It is a fast
-draft engine, not a publishable one without PT-BR post-edit.
+produced English chat-style analysis instead of a translation. After the Ollama
+configuration change it loads at **5.44 GB, 100% GPU**, and the 3-run median is
+**43.5 tok/s** with an 8.40 s cold TTFT / 0.07 s warm. At 16K it drops to 68%
+GPU and is slower, so 8192 is the practical ceiling (4096 has lower TTFT). On
+the 15-excerpt benchmark it completed 15/15. It is no longer clearly faster than
+Hy-MT2: the re-run means are 5.2 s vs 4.5 s for the same excerpts. It lowercased
+the glossary term (`fuga`) and produced `Convinquei-me`; the first run's
+agreement error (`segredos que ... não é seguro compartilhar`) did not recur in
+the re-run. It is a fast draft engine, not a publishable one without PT-BR
+post-edit.
 
 ### 2.4 Installed generalists (pilot evidence)
 
@@ -176,11 +183,12 @@ Approximate examples (Q4 weights, FP16 KV, 2 bytes/element):
 | TranslateGemma 12B | ~0.39 MB | ~1.6 GB | ~3.1 GB | 8.1 GB | >11 GB (offload) |
 
 These are approximations, not a substitute for measuring the actual runtime.
-Measured on the RTX 4060 at 8K context: Hy-MT2 loaded at 9.6 GB total (6.2 GB
-VRAM, 64% GPU), well above the theoretical estimate; Index-Translate loaded at
-7.4 GB total (5.9 GB VRAM, 80% GPU). Hy-MT2's extra buffers are the main reason
-it does not fit fully on the card. Index at 16K added CPU offload and was
-slower, so 8K is the practical default.
+With the final Ollama configuration (`NUM_PARALLEL=2`, 8K, FA on, `q8_0` KV),
+measured on the RTX 4060: Hy-MT2 loaded at **5.49 GB, 100% GPU**, and Index at
+**5.44 GB, 100% GPU**. The earlier readings (9.6 GB / 64% GPU and 7.4 GB / 80%
+GPU) were taken with four slots and f16 KV, before the correct restart. Index at
+16K drops to 68% GPU and is slower, so 8K is the practical default; 4096 lowers
+TTFT further. The q8_0 KV cache is what makes the 9B fit.
 
 ## 3. Cloud models
 
@@ -298,9 +306,12 @@ see the source.
 1. **Test first:** Hy-MT2-7B (Apache-2.0, 8K, instruction/glossary support,
    4.62 GB Q4) and Index-Translate-9B (Apache-2.0, glossary hard constraints,
    5.78 GB Q4). Both official GGUFs are installed and were tested on
-   2026-11-07; see sections 2.2 and 2.3.
+   2026-11-07. With the final Ollama configuration: Hy-MT2 **49.1 tok/s**,
+   5.49 GB, 100% GPU; Index **43.5 tok/s**, 5.44 GB, 100% GPU. See sections
+   2.2 and 2.3.
 2. **Installed baseline:** Qwen3 8B. Use it to calibrate prompts and
-   throughput; do not treat it as the final literary engine.
+   throughput; with the final configuration it reaches **46.7 tok/s** at
+   5.84 GB and 100% GPU. Do not treat it as the final literary engine.
 3. **Quality check:** Qwen3 14B. It improves some long-syntax cases but is
    much slower and still makes critical errors.
 4. **Not as primary:** TranslateGemma 12B. Use for short passages or as a

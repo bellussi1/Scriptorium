@@ -6,7 +6,8 @@ rubric and a single LLM judge. This project adds a separate literary track under
 `benchmark/literary/`.
 
 **Status:** harness implemented; pilot run on models already installed. The
-first Hy-MT2 and Index-Translate round was completed on 2026-11-07. Full Phase 4
+first Hy-MT2 and Index-Translate round was completed on 2026-11-07, then re-run
+after the Ollama configuration fix (parallel 2, 8K, FA, q8_0 KV). Full Phase 4
 (cloud candidates, aligned references, blind human review) still requires
 approval.
 
@@ -89,8 +90,8 @@ A high average cannot save a unit that fails a gate.
 | TranslateGemma 12B | 6 | 23–66 s | 152–226 | Complete |
 | Qwen3 8B | 6 | 13–51 s | 167–260 | Complete |
 | Qwen3 14B | 3 | 35–86 s | 164–218 | Complete |
-| Hy-MT2 7B | 15 | 11–25 s | 150–285 | Complete |
-| Index-Translate 9B | 15 | 7–21 s | 129–251 | Complete |
+| Hy-MT2 7B | 15 | 3.4–6.3 s | 151–277 | Complete |
+| Index-Translate 9B | 15 | 3.4–12.2 s (cold load on the first) | 130–251 | Complete |
 | Cloud models | 0 | — | — | Not called; no approval |
 
 Single run. The generalist and Index runs use temperature 0; Hy-MT2 uses the
@@ -160,8 +161,8 @@ layer works and is not sufficient by itself.
 | TranslateGemma 12B | Fail | Fail | Fail (no glossary round) | Short-passage only |
 | Qwen3 8B | Pass on 5/6 | Fail (omission) | Fail without glossary; improved with it | Baseline, not production |
 | Qwen3 14B | Fail (reversal) | Pass on the 3 tested | Fail on fauna | Not clearly better |
-| Hy-MT2 7B | No critical error in the 3 reviewed | Pass on 15/15 | Pass on the tested term, capitalization kept | Local candidate; needs editorial review |
-| Index-Translate 9B | No critical error in the 3 reviewed | Pass on 15/15 | Partial: recall 1.0, casing ignored | Faster draft; PT-BR post-edit required |
+| Hy-MT2 7B | No semantic reversal in the 3 reviewed; one verb-form error (`Convinci-me`) | Pass on 15/15 | Pass on the tested term, capitalization kept | Local candidate; needs editorial review |
+| Index-Translate 9B | No semantic reversal in the 3 reviewed; typo `Convinquei-me` | Pass on 15/15 | Partial: recall 1.0, casing ignored | PT-BR post-edit required |
 
 No tested model passes the production gate on this small pilot. That is the
 correct result: a fluent output is not a passing output.
@@ -174,47 +175,61 @@ translation models; it is not a final model choice.
 
 | Model | Excerpts | Errors | Mean latency | Output tokens | Length ratio | Name recall | English leakage | Repetition |
 |---|---:|---:|---:|---:|---:|---:|---:|---:|
-| Hy-MT2 7B Q4_K_M | 15/15 | 0 | 15.3 s | 2,986 | 0.979 | 1.0 | 0.7% | 0.9% |
-| Index-Translate 9B Q4_K_M | 15/15 | 0 | 9.9 s | 2,625 | 0.995 | 1.0 | 0.5% | 0.9% |
+| Hy-MT2 7B Q4_K_M | 15/15 | 0 | 4.5 s | 3,000 | 0.983 | 1.0 | 0.7% | 0.9% |
+| Index-Translate 9B Q4_K_M | 15/15 | 0 | 5.2 s | 2,629 | 0.998 | 1.0 | 0.5% | 0.9% |
+
+These are the re-run numbers after the final Ollama configuration (parallel 2,
+8K, FA on, q8_0 KV). The first run, before the correct restart, measured 15.3 s
+for Hy-MT2 and 9.9 s for Index; it is kept only in the gitignored artifacts and
+in the git history. The configuration change is the reason the same 15 excerpts
+now take 4.5-5.2 s instead of 10-15 s.
 
 `name_recall` is based on the two excerpts where a glossary term actually
 occurs. The mean latency includes cold loads; it is not a tokens/s benchmark.
-The observed Ollama footprint was 9.6 GB total (6.2 GB VRAM, 64% GPU) for
-Hy-MT2 and 7.4 GB total (80% GPU) for Index, both at 8K context. The numbers are
-hardware-specific and vary with the Ollama scheduler.
+With the final Ollama configuration (parallel 2, 8K, FA on, q8_0 KV), the
+observed footprint is **5.49 GB / 100% GPU** for Hy-MT2 and **5.44 GB / 100%
+GPU** for Index. The earlier 9.6 GB / 64% and 7.4 GB / 80% readings were taken
+before the correct restart and are superseded. The numbers are hardware-specific
+and vary with the Ollama scheduler.
 
 **Hy-MT2 7B.** The strongest result of this round on terminology and grammar:
 
 - It kept the glossary's capitalized `Fuga` in the Sun Eater excerpt.
-- It produced `Convenci-me` correctly, and `a médica` for the source's
-  `the doctor ... herself`.
+- It produced `a médica` for the source's `the doctor ... herself`.
 - It preserved the long Lonesome Dove sentence without dropping the
   roofless-barn clause.
+- **Grammar is not flawless:** the first run produced `Convenci-me` correctly,
+  but the re-run produced `Convinci-me` (should be `Convenci-me`). The form
+  varies at the recommended temperature 0.7, so one good run is not proof.
 - Residual issues: `Evening` became `A noite`; `roadrunners` became
   `tordos-corretores`; `horned toads` became `sapos com chifres`. These are
   lexical/regional choices that need a glossary and a reviewer, not structural
   failures.
-- It uses more memory than the model size suggests: the 7.5B Q4_K_M build
-  loaded at 9.6 GB total and only 64% on the GPU. Speed was acceptable, but this
-  is the main reason it is not automatically the production engine.
+- After the configuration fix it loads at 5.49 GB and 100% GPU, with a 3-run
+  median of 49.1 tok/s. The earlier 9.6 GB / 64% reading was taken before the
+  correct restart; memory is no longer the reason to reject it.
 
-**Index-Translate 9B.** Faster and often more fluid, but with language-quality
-errors that block publication without review:
+**Index-Translate 9B.** Often more fluid, but with language-quality errors that
+block publication without review:
 
 - It ignored the glossary's capitalization: `fuga` instead of `Fuga`.
-- It produced the typo `Convinquei-me` (should be `Convenci-me`).
-- It produced an agreement error: `segredos que, mesmo agora, não é seguro
-  compartilhar`.
+- It produced the typo `Convinquei-me` (should be `Convenci-me`) in both runs.
+- The first run also produced an agreement error: `segredos que, mesmo agora,
+  não é seguro compartilhar`; the re-run fixed that particular sentence, which
+  shows the errors are run-dependent.
 - It rendered `roadrunners` as `corredores-de-strada`.
 - It kept the long-syntax content and read naturally in dialogue, but the errors
   above are exactly the kind a deterministic language check and a human
   post-edit must catch.
+- After the configuration fix it loads at 5.44 GB and 100% GPU, with a 3-run
+  median of 43.5 tok/s. It is no longer clearly faster than Hy-MT2: the re-run
+  means are 4.5 s vs 5.2 s for the same 15 excerpts.
 
 **Provisional reading.** Hy-MT2 is the better candidate for terminology
-fidelity and grammatical reliability; Index is the faster draft engine but
-needs a PT-BR post-edit and stronger case-sensitive glossary enforcement. Neither
-passes the production gate on this round, and the sample is too small to rank
-them confidently.
+fidelity, but the grammar advantage is not consistent: both produced a
+verb-form error in the re-run. Both need a PT-BR post-edit and stronger
+case-sensitive glossary enforcement. Neither passes the production gate on this
+round, and the sample is too small to rank them confidently.
 
 ## 3. What the pilot teaches
 

@@ -191,7 +191,9 @@ docker compose -f docker-compose.dev.yml exec app \
 
 Observed:
 
-- 10 content files, 12 chunks, 0 failed, 3:03 total.
+- 10 content files, 12 chunks, 0 failed, 3:03 total, after the Ollama
+  configuration fix (parallel 2, 8K, FA on, q8_0 KV): Hy-MT2 stayed at 100% GPU
+  and about 5.0 GB VRAM during the run.
 - Placeholder validation failed on 4 chunks (`ch02`, `ch04`, `ch05`, glossary)
   and the token-alignment fallback repositioned the tags. The output is
   structurally valid, but approximate tag positions remain a layout risk.
@@ -260,12 +262,12 @@ Headline findings:
   me” and garbled a phrase; not a uniform improvement.
 - A glossary round (`Fugue → Fuga`) fixed the concept in both Qwen models; it
   did not fix syntax or literalism.
-- Hy-MT2 7B: 15/15, mean 15.3 s, kept `Fuga` capitalization and produced
-  `Convenci-me`; residual lexical/regional misses. Stronger terminology
-  candidate.
-- Index-Translate 9B: 15/15, mean 9.9 s, faster draft engine; lowercased the
-  glossary term, produced `Convinquei-me` and an agreement error. Needs PT-BR
-  post-edit.
+- Hy-MT2 7B: 15/15, mean 4.5 s after the Ollama configuration fix; kept `Fuga`
+  capitalization. Grammar is not flawless: the first run produced `Convenci-me`,
+  the re-run produced `Convinci-me`. Stronger terminology candidate.
+- Index-Translate 9B: 15/15, mean 5.2 s, no longer clearly faster; lowercased
+  the glossary term and produced `Convinquei-me`. The first run's agreement
+  error did not recur in the re-run. Needs PT-BR post-edit.
 
 No tested model passes the production gate on this pilot. That is the finding,
 not a failure of the POC.

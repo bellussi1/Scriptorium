@@ -7,16 +7,22 @@ snapshot, not an assumption about what is installed.
 
 | Item | Value |
 |---|---|
-| CPU | AMD Ryzen 5 5500, 6 cores / 12 threads, 3.6 GHz base |
-| RAM | 31.9 GB usable |
-| GPU | NVIDIA GeForce RTX 4060, 8,188 MiB VRAM |
+| CPU | AMD Ryzen 5 5500, 6C/12T, Zen 3, boost ~4.1 GHz |
+| RAM | 2×16 GB Asgard VAM4UX32C18AG-DVALWN, DDR4-3200, 18-22-22-42, dual-channel |
+| GPU | GIGABYTE GeForce RTX 4060 AERO OC 8G (GV-N4060AERO OC-8GD), 8,188 MiB VRAM |
 | Driver | 610.88 (CUDA UMD 13.3) |
-| Disk | C: 720.7 GB used, 232.2 GB free |
-| OS | Windows 11 Home, 10.0.26200, 64-bit |
+| Disk | XrayDisk 1TB PRO NVMe, firmware APF1M3R1, 952.86 GB; C: 279.97 GB free |
+| Motherboard | Gigabyte A520M DS3H V2, BIOS FA (13/04/2023), probable Rev 1.1 |
+| PSU | MSI MAG 650 W; exact model not detected (A650BN/A650GL are candidates) |
+| Cooler | DeepCool AG400 (visual confirmation pending) |
+| OS | Windows 11 Home 26200 (25H2), 64-bit |
 
-The desktop was already using ~1.2 GB of VRAM when measured, leaving roughly
-6.7 GB free. This matters for the 8 GB card: a Q4 model whose weights are
-8.1 GB does not fit and will offload.
+The Ryzen 5 5500 exposes PCIe 3.0 and the RTX 4060 runs at PCIe 3.0 x8; this is
+expected for this platform, not a defect. Resizable BAR is off (BAR1 256 MB).
+The desktop uses ~1.26 GB of VRAM at idle, leaving roughly 6.9 GB free. BitLocker
+is off; TPM is present, Secure Boot is active, VBS is running and Defender is
+the only AV. TRIM and scheduled optimization are enabled, with no disk errors in
+60 days.
 
 ## 2. Software
 
@@ -30,8 +36,58 @@ The desktop was already using ~1.2 GB of VRAM when measured, leaving roughly
 | Python (system) | 3.14.2 |
 | Git | 2.49.0.windows.1 |
 | Calibre | 9.1 (`calibredb`, `ebook-convert`) |
-| Java | 1.8.0_441 only; EPUBCheck 5.x needs a newer JDK, so EPUBCheck is **not** available yet |
+| Java | 1.8.0_441 on the host; EPUBCheck 5.4.0 runs in an `eclipse-temurin:17-jre` container |
 | Project venv | Broken: it points to a removed uv Python 3.12.15. Do not rely on it; use Docker. |
+
+### Ollama runtime configuration (applied 2026-11-07)
+
+The original settings were sized for a larger card. `OLLAMA_NUM_PARALLEL=4`
+multiplied the KV cache and forced CPU offload; `OLLAMA_CONTEXT_SIZE` is not a
+valid variable in Ollama 0.40.15, so the effective context was 4096. The
+applied values live in `HKCU\Environment`:
+
+| Variable | Before | After |
+|---|---|---|
+| `OLLAMA_NUM_PARALLEL` | `4` | **`2`** |
+| `OLLAMA_CONTEXT_LENGTH` | absent | **`8192`** |
+| `OLLAMA_FLASH_ATTENTION` | absent (off) | **`1`** |
+| `OLLAMA_KV_CACHE_TYPE` | absent (f16) | **`q8_0`** |
+| `OLLAMA_MAX_LOADED_MODELS` | `1` | `1` |
+| `OLLAMA_CONTEXT_SIZE` | `8192` | **removed** (invalid name) |
+| `OLLAMA_GPU_LAYERS` | `99` | **removed** (ignored) |
+| `OLLAMA_NUM_THREADS` | `16` | **removed** (ignored) |
+
+The running server was restarted and verified: `n_slots = 2`,
+`n_ctx_slot = 8192`, `flash_attn = enabled`, KV cache `q8_0` in the log. A shell
+started before the change still shows the old variables; open a new terminal (or
+re-read the registry) before trusting `Get-ChildItem Env:OLLAMA*`.
+
+Backup and rollback:
+
+- registry backup:
+  `C:\Users\Bellussi\AppData\Local\Temp\opencode\ollama-change\HKCU-Environment-backup.reg`
+- rollback script:
+  `C:\Users\Bellussi\AppData\Local\Temp\opencode\ollama-change\rollback-ollama-config.ps1`
+- no Windows restore point exists (System Protection is disabled).
+
+The external handoff report and structured benchmarks are at
+`C:\Users\Bellussi\Documents\RELATORIO-LLM-2026-11-07.md` and
+`C:\Users\Bellussi\Documents\benchmarks-llm-2026-11-07.json`; they are not
+committed to the repository.
+
+Measured medians (3 runs, final server, 8192 context unless noted):
+
+| Model | Tokens/s | VRAM | GPU | TTFT |
+|---|---:|---:|---:|---:|
+| qwen3:8b Q4 | **46.74** | 5.84 GB | 100% | 6.36 s / 0.03 s warm |
+| Hy-MT2-7B Q4_K_M | **49.13** | 5.49 GB | 100% | 6.07 s / 0.03 s warm |
+| Index-Translate-9B Q4_K_M | **43.52** | 5.44 GB | 100% | 8.40 s / 0.07 s warm |
+| qwen3.5:4b | **67.29** | 3.23 GB | 100% | 6.14 s / 0.06 s warm |
+| translategemma:12b (4096) | 9.41 | 5.17/8.10 GB | 63.8% | 13.94 s |
+
+The qwen3:8b baseline was 21.38 tok/s at 80.7% GPU; the new configuration is
+about **2.2× faster** and fully on the GPU. Index at 16K drops to 68% GPU, so
+8192 (or 4096 for lower TTFT) is the practical ceiling on this card.
 
 ### Installed Ollama models
 
@@ -39,12 +95,12 @@ The desktop was already using ~1.2 GB of VRAM when measured, leaving roughly
 |---|---:|---|
 | `translategemma:12b` | 8.1 GB | Q4_K_M Gemma 3 12B translation model; fixed prompt; ~2K-token training regime |
 | `translategemma:12b-it-q4_K_M` | 8.1 GB | Same blob as above |
-| `qwen3:14b` | 9.3 GB | Generalist; will offload on 8 GB VRAM |
-| `qwen3:8b` / `qwen3:8b-q4_K_M` | 5.2 GB | Generalist; fits with a modest context |
-| `qwen3.5:4b` | 3.4 GB | Fast smoke-test model |
+| `qwen3:14b` | 9.3 GB | Generalist; weights exceed 8 GB and still offload; not remeasured after the configuration change |
+| `qwen3:8b` / `qwen3:8b-q4_K_M` | 5.2 GB | Generalist; 5.84 GB runtime, 100% GPU, 46.7 tok/s median |
+| `qwen3.5:4b` | 3.4 GB | Fast smoke-test model; 3.23 GB runtime, 100% GPU, 67.3 tok/s median |
 | `gemini-3-flash-preview:latest` | — | Local wrapper/alias, not a cloud credential |
-| `hf.co/tencent/Hy-MT2-7B-GGUF:Q4_K_M` | 4.6 GB | Official Apache-2.0 translation model; 9.6 GB runtime at 8K on this card; strongest terminology result so far |
-| `hf.co/IndexTeam/Index-Translate-9B-GGUF:Q4_K_M` | 6.4 GB | Official Apache-2.0 model plus 0.62 GB vision projector; 7.4 GB runtime at 8K; faster draft engine |
+| `hf.co/tencent/Hy-MT2-7B-GGUF:Q4_K_M` | 4.6 GB | Official Apache-2.0 translation model; 5.49 GB runtime at 8K, 100% GPU, 49.1 tok/s median; strongest terminology result so far |
+| `hf.co/IndexTeam/Index-Translate-9B-GGUF:Q4_K_M` | 6.4 GB | Official Apache-2.0 model plus 0.62 GB vision projector; 5.44 GB runtime at 8K, 100% GPU, 43.5 tok/s median; faster draft engine |
 
 `ollama list` reports nine entries because the two TranslateGemma tags share a
 blob, `qwen3:8b` and `qwen3:8b-q4_K_M` share another, and the Index entry
@@ -55,8 +111,8 @@ includes the multimodal projector.
 The app container reaches host Ollama at
 `http://host.docker.internal:11434/api/generate` through
 `extra_hosts: host.docker.internal:host-gateway`. This was tested end to end:
-the app started, `/api/health` returned 200, and it listed all seven Ollama
-models.
+the app started, `/api/health` returned 200, and it listed all nine Ollama
+entries.
 
 ### Why Ollama is not containerized
 

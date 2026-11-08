@@ -173,7 +173,11 @@ docker compose -f docker-compose.dev.yml exec app \
 - **Human review.** Not included. Budget it separately; it dominates.
 - **Local electricity/hardware.** Not included. The RTX 4060 system draws
   roughly 200 W under load; at 20 hours and a local tariff, the electricity is
-  a few dollars, not a per-token cost. The card is already owned.
+  a few dollars, not a per-token cost. The card is already owned. **Inference.**
+  The 2026-11-07 Ollama configuration change (parallel 2, 8K, FA, q8_0 KV)
+  raised 7-8B throughput from ~21 to 46-49 tok/s, so the old 20-hour order of
+  magnitude for a large series is now closer to 9 hours, before review. Measure
+  the actual rate with the queue instead of relying on this estimate.
 
 ## 8. Budget policy
 
