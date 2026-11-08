@@ -547,9 +547,10 @@ separate label key (`runner report-blind`).
 
 Removed as weak/duplicate: `qwen3.5:4b`, the stale
 `gemini-3-flash-preview` manifest, the duplicate `qwen3:8b` tag and the duplicate
-`translategemma:12b-it-q4_K_M` tag. `qwen3:8b-q4_K_M`, `qwen3:14b`,
-TranslateGemma and Index-Translate are kept as comparison baselines until the
-quantization round is analyzed.
+`translategemma:12b-it-q4_K_M` tag. After the pilot evidence, TranslateGemma 12B
+(failed the semantic gate) and Qwen3 14B (slower and not uniformly better) were
+also removed. Index-Translate 9B and Qwen3 8B remain as comparison baselines for
+the quantization round.
 
 ## 3. What is not implemented
 
@@ -604,7 +605,7 @@ docker compose -f docker-compose.dev.yml exec app \
 # 7. Benchmark dry-run
 docker compose -f docker-compose.dev.yml exec app \
   python -m benchmark.literary.runner run \
-  --models translategemma-12b --limit 1 --dry-run \
+  --models hy-mt2-7b --limit 1 --dry-run \
   --endpoint http://host.docker.internal:11434
 ```
 
