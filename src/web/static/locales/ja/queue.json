@@ -58,5 +58,7 @@
   "save_model": "モデルを保存",
   "model_updated": "モデルを更新しました。",
   "model_error": "モデルを更新できませんでした: {{message}}",
-  "model_required": "モデルを選択するか入力してください。"
+  "model_required": "モデルを選択するか入力してください。",
+  "change_model": "??????",
+  "custom_model": "????..."
 }

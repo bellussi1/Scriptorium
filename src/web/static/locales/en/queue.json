@@ -58,5 +58,7 @@
   "save_model": "Save model",
   "model_updated": "Model updated.",
   "model_error": "Could not update the model: {{message}}",
-  "model_required": "Choose or type a model."
+  "model_required": "Choose or type a model.",
+  "change_model": "Change model",
+  "custom_model": "Custom..."
 }

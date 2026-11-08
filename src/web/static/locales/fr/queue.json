@@ -58,5 +58,7 @@
   "save_model": "Enregistrer le modèle",
   "model_updated": "Modèle mis à jour.",
   "model_error": "Impossible de mettre à jour le modèle : {{message}}",
-  "model_required": "Choisissez ou saisissez un modèle."
+  "model_required": "Choisissez ou saisissez un modèle.",
+  "change_model": "Changer le mod?le",
+  "custom_model": "Personnalis?..."
 }

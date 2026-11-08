@@ -58,5 +58,7 @@
   "save_model": "Modell speichern",
   "model_updated": "Modell aktualisiert.",
   "model_error": "Modell konnte nicht aktualisiert werden: {{message}}",
-  "model_required": "Wählen Sie ein Modell oder geben Sie eines ein."
+  "model_required": "Wählen Sie ein Modell oder geben Sie eines ein.",
+  "change_model": "Modell ?ndern",
+  "custom_model": "Benutzerdefiniert..."
 }

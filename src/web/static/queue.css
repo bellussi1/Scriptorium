@@ -393,3 +393,29 @@
     line-height: 1.45;
     color: var(--text-muted-light);
 }
+
+/* Inline model dropdown on pending queue rows */
+
+.queue-model-select {
+    width: 100%;
+    max-width: 220px;
+    padding: 5px 8px;
+    border: 1px solid var(--border-light);
+    border-radius: 6px;
+    background: var(--background-light);
+    color: var(--text-dark);
+    font: inherit;
+    font-size: 0.78rem;
+    cursor: pointer;
+}
+
+.queue-model-select:hover:not(:disabled),
+.queue-model-select:focus {
+    border-color: var(--primary-light);
+    outline: none;
+}
+
+.queue-model-select:disabled {
+    opacity: 0.55;
+    cursor: wait;
+}

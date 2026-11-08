@@ -30,6 +30,7 @@ const STATUS_KEYS = {
 let refreshTimer = null;
 let libraryBooks = [];
 let lastBooks = [];
+let availableModels = [];
 let editingBookId = null;
 let modelsLoaded = false;
 let modelsLoading = false;
@@ -78,6 +79,41 @@ function modelLabel(book) {
     return model.split('/').pop();
 }
 
+function modelOptionsFor(current) {
+    const names = [];
+    if (current) names.push(current);
+    for (const model of availableModels) {
+        if (model && !names.includes(model)) names.push(model);
+    }
+    const options = names
+        .map((model) => `<option value="${escapeHtml(model)}" ${model === current ? 'selected' : ''}>${escapeHtml(model)}</option>`)
+        .join('');
+    return `${options}<option value="__custom__">${escapeHtml(t('queue:custom_model'))}</option>`;
+}
+
+function modelCell(book) {
+    if (book.status !== 'pending') {
+        return `<span title="${escapeHtml(book.model || '')}">${escapeHtml(modelLabel(book))}</span>`;
+    }
+    const current = String(book.model || '');
+    const label = escapeHtml(t('queue:change_model'));
+    return `
+        <select class="queue-model-select" data-model-book-id="${book.id}"
+                title="${label}" aria-label="${label}">
+            ${modelOptionsFor(current)}
+        </select>
+    `;
+}
+
+function refreshModelSelects() {
+    for (const select of document.querySelectorAll('#queueTableBody [data-model-book-id]')) {
+        const bookId = Number(select.dataset.modelBookId);
+        const book = lastBooks.find((item) => item.id === bookId);
+        if (!book) continue;
+        select.innerHTML = modelOptionsFor(String(book.model || ''));
+    }
+}
+
 function progressCell(book) {
     const total = Number(book.total_chapters || 0);
     const current = Number(book.current_chapter || 0);
@@ -116,14 +152,9 @@ function renderSummary(data) {
 
 function actionButtons(book, isFirst, isLast) {
     if (book.status !== 'pending') return '<span class="queue-muted">—</span>';
-    const editLabel = escapeHtml(t('queue:edit_model'));
     const upLabel = escapeHtml(t('queue:move_up'));
     const downLabel = escapeHtml(t('queue:move_down'));
     return `
-        <button type="button" class="queue-move-btn" data-edit-model="${book.id}"
-                title="${editLabel}" aria-label="${editLabel}">
-            <span class="material-symbols-outlined" aria-hidden="true">edit</span>
-        </button>
         <button type="button" class="queue-move-btn" data-move="up" data-book-id="${book.id}"
                 title="${upLabel}" aria-label="${upLabel}" ${isFirst ? 'disabled' : ''}>
             <span class="material-symbols-outlined" aria-hidden="true">arrow_upward</span>
@@ -171,7 +202,7 @@ function renderRows(data) {
                     <td>${series}</td>
                     <td><span class="queue-status queue-status-${escapeHtml(statusKey(book))}">${escapeHtml(statusLabel(book))}</span></td>
                     <td>${progressCell(book)}</td>
-                    <td title="${escapeHtml(book.model || '')}">${escapeHtml(modelLabel(book))}</td>
+                    <td>${modelCell(book)}</td>
                     <td>${translationId}</td>
                     <td class="queue-updated-cell">${formatDate(book.job_updated_at || book.updated_at)}</td>
                     <td class="queue-actions-cell">${actionButtons(book, book.id === firstPending, book.id === lastPending)}</td>
@@ -413,16 +444,30 @@ async function loadModelOptions() {
                 : []);
         const list = byId('queueModelOptions');
         if (!list) return;
-        list.innerHTML = names
-            .filter(Boolean)
+        availableModels = names.filter(Boolean);
+        list.innerHTML = availableModels
             .map((name) => `<option value="${escapeHtml(name)}"></option>`)
             .join('');
         modelsLoaded = true;
+        refreshModelSelects();
     } catch (error) {
         // Suggestions are optional; typing the model name still works.
     } finally {
         modelsLoading = false;
     }
+}
+
+async function patchBookModel(bookId, model, provider) {
+    const response = await fetch(`${ADD_URL}/${bookId}`, {
+        method: 'PATCH',
+        headers: { ...apiHeaders(), 'Content-Type': 'application/json' },
+        body: JSON.stringify({ model, provider }),
+    });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok || data.status === 'error') {
+        throw new Error(data.error || `HTTP ${response.status}`);
+    }
+    return data;
 }
 
 async function saveModel() {
@@ -440,15 +485,7 @@ async function saveModel() {
     if (button) button.disabled = true;
     clearModelError();
     try {
-        const response = await fetch(`${ADD_URL}/${editingBookId}`, {
-            method: 'PATCH',
-            headers: { ...apiHeaders(), 'Content-Type': 'application/json' },
-            body: JSON.stringify({ model, provider }),
-        });
-        const data = await response.json().catch(() => ({}));
-        if (!response.ok || data.status === 'error') {
-            throw new Error(data.error || `HTTP ${response.status}`);
-        }
+        const data = await patchBookModel(editingBookId, model, provider);
         applySnapshot(data);
         closeModelModal();
         setActionStatus(t('queue:model_updated'));
@@ -456,6 +493,28 @@ async function saveModel() {
         showModelError(t('queue:model_error', { message: error.message || String(error) }));
     } finally {
         if (button) button.disabled = false;
+    }
+}
+
+async function changeBookModel(bookId, model) {
+    const book = lastBooks.find((item) => item.id === bookId);
+    if (!book) return;
+    if (!model) {
+        setActionStatus(t('queue:model_required'), true);
+        return;
+    }
+    const provider = String(book.provider || 'ollama');
+    const select = document.querySelector(`[data-model-book-id="${bookId}"]`);
+    if (select) select.disabled = true;
+    try {
+        const data = await patchBookModel(bookId, model, provider);
+        applySnapshot(data);
+        setActionStatus(t('queue:model_updated'));
+    } catch (error) {
+        if (select) select.value = String(book.model || '');
+        setActionStatus(t('queue:model_error', { message: error.message || String(error) }), true);
+    } finally {
+        if (select) select.disabled = false;
     }
 }
 
@@ -495,14 +554,21 @@ function initialize() {
     const table = byId('queueTableBody');
     if (table) {
         table.addEventListener('click', (event) => {
-            const edit = event.target.closest('[data-edit-model]');
-            if (edit) {
-                openModelModal(Number(edit.dataset.editModel));
-                return;
-            }
             const move = event.target.closest('[data-move]');
             if (!move || move.disabled) return;
             moveBook(Number(move.dataset.bookId), move.dataset.move);
+        });
+        table.addEventListener('change', (event) => {
+            const select = event.target.closest('[data-model-book-id]');
+            if (!select) return;
+            const bookId = Number(select.dataset.modelBookId);
+            if (select.value === '__custom__') {
+                const book = lastBooks.find((item) => item.id === bookId);
+                select.value = String(book?.model || '');
+                openModelModal(bookId);
+                return;
+            }
+            changeBookModel(bookId, select.value);
         });
     }
 
@@ -536,7 +602,7 @@ function initialize() {
 }
 
 function open() {
-    return Promise.all([refresh(), loadLibrary()]);
+    return Promise.all([refresh(), loadLibrary(), loadModelOptions()]);
 }
 
 export const QueueManager = { initialize, open, refresh, loadLibrary };
