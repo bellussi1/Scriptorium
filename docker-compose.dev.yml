@@ -29,6 +29,7 @@ services:
       ATTRIBUTION_ENABLED: "true"
       PYTHONPATH: /app:/app/src
     volumes:
+      - ./translate.py:/app/translate.py:ro
       - ./src:/app/src:ro
       - ./tests:/app/tests:ro
       - ./benchmark:/app/benchmark:ro

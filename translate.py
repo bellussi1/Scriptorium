@@ -5,6 +5,7 @@ import os
 import argparse
 import asyncio
 import logging
+from pathlib import Path
 
 # Force UTF-8 stdio before anything prints, so emoji log lines (💬, ✅, ❌, ...)
 # don't crash on Windows cp1252 consoles. See issue #184.
@@ -214,6 +215,11 @@ if __name__ == "__main__":
     prompt_group.add_argument("--refine-only", action="store_true", dest="refine_only", help="Run ONLY a refinement pass on an already-translated file (skips the translation phase). The input file is assumed to already be in the target language.")
     prompt_group.add_argument("--glossary", default=None, help="Path to a glossary file (.json or .csv) injected per-chunk to keep entity translations consistent.")
     prompt_group.add_argument(
+        "--custom-instruction", default=None,
+        help="Filename in Custom_Instructions/ (.yaml, .yml or .txt). Its translation "
+             "block is injected into the translation prompt and its refinement block "
+             "into the refinement pass.")
+    prompt_group.add_argument(
         "--auto-glossary", action="store_true", dest="auto_glossary",
         help="Derive a throwaway glossary from the input document with one extra LLM call "
              "before translating (no file, nothing saved). Ignored when --glossary is given "
@@ -409,6 +415,28 @@ if __name__ == "__main__":
         'text_cleanup': args.text_cleanup,
         'refine': args.refine and not args.refine_only,
     }
+
+    # Optional style/custom-instruction preset, matching the web UI's
+    # Custom_Instructions resolution. The CLI previously had no way to use a
+    # curated style file, which made the literary style resources invisible to
+    # full-book runs.
+    if args.custom_instruction:
+        try:
+            from src.utils.custom_instructions import load_custom_instructions
+            preset = load_custom_instructions(
+                args.custom_instruction, Path("Custom_Instructions")
+            )
+        except Exception as e:
+            parser.error(f"Failed to load custom instruction {args.custom_instruction}: {e}")
+        if preset.get('translation'):
+            prompt_options['custom_instructions'] = preset['translation']
+        if preset.get('refinement'):
+            prompt_options['refinement_instructions'] = preset['refinement']
+        if not (preset.get('translation') or preset.get('refinement')):
+            logger.warning(
+                "Custom instruction %s was empty; no style block was added.",
+                args.custom_instruction,
+            )
 
     # Load glossary file (JSON or CSV) into prompt_options
     if args.glossary:

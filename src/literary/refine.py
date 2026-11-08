@@ -129,11 +129,17 @@ def build_source_aware_messages(
     *,
     compiled: Optional[CompiledResources] = None,
     style: str = "",
+    continuity: str = "",
 ) -> List[Dict[str, str]]:
     """Build a chat prompt that includes the source, draft and issue list."""
     glossary = _glossary_lines(compiled)
     style_block = f"\n# STYLE\n\n{style.strip()}\n" if style and style.strip() else ""
     glossary_block = f"\n# GLOSSARY\n\n{glossary}\n" if glossary else ""
+    continuity_block = (
+        f"\n# CONTINUITY\n\n{continuity.strip()}\n"
+        if continuity and continuity.strip()
+        else ""
+    )
     user = (
         "# ENGLISH SOURCE\n\n"
         f"{source.strip()}\n\n"
@@ -141,7 +147,7 @@ def build_source_aware_messages(
         f"{draft.strip()}\n\n"
         "# FLAGGED ISSUES\n\n"
         f"{_issue_lines(issues)}\n"
-        f"{glossary_block}{style_block}\n"
+        f"{glossary_block}{style_block}{continuity_block}\n"
         "Return only the revised Brazilian Portuguese text."
     )
     return [
@@ -220,6 +226,7 @@ def refine_with_guard(
     *,
     compiled: Optional[CompiledResources] = None,
     style: str = "",
+    continuity: str = "",
     max_edit_ratio: float = 0.35,
 ) -> RefinementResult:
     """Call a model and return the revised text only if the guard accepts it.
@@ -227,7 +234,9 @@ def refine_with_guard(
     ``generate`` is injected so the component is testable without a provider.
     The caller owns retries and logging.
     """
-    messages = build_source_aware_messages(source, draft, issues, compiled=compiled, style=style)
+    messages = build_source_aware_messages(
+        source, draft, issues, compiled=compiled, style=style, continuity=continuity
+    )
     revised = (generate(messages) or "").strip()
     guard = apply_guard(source, draft, revised, compiled=compiled, max_edit_ratio=max_edit_ratio)
     return RefinementResult(

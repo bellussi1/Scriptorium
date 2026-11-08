@@ -16,6 +16,7 @@ from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple
 import requests
 
 from .models import CompiledResources
+from .ptbr import check_text
 from .refine import RefinementIssue, _EN_STOPWORDS, refine_with_guard
 from .validation import (
     _placeholders,
@@ -150,6 +151,17 @@ def flags_for_segment(
         )
 
     issues.extend(_glossary_issues(source, draft, compiled))
+    for issue in check_text(draft):
+        # Deliberate repetition is a literary device, not a repair target.
+        if issue.code == "ptbr.repeated_word":
+            continue
+        suggestion = f" Sugestão: {issue.suggestions[0]}" if issue.suggestions else ""
+        issues.append(
+            RefinementIssue(
+                issue.code,
+                f"{issue.message}{suggestion}",
+            )
+        )
     return issues
 
 
@@ -207,6 +219,7 @@ def refine_segments(
     *,
     compiled: Optional[CompiledResources] = None,
     style: str = "",
+    continuity: str = "",
     max_edit_ratio: float = 0.35,
     limit: int = 0,
 ) -> Tuple[Dict[int, str], Dict[str, Any]]:
@@ -236,6 +249,7 @@ def refine_segments(
                 generate,
                 compiled=compiled,
                 style=style,
+                continuity=continuity,
                 max_edit_ratio=max_edit_ratio,
             )
         except Exception as exc:  # provider/network failure: keep the draft

@@ -16,6 +16,7 @@ import argparse
 import json
 import os
 import sys
+from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 from .calibre import CalibreLibrary
@@ -31,6 +32,8 @@ from .refine_runner import (
     split_segments,
 )
 from .repair import repair_dropcaps_in_epub
+from .continuity import ContinuityTracker
+from .refine_epub import refine_epub
 from .resources import (
     assemble_style,
     compile_for_book,
@@ -176,6 +179,35 @@ def cmd_queue_next(args: argparse.Namespace) -> int:
     store = QueueStore(args.db)
     book = store.next_pending()
     _print_json(book.to_dict() if book else {"book": None})
+    store.close()
+    return 0
+
+
+def cmd_queue_plan(args: argparse.Namespace) -> int:
+    from .run_plan import build_run_plan
+
+    store = QueueStore(args.db)
+    book = store.get_book(args.book_id)
+    if not book:
+        _print_json({"error": "book not found", "book_id": args.book_id})
+        store.close()
+        return 1
+    plan = build_run_plan(
+        book,
+        resources_root=args.resources,
+        refine=not args.no_refine,
+        grammar=not args.no_grammar,
+        best_of_n=args.best_of_n,
+        continuity=not args.no_continuity,
+        previous_chapter_text=(
+            Path(args.previous_chapter).read_text(encoding="utf-8")
+            if args.previous_chapter
+            else ""
+        ),
+        pov=args.pov,
+        continuity_notes=args.continuity_notes,
+    )
+    _print_json(plan)
     store.close()
     return 0
 
@@ -328,6 +360,44 @@ def cmd_refine(args: argparse.Namespace) -> int:
     if args.report:
         with open(args.report, "w", encoding="utf-8") as handle:
             json.dump(report, handle, ensure_ascii=False, indent=2)
+    _print_json(report)
+    return 0
+
+
+def cmd_refine_epub(args: argparse.Namespace) -> int:
+    compiled = None
+    style = ""
+    tracker = None
+    if args.author and args.universe:
+        tree = load_tree(args.root)
+        compiled = compile_for_book(
+            tree,
+            args.author,
+            args.universe,
+            args.subseries,
+            args.book,
+        )
+        style = assemble_style(compiled.style).get("refinement", "")
+        tracker = ContinuityTracker.from_compiled(compiled, pov=args.pov)
+    report = refine_epub(
+        args.source,
+        args.target,
+        args.out,
+        model=args.model,
+        compiled=compiled,
+        style=style,
+        continuity=tracker,
+        endpoint=args.endpoint,
+        temperature=args.temperature,
+        max_tokens=args.max_tokens,
+        num_ctx=args.num_ctx,
+        limit=args.limit,
+        dry_run=args.dry_run,
+    )
+    if args.report:
+        Path(args.report).write_text(
+            json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8"
+        )
     _print_json(report)
     return 0
 
@@ -491,6 +561,18 @@ def build_parser() -> argparse.ArgumentParser:
     next_parser = queue_sub.add_parser("next")
     next_parser.add_argument("--db", default="data/literary_queue.db")
     next_parser.set_defaults(func=cmd_queue_next)
+    plan_parser = queue_sub.add_parser("plan", help="Resolve model, glossary, style and gates for a book")
+    plan_parser.add_argument("--db", default="data/literary_queue.db")
+    plan_parser.add_argument("--book-id", type=int, required=True)
+    plan_parser.add_argument("--resources", default="literary-resources")
+    plan_parser.add_argument("--best-of-n", type=int, default=1)
+    plan_parser.add_argument("--no-refine", action="store_true")
+    plan_parser.add_argument("--no-grammar", action="store_true")
+    plan_parser.add_argument("--no-continuity", action="store_true")
+    plan_parser.add_argument("--previous-chapter", default="", help="Optional UTF-8 text file with the previous chapter")
+    plan_parser.add_argument("--pov", default="", help="Narrator/person note for the continuity block")
+    plan_parser.add_argument("--continuity-notes", default="", help="Extra continuity/address rules")
+    plan_parser.set_defaults(func=cmd_queue_plan)
     state_parser = queue_sub.add_parser("set-state")
     state_parser.add_argument("--db", default="data/literary_queue.db")
     state_parser.add_argument("--book-id", type=int, required=True)
@@ -550,6 +632,29 @@ def build_parser() -> argparse.ArgumentParser:
     refine_parser.add_argument("--dry-run", action="store_true")
     refine_parser.add_argument("--report", default="")
     refine_parser.set_defaults(func=cmd_refine)
+
+    refine_epub_parser = sub.add_parser(
+        "refine-epub",
+        help="Source-aware selective refinement for an already translated EPUB",
+    )
+    refine_epub_parser.add_argument("--source", required=True, help="Source-language EPUB")
+    refine_epub_parser.add_argument("--target", required=True, help="Translated draft EPUB")
+    refine_epub_parser.add_argument("--out", required=True, help="Output EPUB (never overwrite in place by default)")
+    refine_epub_parser.add_argument("--root", default="literary-resources")
+    refine_epub_parser.add_argument("--author", default="")
+    refine_epub_parser.add_argument("--universe", default="")
+    refine_epub_parser.add_argument("--subseries", default="")
+    refine_epub_parser.add_argument("--book", default="")
+    refine_epub_parser.add_argument("--model", required=True)
+    refine_epub_parser.add_argument("--endpoint", default="http://localhost:11434")
+    refine_epub_parser.add_argument("--temperature", type=float, default=0.0)
+    refine_epub_parser.add_argument("--max-tokens", type=int, default=800)
+    refine_epub_parser.add_argument("--num-ctx", type=int, default=8192)
+    refine_epub_parser.add_argument("--pov", default="")
+    refine_epub_parser.add_argument("--limit", type=int, default=0)
+    refine_epub_parser.add_argument("--dry-run", action="store_true")
+    refine_epub_parser.add_argument("--report", default="")
+    refine_epub_parser.set_defaults(func=cmd_refine_epub)
 
     repair_parser = sub.add_parser(
         "repair-dropcaps",
