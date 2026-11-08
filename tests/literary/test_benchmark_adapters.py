@@ -5,9 +5,12 @@ the sampling options. They are intentionally offline: no model is called.
 """
 from __future__ import annotations
 
+import json
+
 import pytest
 
 from benchmark.literary import adapters
+from benchmark.literary.runner import load_glossary_file, load_style_file
 
 
 def test_specialized_model_tags_are_real() -> None:
@@ -130,3 +133,36 @@ def test_index_payload_disables_thinking(monkeypatch) -> None:
     )
 
     assert captured["json"]["think"] is False
+
+
+def test_quantization_specs_are_present() -> None:
+    assert adapters.MODELS["hy-mt2-7b-q6"].model.endswith(":Q6_K")
+    assert adapters.MODELS["hy-mt2-7b-q8"].model.endswith(":Q8_0")
+    assert adapters.MODELS["hy-mt2-7b-q6"].temperature == 0.7
+
+
+def test_compiled_glossary_and_style_files_are_accepted(tmp_path: Path) -> None:
+    glossary_path = tmp_path / "glossary.json"
+    glossary_path.write_text(
+        json.dumps(
+            {
+                "terms": [
+                    {"source": "Fugue", "target": "Fuga", "forbidden": ["F?ria"]},
+                    {"source": "Sun Eater|Sun-Eater", "target": "Devorador do Sol"},
+                ]
+            },
+            ensure_ascii=False,
+        ),
+        encoding="utf-8",
+    )
+    glossary = load_glossary_file(str(glossary_path))
+    assert glossary["Fugue"] == "Fuga"
+    assert glossary["Sun Eater"] == "Devorador do Sol"
+    assert glossary["Sun-Eater"] == "Devorador do Sol"
+
+    style_path = tmp_path / "style.yaml"
+    style_path.write_text(
+        "translation: Keep the retrospective first person.\nrefinement: Preserve the voice.\n",
+        encoding="utf-8",
+    )
+    assert "retrospective" in load_style_file(str(style_path))

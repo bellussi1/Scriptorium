@@ -76,6 +76,20 @@ def _classify(paragraph: str) -> str:
     return "narration"
 
 
+def _pick_spread(items: List[Excerpt], count: int = 1) -> List[Excerpt]:
+    """Pick up to ``count`` items spread across the list, avoiding only openings."""
+    if count <= 0 or not items:
+        return []
+    if len(items) <= count:
+        return list(items)
+    if count == 1:
+        return [items[len(items) // 2]]
+    indices = {
+        round(index * (len(items) - 1) / (count - 1)) for index in range(count)
+    }
+    return [items[index] for index in sorted(indices)]
+
+
 def build_from_inventory(
     inventory_path: str,
     output_path: str,
@@ -96,13 +110,25 @@ def build_from_inventory(
         epub_path = row.get("epub_path") or ""
         if not epub_path or not os.path.exists(epub_path):
             continue
-        chapters = 0
+        chapter_docs = [
+            doc
+            for doc in iter_spine_documents(epub_path)
+            if count_words(doc["text"]) >= 900
+        ]
+        if chapters_per_book > 0 and len(chapter_docs) > chapters_per_book:
+            if chapters_per_book == 1:
+                indices = [len(chapter_docs) // 2]
+            else:
+                indices = sorted(
+                    {
+                        round(index * (len(chapter_docs) - 1) / (chapters_per_book - 1))
+                        for index in range(chapters_per_book)
+                    }
+                )
+            chapter_docs = [chapter_docs[index] for index in indices]
+
         candidates: List[Excerpt] = []
-        for doc in iter_spine_documents(epub_path):
-            words = count_words(doc["text"])
-            if words < 900:
-                continue
-            chapters += 1
+        for chapter_number, doc in enumerate(chapter_docs, start=1):
             for paragraph in _paragraphs(doc["text"]):
                 count = count_words(paragraph)
                 if count < min_words or count > max_words:
@@ -110,7 +136,7 @@ def build_from_inventory(
                 category = _classify(paragraph)
                 candidates.append(
                     Excerpt(
-                        id=f"{row.get('calibre_id')}-{chapters}-{len(candidates)}",
+                        id=f"{row.get('calibre_id')}-{chapter_number}-{len(candidates)}",
                         book=str(row.get("title", "")),
                         author=str(row.get("author", "")),
                         chapter_href=doc["href"],
@@ -119,20 +145,18 @@ def build_from_inventory(
                         notes="auto-selected candidate; review category and continuity before use",
                     )
                 )
-            if chapters >= chapters_per_book:
-                break
-        # Spread the selection across categories, then fill with the rest.
+
+        # Spread the selection across categories and across the chosen chapters,
+        # instead of always taking the first paragraph of the first chapter.
+        by_category: Dict[str, List[Excerpt]] = {}
+        for candidate in candidates:
+            by_category.setdefault(candidate.category, []).append(candidate)
         chosen: List[Excerpt] = []
         for category in ("dialogue", "introspection", "description", "long_syntax", "narration"):
-            for candidate in candidates:
-                if candidate.category == category and candidate not in chosen:
-                    chosen.append(candidate)
-                    break
-        for candidate in candidates:
-            if len(chosen) >= per_book:
-                break
-            if candidate not in chosen:
-                chosen.append(candidate)
+            chosen.extend(_pick_spread(by_category.get(category, []), 1))
+        if len(chosen) < per_book:
+            remainder = [candidate for candidate in candidates if candidate not in chosen]
+            chosen.extend(_pick_spread(remainder, per_book - len(chosen)))
         excerpts.extend(chosen[:per_book])
     os.makedirs(os.path.dirname(os.path.abspath(output_path)) or ".", exist_ok=True)
     with open(output_path, "w", encoding="utf-8") as handle:
