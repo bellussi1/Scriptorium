@@ -623,8 +623,16 @@ Each EPUB is rewritten with standardized OPF metadata:
 
 The export also writes `manifest.csv` and `README.md` with reading order.
 `queue run-all` translates pending books sequentially and can call the export at
-the end. EPUB is accepted by Amazon Send to Kindle; the folder is also ready for
-a Calibre import.
+the end (and after each completed book):
+
+```bash
+python -m src.literary.cli queue run-all \
+  --db data/literary_queue.db --refine-limit 0 \
+  --export-kindle --kindle-out translated_files/kindle
+```
+
+EPUB is accepted by Amazon Send to Kindle; the folder is also ready for a
+Calibre import.
 
 ## 3. What is not implemented
 

@@ -255,6 +255,15 @@ def cmd_queue_run_all(args: argparse.Namespace) -> int:
                 pov=args.pov,
             )
             results.append({"book_id": book.id, "title": book.title, "state": result.get("queue_state"), "report": result})
+            if args.export_kindle:
+                try:
+                    build_kindle_library(
+                        db_path=args.db,
+                        outputs_dir=args.outputs,
+                        output_root=args.kindle_out,
+                    )
+                except Exception as exc:
+                    results.append({"book_id": book.id, "kindle_export_error": str(exc)})
             if args.stop_on_review and result.get("queue_state") == "needs_review":
                 break
         except Exception as exc:
