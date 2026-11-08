@@ -68,7 +68,7 @@ pytest -p no:cacheprovider tests/unit/glossary -q
 # 183 passed
 
 pytest -p no:cacheprovider -q
-# 2940 passed, 2 skipped, 10 deselected, 14 failed
+# 2947 passed, 2 skipped, 10 deselected, 14 failed
 ```
 
 The same 14 failures reproduce on a clean worktree at upstream `b5ed606` under
@@ -452,7 +452,7 @@ model for *Ship of Magic* worked against the copy; all three actions were then
 reverted by restoring the copy from the live queue. The second instance does not
 touch the real `data/jobs.db`.
 
-Validation: **12** route tests, full suite **2,940 passed, 2 skipped, 14
+Validation: **12** route tests, full suite **2,947 passed, 2 skipped, 14
 pre-existing failures**.
 
 ### 2.14 PT-BR grammar layer
@@ -566,11 +566,37 @@ also removed. Index-Translate 9B and Qwen3 8B remain as comparison baselines; Q8
 removed after the round (no quality gain and heavy CPU offload). Q6_K stays until
 a blind human comparison, if one is run.
 
+### 2.18 Queue runner and review gate
+
+`queue run` is the missing executor for the queue. It:
+
+1. picks a pending book (or the explicit `--book-id`);
+2. compiles that book's glossary and style preset from the resource tree;
+3. launches `translate.py` in the dev container with the queue model/provider,
+   the compiled glossary and the generated `--custom-instruction`;
+4. attaches the upstream `translation_id` and syncs progress every 30 s;
+5. repairs dropcaps and invalid DPUB-ARIA roles, runs the deterministic gate and
+   EPUBCheck;
+6. runs the source-aware `refine-epub` pass when enabled;
+7. stops at **`needs_review`**, never at `completed`.
+
+The runner deliberately handles one book per invocation. `needs_review` is a
+human gate: read the output and, if it is acceptable, run:
+
+```bash
+python -m src.literary.cli queue approve \
+  --db data/literary_queue.db --book-id 10 --job-id 1 \
+  --message "read in Calibre; approved"
+```
+
+`queue set-model` and the Queue UI cover model changes for pending books. The
+upstream sync preserves `needs_review`/`completed` states even when a killed CLI
+leaves its row `interrupted`.
+
 ## 3. What is not implemented
 
-- Automatic queue-driven job launching; the queue stores the model, editorial
-  scopes and upstream `translation_id`, and `queue plan` resolves them, but no
-  runner launches the next pending book yet.
+- Automatic chaining of all books: `queue run` translates one book and stops at
+  `needs_review`; no daemon advances to the next book after approval.
 - The source-aware EPUB writer exists (`refine-epub`) but is not wired into the
   queue runner; the full-book style/refine path is still manual.
 - Narrative memory is implemented as a continuity block, but not yet passed to

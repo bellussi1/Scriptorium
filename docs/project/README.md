@@ -95,6 +95,9 @@ TranslateBooksWithLLMs application; the new layer is additive and lives under
   pipeline flags for a book.
 - A 50-excerpt, 10-book context benchmark corpus, quantization model specs and an
   anonymized review sheet (`runner report-blind`).
+- A one-book queue runner (`queue run`) that compiles glossary/style, launches
+  the translation, attaches `translation_id`, repairs/validates/refines and stops
+  at `needs_review`; `queue approve` closes the human gate.
 - Cost model calibrated on the user's EPUBs.
 - Deterministic translation and EPUB validators, including TOC-label and
   dropcap content checks.
