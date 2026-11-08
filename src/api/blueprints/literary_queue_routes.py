@@ -528,6 +528,9 @@ def create_literary_queue_blueprint() -> Blueprint:
             return _json_error("book not found", 404)
         if book["status"] not in {"failed", "needs_review", "paused"}:
             return _json_error("only failed, paused or needs-review books can be retried", 409)
+        job = _latest_job(db_path, book_id)
+        if job and job.get("state") in {"preparing", "translating", "reviewing", "validating"}:
+            return _json_error("the translation job is still active", 409)
         message = "retry requested from Queue UI"
         store = QueueStore(str(db_path))
         try:
