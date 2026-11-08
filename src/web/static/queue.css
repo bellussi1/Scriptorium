@@ -429,3 +429,431 @@
     background: var(--primary-light);
     color: #ffffff;
 }
+
+/* --- Queue 2.0: now panel, filters, quality drawer ----------------------- */
+
+.queue-now {
+    margin-bottom: 16px;
+    padding: 14px 16px;
+    border: 1px solid var(--border-light);
+    border-radius: 12px;
+    background: var(--background-light);
+}
+
+.queue-now-empty {
+    color: var(--text-muted-light);
+    font-size: 0.88rem;
+}
+
+.queue-now-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 8px;
+}
+
+.queue-now-eyebrow {
+    color: var(--primary-light);
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.queue-now-body {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 16px;
+    align-items: start;
+}
+
+.queue-now-main {
+    min-width: 0;
+}
+
+.queue-now-title {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--text-dark);
+}
+
+.queue-now-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin: 4px 0 10px;
+    color: var(--text-muted-light);
+    font-size: 0.78rem;
+}
+
+.queue-now-meta code {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 0.72rem;
+}
+
+.queue-now-progress {
+    max-width: 100%;
+}
+
+.queue-now-progress-line {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    margin-top: 5px;
+    color: var(--text-muted-light);
+    font-size: 0.74rem;
+    font-variant-numeric: tabular-nums;
+}
+
+.queue-now-log {
+    display: flex;
+    gap: 6px;
+    align-items: baseline;
+    margin-top: 8px;
+    min-width: 0;
+    font-size: 0.74rem;
+}
+
+.queue-now-log code {
+    display: block;
+    max-height: 3.9em;
+    overflow: hidden;
+    overflow-wrap: anywhere;
+    white-space: normal;
+    line-height: 1.35;
+    color: var(--text-dark);
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 0.72rem;
+}
+
+.queue-now-error-line {
+    margin-top: 6px;
+    font-size: 0.74rem;
+}
+
+.queue-now-error {
+    color: var(--danger-light-text);
+}
+
+.queue-now-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-width: 150px;
+}
+
+.queue-now-btn {
+    justify-content: flex-start;
+    white-space: nowrap;
+}
+
+.queue-filters {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 14px;
+}
+
+.queue-filter-chips {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    flex-wrap: wrap;
+}
+
+.queue-chip {
+    padding: 5px 10px;
+    border: 1px solid var(--border-light);
+    border-radius: 999px;
+    background: transparent;
+    color: var(--text-muted-light);
+    font: inherit;
+    font-size: 0.74rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.queue-chip:hover {
+    border-color: var(--primary-light);
+    color: var(--primary-light);
+}
+
+.queue-chip.active {
+    border-color: var(--primary-light);
+    background: var(--primary-light);
+    color: #ffffff;
+}
+
+.queue-filter-select,
+.queue-filter-search {
+    padding: 6px 9px;
+    border: 1px solid var(--border-light);
+    border-radius: 7px;
+    background: var(--background-light);
+    color: var(--text-dark);
+    font: inherit;
+    font-size: 0.78rem;
+}
+
+.queue-filter-search {
+    flex: 1;
+    min-width: 150px;
+}
+
+.queue-filter-select:focus,
+.queue-filter-search:focus {
+    outline: none;
+    border-color: var(--primary-light);
+}
+
+.queue-position {
+    width: 42px;
+    color: var(--text-muted-light);
+    font-size: 0.78rem;
+    font-variant-numeric: tabular-nums;
+    text-align: center;
+}
+
+.queue-next-badge {
+    display: inline-block;
+    margin-left: 5px;
+    padding: 1px 6px;
+    border-radius: 999px;
+    background: var(--primary-light);
+    color: #ffffff;
+    font-size: 0.62rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    vertical-align: middle;
+}
+
+.queue-book-title-btn {
+    display: block;
+    width: 100%;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: inherit;
+    font: inherit;
+    font-weight: 600;
+    text-align: left;
+    cursor: pointer;
+}
+
+.queue-book-title-btn:hover {
+    color: var(--primary-light);
+    text-decoration: underline;
+}
+
+.queue-approve-btn {
+    color: var(--success-light);
+    border-color: var(--success-light);
+}
+
+.queue-drawer-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 1200;
+    display: flex;
+    justify-content: flex-end;
+    background: rgba(0, 0, 0, 0.45);
+}
+
+.queue-drawer {
+    width: min(560px, 100%);
+    height: 100%;
+    overflow-y: auto;
+    background: var(--background-light);
+    border-left: 1px solid var(--border-light);
+    box-shadow: -18px 0 45px rgba(0, 0, 0, 0.22);
+}
+
+.queue-drawer .modal-header {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    background: var(--background-light);
+    border-bottom: 1px solid var(--border-light);
+}
+
+.queue-drawer-body {
+    padding: 16px;
+}
+
+.queue-quality-heading {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    align-items: flex-start;
+    margin-bottom: 16px;
+}
+
+.queue-quality-heading h4 {
+    margin: 0 0 3px;
+    color: var(--text-dark);
+    font-size: 1rem;
+}
+
+.queue-quality-heading p {
+    margin: 0;
+    color: var(--text-muted-light);
+    font-size: 0.78rem;
+}
+
+.queue-quality-section {
+    margin: 18px 0;
+}
+
+.queue-quality-section h5 {
+    margin: 0 0 8px;
+    color: var(--text-muted-light);
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+}
+
+.queue-quality-artifact {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 10px;
+    border: 1px solid var(--border-light);
+    border-radius: 8px;
+    color: var(--text-muted-light);
+    font-size: 0.76rem;
+}
+
+.queue-quality-artifact code {
+    overflow-wrap: anywhere;
+    color: var(--text-dark);
+}
+
+.queue-quality-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 7px;
+}
+
+.queue-quality-metric {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 7px 9px;
+    border: 1px solid var(--border-light);
+    border-radius: 7px;
+    font-size: 0.76rem;
+}
+
+.queue-quality-metric span {
+    color: var(--text-muted-light);
+}
+
+.queue-quality-metric strong {
+    color: var(--text-dark);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+.queue-quality-issues,
+.queue-quality-report {
+    margin: 0;
+    padding-left: 18px;
+    font-size: 0.78rem;
+    line-height: 1.5;
+}
+
+.queue-quality-issues li,
+.queue-quality-report li {
+    margin: 3px 0;
+}
+
+.queue-quality-issue-error,
+.queue-quality-issue-critical {
+    color: var(--danger-light-text);
+}
+
+.queue-quality-issue-warning {
+    color: var(--warning-light-text);
+}
+
+.queue-quality-flags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-top: 8px;
+}
+
+.queue-quality-flags span {
+    padding: 2px 7px;
+    border-radius: 999px;
+    background: var(--warning-light-bg);
+    color: var(--warning-light-text);
+    font-size: 0.68rem;
+    font-weight: 600;
+}
+
+.queue-quality-log {
+    max-height: 240px;
+    overflow: auto;
+    margin: 0;
+    padding: 10px;
+    border: 1px solid var(--border-light);
+    border-radius: 8px;
+    background: var(--background-light);
+    color: var(--text-dark);
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 0.7rem;
+    line-height: 1.45;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
+.queue-quality-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 20px 0 8px;
+}
+
+@media (max-width: 760px) {
+    .queue-now-body {
+        grid-template-columns: 1fr;
+    }
+
+    .queue-now-actions {
+        flex-direction: row;
+        flex-wrap: wrap;
+    }
+
+    .queue-drawer {
+        width: 100%;
+    }
+
+    .queue-quality-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .queue-quality-artifact {
+        flex-direction: column;
+    }
+}
+
+.queue-table th:nth-child(3),
+.queue-table td:nth-child(3) {
+    white-space: nowrap;
+}
+
+.queue-table {
+    min-width: 820px;
+}
+
+@media (max-width: 1100px) {
+    .queue-updated-col {
+        display: none;
+    }
+}

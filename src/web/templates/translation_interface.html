@@ -1721,45 +1721,7 @@
 
         <!-- Tab: Queue -->
         <div id="tab-queue" class="hidden">
-            <div class="main-card">
-                <div class="card-header">
-                    <span class="material-symbols-outlined">library_add</span>
-                    <h2 data-i18n="queue:library_title">Add books</h2>
-                </div>
-                <div class="card-body">
-                    <p class="queue-intro" data-i18n="queue:library_intro">
-                        English books in the Calibre inventory that are not in the queue yet.
-                    </p>
-                    <div class="queue-library-search">
-                        <span class="material-symbols-outlined" aria-hidden="true">search</span>
-                        <input
-                            type="search"
-                            id="queueLibrarySearch"
-                            data-i18n-attr="placeholder:queue:search_placeholder"
-                            placeholder="Search title, author or series"
-                        >
-                    </div>
-                    <select
-                        id="queueLibrarySelect"
-                        class="queue-library-select"
-                        multiple
-                        size="8"
-                        data-i18n-attr="aria-label:queue:library_title"
-                        aria-label="Add books"
-                    ></select>
-                    <div class="queue-library-actions">
-                        <button type="button" id="queueAddBtn" class="btn btn-primary">
-                            <span class="material-symbols-outlined" aria-hidden="true">playlist_add</span>
-                            <span data-i18n="queue:add_selected">Add selected</span>
-                        </button>
-                        <span id="queueActionStatus" class="queue-action-status" role="status" aria-live="polite"></span>
-                    </div>
-                    <div id="queueLibraryError" class="queue-error hidden" role="alert"></div>
-                    <p id="queueLibraryEmpty" class="queue-empty hidden" data-i18n="queue:library_empty">
-                        No books left to add.
-                    </p>
-                </div>
-            </div>
+            <div id="queueNow" class="queue-now hidden" aria-live="polite"></div>
 
             <div class="main-card">
                 <div class="card-header">
@@ -1773,11 +1735,24 @@
                         books and reorder pending entries, but never starts, pauses or validates
                         a job.
                     </p>
+                    <div class="queue-filters">
+                        <div id="queueStatusFilters" class="queue-filter-chips" role="group"
+                             data-i18n-attr="aria-label:queue:filters" aria-label="Filters"></div>
+                        <select id="queueSeriesFilter" class="queue-filter-select"
+                                data-i18n-attr="aria-label:queue:filter_series" aria-label="Series"></select>
+                        <input type="search" id="queueSearch" class="queue-filter-search"
+                               data-i18n-attr="placeholder:queue:filter_search"
+                               placeholder="Search queue">
+                    </div>
                     <div id="queueSummary" class="queue-summary" aria-live="polite"></div>
                     <div class="queue-toolbar">
                         <button type="button" id="queueRefreshBtn" class="btn btn-secondary">
                             <span class="material-symbols-outlined" style="font-size: 18px; vertical-align: middle;">refresh</span>
                             <span data-i18n="queue:refresh">Refresh</span>
+                        </button>
+                        <button type="button" id="queueKindleZipBtn" class="btn btn-secondary">
+                            <span class="material-symbols-outlined" style="font-size: 18px; vertical-align: middle;">archive</span>
+                            <span data-i18n="queue:kindle_zip">Download Kindle (.zip)</span>
                         </button>
                         <span id="queueUpdatedAt" class="queue-updated"></span>
                     </div>
@@ -1786,13 +1761,13 @@
                         <table class="queue-table">
                             <thead>
                                 <tr>
+                                    <th data-i18n="queue:position">#</th>
                                     <th data-i18n="queue:book">Book</th>
                                     <th data-i18n="queue:series">Series</th>
                                     <th data-i18n="queue:status">Status</th>
                                     <th data-i18n="queue:progress">Progress</th>
                                     <th data-i18n="queue:model">Model</th>
-                                    <th data-i18n="queue:translation_id">Translation ID</th>
-                                    <th data-i18n="queue:updated_col">Updated</th>
+                                    <th class="queue-updated-col" data-i18n="queue:updated_col">Updated</th>
                                     <th class="col-center" data-i18n="queue:actions">Actions</th>
                                 </tr>
                             </thead>
@@ -1833,6 +1808,9 @@
                                    placeholder="ollama">
                             <datalist id="queueProviderOptions"></datalist>
                         </div>
+                        <p class="queue-hint" data-i18n="queue:local_only">
+                            Local translation only: use Ollama models.
+                        </p>
                         <p class="queue-hint" data-i18n="queue:model_hint">
                             This changes the model saved for the next run of this book. A job already in progress is not affected.
                         </p>
@@ -1844,6 +1822,59 @@
                         <button type="button" class="btn btn-primary" id="queueModelSave"
                                 data-i18n="queue:save_model">Save model</button>
                     </div>
+                </div>
+            </div>
+
+            <div class="main-card">
+                <div class="card-header">
+                    <span class="material-symbols-outlined">library_add</span>
+                    <h2 data-i18n="queue:library_title">Add books</h2>
+                </div>
+                <div class="card-body">
+                    <p class="queue-intro" data-i18n="queue:library_intro">
+                        English books in the Calibre inventory that are not in the queue yet.
+                    </p>
+                    <div class="queue-library-search">
+                        <span class="material-symbols-outlined" aria-hidden="true">search</span>
+                        <input
+                            type="search"
+                            id="queueLibrarySearch"
+                            data-i18n-attr="placeholder:queue:search_placeholder"
+                            placeholder="Search title, author or series"
+                        >
+                    </div>
+                    <select
+                        id="queueLibrarySelect"
+                        class="queue-library-select"
+                        multiple
+                        size="8"
+                        data-i18n-attr="aria-label:queue:library_title"
+                        aria-label="Add books"
+                    ></select>
+                    <div class="queue-library-actions">
+                        <button type="button" id="queueAddBtn" class="btn btn-primary">
+                            <span class="material-symbols-outlined" aria-hidden="true">playlist_add</span>
+                            <span data-i18n="queue:add_selected">Add selected</span>
+                        </button>
+                        <span id="queueActionStatus" class="queue-action-status" role="status" aria-live="polite"></span>
+                    </div>
+                    <div id="queueLibraryError" class="queue-error hidden" role="alert"></div>
+                    <p id="queueLibraryEmpty" class="queue-empty hidden" data-i18n="queue:library_empty">
+                        No books left to add.
+                    </p>
+                </div>
+            </div>
+
+
+            <div id="queueQualityDrawer" class="queue-drawer-overlay hidden"
+                 role="dialog" aria-modal="true" aria-labelledby="queueQualityTitle">
+                <div class="queue-drawer">
+                    <div class="modal-header">
+                        <h3 id="queueQualityTitle" data-i18n="queue:quality_title">Book quality</h3>
+                        <button type="button" class="close-btn" id="queueQualityClose"
+                                data-i18n-attr="aria-label:common:close" aria-label="Close">&times;</button>
+                    </div>
+                    <div id="queueQualityBody" class="queue-drawer-body"></div>
                 </div>
             </div>
         </div><!-- /#tab-queue -->
