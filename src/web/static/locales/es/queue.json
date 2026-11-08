@@ -1,7 +1,7 @@
 {
   "tab": "Cola",
   "title": "Cola persistente",
-  "intro_html": "Vista de solo lectura de <code>data/literary_queue.db</code>. La cola la escriben el CLI local y el wrapper de traducción; esta página nunca inicia, pausa ni modifica un trabajo.",
+  "intro_html": "Vista de <code>data/literary_queue.db</code>. La cola la escriben el CLI local y el wrapper de traducción; esta página puede agregar libros del inventario y reordenar las entradas pendientes, pero nunca inicia, pausa ni valida un trabajo.",
   "refresh": "Actualizar",
   "updated": "Actualizado {{time}}",
   "book": "Libro",
@@ -29,5 +29,23 @@
   "status_paused": "En pausa",
   "status_validating": "Validando",
   "status_reviewing": "Revisando",
-  "status_unknown": "Desconocido"
+  "status_unknown": "Desconocido",
+  "library_title": "Agregar libros",
+  "library_intro": "Libros en inglés del inventario de Calibre que aún no están en la cola.",
+  "search_placeholder": "Buscar título, autor o serie",
+  "add_selected": "Agregar seleccionados",
+  "add_none": "Seleccione al menos un libro.",
+  "added": "{{count}} agregado(s) a la cola.",
+  "duplicates": "{{count}} ya estaban en la cola.",
+  "not_found": "{{count}} no encontrado(s) en el inventario.",
+  "library_empty": "No quedan libros para agregar.",
+  "library_error": "No se pudo cargar el inventario: {{message}}",
+  "adding": "Agregando...",
+  "action_error": "La acción falló: {{message}}",
+  "move_up": "Subir",
+  "move_down": "Bajar",
+  "actions": "Acciones",
+  "moved": "Orden de la cola actualizado.",
+  "moving": "Actualizando el orden...",
+  "move_error": "No se pudo mover el libro: {{message}}"
 }

@@ -81,7 +81,8 @@ TranslateBooksWithLLMs application; the new layer is additive and lives under
 - Contextual glossary selection with a token budget.
 - Persistent SQLite book/chapter queue with idempotency, explicit states, a
   read-only `translation_id` sync with the upstream checkpoint database, and a
-  read-only Queue tab in the web UI.
+  Queue tab in the web UI for enqueueing inventory books and reordering pending
+  entries.
 - Source-aware selective refinement for paragraph-aligned text, with an
   injected model call and a deterministic guard. EPUB writing is still separate.
 - Cost model calibrated on the user's EPUBs.

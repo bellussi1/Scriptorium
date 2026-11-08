@@ -336,10 +336,13 @@ Properties:
 - **Budget:** estimated cost is stored before the run; actual cost is appended
   per chapter; a budget gate blocks the next chapter when the cap is reached.
 
-The browser queue is not the system of record. The UI now has a read-only
-Queue tab backed by `GET /api/literary/queue`, which reads the same SQLite
-store in `mode=ro`; start, pause, reorder and validation remain CLI operations.
-The browser's localStorage stays a fallback for the upstream single-job flow.
+The browser queue is not the system of record. The UI has a Queue tab backed by
+`GET /api/literary/queue`, which reads the same SQLite store in `mode=ro`. It can
+also call `GET /api/literary/library` and `POST /api/literary/queue/books` to
+enqueue English inventory books, and `POST /api/literary/queue/books/<id>/move`
+to reorder pending entries. Starting, pausing and validation remain CLI
+operations. The browser's localStorage stays a fallback for the upstream
+single-job flow.
 
 ## 9. Validation and quality gates
 

@@ -1,7 +1,7 @@
 {
   "tab": "File d'attente",
   "title": "File d'attente persistante",
-  "intro_html": "Vue en lecture seule de <code>data/literary_queue.db</code>. La file est écrite par le CLI local et le wrapper de traduction ; cette page ne démarre, ne met en pause ni ne modifie aucun job.",
+  "intro_html": "Vue de <code>data/literary_queue.db</code>. La file est écrite par le CLI local et le wrapper de traduction ; cette page peut ajouter des livres de l'inventaire et réordonner les entrées en attente, mais ne démarre, ne met en pause ni ne valide aucun job.",
   "refresh": "Actualiser",
   "updated": "Mis à jour {{time}}",
   "book": "Livre",
@@ -29,5 +29,23 @@
   "status_paused": "En pause",
   "status_validating": "Validation",
   "status_reviewing": "Révision",
-  "status_unknown": "Inconnu"
+  "status_unknown": "Inconnu",
+  "library_title": "Ajouter des livres",
+  "library_intro": "Livres anglais de l'inventaire Calibre qui ne sont pas encore dans la file.",
+  "search_placeholder": "Rechercher un titre, un auteur ou une série",
+  "add_selected": "Ajouter la sélection",
+  "add_none": "Sélectionnez au moins un livre.",
+  "added": "{{count}} ajouté(s) à la file.",
+  "duplicates": "{{count}} déjà dans la file.",
+  "not_found": "{{count}} introuvable(s) dans l'inventaire.",
+  "library_empty": "Aucun livre à ajouter.",
+  "library_error": "Impossible de charger l'inventaire : {{message}}",
+  "adding": "Ajout...",
+  "action_error": "Échec de l'action : {{message}}",
+  "move_up": "Monter",
+  "move_down": "Descendre",
+  "actions": "Actions",
+  "moved": "Ordre de la file mis à jour.",
+  "moving": "Mise à jour de l'ordre...",
+  "move_error": "Impossible de déplacer le livre : {{message}}"
 }

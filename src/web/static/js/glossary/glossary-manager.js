@@ -240,8 +240,8 @@ function switchTopTab(name) {
         window.refreshFileList();
     } else if (name === 'styles' && typeof window.refreshStyleList === 'function') {
         window.refreshStyleList();
-    } else if (name === 'queue' && window.QueueManager && typeof window.QueueManager.refresh === 'function') {
-        window.QueueManager.refresh();
+    } else if (name === 'queue' && window.QueueManager && typeof window.QueueManager.open === 'function') {
+        window.QueueManager.open();
     }
 }
 

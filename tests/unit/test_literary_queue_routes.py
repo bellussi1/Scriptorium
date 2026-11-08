@@ -1,15 +1,19 @@
-"""Tests for the read-only literary queue API."""
+"""Tests for the literary queue API (snapshot, library, add, reorder)."""
 from __future__ import annotations
 
+import json
 import sqlite3
 from pathlib import Path
 
 from flask import Flask
 
 from src.api.blueprints.literary_queue_routes import (
+    build_library_inventory,
     build_queue_snapshot,
     create_literary_queue_blueprint,
 )
+from src.literary.models import BookRecord
+from src.literary.queue import QueueStore
 
 
 def _queue_db(path: Path) -> None:
@@ -67,6 +71,51 @@ def _queue_db(path: Path) -> None:
     conn.close()
 
 
+def _inventory(path: Path, rows: list[dict]) -> Path:
+    path.write_text(json.dumps({"books": rows}, ensure_ascii=False), encoding="utf-8")
+    return path
+
+
+def _inventory_row(calibre_id: int, title: str, language: str = "en") -> dict:
+    return {
+        "calibre_id": calibre_id,
+        "title": title,
+        "author": "Test Author",
+        "series": "Test Series",
+        "series_index": 1.0,
+        "languages": [language],
+        "calibre_path": f"Test Author/{title} ({calibre_id})",
+        "epub_path": f"C:\\Library\\Test Author\\{title} ({calibre_id})\\{title}.epub",
+        "word_count": 1000 + calibre_id,
+    }
+
+
+def _client(tmp_path: Path, monkeypatch, *, rows: list[dict]) -> Flask:
+    monkeypatch.setenv("LITERARY_QUEUE_DB", str(tmp_path / "queue.db"))
+    monkeypatch.setenv("LITERARY_INVENTORY", str(_inventory(tmp_path / "inventory.json", rows)))
+    app = Flask(__name__)
+    app.register_blueprint(create_literary_queue_blueprint())
+    return app
+
+
+def _seed_book(tmp_path: Path, calibre_id: int, title: str) -> None:
+    store = QueueStore(str(tmp_path / "queue.db"))
+    epub = tmp_path / f"{calibre_id}.epub"
+    epub.write_bytes(b"fake epub")
+    store.add_book(
+        BookRecord(
+            calibre_id=calibre_id,
+            title=title,
+            author="Test Author",
+            series="Test Series",
+            series_index=1.0,
+            languages=["en"],
+            epub_path=str(epub),
+        )
+    )
+    store.close()
+
+
 def test_snapshot_summarizes_books_jobs_and_events(tmp_path: Path):
     db = tmp_path / "queue.db"
     _queue_db(db)
@@ -108,3 +157,155 @@ def test_route_returns_json(tmp_path: Path, monkeypatch):
     assert payload["status"] == "ok"
     assert payload["summary"]["books"] == 2
     assert payload["books"][0]["translation_id"] == "cli_test"
+
+
+def test_library_lists_only_unqued_english_books(tmp_path: Path, monkeypatch):
+    rows = [
+        _inventory_row(1, "English One"),
+        _inventory_row(2, "Portuguese One", language="por"),
+        _inventory_row(3, "Already Queued"),
+    ]
+    inventory = _inventory(tmp_path / "inventory.json", rows)
+    monkeypatch.setenv("LITERARY_INVENTORY", str(inventory))
+    _seed_book(tmp_path, 3, "Already Queued")
+
+    payload = build_library_inventory(tmp_path / "queue.db")
+
+    assert payload["status"] == "ok"
+    assert payload["count"] == 1
+    assert payload["books"][0]["calibre_id"] == 1
+    assert payload["books"][0]["title"] == "English One"
+    assert payload["books"][0]["word_count"] == 1001
+    assert inventory.exists()
+
+
+def test_library_returns_503_without_inventory(tmp_path: Path, monkeypatch):
+    monkeypatch.setenv("LITERARY_QUEUE_DB", str(tmp_path / "queue.db"))
+    monkeypatch.setenv("LITERARY_INVENTORY", str(tmp_path / "missing.json"))
+    app = Flask(__name__)
+    app.register_blueprint(create_literary_queue_blueprint())
+
+    response = app.test_client().get("/api/literary/library")
+
+    assert response.status_code == 503
+    assert "inventory" in response.get_json()["error"].lower()
+
+
+def test_add_books_enqueues_and_skips_duplicates(tmp_path: Path, monkeypatch):
+    rows = [_inventory_row(10, "First"), _inventory_row(11, "Second")]
+    app = _client(tmp_path, monkeypatch, rows=rows)
+    client = app.test_client()
+
+    response = client.post(
+        "/api/literary/queue/books", json={"calibre_ids": [10, 99, 11]}
+    )
+
+    assert response.status_code == 201
+    payload = response.get_json()
+    assert len(payload["added"]) == 2
+    assert payload["not_found"] == [99]
+    assert payload["duplicates"] == []
+    assert payload["summary"]["books"] == 2
+    assert [book["title"] for book in payload["books"]] == ["First", "Second"]
+    assert payload["books"][0]["word_count"] == 1010
+    stored = QueueStore(str(tmp_path / "queue.db"))
+    assert stored.list_books()[0].source_path.startswith("/library/Test Author/First (10)/")
+    stored.close()
+
+    again = client.post("/api/literary/queue/books", json={"calibre_ids": [10, 11]})
+    assert again.status_code == 200
+    assert again.get_json()["added"] == []
+    assert again.get_json()["duplicates"] == [10, 11]
+
+
+def test_add_books_rejects_invalid_payloads(tmp_path: Path, monkeypatch):
+    rows = [_inventory_row(10, "First")]
+    client = _client(tmp_path, monkeypatch, rows=rows).test_client()
+
+    for body in ({}, {"calibre_ids": []}, {"calibre_ids": ["nope"]}, {"calibre_ids": [-1]}):
+        response = client.post("/api/literary/queue/books", json=body)
+        assert response.status_code == 400
+
+
+def test_add_books_rejects_non_english_sources(tmp_path: Path, monkeypatch):
+    rows = [_inventory_row(10, "First"), _inventory_row(20, "Traduzido", language="por")]
+    client = _client(tmp_path, monkeypatch, rows=rows).test_client()
+
+    response = client.post("/api/literary/queue/books", json={"calibre_ids": [20]})
+
+    assert response.status_code == 400
+    assert "English" in response.get_json()["error"]
+    assert build_queue_snapshot(tmp_path / "queue.db")["summary"]["books"] == 0
+
+
+def test_move_reorders_pending_books_and_blocks_edges(tmp_path: Path, monkeypatch):
+    rows = [
+        _inventory_row(10, "First"),
+        _inventory_row(11, "Second"),
+        _inventory_row(12, "Third"),
+    ]
+    client = _client(tmp_path, monkeypatch, rows=rows).test_client()
+    client.post("/api/literary/queue/books", json={"calibre_ids": [10, 11, 12]})
+    store = QueueStore(str(tmp_path / "queue.db"))
+    ids = [book.id for book in store.list_books()]
+    store.close()
+
+    response = client.post(
+        f"/api/literary/queue/books/{ids[1]}/move", json={"direction": "up"}
+    )
+
+    assert response.status_code == 200
+    payload = response.get_json()
+    assert [book["title"] for book in payload["books"]] == ["Second", "First", "Third"]
+    assert payload["moved"] == {"book_id": ids[1], "direction": "up"}
+
+    edge = client.post(
+        f"/api/literary/queue/books/{ids[1]}/move", json={"direction": "up"}
+    )
+    assert edge.status_code == 409
+
+    missing = client.post(
+        "/api/literary/queue/books/9999/move", json={"direction": "down"}
+    )
+    assert missing.status_code == 404
+
+    bad_direction = client.post(
+        f"/api/literary/queue/books/{ids[0]}/move", json={"direction": "left"}
+    )
+    assert bad_direction.status_code == 400
+
+
+def test_move_rejects_non_pending_books(tmp_path: Path, monkeypatch):
+    rows = [_inventory_row(10, "First"), _inventory_row(11, "Second")]
+    client = _client(tmp_path, monkeypatch, rows=rows).test_client()
+    client.post("/api/literary/queue/books", json={"calibre_ids": [10, 11]})
+    store = QueueStore(str(tmp_path / "queue.db"))
+    book = store.list_books()[0]
+    store.set_book_state(book.id, "preparing")
+    store.close()
+
+    response = client.post(
+        f"/api/literary/queue/books/{book.id}/move", json={"direction": "down"}
+    )
+
+    assert response.status_code == 409
+
+
+def test_snapshot_puts_active_books_first(tmp_path: Path, monkeypatch):
+    rows = [
+        _inventory_row(10, "First"),
+        _inventory_row(11, "Second"),
+        _inventory_row(12, "Third"),
+    ]
+    client = _client(tmp_path, monkeypatch, rows=rows).test_client()
+    client.post("/api/literary/queue/books", json={"calibre_ids": [10, 11, 12]})
+    store = QueueStore(str(tmp_path / "queue.db"))
+    pending = store.list_books()
+    store.set_book_state(pending[-1].id, "preparing")
+    store.close()
+
+    payload = client.get("/api/literary/queue").get_json()
+
+    assert payload["books"][0]["title"] == "Third"
+    assert payload["books"][0]["job_state"] is None
+    assert payload["books"][0]["status"] == "preparing"

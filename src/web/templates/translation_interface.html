@@ -1723,14 +1723,55 @@
         <div id="tab-queue" class="hidden">
             <div class="main-card">
                 <div class="card-header">
+                    <span class="material-symbols-outlined">library_add</span>
+                    <h2 data-i18n="queue:library_title">Add books</h2>
+                </div>
+                <div class="card-body">
+                    <p class="queue-intro" data-i18n="queue:library_intro">
+                        English books in the Calibre inventory that are not in the queue yet.
+                    </p>
+                    <div class="queue-library-search">
+                        <span class="material-symbols-outlined" aria-hidden="true">search</span>
+                        <input
+                            type="search"
+                            id="queueLibrarySearch"
+                            data-i18n-attr="placeholder:queue:search_placeholder"
+                            placeholder="Search title, author or series"
+                        >
+                    </div>
+                    <select
+                        id="queueLibrarySelect"
+                        class="queue-library-select"
+                        multiple
+                        size="8"
+                        data-i18n-attr="aria-label:queue:library_title"
+                        aria-label="Add books"
+                    ></select>
+                    <div class="queue-library-actions">
+                        <button type="button" id="queueAddBtn" class="btn btn-primary">
+                            <span class="material-symbols-outlined" aria-hidden="true">playlist_add</span>
+                            <span data-i18n="queue:add_selected">Add selected</span>
+                        </button>
+                        <span id="queueActionStatus" class="queue-action-status" role="status" aria-live="polite"></span>
+                    </div>
+                    <div id="queueLibraryError" class="queue-error hidden" role="alert"></div>
+                    <p id="queueLibraryEmpty" class="queue-empty hidden" data-i18n="queue:library_empty">
+                        No books left to add.
+                    </p>
+                </div>
+            </div>
+
+            <div class="main-card">
+                <div class="card-header">
                     <span class="material-symbols-outlined">list_alt</span>
                     <h2 data-i18n="queue:title">Persistent Queue</h2>
                 </div>
                 <div class="card-body">
                     <p class="queue-intro" data-i18n-html="queue:intro_html">
-                        Read-only view of <code>data/literary_queue.db</code>. The queue is
-                        written by the local CLI and the translation wrapper; this page
-                        never starts, pauses or changes a job.
+                        View of <code>data/literary_queue.db</code>. The queue is written by the
+                        local CLI and the translation wrapper; this page can enqueue inventory
+                        books and reorder pending entries, but never starts, pauses or validates
+                        a job.
                     </p>
                     <div id="queueSummary" class="queue-summary" aria-live="polite"></div>
                     <div class="queue-toolbar">
@@ -1752,6 +1793,7 @@
                                     <th data-i18n="queue:model">Model</th>
                                     <th data-i18n="queue:translation_id">Translation ID</th>
                                     <th data-i18n="queue:updated_col">Updated</th>
+                                    <th class="col-center" data-i18n="queue:actions">Actions</th>
                                 </tr>
                             </thead>
                             <tbody id="queueTableBody"></tbody>

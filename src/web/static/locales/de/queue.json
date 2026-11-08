@@ -1,7 +1,7 @@
 {
   "tab": "Warteschlange",
   "title": "Persistente Warteschlange",
-  "intro_html": "Nur-Lese-Ansicht von <code>data/literary_queue.db</code>. Die Warteschlange wird vom lokalen CLI und vom Übersetzungs-Wrapper geschrieben; diese Seite startet, pausiert oder ändert keine Jobs.",
+  "intro_html": "Ansicht von <code>data/literary_queue.db</code>. Die Warteschlange wird vom lokalen CLI und vom Übersetzungs-Wrapper geschrieben; diese Seite kann Bücher aus dem Inventar hinzufügen und ausstehende Einträge umsortieren, startet, pausiert oder validiert aber keine Jobs.",
   "refresh": "Aktualisieren",
   "updated": "Aktualisiert {{time}}",
   "book": "Buch",
@@ -29,5 +29,23 @@
   "status_paused": "Pausiert",
   "status_validating": "Wird validiert",
   "status_reviewing": "Wird geprüft",
-  "status_unknown": "Unbekannt"
+  "status_unknown": "Unbekannt",
+  "library_title": "Bücher hinzufügen",
+  "library_intro": "Englische Bücher aus dem Calibre-Inventar, die noch nicht in der Warteschlange stehen.",
+  "search_placeholder": "Titel, Autor oder Reihe suchen",
+  "add_selected": "Auswahl hinzufügen",
+  "add_none": "Wählen Sie mindestens ein Buch aus.",
+  "added": "{{count}} zur Warteschlange hinzugefügt.",
+  "duplicates": "{{count}} bereits in der Warteschlange.",
+  "not_found": "{{count}} nicht im Inventar gefunden.",
+  "library_empty": "Keine Bücher mehr zum Hinzufügen.",
+  "library_error": "Inventar konnte nicht geladen werden: {{message}}",
+  "adding": "Wird hinzugefügt...",
+  "action_error": "Aktion fehlgeschlagen: {{message}}",
+  "move_up": "Nach oben",
+  "move_down": "Nach unten",
+  "actions": "Aktionen",
+  "moved": "Reihenfolge aktualisiert.",
+  "moving": "Reihenfolge wird aktualisiert...",
+  "move_error": "Buch konnte nicht verschoben werden: {{message}}"
 }

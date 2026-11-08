@@ -325,6 +325,73 @@ class QueueStore:
             conn.commit()
             return True
 
+    def next_pending_priority(self) -> int:
+        """Priority that appends a new book after every pending entry."""
+        with self._connect() as conn:
+            row = conn.execute(
+                "SELECT MIN(priority) FROM books WHERE status = 'pending'"
+            ).fetchone()
+        lowest = row[0] if row else None
+        return (int(lowest) - 1) if lowest is not None else 0
+
+    def move_book(self, book_id: int, direction: str) -> bool:
+        """Move a pending book up/down in the queue and normalize priorities.
+
+        Non-pending books keep the front of the list through a high priority
+        band; pending books are renumbered in their chosen order.
+        """
+        if direction not in {"up", "down"}:
+            raise ValueError("direction must be 'up' or 'down'")
+        now = utc_now()
+        with self._lock, self._connect() as conn:
+            row = conn.execute(
+                "SELECT id, status FROM books WHERE id = ?", (book_id,)
+            ).fetchone()
+            if not row:
+                return False
+            if row["status"] != "pending":
+                raise ValueError("only pending books can be reordered")
+
+            pending = conn.execute(
+                """
+                SELECT id FROM books
+                WHERE status = 'pending'
+                ORDER BY priority DESC, series, COALESCE(series_index, 0), id
+                """
+            ).fetchall()
+            ids = [item["id"] for item in pending]
+            index = ids.index(book_id)
+            neighbour = index - 1 if direction == "up" else index + 1
+            if neighbour < 0 or neighbour >= len(ids):
+                return False
+            ids[index], ids[neighbour] = ids[neighbour], ids[index]
+
+            active = conn.execute(
+                """
+                SELECT id FROM books
+                WHERE status <> 'pending'
+                ORDER BY priority DESC, series, COALESCE(series_index, 0), id
+                """
+            ).fetchall()
+            base = 1_000_000
+            for offset, item in enumerate(active):
+                conn.execute(
+                    "UPDATE books SET priority = ?, updated_at = ? WHERE id = ?",
+                    (base - offset, now, item["id"]),
+                )
+            for offset, item_id in enumerate(ids):
+                conn.execute(
+                    "UPDATE books SET priority = ?, updated_at = ? WHERE id = ?",
+                    (len(ids) - offset, now, item_id),
+                )
+            conn.execute(
+                "INSERT INTO events (book_id, level, message, created_at) "
+                "VALUES (?, 'info', ?, ?)",
+                (book_id, f"queue order changed: moved {direction}", now),
+            )
+            conn.commit()
+            return True
+
     def create_job(self, book_id: int, total_chapters: int = 0) -> int:
         now = utc_now()
         with self._lock, self._connect() as conn:

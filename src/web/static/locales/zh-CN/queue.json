@@ -1,7 +1,7 @@
 {
   "tab": "队列",
   "title": "持久队列",
-  "intro_html": "只读查看 <code>data/literary_queue.db</code>。队列由本地 CLI 和翻译包装器写入；此页面不会启动、暂停或修改任何任务。",
+  "intro_html": "查看 <code>data/literary_queue.db</code>。队列由本地 CLI 和翻译包装器写入；此页面可将清单中的书籍加入队列并调整待处理条目的顺序，但不会启动、暂停或验证任何任务。",
   "refresh": "刷新",
   "updated": "更新于 {{time}}",
   "book": "书籍",
@@ -29,5 +29,23 @@
   "status_paused": "已暂停",
   "status_validating": "验证中",
   "status_reviewing": "审核中",
-  "status_unknown": "未知"
+  "status_unknown": "未知",
+  "library_title": "添加书籍",
+  "library_intro": "Calibre 清单中尚未加入队列的英文书籍。",
+  "search_placeholder": "搜索书名、作者或系列",
+  "add_selected": "添加所选",
+  "add_none": "请至少选择一本书。",
+  "added": "已向队列添加 {{count}} 本。",
+  "duplicates": "{{count}} 本已在队列中。",
+  "not_found": "{{count}} 本未在清单中找到。",
+  "library_empty": "没有可添加的书籍。",
+  "library_error": "无法加载清单：{{message}}",
+  "adding": "正在添加...",
+  "action_error": "操作失败：{{message}}",
+  "move_up": "上移",
+  "move_down": "下移",
+  "actions": "操作",
+  "moved": "队列顺序已更新。",
+  "moving": "正在更新顺序...",
+  "move_error": "无法移动书籍：{{message}}"
 }

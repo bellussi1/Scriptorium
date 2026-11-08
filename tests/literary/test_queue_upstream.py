@@ -289,3 +289,33 @@ def test_existing_database_is_migrated_with_translation_id(tmp_path: Path):
         columns = {row["name"] for row in check.execute("PRAGMA table_info(jobs)")}
     assert "translation_id" in columns
     store.close()
+
+def test_move_book_reorders_pending_and_normalizes_priorities(tmp_path: Path):
+    store = QueueStore(str(tmp_path / "queue.db"))
+    ids = [
+        store.add_book(_record(make_epub(tmp_path / "a.epub"), 1, "Alpha")),
+        store.add_book(_record(make_epub(tmp_path / "b.epub"), 2, "Beta")),
+        store.add_book(_record(make_epub(tmp_path / "c.epub"), 3, "Gamma")),
+    ]
+
+    assert store.move_book(ids[2], "up") is True
+    books = store.list_books()
+    assert [book.title for book in books] == ["Alpha", "Gamma", "Beta"]
+    assert [book.priority for book in books] == [3, 2, 1]
+
+    assert store.move_book(ids[0], "up") is False
+    assert store.move_book(ids[1], "down") is False
+    assert store.move_book(9999, "up") is False
+    store.close()
+
+
+def test_move_book_rejects_non_pending_and_unknown_direction(tmp_path: Path):
+    store = QueueStore(str(tmp_path / "queue.db"))
+    book_id = store.add_book(_record(make_epub(tmp_path / "a.epub"), 1, "Alpha"))
+    store.set_book_state(book_id, "preparing")
+
+    with pytest.raises(ValueError):
+        store.move_book(book_id, "up")
+    with pytest.raises(ValueError):
+        store.move_book(book_id, "left")
+    store.close()

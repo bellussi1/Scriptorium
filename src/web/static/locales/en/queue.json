@@ -1,7 +1,7 @@
 {
   "tab": "Queue",
   "title": "Persistent Queue",
-  "intro_html": "Read-only view of <code>data/literary_queue.db</code>. The queue is written by the local CLI and the translation wrapper; this page never starts, pauses or changes a job.",
+  "intro_html": "View of <code>data/literary_queue.db</code>. The queue is written by the local CLI and the translation wrapper; this page can enqueue inventory books and reorder pending entries, but never starts, pauses or validates a job.",
   "refresh": "Refresh",
   "updated": "Updated {{time}}",
   "book": "Book",
@@ -29,5 +29,23 @@
   "status_paused": "Paused",
   "status_validating": "Validating",
   "status_reviewing": "Reviewing",
-  "status_unknown": "Unknown"
+  "status_unknown": "Unknown",
+  "library_title": "Add books",
+  "library_intro": "English books in the Calibre inventory that are not in the queue yet.",
+  "search_placeholder": "Search title, author or series",
+  "add_selected": "Add selected",
+  "add_none": "Select at least one book.",
+  "added": "{{count}} added to the queue.",
+  "duplicates": "{{count}} already queued.",
+  "not_found": "{{count}} not found in the inventory.",
+  "library_empty": "No books left to add.",
+  "library_error": "Could not load the library: {{message}}",
+  "adding": "Adding...",
+  "action_error": "Action failed: {{message}}",
+  "move_up": "Move up",
+  "move_down": "Move down",
+  "actions": "Actions",
+  "moved": "Queue order updated.",
+  "moving": "Updating order...",
+  "move_error": "Could not move the book: {{message}}"
 }

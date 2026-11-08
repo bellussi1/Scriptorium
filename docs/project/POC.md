@@ -68,7 +68,7 @@ pytest -p no:cacheprovider tests/unit/glossary -q
 # 183 passed
 
 pytest -p no:cacheprovider -q
-# 2884 passed, 2 skipped, 10 deselected, 14 failed
+# 2894 passed, 2 skipped, 10 deselected, 14 failed
 ```
 
 The same 14 failures reproduce on a clean worktree at upstream `b5ed606` under
@@ -404,30 +404,42 @@ and writes an 11.5 KB TXT without errors. This is a CLI read/convert test, not a
 GUI or KOReader test; it proves Calibre's EPUB reader accepts the file, not that
 the layout is visually perfect.
 
-### 2.13 Read-only queue UI
+### 2.13 Queue UI
 
-The SPA now has a **Queue** tab that reads the persistent literary queue without
-starting or changing jobs:
+The SPA has a **Queue** tab that reads the persistent literary queue and exposes
+the two controlled actions the queue needs from the browser:
 
 - `GET /api/literary/queue` reads `data/literary_queue.db` in SQLite
   `mode=ro` and returns the book list, summary, latest job/progress and recent
-  events.
+  events. Active books are ordered first; pending books follow the stored
+  priority.
+- `GET /api/literary/library` lists English books from the Calibre inventory
+  (`data/calibre/targets.json`) that are not queued yet.
+- `POST /api/literary/queue/books` enqueues up to 100 `calibre_ids` at a time,
+  skips duplicates, and maps host paths to the `/library` container mount so the
+  EPUB can be hashed and read by the runner.
+- `POST /api/literary/queue/books/<id>/move` moves a **pending** book up or
+  down and renumbers pending priorities; non-pending entries are rejected with
+  `409`.
 - `src/web/static/queue.css` uses the existing design tokens (surfaces, borders,
   status colors, dark mode) instead of duplicating the palette.
 - `src/web/static/js/queue/queue-manager.js` renders the table and refreshes
-  every 10 s only while the tab is visible.
+  every 10 s only while the tab is visible. It also filters the library picker,
+  disables move buttons at the queue edges, and reports action results.
 - The strings are in a new `queue` i18n namespace across all seven supported
   locales.
-- The view is deliberately read-only: start, pause, reorder and validate remain
-  CLI/queue operations.
+- The boundary is explicit: the UI can enqueue and reorder, but never starts,
+  pauses or validates a translation job.
 
 The active UI on port 5000 gets the tab after a restart. For validation I ran a
 second isolated app on **`http://127.0.0.1:5001`** with a copy of the queue
 database; it showed the 15 books, the active *Howling Dark* row, progress,
-`translation_id` and events. The second instance does not touch the real
-`data/jobs.db`.
+`translation_id`, events and 8 available inventory books. Moving *The Mad Ship*
+above *Ship of Magic* and adding *Assassin's Apprentice* worked against the copy;
+both actions were then reverted by restoring the copy from the live queue. The
+second instance does not touch the real `data/jobs.db`.
 
-Validation: **3** route tests, **65** i18n/route tests, full suite **2,884
+Validation: **11** route tests, **90** targeted tests, full suite **2,894
 passed, 2 skipped, 14 pre-existing failures**.
 
 ## 3. What is not implemented

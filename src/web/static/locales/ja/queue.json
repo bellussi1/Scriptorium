@@ -1,7 +1,7 @@
 {
   "tab": "キュー",
   "title": "永続キュー",
-  "intro_html": "<code>data/literary_queue.db</code> の読み取り専用ビューです。キューはローカル CLI と翻訳ラッパーが書き込みます。このページはジョブの開始、一時停止、変更を行いません。",
+  "intro_html": "<code>data/literary_queue.db</code> のビューです。キューはローカル CLI と翻訳ラッパーが書き込みます。このページではインベントリの書籍をキューに追加し、待機中の項目を並べ替えられますが、ジョブの開始、一時停止、検証は行いません。",
   "refresh": "更新",
   "updated": "{{time}} に更新",
   "book": "書籍",
@@ -29,5 +29,23 @@
   "status_paused": "一時停止",
   "status_validating": "検証中",
   "status_reviewing": "レビュー中",
-  "status_unknown": "不明"
+  "status_unknown": "不明",
+  "library_title": "書籍を追加",
+  "library_intro": "Calibre インベントリ内でまだキューにない英語の書籍です。",
+  "search_placeholder": "タイトル、著者、シリーズを検索",
+  "add_selected": "選択項目を追加",
+  "add_none": "少なくとも 1 冊選択してください。",
+  "added": "{{count}} 冊をキューに追加しました。",
+  "duplicates": "{{count}} 冊は既にキューにあります。",
+  "not_found": "{{count}} 冊がインベントリに見つかりません。",
+  "library_empty": "追加できる書籍はありません。",
+  "library_error": "インベントリを読み込めませんでした: {{message}}",
+  "adding": "追加中...",
+  "action_error": "操作に失敗しました: {{message}}",
+  "move_up": "上へ",
+  "move_down": "下へ",
+  "actions": "操作",
+  "moved": "キューの順序を更新しました。",
+  "moving": "順序を更新中...",
+  "move_error": "書籍を移動できませんでした: {{message}}"
 }

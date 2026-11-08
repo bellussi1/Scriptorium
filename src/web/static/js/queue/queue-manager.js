@@ -1,13 +1,16 @@
 /**
- * Read-only persistent literary queue view.
+ * Persistent literary queue view and the two controlled queue actions:
+ * enqueueing books from the Calibre inventory and reordering pending entries.
  *
- * The queue is written by the local CLI/wrapper. This module only reads
- * /api/literary/queue; it never starts, pauses or mutates a job.
+ * The queue is written by the local CLI/wrapper. This module never starts,
+ * pauses or validates a translation job.
  */
 
 import { t } from '../i18n/i18n.js';
 
-const API_URL = '/api/literary/queue';
+const QUEUE_URL = '/api/literary/queue';
+const LIBRARY_URL = '/api/literary/library';
+const ADD_URL = '/api/literary/queue/books';
 const REFRESH_MS = 10000;
 
 const STATUS_KEYS = {
@@ -23,6 +26,8 @@ const STATUS_KEYS = {
 };
 
 let refreshTimer = null;
+let libraryBooks = [];
+let actionInFlight = false;
 
 function byId(id) {
     return document.getElementById(id);
@@ -103,11 +108,30 @@ function renderSummary(data) {
         : '';
 }
 
+function moveButtons(book, isFirst, isLast) {
+    if (book.status !== 'pending') return '<span class="queue-muted">—</span>';
+    const upLabel = escapeHtml(t('queue:move_up'));
+    const downLabel = escapeHtml(t('queue:move_down'));
+    return `
+        <button type="button" class="queue-move-btn" data-move="up" data-book-id="${book.id}"
+                title="${upLabel}" aria-label="${upLabel}" ${isFirst ? 'disabled' : ''}>
+            <span class="material-symbols-outlined" aria-hidden="true">arrow_upward</span>
+        </button>
+        <button type="button" class="queue-move-btn" data-move="down" data-book-id="${book.id}"
+                title="${downLabel}" aria-label="${downLabel}" ${isLast ? 'disabled' : ''}>
+            <span class="material-symbols-outlined" aria-hidden="true">arrow_downward</span>
+        </button>
+    `;
+}
+
 function renderRows(data) {
     const body = byId('queueTableBody');
     const empty = byId('queueEmpty');
     const tableWrap = document.querySelector('#tab-queue .queue-table-wrap');
     const books = Array.isArray(data.books) ? data.books : [];
+    const pending = books.filter((book) => book.status === 'pending');
+    const firstPending = pending.length ? pending[0].id : null;
+    const lastPending = pending.length ? pending[pending.length - 1].id : null;
 
     if (!books.length) {
         body.innerHTML = '';
@@ -138,6 +162,7 @@ function renderRows(data) {
                     <td title="${escapeHtml(book.model || '')}">${escapeHtml(modelLabel(book))}</td>
                     <td>${translationId}</td>
                     <td class="queue-updated-cell">${formatDate(book.job_updated_at || book.updated_at)}</td>
+                    <td class="queue-actions-cell">${moveButtons(book, book.id === firstPending, book.id === lastPending)}</td>
                 </tr>
             `;
         })
@@ -173,21 +198,98 @@ function clearError() {
     error.classList.add('hidden');
 }
 
+function showLibraryError(message) {
+    const error = byId('queueLibraryError');
+    error.textContent = t('queue:library_error', { message });
+    error.classList.remove('hidden');
+}
+
+function clearLibraryError() {
+    const error = byId('queueLibraryError');
+    error.textContent = '';
+    error.classList.add('hidden');
+}
+
+function setActionStatus(message, isError = false) {
+    const status = byId('queueActionStatus');
+    if (!status) return;
+    status.textContent = message;
+    status.classList.toggle('is-error', Boolean(isError));
+}
+
+function apiHeaders() {
+    return { 'X-API-Token': window.__API_TOKEN__ || '' };
+}
+
+function libraryBookLabel(book) {
+    const series = book.series
+        ? ` — ${book.series}${book.series_index != null ? ` #${book.series_index}` : ''}`
+        : '';
+    return `${book.title} — ${book.author || '?'}${series} · ${formatNumber(book.word_count)}`;
+}
+
+function filteredLibrary() {
+    const input = byId('queueLibrarySearch');
+    const term = String(input?.value || '').trim().toLowerCase();
+    if (!term) return libraryBooks;
+    return libraryBooks.filter((book) =>
+        [book.title, book.author, book.series]
+            .some((value) => String(value || '').toLowerCase().includes(term))
+    );
+}
+
+function renderLibrary() {
+    const select = byId('queueLibrarySelect');
+    const empty = byId('queueLibraryEmpty');
+    if (!select) return;
+    const books = filteredLibrary();
+    select.innerHTML = books
+        .map((book) => `<option value="${escapeHtml(book.calibre_id)}">${escapeHtml(libraryBookLabel(book))}</option>`)
+        .join('');
+    if (empty) empty.classList.toggle('hidden', books.length > 0);
+    const addButton = byId('queueAddBtn');
+    if (addButton) addButton.disabled = books.length === 0 || actionInFlight;
+}
+
+async function loadLibrary() {
+    clearLibraryError();
+    try {
+        const response = await fetch(LIBRARY_URL, {
+            headers: apiHeaders(),
+            cache: 'no-store',
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok || data.status === 'error') {
+            throw new Error(data.error || `HTTP ${response.status}`);
+        }
+        libraryBooks = Array.isArray(data.books) ? data.books : [];
+        renderLibrary();
+    } catch (error) {
+        libraryBooks = [];
+        renderLibrary();
+        showLibraryError(error.message || String(error));
+    }
+}
+
+function applySnapshot(data) {
+    renderSummary(data);
+    renderRows(data);
+    renderEvents(data);
+}
+
 async function refresh() {
     const button = byId('queueRefreshBtn');
     if (button) button.disabled = true;
     clearError();
     try {
-        const response = await fetch(API_URL, {
-            headers: { 'X-API-Token': window.__API_TOKEN__ || '' },
+        const response = await fetch(QUEUE_URL, {
+            headers: apiHeaders(),
             cache: 'no-store',
         });
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
         const data = await response.json();
         if (data.status === 'error') throw new Error(data.error || 'server error');
-        renderSummary(data);
-        renderRows(data);
-        renderEvents(data);
+        applySnapshot(data);
     } catch (error) {
         showError(error.message || String(error));
     } finally {
@@ -195,9 +297,90 @@ async function refresh() {
     }
 }
 
+async function addSelectedBooks() {
+    if (actionInFlight) return;
+    const select = byId('queueLibrarySelect');
+    const ids = select ? [...select.selectedOptions].map((option) => Number(option.value)) : [];
+    if (!ids.length) {
+        setActionStatus(t('queue:add_none'), true);
+        return;
+    }
+
+    const button = byId('queueAddBtn');
+    actionInFlight = true;
+    if (button) button.disabled = true;
+    clearLibraryError();
+    setActionStatus(t('queue:adding'));
+    try {
+        const response = await fetch(ADD_URL, {
+            method: 'POST',
+            headers: { ...apiHeaders(), 'Content-Type': 'application/json' },
+            body: JSON.stringify({ calibre_ids: ids }),
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok || data.status === 'error') {
+            throw new Error(data.error || `HTTP ${response.status}`);
+        }
+        applySnapshot(data);
+        const parts = [t('queue:added', { count: (data.added || []).length })];
+        if ((data.duplicates || []).length) {
+            parts.push(t('queue:duplicates', { count: data.duplicates.length }));
+        }
+        if ((data.not_found || []).length) {
+            parts.push(t('queue:not_found', { count: data.not_found.length }));
+        }
+        setActionStatus(parts.join(' '));
+        await loadLibrary();
+    } catch (error) {
+        setActionStatus(t('queue:action_error', { message: error.message || String(error) }), true);
+    } finally {
+        actionInFlight = false;
+        renderLibrary();
+    }
+}
+
+async function moveBook(bookId, direction) {
+    if (actionInFlight) return;
+    actionInFlight = true;
+    setActionStatus(t('queue:moving'));
+    try {
+        const response = await fetch(`${ADD_URL}/${bookId}/move`, {
+            method: 'POST',
+            headers: { ...apiHeaders(), 'Content-Type': 'application/json' },
+            body: JSON.stringify({ direction }),
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok || data.status === 'error') {
+            throw new Error(data.error || `HTTP ${response.status}`);
+        }
+        applySnapshot(data);
+        setActionStatus(t('queue:moved'));
+    } catch (error) {
+        setActionStatus(t('queue:move_error', { message: error.message || String(error) }), true);
+    } finally {
+        actionInFlight = false;
+    }
+}
+
 function initialize() {
     const button = byId('queueRefreshBtn');
     if (button) button.addEventListener('click', refresh);
+
+    const addButton = byId('queueAddBtn');
+    if (addButton) addButton.addEventListener('click', addSelectedBooks);
+
+    const search = byId('queueLibrarySearch');
+    if (search) search.addEventListener('input', renderLibrary);
+
+    const table = byId('queueTableBody');
+    if (table) {
+        table.addEventListener('click', (event) => {
+            const move = event.target.closest('[data-move]');
+            if (!move || move.disabled) return;
+            moveBook(Number(move.dataset.bookId), move.dataset.move);
+        });
+    }
+
     if (refreshTimer) clearInterval(refreshTimer);
     refreshTimer = setInterval(() => {
         const tab = byId('tab-queue');
@@ -208,4 +391,8 @@ function initialize() {
     window.QueueManager = QueueManager;
 }
 
-export const QueueManager = { initialize, refresh };
+function open() {
+    return Promise.all([refresh(), loadLibrary()]);
+}
+
+export const QueueManager = { initialize, open, refresh, loadLibrary };

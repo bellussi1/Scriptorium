@@ -249,3 +249,119 @@
 .queue-event-error {
     color: var(--danger-light-text);
 }
+
+/* Library picker and reorder controls */
+
+.queue-library-card {
+    margin-bottom: 18px;
+}
+
+.queue-library-search {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+}
+
+.queue-library-search .material-symbols-outlined {
+    color: var(--text-muted-light);
+    font-size: 20px;
+}
+
+.queue-library-search input {
+    flex: 1;
+    min-width: 0;
+    padding: 9px 12px;
+    border: 1px solid var(--border-light);
+    border-radius: 8px;
+    background: var(--background-light);
+    color: var(--text-dark);
+    font: inherit;
+    font-size: 0.85rem;
+}
+
+.queue-library-search input:focus {
+    outline: none;
+    border-color: var(--primary-light);
+}
+
+.queue-library-select {
+    width: 100%;
+    min-height: 170px;
+    padding: 6px;
+    border: 1px solid var(--border-light);
+    border-radius: 10px;
+    background: var(--background-light);
+    color: var(--text-dark);
+    font: inherit;
+    font-size: 0.84rem;
+}
+
+.queue-library-select:focus {
+    outline: none;
+    border-color: var(--primary-light);
+}
+
+.queue-library-select option {
+    padding: 6px 8px;
+    border-radius: 6px;
+}
+
+.queue-library-select option:checked {
+    background: var(--primary-light);
+    color: #ffffff;
+}
+
+.queue-library-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-top: 10px;
+}
+
+.queue-action-status {
+    font-size: 0.8rem;
+    color: var(--text-muted-light);
+}
+
+.queue-action-status.is-error {
+    color: var(--danger-light-text);
+}
+
+.queue-table .col-center {
+    text-align: center;
+}
+
+.queue-actions-cell {
+    text-align: center;
+    white-space: nowrap;
+}
+
+.queue-move-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    margin: 0 2px;
+    border: 1px solid var(--border-light);
+    border-radius: 6px;
+    background: transparent;
+    color: var(--text-dark);
+    cursor: pointer;
+}
+
+.queue-move-btn:hover:not(:disabled) {
+    border-color: var(--primary-light);
+    background: var(--background-light);
+}
+
+.queue-move-btn:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+}
+
+.queue-move-btn .material-symbols-outlined {
+    font-size: 18px;
+}
