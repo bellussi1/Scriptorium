@@ -6,10 +6,11 @@ notes: >-
   Ten novels, split from the Calibre omnibus 343 (The Complete Malazan Book of
   the Fallen) on 2026-11-09. The split EPUBs are under
   data/calibre/malazan-split/ and each one passes EPUBCheck 5.4.0 with 0 fatals,
-  0 errors and 0 warnings. They are not imported into Calibre yet. Glossary and
-  style are intentionally deferred until the Realm of the Elderlings and Sun
-  Eater passes are done; this file only fixes the book order and the split
-  provenance.
+  0 errors and 0 warnings. They are not imported into Calibre; all ten are
+  queued in data/literary_queue.db since 2026-11-09, after the Realm of the
+  Elderlings and Sun Eater entries. Glossary and style are intentionally
+  deferred until those passes are done; this file fixes the book order and the
+  split provenance.
 books:
   - slug: gardens-of-the-moon
     title: Gardens of the Moon

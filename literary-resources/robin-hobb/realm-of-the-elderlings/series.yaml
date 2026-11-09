@@ -9,7 +9,9 @@ notes: >-
   the three Farseer volumes. The Rain Wild Chronicles is present as a single
   omnibus (Calibre 331) containing four novels. It is deferred by the user and
   is not in the active queue; if it is revisited, split the omnibus before
-  producing a per-novel queue.
+  producing a per-novel queue. The active queue as of 2026-11-09 covers
+  Liveship, Tawny Man and Fitz and the Fool; Farseer is skipped because the
+  official Brazilian editions are already in the library.
 books:
   - slug: assassins-apprentice
     title: Assassin's Apprentice
