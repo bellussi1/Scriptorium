@@ -24,6 +24,10 @@ from src.config import (
     DEFAULT_MODEL,
     REQUEST_TIMEOUT,
     OLLAMA_NUM_CTX,
+    OLLAMA_TEMPERATURE,
+    OLLAMA_TOP_P,
+    OLLAMA_TOP_K,
+    OLLAMA_REPEAT_PENALTY,
     MAX_TRANSLATION_ATTEMPTS,
     UNCONTROLLABLE_THINKING_MODELS,
     CONTROLLABLE_THINKING_MODELS,
@@ -48,6 +52,15 @@ class OllamaProvider(LLMProvider):
         # Quick check against known model lists (fallback if detection fails)
         self._known_uncontrollable = any(_model_matches_pattern(model, tm) for tm in UNCONTROLLABLE_THINKING_MODELS)
         self._known_controllable = any(_model_matches_pattern(model, tm) for tm in CONTROLLABLE_THINKING_MODELS)
+
+    def _sampling_options(self) -> dict:
+        """Explicit Ollama sampling; server defaults vary between releases."""
+        return {
+            "temperature": OLLAMA_TEMPERATURE,
+            "top_p": OLLAMA_TOP_P,
+            "top_k": OLLAMA_TOP_K,
+            "repeat_penalty": OLLAMA_REPEAT_PENALTY,
+        }
 
     def _check_known_model_lists(self) -> Optional[ThinkingBehavior]:
         """Check if model matches known model lists for quick classification."""
@@ -282,7 +295,8 @@ class OllamaProvider(LLMProvider):
             "stream": True,  # Enable streaming for real-time token monitoring
             "options": {
                 "num_ctx": self.context_window,
-                "truncate": False
+                "truncate": False,
+                **self._sampling_options(),
             },
         }
 

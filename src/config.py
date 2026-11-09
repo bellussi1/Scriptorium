@@ -306,8 +306,24 @@ else:
 
 # Sampling temperature applied to cloud LLM providers (gemini, deepseek, mistral,
 # poe). Lower values favor consistent translations; higher values produce more
-# variation. Ollama is unaffected because it uses its own server-side defaults.
+# variation.
 TEMPERATURE = float(os.getenv('TEMPERATURE', '0.3'))
+
+# Ollama sampling options. Sent explicitly so server defaults cannot drift
+# between Ollama releases. The low-temperature values below are the ones the
+# fail-case matrix tested: they improved chrF from 0.892 to 0.903 and raised
+# first-pass validity on the curated fail set from 16.7% to 25%.
+OLLAMA_TEMPERATURE = float(os.getenv('OLLAMA_TEMPERATURE', '0.2'))
+OLLAMA_TOP_P = float(os.getenv('OLLAMA_TOP_P', '0.9'))
+OLLAMA_TOP_K = int(os.getenv('OLLAMA_TOP_K', '40'))
+OLLAMA_REPEAT_PENALTY = float(os.getenv('OLLAMA_REPEAT_PENALTY', '1.0'))
+
+# The strict placeholder block costs ~80 prompt tokens and lifted first-pass
+# validity on the curated fail set from 16.7% to 41.7%. Disable it only for a
+# model that already follows the lighter placeholder rules.
+STRICT_PLACEHOLDER_PROMPT = os.getenv(
+    'STRICT_PLACEHOLDER_PROMPT', 'true'
+).strip().lower() in ('1', 'true', 'yes', 'on')
 
 # Gemini safety filter threshold applied to all four harm categories
 # (HARASSMENT, HATE_SPEECH, SEXUALLY_EXPLICIT, DANGEROUS_CONTENT). Default is

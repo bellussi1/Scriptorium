@@ -5,7 +5,7 @@ from src.prompts.examples import (build_placeholder_section,
                               TAG0)
 from src.config import (INPUT_TAG_IN, INPUT_TAG_OUT, TRANSLATE_TAG_IN,
                         TRANSLATE_TAG_OUT, PLACEHOLDER_PREFIX, PLACEHOLDER_SUFFIX,
-                        create_placeholder)
+                        STRICT_PLACEHOLDER_PROMPT, create_placeholder)
 
 # Tags for placeholder correction responses
 CORRECTED_TAG_IN = "<CORRECTED_TAG_IN>"
@@ -95,6 +95,21 @@ _PLAIN_TEXT_FORMAT_RULES = (
 # Set by the plain-text pipeline on the single retry it issues after a
 # paragraph-count mismatch, and never on a first attempt (issue #253).
 PLAIN_TEXT_EXPECTED_PARAGRAPHS_OPTION = 'plain_text_expected_paragraphs'
+
+
+def _strict_placeholder_rules(placeholder_format: Optional[Tuple[str, str]] = None) -> str:
+    """The hard placeholder contract tested as prompt_hard in the matrix."""
+    prefix, suffix = placeholder_format or (PLACEHOLDER_PREFIX, PLACEHOLDER_SUFFIX)
+    token = f"{prefix}N{suffix}"
+    return f"""
+
+# PLACEHOLDER INTEGRITY (NON-NEGOTIABLE)
+
+Every token of the form {token} in the source is a structural marker.
+Reproduce every marker exactly once, in the same order, at the same position
+relative to the translated text. Never translate, rename, renumber, drop,
+duplicate or move a marker. If a marker falls between two sentences, keep it
+there."""
 
 
 def _plain_text_format_rules(prompt_options: Optional[Dict[str, Any]] = None) -> str:
@@ -269,6 +284,12 @@ def generate_translation_prompt(
     else:
         placeholder_section = ""
 
+    strict_placeholder_rules = ""
+    if has_placeholders and prompt_options.get(
+        'strict_placeholder_prompt', STRICT_PLACEHOLDER_PROMPT
+    ):
+        strict_placeholder_rules = _strict_placeholder_rules(placeholder_format)
+
     # Build optional prompt sections based on prompt_options
     optional_sections = _build_optional_prompt_sections(prompt_options, plain_text=not has_placeholders)
 
@@ -327,7 +348,7 @@ If unsure between literal and natural phrasing: **choose natural**.
 Your entire translation output must be written in {target_language}.
 Do NOT write in {source_language} or any other language - ONLY {target_language.upper()}.
 
-{output_format_section}"""
+{output_format_section}{strict_placeholder_rules}"""
 
     # USER PROMPT - Context and content to translate (varies per request)
     previous_translation_block_text = ""
