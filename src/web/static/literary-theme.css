@@ -922,6 +922,18 @@ label,
     color: var(--danger-light-text) !important;
 }
 
+/* The "Next" marker inverts with the theme: dark ink on paper in light mode,
+   light ink on graphite in dark mode. The base queue.css pair (ink background
+   plus hardcoded white text) became white-on-white once --primary-light
+   flipped for dark mode. */
+.queue-next-badge {
+    background: var(--ink);
+    color: var(--paper);
+    padding: 2px 7px;
+    font-size: 10px;
+    letter-spacing: 0.05em;
+}
+
 .queue-progress {
     height: 4px;
     max-width: 150px;
