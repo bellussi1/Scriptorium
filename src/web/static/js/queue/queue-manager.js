@@ -9,6 +9,7 @@
  */
 
 import { t } from '../i18n/i18n.js';
+import { toast } from '../ui/toast.js';
 
 const QUEUE_URL = '/api/literary/queue';
 const LIBRARY_URL = '/api/literary/library';
@@ -349,6 +350,15 @@ function renderNow(data) {
             ${escapeHtml(t('queue:now_view_log'))}
         </button>
     `);
+    if (!isActive) {
+        buttons.push(`
+            <button type="button" class="btn btn-secondary queue-now-btn queue-remove-btn"
+                    data-now-remove="${book.id}">
+                <span class="material-symbols-outlined" aria-hidden="true">playlist_remove</span>
+                ${escapeHtml(t('queue:remove'))}
+            </button>
+        `);
+    }
     if (state === 'needs_review') {
         buttons.push(`
             <button type="button" class="btn btn-primary queue-now-btn" data-now-approve="${book.id}">
@@ -458,6 +468,16 @@ function actionButtons(book, isFirst, isLast) {
             <button type="button" class="queue-move-btn" data-move="down" data-book-id="${book.id}"
                     title="${downLabel}" aria-label="${downLabel}" ${isLast ? 'disabled' : ''}>
                 <span class="material-symbols-outlined" aria-hidden="true">arrow_downward</span>
+            </button>
+        `);
+    }
+    if (!book.live && !RUNNING_STATES.has(state)) {
+        const removeLabel = escapeHtml(t('queue:remove'));
+        buttons.push(`
+            <button type="button" class="queue-move-btn queue-remove-btn"
+                    data-remove-book-id="${book.id}"
+                    title="${removeLabel}" aria-label="${removeLabel}">
+                <span class="material-symbols-outlined" aria-hidden="true">playlist_remove</span>
             </button>
         `);
     }
@@ -1231,6 +1251,34 @@ async function retryBook(bookId) {
     }
 }
 
+async function removeBook(bookId) {
+    if (actionInFlight) return;
+    const book = lastBooks.find((item) => item.id === bookId);
+    const title = book?.title || '';
+    if (!window.confirm(t('queue:remove_confirm', { title }))) return;
+
+    actionInFlight = true;
+    try {
+        const response = await fetch(`${ADD_URL}/${bookId}`, {
+            method: 'DELETE',
+            headers: apiHeaders(),
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok || data.status === 'error') {
+            throw new Error(data.error || `HTTP ${response.status}`);
+        }
+        applySnapshot(data);
+        loadLibrary();
+        toast.success(t('queue:removed', { title }));
+    } catch (error) {
+        toast.error(t('queue:action_remove_error', {
+            message: error.message || String(error),
+        }));
+    } finally {
+        actionInFlight = false;
+    }
+}
+
 async function downloadKindleZip() {
     const button = byId('queueKindleZipBtn');
     if (button) button.disabled = true;
@@ -1351,7 +1399,12 @@ function initialize() {
                 return;
             }
             const retry = event.target.closest('[data-now-retry]');
-            if (retry) retryBook(Number(retry.dataset.nowRetry));
+            if (retry) {
+                retryBook(Number(retry.dataset.nowRetry));
+                return;
+            }
+            const remove = event.target.closest('[data-now-remove]');
+            if (remove) removeBook(Number(remove.dataset.nowRemove));
         });
     }
 
@@ -1379,6 +1432,11 @@ function initialize() {
             const retry = event.target.closest('[data-retry-book-id]');
             if (retry) {
                 retryBook(Number(retry.dataset.retryBookId));
+                return;
+            }
+            const remove = event.target.closest('[data-remove-book-id]');
+            if (remove) {
+                removeBook(Number(remove.dataset.removeBookId));
                 return;
             }
             const move = event.target.closest('[data-move]');

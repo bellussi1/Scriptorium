@@ -485,6 +485,27 @@ class QueueStore:
             conn.commit()
             return True
 
+    def remove_book(self, book_id: int) -> Optional[QueueBook]:
+        """Delete a queue entry, keeping the source file and artifacts on disk.
+
+        Jobs and chapters cascade from the books row; the event is kept with a
+        null book_id so the removal remains visible in Recent events.
+        """
+        now = utc_now()
+        with self._lock, self._connect() as conn:
+            row = conn.execute("SELECT * FROM books WHERE id = ?", (book_id,)).fetchone()
+            if not row:
+                return None
+            book = QueueBook(**dict(row))
+            conn.execute("DELETE FROM books WHERE id = ?", (book_id,))
+            conn.execute(
+                "INSERT INTO events (book_id, level, message, created_at) "
+                "VALUES (NULL, 'info', ?, ?)",
+                (f"removed from queue: {book.title}", now),
+            )
+            conn.commit()
+            return book
+
     def create_job(self, book_id: int, total_chapters: int = 0) -> int:
         now = utc_now()
         with self._lock, self._connect() as conn:

@@ -918,8 +918,9 @@ label,
 
 .queue-move-btn,
 .queue-download-btn {
-    width: 30px;
-    height: 30px;
+    width: 26px;
+    height: 26px;
+    margin: 0 1px;
     border: 1px solid transparent;
     border-radius: var(--radius);
     background: transparent;
@@ -942,6 +943,12 @@ label,
 .queue-download-btn:hover:not(:disabled) {
     background: var(--surface-strong);
     color: var(--ink);
+}
+
+.queue-remove-btn:hover:not(:disabled) {
+    border-color: var(--danger-light-border);
+    background: var(--danger-light-bg);
+    color: var(--danger-light-text);
 }
 
 .queue-model-select {

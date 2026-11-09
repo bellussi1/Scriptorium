@@ -301,6 +301,51 @@ def test_move_rejects_non_pending_books(tmp_path: Path, monkeypatch):
     assert response.status_code == 409
 
 
+def test_remove_pending_book_deletes_entry_and_keeps_an_event(tmp_path: Path, monkeypatch):
+    rows = [_inventory_row(10, "First"), _inventory_row(11, "Second")]
+    client = _client(tmp_path, monkeypatch, rows=rows).test_client()
+    client.post("/api/literary/queue/books", json={"calibre_ids": [10, 11]})
+    store = QueueStore(str(tmp_path / "queue.db"))
+    book = next(item for item in store.list_books() if item.calibre_id == 10)
+    store.close()
+
+    response = client.delete(f"/api/literary/queue/books/{book.id}")
+
+    assert response.status_code == 200
+    payload = response.get_json()
+    assert payload["removed"]["book_id"] == book.id
+    assert [item["title"] for item in payload["books"]] == ["Second"]
+    assert any("removed from queue: First" in event["message"] for event in payload["events"])
+    store = QueueStore(str(tmp_path / "queue.db"))
+    assert store.get_book(book.id) is None
+    assert store.latest_job(book.id) is None
+    store.close()
+
+
+def test_remove_rejects_active_book(tmp_path: Path, monkeypatch):
+    rows = [_inventory_row(10, "First")]
+    client = _client(tmp_path, monkeypatch, rows=rows).test_client()
+    client.post("/api/literary/queue/books", json={"calibre_ids": [10]})
+    store = QueueStore(str(tmp_path / "queue.db"))
+    book = store.list_books()[0]
+    store.set_book_state(book.id, "preparing", "test")
+    store.close()
+
+    response = client.delete(f"/api/literary/queue/books/{book.id}")
+
+    assert response.status_code == 409
+    assert "pause" in response.get_json()["error"]
+    store = QueueStore(str(tmp_path / "queue.db"))
+    assert store.get_book(book.id) is not None
+    store.close()
+
+
+def test_remove_missing_book_returns_404(tmp_path: Path, monkeypatch):
+    client = _client(tmp_path, monkeypatch, rows=[]).test_client()
+    response = client.delete("/api/literary/queue/books/999")
+    assert response.status_code == 404
+
+
 def test_snapshot_puts_active_books_first(tmp_path: Path, monkeypatch):
     rows = [
         _inventory_row(10, "First"),

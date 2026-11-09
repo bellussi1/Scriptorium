@@ -652,4 +652,33 @@ def create_literary_queue_blueprint() -> Blueprint:
         snapshot["moved"] = {"book_id": book_id, "direction": direction}
         return jsonify(snapshot)
 
+    @bp.route("/api/literary/queue/books/<int:book_id>", methods=["DELETE"])
+    def remove_literary_queue_book(book_id: int):
+        db_path = _db_path()
+        book = _book_meta(db_path, book_id)
+        if book is None:
+            return _json_error("book not found", 404)
+        job = _latest_job(db_path, book_id)
+        active_states = {"preparing", "translating", "reviewing", "validating"}
+        if book["status"] in active_states or (
+            job is not None and job.get("state") in active_states
+        ):
+            return _json_error(
+                "pause the book before removing it from the queue", 409
+            )
+
+        store = QueueStore(str(db_path))
+        try:
+            removed = store.remove_book(book_id)
+            if removed is None:
+                return _json_error("book not found", 404)
+            snapshot = build_queue_snapshot(db_path)
+        except ValueError as exc:
+            return _json_error(str(exc), 409)
+        finally:
+            store.close()
+
+        snapshot["removed"] = {"book_id": book_id, "title": removed.title}
+        return jsonify(snapshot)
+
     return bp
