@@ -459,6 +459,31 @@ touch the real `data/jobs.db`.
 Validation: **19** route tests, full suite **2,986 passed, 2 skipped, 14
 pre-existing failures**.
 
+#### 2.13.1 Cross-screen UI polish
+
+- `src/web/static/ui-polish.css` layers responsive layout, focus and contrast
+  fixes on top of the incumbent design tokens. It is separate from the local
+  `style.css` typography override, which stays uncommitted.
+- Desktop workspace grows from 900 px to 1160 px (1280 px on wide monitors).
+- Translate now has one primary drop zone and two compact repair zones side by
+  side; the language pair stacks on narrow screens.
+- The Sample tab defaults to English -> Portuguese (Brazil) and follows the same
+  stacked language layout on mobile.
+- The Queue table keeps Book, Status, Progress and Actions on mobile, hides the
+  Model, Series, Updated and Position columns progressively, and adds a
+  status-distribution strip under the summary cards.
+- The Files tab labels pipeline artifacts (Reader edition, Quality report,
+  Base v2, Fixed, Raw translation) and wraps the badge under the filename on
+  mobile. Row actions get explicit aria-labels.
+- Muted text and placeholders move from 3.9:1 to 4.7:1; completed/translating
+  status text, artifact badges, primary buttons and danger buttons now clear
+  WCAG AA on their own surfaces.
+- Drop zones, settings accordions and file actions are keyboard-operable, the
+  active top tab exposes `aria-current`, and `:focus-visible` is visible across
+  controls.
+- The Settings tab opens Provider & Defaults by default instead of showing an
+  empty collapsed page.
+
 ### 2.14 PT-BR grammar layer
 
 `src/literary/ptbr.py` adds high-confidence Brazilian Portuguese checks without

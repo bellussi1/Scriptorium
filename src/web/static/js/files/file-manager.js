@@ -132,6 +132,22 @@ export const FileManager = {
     },
 
     /**
+     * Classify an EPUB pipeline artifact so the Files tab says which copy is
+     * the reader edition instead of showing six near-identical filenames.
+     * @param {string} filename
+     * @returns {{kind: string, key: string}|null}
+     */
+    artifactBadge(filename) {
+        const name = String(filename || '');
+        if (/\.refined\.epub$/i.test(name)) return { kind: 'reader', key: 'badge_reader' };
+        if (/\.quality\.json$/i.test(name)) return { kind: 'quality', key: 'badge_quality' };
+        if (/- fixed-v2\.epub$/i.test(name)) return { kind: 'base', key: 'badge_fixed_v2' };
+        if (/- fixed\.epub$/i.test(name)) return { kind: 'fixed', key: 'badge_fixed' };
+        if (/\(pt-BR\)\.epub$/i.test(name)) return { kind: 'raw', key: 'badge_raw' };
+        return null;
+    },
+
+    /**
      * Create file row element
      * @param {Object} file - File data object
      * @returns {HTMLElement} Table row element
@@ -151,17 +167,25 @@ export const FileManager = {
 
         const supportsTTS = ['epub', 'txt', 'srt'].includes(file.file_type);
         const safeFilename = DomHelpers.escapeHtml(file.filename);
+        const badge = this.artifactBadge(file.filename);
+        const badgeHtml = badge
+            ? `<span class="file-artifact-badge is-${badge.kind}">${DomHelpers.escapeHtml(t(`files:${badge.key}`))}</span>`
+            : '';
         const tooltipInfo = `${file.file_type.toUpperCase()} • ${file.size_mb} MB • ${formattedDate}`;
 
         row.innerHTML = `
             <td style="width: 36px; padding: 0.5rem;">
-                <input type="checkbox" class="file-checkbox" data-filename="${safeFilename}">
+                <input type="checkbox" class="file-checkbox" data-filename="${safeFilename}"
+                       aria-label="${safeFilename}">
             </td>
             <td style="max-width: 0;">
-                <span class="clickable-filename" data-filename="${safeFilename}" data-action="open" title="${tooltipInfo}">
-                    <span class="material-symbols-outlined file-icon-cell">${fileIconClass}</span>
-                    <span class="filename-text">${safeFilename}</span>
-                </span>
+                <div class="file-name-cell">
+                    <span class="clickable-filename" data-filename="${safeFilename}" data-action="open" title="${tooltipInfo}">
+                        <span class="material-symbols-outlined file-icon-cell">${fileIconClass}</span>
+                        <span class="filename-text">${safeFilename}</span>
+                    </span>
+                    ${badgeHtml}
+                </div>
             </td>
             <td class="file-row-actions">
                 <div class="file-action-group file-action-group--compact"></div>
@@ -185,6 +209,7 @@ export const FileManager = {
             audiobookBtn.type = 'button';
             audiobookBtn.className = 'file-action-btn audiobook';
             audiobookBtn.title = t('translation:audiobook_btn_title');
+            audiobookBtn.setAttribute('aria-label', t('translation:audiobook_btn_title'));
             audiobookBtn.innerHTML = '<span class="material-symbols-outlined" style="font-size: 0.875rem;">headphones</span>';
             audiobookBtn.addEventListener('click', () => window.createAudiobook(file.filename, file.file_path));
             actionsHost.appendChild(audiobookBtn);

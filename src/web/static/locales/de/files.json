@@ -57,5 +57,10 @@
   "upload_failed": "Hochladen fehlgeschlagen: {{error}}",
 
   "total_label": "Gesamt:",
-  "files_unit": "Dateien"
+  "files_unit": "Dateien",
+  "badge_reader": "Leseausgabe",
+  "badge_quality": "Qualitätsbericht",
+  "badge_fixed_v2": "Basis (v2)",
+  "badge_fixed": "Korrigiert",
+  "badge_raw": "Rohtext"
 }

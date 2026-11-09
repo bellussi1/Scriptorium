@@ -212,9 +212,40 @@ function renderSummary(data) {
             </div>
         `)
         .join('');
+    renderDistribution(summary, running);
     byId('queueUpdatedAt').textContent = data.generated_at
         ? t('queue:updated', { time: formatDate(data.generated_at) })
         : '';
+}
+
+function renderDistribution(summary, running) {
+    const host = byId('queueDistribution');
+    if (!host) return;
+    const byStatus = summary.by_status || {};
+    const segments = [
+        ['translating', t('queue:translating'), running],
+        ['pending', t('queue:pending'), byStatus.pending || 0],
+        ['completed', t('queue:completed'), byStatus.completed || 0],
+        ['needs_review', t('queue:needs_review'), byStatus.needs_review || 0],
+        ['failed', t('queue:status_failed'), byStatus.failed || 0],
+    ].filter(([, , count]) => Number(count) > 0);
+    if (!segments.length) {
+        host.classList.add('hidden');
+        host.innerHTML = '';
+        return;
+    }
+    const total = segments.reduce((sum, [, , count]) => sum + Number(count), 0);
+    host.innerHTML = segments
+        .map(([key, label, count]) => {
+            const pct = total > 0 ? (Number(count) / total) * 100 : 0;
+            return `<span class="queue-distribution-segment is-${key}" style="width: ${pct.toFixed(2)}%" title="${escapeHtml(`${label}: ${count}`)}"></span>`;
+        })
+        .join('');
+    host.setAttribute(
+        'aria-label',
+        segments.map(([key, label, count]) => `${label}: ${count}`).join(' | ')
+    );
+    host.classList.remove('hidden');
 }
 
 function renderNow(data) {
@@ -427,10 +458,10 @@ function renderRows() {
                         ${title}
                         <div class="queue-book-author">${escapeHtml(book.author || '')} ${nextBadge}</div>
                     </td>
-                    <td>${series}</td>
+                    <td class="queue-series-col">${series}</td>
                     <td><span class="queue-status queue-status-${escapeHtml(statusKey(book))}">${escapeHtml(statusLabel(book))}</span></td>
                     <td>${progressCell(book)}</td>
-                    <td>${modelCell(book)}</td>
+                    <td class="queue-model-col">${modelCell(book)}</td>
                     <td class="queue-updated-cell queue-updated-col">${formatDate(book.job_updated_at || book.updated_at)}</td>
                     <td class="queue-actions-cell">${actionButtons(book, book.id === firstPending, book.id === lastPending)}</td>
                 </tr>

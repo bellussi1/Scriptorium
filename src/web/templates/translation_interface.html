@@ -57,6 +57,7 @@
     <!-- Custom Styles -->
     <link rel="stylesheet" href="/static/style.css">
     <link rel="stylesheet" href="/static/queue.css">
+    <link rel="stylesheet" href="/static/ui-polish.css">
     <style>
         /* Top tabs sit flush with the card below. Active tab is marked
            by an accent stripe on top so it stays visible in light + dark. */
@@ -296,7 +297,7 @@
 
         <!-- Top-level Tab Navigation -->
         <div class="tab-nav" id="topTabNav" style="display: flex; gap: 8px; margin-bottom: 20px;">
-            <button type="button" class="tab-btn tab-btn-active" data-tab="translate" onclick="switchTopTab('translate')">
+            <button type="button" class="tab-btn tab-btn-active" data-tab="translate" aria-current="page" onclick="switchTopTab('translate')">
                 <span class="material-symbols-outlined" style="vertical-align: middle; font-size: 1.1rem;">translate</span>
                 <span data-i18n="common:tab_translate">Translate</span>
             </button>
@@ -333,14 +334,14 @@
         <div class="main-card">
             <div class="card-body">
                 <!-- Languages Row -->
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+                <div class="language-pair" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
                     <div class="form-group" style="margin-bottom: 0;">
                         <label data-i18n="translation:source_language">Source Language</label>
                         <div class="neu-inset-light">
                             <select class="form-control" id="sourceLang">
-                                <option value="" selected data-i18n="translation:auto_detect_placeholder">Auto-detect from file...</option>
+                                <option value="" data-i18n="translation:auto_detect_placeholder">Auto-detect from file...</option>
                                 <optgroup data-i18n-attr="label:translation:lang_group_common" label="Most Common">
-                                    <option value="English">English</option>
+                                    <option value="English" selected>English</option>
                                     <option value="Chinese">Chinese</option>
                                     <option value="Spanish">Spanish</option>
                                     <option value="French">French</option>
@@ -416,7 +417,7 @@
                                     <option value="German">German</option>
                                     <option value="Japanese">Japanese</option>
                                     <option value="Korean">Korean</option>
-                                    <option value="Portuguese (Brazil)">Portuguese (Brazil)</option>
+                                    <option value="Portuguese (Brazil)" selected>Portuguese (Brazil)</option>
                                     <option value="Portuguese (Portugal)">Portuguese (Portugal)</option>
                                     <option value="Russian">Russian</option>
                                     <option value="Arabic">Arabic</option>
@@ -474,8 +475,13 @@
                     </div>
                 </div>
 
+                <!-- Upload zones: the primary action gets the full row; the
+                     two repair flows sit side by side underneath. -->
+                <div class="upload-zone-grid">
                 <!-- File Upload Area (Translate) -->
-                <div class="file-upload" id="fileUpload" data-zone="translate" onclick="document.getElementById('fileInput').click()">
+                <div class="file-upload" id="fileUpload" data-zone="translate" role="button" tabindex="0"
+                     data-i18n-attr="aria-label:translation:drop_files_title" aria-label="Drop files to translate"
+                     onclick="document.getElementById('fileInput').click()">
                     <div class="upload-icon">
                         <span class="material-symbols-outlined">cloud_upload</span>
                     </div>
@@ -486,7 +492,9 @@
                 </div>
 
                 <!-- File Upload Area (Refine, secondary) -->
-                <div class="file-upload file-upload-secondary" id="fileUploadRefine" data-zone="refine" onclick="document.getElementById('fileInputRefine').click()">
+                <div class="file-upload file-upload-secondary" id="fileUploadRefine" data-zone="refine" role="button" tabindex="0"
+                     data-i18n-attr="aria-label:translation:drop_files_refine_title" aria-label="Drop files to refine (already translated)"
+                     onclick="document.getElementById('fileInputRefine').click()">
                     <div class="upload-icon">
                         <span class="material-symbols-outlined">auto_fix_high</span>
                     </div>
@@ -496,7 +504,9 @@
                 </div>
 
                 <!-- File Upload Area (Term fix, secondary) -->
-                <div class="file-upload file-upload-secondary" id="fileUploadTermFix" data-zone="term_fix" onclick="document.getElementById('fileInputTermFix').click()">
+                <div class="file-upload file-upload-secondary" id="fileUploadTermFix" data-zone="term_fix" role="button" tabindex="0"
+                     data-i18n-attr="aria-label:translation:drop_files_term_fix_title" aria-label="Drop files to fix a term (already translated)"
+                     onclick="document.getElementById('fileInputTermFix').click()">
                     <div class="upload-icon">
                         <span class="material-symbols-outlined">spellcheck</span>
                     </div>
@@ -504,6 +514,8 @@
                     <p data-i18n="translation:drop_files_term_fix_support">Replace a term the glossary missed, without translating again</p>
                     <input type="file" id="fileInputTermFix" accept=".txt,.epub,.srt,.docx" style="display: none;" onchange="handleFileSelectTermFix(event)" multiple>
                 </div>
+
+                </div><!-- /.upload-zone-grid -->
 
                 <!-- Term fix rules (shown while the queue holds term-fix files) -->
                 <div id="termFixPanel" class="term-fix-panel hidden">
@@ -763,7 +775,7 @@
                 </div>
 
                 <!-- Activity Log (Collapsible) -->
-                <div class="prompt-options-toggle" onclick="toggleActivityLog()" style="margin-top: 30px;">
+                <div class="prompt-options-toggle" role="button" tabindex="0" aria-expanded="false" onclick="toggleActivityLog()" style="margin-top: 30px;">
                     <span style="display: flex; align-items: center; gap: 0.75rem;">
                         <span class="material-symbols-outlined">terminal</span>
                         <span data-i18n="common:activity_log">Activity Log</span>
@@ -841,13 +853,13 @@
                     </p>
 
                     <!-- File upload + languages -->
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+                    <div class="language-pair" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
                         <div class="form-group" style="margin-bottom: 0;">
                             <label data-i18n="translation:source_language">Source Language</label>
                             <div class="neu-inset-light">
                                 <select class="form-control" id="sampleSourceLang">
-                                    <option value="" selected data-i18n="translation:auto_detect_placeholder">Auto-detect from file...</option>
-                                    <option value="English">English</option>
+                                    <option value="" data-i18n="translation:auto_detect_placeholder">Auto-detect from file...</option>
+                                    <option value="English" selected>English</option>
                                     <option value="Chinese">Chinese</option>
                                     <option value="Spanish">Spanish</option>
                                     <option value="French">French</option>
@@ -874,7 +886,7 @@
                                     <option value="German">German</option>
                                     <option value="Japanese">Japanese</option>
                                     <option value="Korean">Korean</option>
-                                    <option value="Portuguese (Brazil)">Portuguese (Brazil)</option>
+                                    <option value="Portuguese (Brazil)" selected>Portuguese (Brazil)</option>
                                     <option value="Portuguese (Portugal)">Portuguese (Portugal)</option>
                                     <option value="Russian">Russian</option>
                                     <option value="Arabic">Arabic</option>
@@ -886,7 +898,9 @@
                     </div>
 
                     <!-- File Upload (same control as Translate tab) -->
-                    <div class="file-upload" id="sampleFileUpload" onclick="document.getElementById('sampleFileInput').click()">
+                    <div class="file-upload" id="sampleFileUpload" role="button" tabindex="0"
+                         data-i18n-attr="aria-label:sample:drop_file_title" aria-label="Drop a book to sample"
+                         onclick="document.getElementById('sampleFileInput').click()">
                         <div class="upload-icon">
                             <span class="material-symbols-outlined">science</span>
                         </div>
@@ -925,7 +939,7 @@
                     </div>
 
                     <!-- Sampling parameters -->
-                    <div style="display: grid; grid-template-columns: 1fr 1fr auto; gap: 15px; align-items: end; margin-bottom: 15px;">
+                    <div class="sample-params" style="display: grid; grid-template-columns: 1fr 1fr auto; gap: 15px; align-items: end; margin-bottom: 15px;">
                         <div class="form-group" style="margin-bottom: 0;">
                             <label data-i18n="sample:n_samples_label">Number of samples (N)</label>
                             <div class="neu-inset-light">
@@ -992,15 +1006,15 @@
         <div class="main-card">
             <div class="card-body">
                 <!-- Provider & Defaults (Collapsible) -->
-                <div class="prompt-options-toggle" onclick="toggleSettingsOptions()">
+                <div class="prompt-options-toggle" role="button" tabindex="0" aria-expanded="true" onclick="toggleSettingsOptions()">
                     <span style="display: flex; align-items: center; gap: 0.75rem;">
                         <span class="material-symbols-outlined">tune</span>
                         <span data-i18n="settings:provider_and_defaults">Provider &amp; Defaults</span>
                     </span>
-                    <span id="settingsOptionsIcon" class="material-symbols-outlined">expand_more</span>
+                    <span id="settingsOptionsIcon" class="material-symbols-outlined" style="transform: rotate(180deg);">expand_more</span>
                 </div>
 
-                <div id="settingsOptionsSection" class="hidden">
+                <div id="settingsOptionsSection">
                     <!-- Provider + API Settings Row -->
                     <div id="providerRow" style="display: grid; grid-template-columns: 1fr 2fr; gap: 15px; margin-bottom: 15px; align-items: end;">
                         <div class="form-group" style="margin-bottom: 0;">
@@ -1186,7 +1200,7 @@
                 </div>
 
                 <!-- Notifications (Collapsible) -->
-                <div class="prompt-options-toggle" onclick="toggleNotificationOptions()">
+                <div class="prompt-options-toggle" role="button" tabindex="0" aria-expanded="false" onclick="toggleNotificationOptions()">
                     <span style="display: flex; align-items: center; gap: 0.75rem;">
                         <span class="material-symbols-outlined">notifications_active</span>
                         <span data-i18n="settings:notifications">Notifications</span>
@@ -1364,6 +1378,7 @@
                     </div>
 
                     <div id="fileManagementContainer" style="display: none;">
+                        <div class="file-table-wrap">
                         <table class="file-table">
                             <thead>
                                 <tr>
@@ -1375,6 +1390,7 @@
                             <tbody id="fileTableBody">
                             </tbody>
                         </table>
+                        </div>
 
                         <div id="fileListEmpty" style="text-align: center; padding: 40px; display: none;">
                             <p data-i18n="files:no_files" style="color: var(--text-muted-light);">No files found in the translated files directory</p>
@@ -1745,6 +1761,7 @@
                                placeholder="Search queue">
                     </div>
                     <div id="queueSummary" class="queue-summary" aria-live="polite"></div>
+                    <div id="queueDistribution" class="queue-distribution hidden" role="img"></div>
                     <div class="queue-toolbar">
                         <button type="button" id="queueRefreshBtn" class="btn btn-secondary">
                             <span class="material-symbols-outlined" style="font-size: 18px; vertical-align: middle;">refresh</span>
@@ -1763,10 +1780,10 @@
                                 <tr>
                                     <th data-i18n="queue:position">#</th>
                                     <th data-i18n="queue:book">Book</th>
-                                    <th data-i18n="queue:series">Series</th>
+                                    <th class="queue-series-col" data-i18n="queue:series">Series</th>
                                     <th data-i18n="queue:status">Status</th>
                                     <th data-i18n="queue:progress">Progress</th>
-                                    <th data-i18n="queue:model">Model</th>
+                                    <th class="queue-model-col" data-i18n="queue:model">Model</th>
                                     <th class="queue-updated-col" data-i18n="queue:updated_col">Updated</th>
                                     <th class="col-center" data-i18n="queue:actions">Actions</th>
                                 </tr>

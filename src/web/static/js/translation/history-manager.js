@@ -79,13 +79,13 @@ export const HistoryManager = {
                 <div style="flex: 1; min-width: 0;">
                     <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px; min-width: 0;">
                         <span style="flex-shrink: 0; display: inline-flex; align-items: center;">${getFileIcon(item.file_type)}</span>
-                        <span style="font-size: 18px; font-weight: 600; color: #1f2937; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${safeDisplayName}">${safeDisplayName}</span>
+                        <span style="font-size: 18px; font-weight: 600; color: var(--text-dark); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${safeDisplayName}">${safeDisplayName}</span>
                         <span style="flex-shrink: 0; padding: 2px 8px; font-size: 11px; font-weight: 600; color: #166534; background: #dcfce7; border: 1px solid #22c55e; border-radius: 4px;">${t('translation:history_status_completed')}</span>
                     </div>
-                    <div style="font-size: 14px; color: #6b7280; margin-bottom: 5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="→ ${safeOutputFilename}">
+                    <div style="font-size: 14px; color: var(--text-muted-light); margin-bottom: 5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="→ ${safeOutputFilename}">
                         → ${safeOutputFilename}
                     </div>
-                    <div style="display: flex; flex-wrap: wrap; gap: 20px; font-size: 12px; color: #9ca3af; margin-top: 8px;">
+                    <div style="display: flex; flex-wrap: wrap; gap: 20px; font-size: 12px; color: var(--text-muted-light); margin-top: 8px;">
                         <span>${t('translation:history_type_line', { type: DomHelpers.escapeHtml(fileType) })}</span>
                         <span>${t('translation:history_chunks', { completed: completedChunks, total: totalChunks })}</span>
                         <span>${t('translation:history_completed_at', { date: DomHelpers.escapeHtml(completedDate) })}</span>
@@ -106,7 +106,7 @@ export const HistoryManager = {
             // The row outlives its output file (deleted from the Files tab, or
             // pruned): say so instead of offering actions that would 404.
             const missing = document.createElement('span');
-            missing.style.cssText = 'font-size: 12px; color: #9ca3af; font-style: italic;';
+            missing.style.cssText = 'font-size: 12px; color: var(--text-muted-light); font-style: italic;';
             missing.textContent = t('translation:history_output_missing');
             actionsContainer.appendChild(missing);
         }

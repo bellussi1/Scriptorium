@@ -136,6 +136,7 @@ export const FileActions = {
         btn.dataset.action = action;
         if (filename) btn.dataset.filename = filename;
         btn.title = label;
+        btn.setAttribute('aria-label', label);
 
         if (variant === 'compact') {
             btn.className = `file-action-btn ${def.compactClass}`;

@@ -57,5 +57,10 @@
   "upload_failed": "Upload failed: {{error}}",
 
   "total_label": "Total:",
-  "files_unit": "files"
+  "files_unit": "files",
+  "badge_reader": "Reader edition",
+  "badge_quality": "Quality report",
+  "badge_fixed_v2": "Base (v2)",
+  "badge_fixed": "Fixed",
+  "badge_raw": "Raw translation"
 }

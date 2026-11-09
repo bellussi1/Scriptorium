@@ -551,6 +551,15 @@ export const SettingsManager = {
             // because HTML has inline style="display: none"
             customInput.classList.remove('hidden');
             customInput.style.display = 'block';
+        } else if (found && customInput) {
+            // The value matched a real option: hide the stale custom field and
+            // clear it. Without this the Translate tab shows two stacked
+            // controls (the select and an empty "custom language" input).
+            customInput.value = '';
+            const container = customInput.closest('.neu-inset-light');
+            if (container) {
+                container.style.display = 'none';
+            }
         }
     },
 

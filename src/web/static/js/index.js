@@ -23,6 +23,7 @@ import { SettingsSummary } from './ui/settings-summary.js';
 import { PreflightZone } from './ui/preflight-zone.js';
 import { PreflightModal } from './ui/preflight-modal.js';
 import { NotificationsManager } from './ui/notifications-manager.js';
+import { UiPolish } from './ui/polish.js';
 import { GlossaryManager } from './glossary/glossary-manager.js';
 import { StyleManager } from './style/style-manager.js';
 import { QueueManager } from './queue/queue-manager.js';
@@ -432,6 +433,7 @@ async function initializeModules() {
     // 1. Synchronous state + UI/module init (no awaits).
     initializeState();
     initializeThemeManager();
+    UiPolish.initialize();
     SettingsManager.initialize();
     FormManager.initialize();
     SettingsSummary.initialize();

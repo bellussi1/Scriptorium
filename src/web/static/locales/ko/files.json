@@ -57,5 +57,10 @@
   "upload_failed": "업로드 실패: {{error}}",
 
   "total_label": "합계:",
-  "files_unit": "파일"
+  "files_unit": "파일",
+  "badge_reader": "읽기용 버전",
+  "badge_quality": "품질 보고서",
+  "badge_fixed_v2": "기본 (v2)",
+  "badge_fixed": "수정됨",
+  "badge_raw": "원문 번역"
 }

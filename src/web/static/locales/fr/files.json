@@ -57,5 +57,10 @@
   "upload_failed": "Échec du téléversement : {{error}}",
 
   "total_label": "Total :",
-  "files_unit": "fichiers"
+  "files_unit": "fichiers",
+  "badge_reader": "Édition de lecture",
+  "badge_quality": "Rapport qualité",
+  "badge_fixed_v2": "Base (v2)",
+  "badge_fixed": "Corrigé",
+  "badge_raw": "Texte brut"
 }

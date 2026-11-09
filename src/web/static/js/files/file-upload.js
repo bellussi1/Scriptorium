@@ -1008,14 +1008,14 @@ export const FileUpload = {
                     const langSpan = document.createElement('span');
                     langSpan.className = 'file-languages';
                     langSpan.style.fontSize = '0.85em';
-                    langSpan.style.color = '#6b7280';
+                    langSpan.style.color = 'var(--text-muted-light)';
                     langSpan.textContent = `[${file.targetLanguage}] `;
                     infoSpan.appendChild(langSpan);
                 } else if (file.sourceLanguage && file.targetLanguage) {
                     const langSpan = document.createElement('span');
                     langSpan.className = 'file-languages';
                     langSpan.style.fontSize = '0.85em';
-                    langSpan.style.color = '#6b7280';
+                    langSpan.style.color = 'var(--text-muted-light)';
                     langSpan.textContent = `[${file.sourceLanguage} → ${file.targetLanguage}] `;
                     infoSpan.appendChild(langSpan);
                 }

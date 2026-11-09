@@ -94,13 +94,13 @@ function formatJobCard(job, hasActiveTranslation, activeNames) {
         <div class="resumable-job-card" style="border: 1px solid #e5e7eb; padding: 20px; margin-bottom: 15px; border-radius: 8px; background: #f9fafb;">
             <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 15px; gap: 15px;">
                 <div style="flex: 1; min-width: 0;">
-                    <div style="font-size: 18px; font-weight: 600; color: #1f2937; margin-bottom: 8px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${DomHelpers.escapeHtml(displayNameFormatted)}">
+                    <div style="font-size: 18px; font-weight: 600; color: var(--text-dark); margin-bottom: 8px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${DomHelpers.escapeHtml(displayNameFormatted)}">
                         ${DomHelpers.escapeHtml(displayNameFormatted)}
                     </div>
-                    <div style="font-size: 14px; color: #6b7280; margin-bottom: 5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="→ ${DomHelpers.escapeHtml(outputFilename)}">
+                    <div style="font-size: 14px; color: var(--text-muted-light); margin-bottom: 5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="→ ${DomHelpers.escapeHtml(outputFilename)}">
                         → ${DomHelpers.escapeHtml(outputFilename)}
                     </div>
-                    <div style="font-size: 12px; color: #9ca3af; margin-top: 8px;">
+                    <div style="font-size: 12px; color: var(--text-muted-light); margin-top: 8px;">
                         ${typeIdLine}${statusBadge}
                     </div>
                 </div>
@@ -118,15 +118,15 @@ function formatJobCard(job, hasActiveTranslation, activeNames) {
             </div>
 
             <div style="margin-bottom: 10px;">
-                <div style="display: flex; justify-content: space-between; font-size: 13px; color: #6b7280; margin-bottom: 5px;">
+                <div style="display: flex; justify-content: space-between; font-size: 13px; color: var(--text-muted-light); margin-bottom: 5px;">
                     <span>${t('translation:job_card_progress', { completed: completedChunks, total: totalChunks, percent: progressPercent })}</span>
                 </div>
                 <div style="width: 100%; background: #e5e7eb; border-radius: 4px; height: 8px; overflow: hidden;">
-                    <div style="width: ${progressPercent}%; background: #3b82f6; height: 100%; transition: width 0.3s;"></div>
+                    <div style="width: ${progressPercent}%; background: var(--primary-light); height: 100%; transition: width 0.3s;"></div>
                 </div>
             </div>
 
-            <div style="display: flex; align-items: center; justify-content: space-between; gap: 20px; font-size: 12px; color: #9ca3af;">
+            <div style="display: flex; align-items: center; justify-content: space-between; gap: 20px; font-size: 12px; color: var(--text-muted-light);">
                 <div style="display: flex; gap: 20px;">
                     <span>${t('translation:job_card_created', { date: createdDate })}</span>
                     <span>${t('translation:job_card_paused', { date: pausedDate })}</span>
@@ -134,7 +134,7 @@ function formatJobCard(job, hasActiveTranslation, activeNames) {
                 <button class="resume-change-model" data-tid="${job.translation_id}"
                         title="${t('translation:resume_change_model_title')}"
                         ${hasActiveTranslation ? 'disabled' : ''}
-                        style="display: inline-flex; align-items: center; gap: 4px; background: none; border: none; padding: 2px 4px; font-size: 12px; color: #3b82f6; cursor: pointer; white-space: nowrap;${hasActiveTranslation ? ' opacity: 0.5; cursor: not-allowed;' : ''}">
+                        style="display: inline-flex; align-items: center; gap: 4px; background: none; border: none; padding: 2px 4px; font-size: 12px; color: var(--primary-light); cursor: pointer; white-space: nowrap;${hasActiveTranslation ? ' opacity: 0.5; cursor: not-allowed;' : ''}">
                     <span class="material-symbols-outlined" style="font-size: 0.95rem;">tune</span>
                     <span data-i18n="translation:resume_change_model">Change model</span>
                 </button>

@@ -57,5 +57,10 @@
   "upload_failed": "Subida fallida: {{error}}",
 
   "total_label": "Total:",
-  "files_unit": "archivos"
+  "files_unit": "archivos",
+  "badge_reader": "Edición de lectura",
+  "badge_quality": "Informe de calidad",
+  "badge_fixed_v2": "Base (v2)",
+  "badge_fixed": "Corregido",
+  "badge_raw": "Texto sin revisar"
 }

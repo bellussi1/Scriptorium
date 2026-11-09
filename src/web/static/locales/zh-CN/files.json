@@ -57,5 +57,10 @@
   "upload_failed": "上传失败：{{error}}",
 
   "total_label": "总计：",
-  "files_unit": "个文件"
+  "files_unit": "个文件",
+  "badge_reader": "阅读版",
+  "badge_quality": "质量报告",
+  "badge_fixed_v2": "基础版 (v2)",
+  "badge_fixed": "已修正",
+  "badge_raw": "原始译文"
 }

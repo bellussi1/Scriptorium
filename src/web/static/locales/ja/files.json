@@ -57,5 +57,10 @@
   "upload_failed": "アップロードに失敗しました: {{error}}",
 
   "total_label": "合計:",
-  "files_unit": "個のファイル"
+  "files_unit": "個のファイル",
+  "badge_reader": "読書版",
+  "badge_quality": "品質レポート",
+  "badge_fixed_v2": "ベース (v2)",
+  "badge_fixed": "修正済み",
+  "badge_raw": "未加工テキスト"
 }

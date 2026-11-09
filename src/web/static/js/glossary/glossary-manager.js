@@ -232,6 +232,14 @@ function switchTopTab(name) {
     buttons.forEach((btn) => {
         const isActive = btn.dataset.tab === name;
         btn.classList.toggle('tab-btn-active', isActive);
+        if (isActive) {
+            btn.setAttribute('aria-current', 'page');
+            // Keep the active tab visible when the strip scrolls on narrow
+            // screens. "nearest" avoids jumping when it is already in view.
+            btn.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+        } else {
+            btn.removeAttribute('aria-current');
+        }
     });
 
     if (name === 'glossaries') {
