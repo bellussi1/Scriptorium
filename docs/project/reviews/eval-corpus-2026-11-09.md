@@ -95,6 +95,10 @@ run waits for the GPU to be idle.
 - `scripts/run_long_context.py` — production `TokenChunker` plus prompt
   adapters for the three long chapters. It records chrF, term compliance,
   chunk count and errors. Must run in the app container (tiktoken).
+- `scripts/make_pairwise_sheet.py` — builds a blind A/B sheet from two model
+  runs and stores the answer key separately.
+- `scripts/analyze_pairwise.py` — win rate, mean score difference, paired
+  bootstrap 95% CI and exact sign test from the filled sheet.
 - `scripts/benchmark_fase_d.py` remains the runner for short excerpts. Use the
   new dev/test files with `--corpus`.
 
@@ -130,7 +134,18 @@ docker compose -f docker-compose.dev.yml exec -T app python \
 docker compose -f docker-compose.dev.yml exec -T app python \
   scripts/run_long_context.py --models hy-mt2-7b index-translate-9b \
   --endpoint http://host.docker.internal:11434
+
+# Blind A/B sheet and statistics
+python scripts/make_pairwise_sheet.py \
+  --corpus data/benchmark/literary/eval_farseer_dev.jsonl \
+  --run-dir data/benchmark/eval-dev --model-a hy-mt2-7b \
+  --model-b index-translate-9b --out data/benchmark/eval-dev/judging.jsonl
+python scripts/analyze_pairwise.py --input data/benchmark/eval-dev/judging.jsonl
 ```
+
+With 56 dev pairs the win-rate confidence interval is roughly ±7%; the 28
+held-out test pairs confirm the direction. For a ±5% interval, use all 84
+pairs after the dev decision, but report dev and test separately.
 
 ## Limitations
 
