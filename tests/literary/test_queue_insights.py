@@ -11,6 +11,7 @@ from src.literary.queue_insights import (
     find_report,
     kindle_zip,
     quality_payload,
+    quality_sidecar_path,
     tail_lines,
 )
 
@@ -116,3 +117,28 @@ def test_tail_lines_can_skip_sync_noise(tmp_path: Path):
     path.write_text("translated chunk 1\n[10:00] sync: checked=2 matched=1 updated=0\ntranslated chunk 2", encoding="utf-8")
 
     assert tail_lines(path, 5, skip_sync=True) == ["translated chunk 1", "translated chunk 2"]
+
+def test_quality_payload_reads_the_sidecar_without_a_queue_report(tmp_path: Path):
+    artifact = make_epub(tmp_path / "Howling Dark (pt-BR).refined.epub", title="Howling Dark")
+    sidecar = quality_sidecar_path(artifact)
+    sidecar.write_text(
+        json.dumps(
+            {
+                "epubcheck": {"fatals": 0, "errors": 0, "warnings": 0},
+                "reader_repair": {"accepted": True, "merged": 7, "quote_paragraphs": 3},
+            }
+        ),
+        encoding="utf-8",
+    )
+    book = {"id": 10, "title": "Howling Dark", "status": "completed"}
+    artifact_info = {
+        "filename": artifact.name,
+        "kind": "refined",
+        "size": artifact.stat().st_size,
+        "path": artifact,
+    }
+
+    payload = quality_payload(book, artifact_info, run_dir=tmp_path / "runs", pilot_dir=tmp_path / "pilots")
+
+    assert payload["epubcheck"]["errors"] == 0
+    assert payload["report"]["reader_repair"]["merged"] == 7
