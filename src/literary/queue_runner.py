@@ -482,6 +482,7 @@ def run_queue_book(
     store = QueueStore(db_path)
     try:
         job_id = store.create_job(book.id)
+        store.clear_reviewed(book.id)
         store.set_book_state(book.id, "preparing", "queue runner preparing")
         store.set_job_state(job_id, "preparing")
         store.add_event("queue runner started", book_id=book.id, job_id=job_id)
@@ -697,25 +698,19 @@ def run_queue_book(
 
     store = QueueStore(db_path)
     gate_ok = bool(validation.get("passed")) and epubcheck.get("errors") == 0
-    target_state = "completed" if gate_ok else "needs_review"
+    review_message = (
+        "machine translation passed the gate; human review required"
+        if gate_ok
+        else "validation gate failed; review required"
+    )
+    target_state = "needs_review"
     try:
-        if target_state == "completed":
-            for state in ("reviewing", "validating", "completed"):
-                try:
-                    store.set_job_state(job_id, state, "machine translation complete; review optional")
-                except ValueError:
-                    pass
-                try:
-                    store.set_book_state(book.id, state, "machine translation complete; review optional")
-                except ValueError:
-                    pass
-        else:
-            try:
-                store.set_job_state(job_id, "needs_review", "validation gate failed; review required")
-            except ValueError:
-                store.set_job_state(job_id, "validating")
-                store.set_job_state(job_id, "needs_review", "validation gate failed; review required")
-            store.set_book_state(book.id, "needs_review", "validation gate failed; review required")
+        try:
+            store.set_job_state(job_id, "needs_review", review_message)
+        except ValueError:
+            store.set_job_state(job_id, "validating")
+            store.set_job_state(job_id, "needs_review", review_message)
+        store.set_book_state(book.id, "needs_review", review_message)
         store.add_event(
             f"queue runner finished: {target_state}",
             book_id=book.id,
@@ -732,6 +727,7 @@ def run_queue_book(
         "translation_id": translation_id,
         "returncode": returncode,
         "stuck_exec_terminated": stuck_terminated,
+        "gate_passed": gate_ok,
         "duration_s": round(time.time() - started, 1),
         "model": model,
         "provider": provider,

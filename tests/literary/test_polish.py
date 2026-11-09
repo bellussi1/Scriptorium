@@ -28,6 +28,7 @@ def _completed_book(store: QueueStore, tmp_path: Path, *, title: str, author: st
     )
     for state in ("preparing", "translating", "reviewing", "validating", "completed"):
         store.set_book_state(book_id, state)
+    store.mark_reviewed(book_id, "test review")
     return book_id
 
 

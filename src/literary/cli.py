@@ -333,7 +333,7 @@ def cmd_queue_export_kindle(args: argparse.Namespace) -> int:
             db_path=args.db,
             outputs_dir=args.outputs,
             output_root=args.out,
-            include_needs_review=not args.completed_only,
+            include_needs_review=args.include_needs_review,
         )
     except Exception as exc:
         _print_json({"error": str(exc)})
@@ -788,7 +788,8 @@ def build_parser() -> argparse.ArgumentParser:
     export_parser.add_argument("--db", default="data/literary_queue.db")
     export_parser.add_argument("--outputs", default="translated_files")
     export_parser.add_argument("--out", default="translated_files/kindle")
-    export_parser.add_argument("--completed-only", action="store_true")
+    export_parser.add_argument("--include-needs-review", action="store_true")
+    export_parser.add_argument("--completed-only", action="store_true", help=argparse.SUPPRESS)
     export_parser.set_defaults(func=cmd_queue_export_kindle)
     polish_parser = queue_sub.add_parser(
         "polish",

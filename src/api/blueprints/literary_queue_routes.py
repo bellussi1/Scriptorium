@@ -143,7 +143,7 @@ def _book_meta(db_path: Path, book_id: int) -> Optional[Dict[str, Any]]:
     conn.row_factory = sqlite3.Row
     try:
         row = conn.execute(
-            "SELECT id, title, author, series, series_index, status "
+            "SELECT id, title, author, series, series_index, status, reviewed_at "
             "FROM books WHERE id = ?",
             (book_id,),
         ).fetchone()
@@ -254,6 +254,7 @@ def build_queue_snapshot(db_path: str | Path) -> Dict[str, Any]:
                 SELECT
                     b.id, b.calibre_id, b.title, b.author, b.series,
                     b.series_index, b.status, b.word_count, b.model, b.provider,
+                    b.reviewed_at,
                     j.id AS job_id, j.state AS job_state, j.translation_id,
                     j.current_chapter, j.total_chapters, j.error,
                     j.created_at AS job_created_at,
@@ -297,6 +298,14 @@ def build_queue_snapshot(db_path: str | Path) -> Dict[str, Any]:
         # The book status is the editorial truth; a stale job row must not
         # make a retried pending book look like it is still in review.
         state = str(book.get("status") or book.get("job_state") or "pending")
+        reviewed = bool(str(book.get("reviewed_at") or "").strip())
+        book["reviewed"] = reviewed
+        if state == "completed" and not reviewed:
+            # A runner from before the review gate could mark a book completed
+            # automatically. Surface it as needing review until a human
+            # approves it; the Kindle export refuses it until then.
+            book["unreviewed_completion"] = True
+            state = "needs_review"
         book["state"] = state
         # A paused editorial state with a recently written upstream log means
         # the translation process is still alive; some upstream checkpoints
@@ -541,7 +550,12 @@ def create_literary_queue_blueprint() -> Blueprint:
         if book is None:
             return _json_error("book not found", 404)
         job = _latest_job(db_path, book_id)
-        if book["status"] != "needs_review" and (job is None or job.get("state") != "needs_review"):
+        unreviewed = not str(book.get("reviewed_at") or "").strip()
+        needs_review = (
+            book["status"] == "needs_review"
+            or (job is not None and job.get("state") == "needs_review")
+        )
+        if not needs_review and not unreviewed:
             return _json_error("book does not need review", 409)
         message = "human review approved from Queue UI"
         store = QueueStore(str(db_path))
@@ -551,6 +565,7 @@ def create_literary_queue_blueprint() -> Blueprint:
                     store.set_job_state(int(job["id"]), state, message)
             for state in _transition_path(str(book["status"]), "completed"):
                 store.set_book_state(book_id, state, message)
+            store.mark_reviewed(book_id, message)
             store.add_event(message, book_id=book_id, job_id=int(job["id"]) if job else None)
             snapshot = build_queue_snapshot(db_path)
         except ValueError as exc:
@@ -573,6 +588,7 @@ def create_literary_queue_blueprint() -> Blueprint:
         message = "retry requested from Queue UI"
         store = QueueStore(str(db_path))
         try:
+            store.clear_reviewed(book_id)
             for state in _transition_path(str(book["status"]), "pending"):
                 store.set_book_state(book_id, state, message)
             store.add_event(message, book_id=book_id)

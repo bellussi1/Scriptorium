@@ -155,6 +155,7 @@ class QueueStore:
                     actual_cost REAL NOT NULL DEFAULT 0,
                     source_hash TEXT NOT NULL DEFAULT '',
                     config_hash TEXT NOT NULL DEFAULT '',
+                    reviewed_at TEXT NOT NULL DEFAULT '',
                     created_at TEXT NOT NULL,
                     updated_at TEXT NOT NULL,
                     UNIQUE(calibre_id, source_hash, config_hash)
@@ -210,6 +211,14 @@ class QueueStore:
                 "CREATE UNIQUE INDEX IF NOT EXISTS idx_jobs_translation_id "
                 "ON jobs(translation_id) WHERE translation_id <> ''"
             )
+            # Migration for queues created before the review gate existed.
+            book_columns = {
+                row["name"] for row in conn.execute("PRAGMA table_info(books)")
+            }
+            if "reviewed_at" not in book_columns:
+                conn.execute(
+                    "ALTER TABLE books ADD COLUMN reviewed_at TEXT NOT NULL DEFAULT ''"
+                )
             conn.commit()
 
     def _assert_state(self, state: str) -> None:
@@ -344,6 +353,40 @@ class QueueStore:
             conn.execute(
                 "INSERT INTO events (book_id, level, message, created_at) VALUES (?, 'info', ?, ?)",
                 (book_id, message or f"state -> {state}", now),
+            )
+            conn.commit()
+            return True
+
+    def mark_reviewed(self, book_id: int, message: str = "") -> bool:
+        """Record that a human approved this book's translation."""
+        now = utc_now()
+        with self._lock, self._connect() as conn:
+            row = conn.execute("SELECT id FROM books WHERE id = ?", (book_id,)).fetchone()
+            if not row:
+                return False
+            conn.execute(
+                "UPDATE books SET reviewed_at = ?, updated_at = ? WHERE id = ?",
+                (now, now, book_id),
+            )
+            if message:
+                conn.execute(
+                    "INSERT INTO events (book_id, level, message, created_at) "
+                    "VALUES (?, 'info', ?, ?)",
+                    (book_id, message, now),
+                )
+            conn.commit()
+            return True
+
+    def clear_reviewed(self, book_id: int) -> bool:
+        """Invalidate a previous approval before a new translation starts."""
+        now = utc_now()
+        with self._lock, self._connect() as conn:
+            row = conn.execute("SELECT id FROM books WHERE id = ?", (book_id,)).fetchone()
+            if not row:
+                return False
+            conn.execute(
+                "UPDATE books SET reviewed_at = '', updated_at = ? WHERE id = ?",
+                (now, book_id),
             )
             conn.commit()
             return True

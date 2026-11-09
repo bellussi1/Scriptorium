@@ -69,7 +69,7 @@ pytest -p no:cacheprovider tests/unit/glossary -q
 # 183 passed
 
 pytest -p no:cacheprovider -q
-# 2950 passed, 2 skipped, 10 deselected, 14 failed
+# 2952 passed, 2 skipped, 10 deselected, 14 failed
 ```
 
 The same 14 failures reproduce on a clean worktree at upstream `b5ed606` under
@@ -456,6 +456,11 @@ the controlled actions the queue needs from the browser:
   disables move buttons at the queue edges, and reports action results.
 - The strings are in a new `queue` i18n namespace across all seven supported
   locales.
+- Every finished book lands in `needs_review`. The approve action (CLI or the
+  Queue UI) is the only path to `completed` and records `reviewed_at`; the
+  Kindle export requires that timestamp. An unreviewed `completed` row from an
+  older runner is displayed as `needs_review` and excluded from the Kindle
+  folder until approved.
 - The boundary is explicit: the UI can enqueue, reorder, set the model for
   pending books, request a pause after the current book, and stop the book being
   translated. It never starts or validates a translation job itself; the runner
@@ -470,7 +475,7 @@ model for *Ship of Magic* worked against the copy; all three actions were then
 reverted by restoring the copy from the live queue. The second instance does not
 touch the real `data/jobs.db`.
 
-Validation: **24** route tests, full suite **2,950 passed, 2 skipped, 14
+Validation: **25** route tests, full suite **2,952 passed, 2 skipped, 14
 pre-existing failures**.
 
 #### 2.13.1 Cross-screen UI polish
@@ -614,7 +619,7 @@ a blind human comparison, if one is run.
 
 ### 2.18 Queue runner and review gate
 
-`queue run` is the missing executor for the queue. It:
+`queue run` is the executor for the queue. It:
 
 1. picks a pending book (or the explicit `--book-id`);
 2. compiles that book's glossary and style preset from the resource tree;
@@ -624,14 +629,20 @@ a blind human comparison, if one is run.
 5. repairs dropcaps and invalid DPUB-ARIA roles, runs the deterministic gate and
    EPUBCheck;
 6. runs the source-aware `refine-epub` pass when enabled;
-7. marks the book **completed** when the gates pass, and makes the best EPUB
-   available for download.
+7. marks the book **needs_review**, records whether the gate passed, and makes
+   the best EPUB available for download.
 
-`needs_review` is now only for a **failed gate** (blocking validation issue or an
-EPUBCheck error), not the normal path. Human review is optional: the Queue table
-has a Download button for completed books, and `queue approve` can still close a
-gate-failed book after manual inspection. The runner handles one book per
-invocation; it does not chain all pending books automatically.
+Every finished book requires human review. The gate result is evidence for the
+reviewer, not an approval: a book only becomes `completed` after an explicit
+`queue approve` (CLI or Queue UI), which sets `books.reviewed_at`. A runner from
+before this gate could mark a book `completed` automatically; the snapshot shows
+it as `needs_review`/`unreviewed_completion`, and the Kindle export refuses it
+until it is approved. A retry clears `reviewed_at`, so a re-translated book must
+be reviewed again.
+
+The Kindle builder includes only reviewed `completed` books by default. The
+Queue table has a Download button for every artifact, and the review drawer
+shows the quality report, EPUBCheck result and log tail.
 
 ```bash
 python -m src.literary.cli queue approve \

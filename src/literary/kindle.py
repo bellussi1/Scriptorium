@@ -98,7 +98,7 @@ def build_kindle_library(
     db_path: str = "data/literary_queue.db",
     outputs_dir: str = "translated_files",
     output_root: str = "translated_files/kindle",
-    include_needs_review: bool = True,
+    include_needs_review: bool = False,
 ) -> Dict[str, Any]:
     outputs = Path(outputs_dir)
     root = Path(output_root)
@@ -119,6 +119,9 @@ def build_kindle_library(
             allowed_states.add("needs_review")
         if book.status not in allowed_states:
             skipped.append({"title": book.title, "reason": book.status})
+            continue
+        if not getattr(book, "reviewed_at", ""):
+            skipped.append({"title": book.title, "reason": "not reviewed"})
             continue
         info = read_epub(str(artifact), include_text=False)
         translated_title = info.title or book.title
@@ -162,6 +165,24 @@ def build_kindle_library(
         writer = csv.DictWriter(handle, fieldnames=list(manifest[0].keys()) if manifest else ["book_id"])
         writer.writeheader()
         writer.writerows(manifest)
+
+    # The folder is generated: drop EPUBs that are no longer eligible (for
+    # example a book whose approval was invalidated by a retry). Without this,
+    # a stale file would survive and the Kindle zip would keep shipping it.
+    keep = {(root / item["file"]).resolve() for item in manifest}
+    for path in root.rglob("*.epub"):
+        if path.resolve() not in keep:
+            try:
+                path.unlink()
+            except OSError:
+                pass
+    for directory in sorted((p for p in root.rglob("*") if p.is_dir()), reverse=True):
+        if directory == root:
+            continue
+        try:
+            directory.rmdir()
+        except OSError:
+            pass
 
     readme = root / "README.md"
     lines = [

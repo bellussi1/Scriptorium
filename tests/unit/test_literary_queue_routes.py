@@ -31,7 +31,8 @@ def _queue_db(path: Path) -> None:
             word_count INTEGER,
             model TEXT,
             provider TEXT,
-            priority INTEGER DEFAULT 0
+            priority INTEGER DEFAULT 0,
+            reviewed_at TEXT DEFAULT ''
         );
         CREATE TABLE jobs (
             id INTEGER PRIMARY KEY,
@@ -54,11 +55,11 @@ def _queue_db(path: Path) -> None:
     )
     conn.execute(
         "INSERT INTO books VALUES (1, 100, 'Howling Dark', 'Christopher Ruocchio', "
-        "'The Sun Eater', 2.0, 'translating', 264961, 'hy-mt2', 'ollama', 0)"
+        "'The Sun Eater', 2.0, 'translating', 264961, 'hy-mt2', 'ollama', 0, '')"
     )
     conn.execute(
         "INSERT INTO books VALUES (2, 101, 'Demon in White', 'Christopher Ruocchio', "
-        "'The Sun Eater', 3.0, 'pending', 295868, 'hy-mt2', 'ollama', 0)"
+        "'The Sun Eater', 3.0, 'pending', 295868, 'hy-mt2', 'ollama', 0, '')"
     )
     conn.execute(
         "INSERT INTO jobs VALUES (1, 1, 'translating', 'cli_test', 10, 100, '', "
@@ -564,3 +565,29 @@ def test_control_route_requires_at_least_one_flag(tmp_path: Path, monkeypatch):
 
     assert response.status_code == 400
     assert "pause_after_book or pause_now" in response.get_json()["error"]
+
+
+def test_approve_route_accepts_an_unreviewed_completed_book(tmp_path: Path, monkeypatch):
+    app = _client(tmp_path, monkeypatch, rows=[])
+    book_id = _seed_book(tmp_path, 22, "Auto Completed")
+    store = QueueStore(str(tmp_path / "queue.db"))
+    job_id = store.create_job(book_id)
+    for state in ("preparing", "translating", "validating", "completed"):
+        store.set_book_state(book_id, state)
+        store.set_job_state(job_id, state)
+    store.close()
+
+    before = app.test_client().get("/api/literary/queue").get_json()
+    book = next(item for item in before["books"] if item["id"] == book_id)
+    assert book["state"] == "needs_review"
+    assert book["unreviewed_completion"] is True
+    assert book["reviewed"] is False
+
+    response = app.test_client().post(f"/api/literary/queue/books/{book_id}/approve")
+
+    assert response.status_code == 200
+    after = response.get_json()
+    book = next(item for item in after["books"] if item["id"] == book_id)
+    assert book["state"] == "completed"
+    assert book["reviewed"] is True
+    assert book["reviewed_at"]

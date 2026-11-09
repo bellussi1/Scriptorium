@@ -234,6 +234,7 @@ class QueueBook:
     config_hash: str
     created_at: str
     updated_at: str
+    reviewed_at: str = ""
 
     def to_dict(self) -> Dict[str, Any]:
         return self.__dict__.copy()
