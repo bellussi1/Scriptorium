@@ -44,7 +44,7 @@ Compiled term counts:
 
 ## Validation
 
-- `python -m src.literary.cli resources validate --root literary-resources`: **passed**, 25 files, no issues.
+- `python -m src.literary.cli resources validate --root literary-resources`: **passed**, 26 files, no issues.
 - Compiled glossary for The Mad Ship and Demon in White with no issues.
 - Sample translation: 5 excerpts per book with Hy-MT2 7B Q4_K_M, the compiled glossary and style.
   - Name recall 1.0; English leakage 0.0; no generation errors.
