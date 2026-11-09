@@ -3,9 +3,9 @@
 - **Date:** 2026-11-09
 - **Book:** *Howling Dark*, Christopher Ruocchio — *The Sun Eater* #2
 - **Artifact:** `translated_files/Howling Dark (pt-BR).refined.epub`
-- **Verdict:** **ready for approval** (human sign-off still required)
-- **Queue state:** `completed` in the database, `reviewed_at` empty; the new
-  review gate displays it as `needs_review` until approved.
+- **Verdict:** **approved** for the Kindle library
+- **Queue state:** `completed`, `reviewed_at` set (2026-11-09T07:14:19Z)
+- **Kindle export:** `Christopher Ruocchio/The Sun Eater/02 - Howling Dark (pt-BR).epub`
 
 ## Evidence
 
@@ -28,6 +28,6 @@ The repeated lines in the audit are dialogue (`— O quê?`, `— Hadrian!`,
 
 ## Recommendation
 
-Approve *Howling Dark* through the Queue UI (or `queue approve`) to set
-`reviewed_at` and make it eligible for the Kindle export. A final human read is
-still advised, but the automated review found no blockers.
+Approved on 2026-11-09 through the Queue UI. The artifact is in the Kindle
+library. A final human read is still advised, but the automated review found no
+blockers and pair validation has 0 blocking issues.
