@@ -1,0 +1,246 @@
+version: 1
+scope: universe
+source_language: en
+target_language: pt-BR
+notes: >-
+  Shared world glossary for the Banished Lands. John Gwynne's two series are
+  set in the same world, centuries apart, so the world terms live here and the
+  character sheets live under each subseries. No official PT-BR edition was
+  verified; every rendering is provisional and should be reviewed against the
+  books before a full translation.
+terms:
+  - source: Banished Lands
+    target: Terras Banidas
+    category: location
+    policy: translate
+    notes: "The continent; the shared setting of both series."
+    source_reference: "English source (Malice, A Time of Dread); no official PT-BR verified"
+    confidence: provisional
+    approved: false
+  - source: the Faithful
+    target: os Fiéis
+    category: organization
+    policy: translate
+    aliases: [Faithful]
+    alias_targets: {Faithful: Fiéis}
+    notes: "The people of the Land of the Faithful; capital F in the source."
+    source_reference: "English source (Malice, A Time of Dread); no official PT-BR verified"
+    confidence: provisional
+    approved: false
+  - source: the Fallen
+    target: os Caídos
+    category: organization
+    policy: translate
+    aliases: [Fallen]
+    alias_targets: {Fallen: Caídos}
+    notes: "Asroth's host; capital F in the source. Do not confuse with the adjective fallen."
+    source_reference: "English source (Malice, A Time of Dread); no official PT-BR verified"
+    confidence: provisional
+    approved: false
+  - source: The Faithful and the Fallen
+    target: Os Fiéis e os Caídos
+    category: title
+    policy: translate
+    notes: "Series title; the first series."
+    source_reference: "English source; no official PT-BR verified"
+    confidence: provisional
+    approved: false
+  - source: Land of the Faithful
+    target: Terra dos Fiéis
+    category: location
+    policy: translate
+    source_reference: "English source (A Time of Dread); no official PT-BR verified"
+    confidence: provisional
+    first_appearance: a-time-of-dread
+    approved: false
+  - source: Ben-Elim
+    target: Ben-Elim
+    category: organization
+    policy: keep
+    notes: "The angelic host; keep the hyphen and the capital letters."
+    source_reference: "English source (Malice, A Time of Dread); no official PT-BR verified"
+    confidence: provisional
+    approved: false
+  - source: Kadoshim
+    target: Kadoshim
+    category: organization
+    policy: keep
+    notes: "The demonic host; keep the term."
+    source_reference: "English source (Malice, A Time of Dread); no official PT-BR verified"
+    confidence: provisional
+    approved: false
+  - source: Elyon
+    target: Elyon
+    category: character
+    policy: keep
+    notes: "The creator deity; keep the name."
+    source_reference: "English source (Malice); no official PT-BR verified"
+    confidence: provisional
+    approved: false
+  - source: Asroth
+    target: Asroth
+    category: character
+    policy: keep
+    notes: "Lord of the Kadoshim; keep the name."
+    source_reference: "English source (Malice, A Time of Dread); no official PT-BR verified"
+    confidence: provisional
+    approved: false
+  - source: Otherworld
+    target: Outro Mundo
+    category: location
+    policy: translate
+    notes: "The world of spirit; capitalize as a proper place."
+    source_reference: "English source (Malice, A Time of Dread); no official PT-BR verified"
+    confidence: provisional
+    approved: false
+  - source: giant
+    target: gigante
+    category: other
+    policy: translate
+    aliases: [giants]
+    alias_targets: {giants: gigantes}
+    source_reference: "English source (Malice, A Time of Dread); no official PT-BR verified"
+    confidence: provisional
+    approved: false
+  - source: wyrm
+    target: wyrm
+    category: other
+    policy: keep
+    aliases: [wyrms]
+    alias_targets: {wyrms: wyrms}
+    notes: "Serpent-like creature bred by the giant clans; keep the invented term rather than flattening it to dragão."
+    source_reference: "English source (Malice); no official PT-BR verified"
+    confidence: provisional
+    approved: false
+  - source: draig
+    target: draig
+    category: other
+    policy: keep
+    aliases: [draigs]
+    alias_targets: {draigs: draigs}
+    notes: "Dragon-like predator; keep the invented term."
+    source_reference: "English source (Malice, A Time of Dread); no official PT-BR verified"
+    confidence: provisional
+    approved: false
+  - source: wolven
+    target: wolven
+    category: other
+    policy: keep
+    aliases: [wolvens]
+    alias_targets: {wolvens: wolvens}
+    notes: "Wolf-like species; keep the invented term."
+    source_reference: "English source (A Time of Dread); no official PT-BR verified"
+    confidence: provisional
+    first_appearance: a-time-of-dread
+    approved: false
+  - source: seax
+    target: seax
+    category: item
+    policy: keep
+    aliases: [seaxes]
+    alias_targets: {seaxes: seaxes}
+    notes: "A long knife; keep the historical term."
+    source_reference: "English source (A Time of Dread); no official PT-BR verified"
+    confidence: provisional
+    first_appearance: a-time-of-dread
+    approved: false
+  - source: starstone
+    target: pedra-estelar
+    category: item
+    policy: translate
+    notes: "The metal that seals the Kadoshim; lower-case as a material."
+    source_reference: "English source (A Time of Dread); no official PT-BR verified"
+    confidence: provisional
+    first_appearance: a-time-of-dread
+    approved: false
+  - source: White-Wing
+    target: Asa Branca
+    category: title
+    policy: translate
+    aliases: [White-Wings]
+    alias_targets: {White-Wings: Asas Brancas}
+    notes: "Elite warrior of Drassil; singular/plural title."
+    source_reference: "English source (A Time of Dread); no official PT-BR verified"
+    confidence: provisional
+    first_appearance: a-time-of-dread
+    approved: false
+  - source: War of Treasures
+    target: Guerra dos Tesouros
+    category: concept
+    policy: translate
+    source_reference: "English source (Malice); no official PT-BR verified"
+    confidence: provisional
+    approved: false
+  - source: Age of Lore
+    target: Era do Saber
+    category: concept
+    policy: translate
+    notes: "The historical age in the in-world extracts; review the register."
+    source_reference: "English source (A Time of Dread); no official PT-BR verified"
+    confidence: provisional
+    first_appearance: a-time-of-dread
+    approved: false
+  - source: the Separate Ones
+    target: os Separados
+    category: organization
+    policy: translate
+    notes: "Epithet of the Kadoshim."
+    source_reference: "English source (Malice); no official PT-BR verified"
+    confidence: provisional
+    approved: false
+  - source: the Sons of the Mighty
+    target: os Filhos dos Poderosos
+    category: organization
+    policy: translate
+    notes: "Epithet of the Ben-Elim."
+    source_reference: "English source (Malice); no official PT-BR verified"
+    confidence: provisional
+    approved: false
+  - source: the Great Tyrant
+    target: o Grande Tirano
+    category: title
+    policy: translate
+    notes: "Kadoshim epithet for Elyon; keep the capital letters."
+    source_reference: "English source (A Time of Dread); no official PT-BR verified"
+    confidence: provisional
+    first_appearance: a-time-of-dread
+    approved: false
+  - source: Dun Carreg
+    target: Dun Carreg
+    category: location
+    policy: keep
+    source_reference: "English source (Malice); no official PT-BR verified"
+    confidence: provisional
+    approved: false
+  - source: Dun Seren
+    target: Dun Seren
+    category: location
+    policy: keep
+    source_reference: "English source (A Time of Dread); no official PT-BR verified"
+    confidence: provisional
+    first_appearance: a-time-of-dread
+    approved: false
+  - source: Drassil
+    target: Drassil
+    category: location
+    policy: keep
+    source_reference: "English source (A Time of Dread); no official PT-BR verified"
+    confidence: provisional
+    first_appearance: a-time-of-dread
+    approved: false
+  - source: Kergard
+    target: Kergard
+    category: location
+    policy: keep
+    source_reference: "English source (A Time of Dread); no official PT-BR verified"
+    confidence: provisional
+    first_appearance: a-time-of-dread
+    approved: false
+  - source: Darkwood
+    target: Darkwood
+    category: location
+    policy: keep
+    notes: "Forest/place name; keep until a reviewed PT-BR form exists."
+    source_reference: "English source (Malice); no official PT-BR verified"
+    confidence: provisional
+    approved: false

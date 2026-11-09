@@ -1,0 +1,36 @@
+name: The Dandelion Dynasty
+slug: the-dandelion-dynasty
+author: Ken Liu
+universe: The Dandelion Dynasty
+notes: >-
+  Language audit 2026-11-09: the four individual library EPUBs (292, 294, 293,
+  290) have Portuguese bodies despite some English metadata. The only English
+  source is the omnibus Calibre 342 (The Dandelion Dynasty Boxset, 1,178,595
+  words). Split 342 into four novels, validate the split, and then build the
+  glossary/style before queueing The Grace of Kings. Do not queue the
+  individual PT files for EN->PT.
+books:
+  - slug: the-grace-of-kings
+    title: The Grace of Kings
+    order: 1
+    kind: novel
+    status: source
+    notes: "English source: boxset 342. Calibre 292 is a PT-BR body, not the English original."
+  - slug: the-wall-of-storms
+    title: The Wall of Storms
+    order: 2
+    kind: novel
+    status: source
+    notes: "English source: boxset 342. Calibre 294 is a PT-BR body."
+  - slug: the-veiled-throne
+    title: The Veiled Throne
+    order: 3
+    kind: novel
+    status: source
+    notes: "English source: boxset 342. Calibre 293 is a PT-BR body."
+  - slug: speaking-bones
+    title: Speaking Bones
+    order: 4
+    kind: novel
+    status: source
+    notes: "English source: boxset 342. Calibre 290 is a PT-BR body."

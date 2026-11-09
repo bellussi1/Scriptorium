@@ -1,0 +1,29 @@
+name: The Licanius Trilogy
+slug: the-licanius-trilogy
+author: James Islington
+universe: The Licanius Trilogy
+notes: >-
+  Language audit 2026-11-09: the three library EPUBs are Portuguese bodies
+  (dc:language pt-BR) even though Calibre lists some as English. Calibre 264
+  opens with "A Sombra do Que Foi Perdido" and Portuguese chapter titles, so it
+  cannot be used as an English source. Do not queue this series for EN->PT
+  until an English edition is available. No glossary or style is created yet.
+books:
+  - slug: the-shadow-of-what-was-lost
+    title: The Shadow of What Was Lost
+    order: 1
+    kind: novel
+    status: translated_pt
+    notes: "PT-BR body; Calibre 264. Not an English source."
+  - slug: an-echo-of-things-to-come
+    title: An Echo of Things to Come
+    order: 2
+    kind: novel
+    status: translated_pt
+    notes: "PT-BR body; Calibre 291."
+  - slug: the-light-of-all-that-falls
+    title: The Light of All That Falls
+    order: 3
+    kind: novel
+    status: translated_pt
+    notes: "PT-BR body; Calibre 261."

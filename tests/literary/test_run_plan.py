@@ -52,6 +52,32 @@ def test_infer_scopes_for_known_series():
     }
 
 
+def test_infer_scopes_for_shared_worlds():
+    malice = _book(author="John Gwynne", series="The Faithful and the Fallen", title="Malice")
+    assert infer_scopes(malice).to_dict() == {
+        "author": "john-gwynne",
+        "universe": "the-banished-lands",
+        "subseries": "the-faithful-and-the-fallen",
+        "book": "malice",
+    }
+
+    dread = _book(author="John Gwynne", series="Of Blood and Bone", title="A Time of Dread")
+    assert infer_scopes(dread).to_dict() == {
+        "author": "john-gwynne",
+        "universe": "the-banished-lands",
+        "subseries": "of-blood-and-bone",
+        "book": "a-time-of-dread",
+    }
+
+    hatred = _book(author="Joe Abercrombie", series="The Age of Madness", title="A Little Hatred")
+    assert infer_scopes(hatred).to_dict() == {
+        "author": "joe-abercrombie",
+        "universe": "the-first-law",
+        "subseries": "the-age-of-madness",
+        "book": "a-little-hatred",
+    }
+
+
 def test_compiled_glossary_path_is_not_treated_as_scope_coordinates():
     book = _book(
         author="Christopher Ruocchio",

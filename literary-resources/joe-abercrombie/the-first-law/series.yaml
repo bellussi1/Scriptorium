@@ -1,0 +1,47 @@
+name: The First Law
+slug: the-first-law
+author: Joe Abercrombie
+universe: The First Law
+notes: >-
+  The shared First Law world. The library has the Portuguese editions of the
+  original trilogy (Calibre 39, 41, 40) and the English editions of The Age of
+  Madness. The PT-BR trilogy is the terminology canon for shared world terms;
+  the Age of Madness novels are the current translation source. No official
+  PT-BR edition of the Age of Madness was verified.
+books:
+  - slug: the-blade-itself
+    title: The Blade Itself
+    order: 1
+    kind: novel
+    status: translated_pt
+    notes: "The First Law 1. PT-BR Calibre 39; terminology canon, not a translation source."
+  - slug: before-they-are-hanged
+    title: Before They Are Hanged
+    order: 2
+    kind: novel
+    status: translated_pt
+    notes: "The First Law 2. PT-BR Calibre 41."
+  - slug: last-argument-of-kings
+    title: Last Argument of Kings
+    order: 3
+    kind: novel
+    status: translated_pt
+    notes: "The First Law 3. PT-BR Calibre 40."
+  - slug: a-little-hatred
+    title: A Little Hatred
+    order: 4
+    kind: novel
+    status: source
+    notes: "The Age of Madness 1. EN Calibre 346; 177,961 words."
+  - slug: the-trouble-with-peace
+    title: The Trouble with Peace
+    order: 5
+    kind: novel
+    status: source
+    notes: "The Age of Madness 2. EN Calibre 352."
+  - slug: the-wisdom-of-crowds
+    title: The Wisdom of Crowds
+    order: 6
+    kind: novel
+    status: source
+    notes: "The Age of Madness 3. EN Calibre 349."

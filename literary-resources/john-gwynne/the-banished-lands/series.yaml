@@ -1,0 +1,53 @@
+name: The Banished Lands
+slug: the-banished-lands
+author: John Gwynne
+universe: The Banished Lands
+notes: >-
+  Two series in one world, centuries apart. The series order below runs The
+  Faithful and the Fallen first, then Of Blood and Bone. The subseries
+  directories carry their own style and cast; the shared world glossary lives
+  at the universe level. Calibre has no series link for Malice (354); this file
+  is the source of truth. No official PT-BR edition was verified.
+books:
+  - slug: malice
+    title: Malice
+    order: 1
+    kind: novel
+    status: source
+    notes: "The Faithful and the Fallen 1. EN Calibre 354; 215,351 words."
+  - slug: valour
+    title: Valour
+    order: 2
+    kind: novel
+    status: source
+    notes: "The Faithful and the Fallen 2. EN Calibre 355."
+  - slug: ruin
+    title: Ruin
+    order: 3
+    kind: novel
+    status: source
+    notes: "The Faithful and the Fallen 3. EN Calibre 348."
+  - slug: wrath
+    title: Wrath
+    order: 4
+    kind: novel
+    status: source
+    notes: "The Faithful and the Fallen 4. EN Calibre 344."
+  - slug: a-time-of-dread
+    title: A Time of Dread
+    order: 5
+    kind: novel
+    status: source
+    notes: "Of Blood and Bone 1. EN Calibre 345; 138,371 words."
+  - slug: a-time-of-blood
+    title: A Time of Blood
+    order: 6
+    kind: novel
+    status: source
+    notes: "Of Blood and Bone 2. EN Calibre 353."
+  - slug: a-time-of-courage
+    title: A Time of Courage
+    order: 7
+    kind: novel
+    status: source
+    notes: "Of Blood and Bone 3. EN Calibre 350."

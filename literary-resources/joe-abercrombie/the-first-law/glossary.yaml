@@ -1,0 +1,198 @@
+version: 1
+scope: universe
+source_language: en
+target_language: pt-BR
+notes: >-
+  Shared First Law world glossary. The Portuguese edition of The Blade Itself
+  (Calibre 39) is the terminology canon for terms that already appeared there;
+  those entries are marked reviewed. Age of Madness-specific terms live under
+  the-age-of-madness/ and remain provisional.
+terms:
+  - source: The Union
+    target: A União
+    category: organization
+    policy: translate
+    notes: "The state; the PT-BR edition uses a União."
+    source_reference: "PT-BR edition, The Blade Itself (Calibre 39)"
+    confidence: reviewed
+    approved: true
+  - source: The North
+    target: O Norte
+    category: location
+    policy: translate
+    source_reference: "PT-BR edition, The Blade Itself (Calibre 39)"
+    confidence: reviewed
+    approved: true
+  - source: Northman
+    target: nórdico
+    category: other
+    policy: adapt
+    aliases: [Northmen]
+    alias_targets: {Northmen: nórdicos}
+    notes: "The PT-BR edition uses nórdicos for the Northmen."
+    source_reference: "PT-BR edition, The Blade Itself (Calibre 39)"
+    confidence: reviewed
+    approved: true
+  - source: Angland
+    target: Angland
+    category: location
+    policy: keep
+    source_reference: "PT-BR edition, The Blade Itself (Calibre 39)"
+    confidence: reviewed
+    approved: true
+  - source: Gurkhul
+    target: Gurkhul
+    category: location
+    policy: keep
+    source_reference: "PT-BR edition, The Blade Itself (Calibre 39)"
+    confidence: reviewed
+    approved: true
+  - source: Inquisition
+    target: Inquisição
+    category: organization
+    policy: translate
+    source_reference: "PT-BR edition, The Blade Itself (Calibre 39)"
+    confidence: reviewed
+    approved: true
+  - source: Inquisitor
+    target: inquisidor
+    category: title
+    policy: translate
+    aliases: [Inquisitors]
+    alias_targets: {Inquisitors: inquisidores}
+    notes: "Common noun; capitalize only at sentence start or before a name."
+    source_reference: "PT-BR edition, The Blade Itself (Calibre 39)"
+    confidence: reviewed
+    approved: true
+  - source: Eater
+    target: comedor
+    category: other
+    policy: translate
+    aliases: [Eaters]
+    alias_targets: {Eaters: comedores}
+    notes: "The PT-BR edition uses comedores; do not use devoradores."
+    source_reference: "PT-BR edition, The Blade Itself (Calibre 39)"
+    confidence: reviewed
+    approved: true
+  - source: Magi
+    target: Magos
+    category: organization
+    policy: translate
+    source_reference: "PT-BR edition, The Blade Itself (Calibre 39)"
+    confidence: reviewed
+    approved: true
+  - source: First of the Magi
+    target: Primeiro dos Magos
+    category: title
+    policy: translate
+    source_reference: "PT-BR edition, The Blade Itself (Calibre 39)"
+    confidence: reviewed
+    approved: true
+  - source: Closed Council
+    target: Conselho Fechado
+    category: organization
+    policy: translate
+    source_reference: "PT-BR edition, The Blade Itself (Calibre 39)"
+    confidence: reviewed
+    approved: true
+  - source: Open Council
+    target: Conselho Aberto
+    category: organization
+    policy: translate
+    source_reference: "PT-BR edition, The Blade Itself (Calibre 39)"
+    confidence: reviewed
+    approved: true
+  - source: The House of the Maker
+    target: A Casa do Artífice
+    category: location
+    policy: translate
+    notes: "The PT-BR chapter title uses A Casa do Artífice."
+    source_reference: "PT-BR edition, The Blade Itself (Calibre 39)"
+    confidence: reviewed
+    approved: true
+  - source: The Bloody-Nine
+    target: O Nove Sangrento
+    category: title
+    policy: translate
+    source_reference: "PT-BR edition, The Blade Itself (Calibre 39)"
+    confidence: reviewed
+    approved: true
+  - source: The High Places
+    target: os Lugares Altos
+    category: location
+    policy: translate
+    source_reference: "PT-BR edition, The Blade Itself (Calibre 39)"
+    confidence: reviewed
+    approved: true
+  - source: Flathead
+    target: cabeça-achatada
+    category: other
+    policy: translate
+    aliases: [Flatheads]
+    alias_targets: {Flatheads: cabeças-achatadas}
+    source_reference: "PT-BR edition, The Blade Itself (Calibre 39)"
+    confidence: reviewed
+    approved: true
+  - source: Shanka
+    target: shanka
+    category: other
+    policy: keep
+    aliases: [Shankas]
+    alias_targets: {Shankas: shankas}
+    source_reference: "PT-BR edition, The Blade Itself (Calibre 39)"
+    confidence: reviewed
+    approved: true
+  - source: The Other Side
+    target: O Outro Lado
+    category: location
+    policy: translate
+    notes: "The world of the dead; review the capitalization against the PT-BR edition."
+    source_reference: "English source (The First Law); PT-BR rendering provisional"
+    confidence: provisional
+    approved: false
+  - source: The Circle
+    target: O Círculo
+    category: organization
+    policy: translate
+    notes: "The closed circle of Bayaz's allies; review before use."
+    source_reference: "English source (The First Law); PT-BR rendering provisional"
+    confidence: provisional
+    approved: false
+  - source: Styria
+    target: Styria
+    category: location
+    policy: keep
+    notes: "Keep the fantasy exonym; a PT-BR edition may prefer Estíria, so review."
+    source_reference: "English source (The First Law); PT-BR rendering provisional"
+    confidence: provisional
+    approved: false
+  - source: Adua
+    target: Adua
+    category: location
+    policy: keep
+    source_reference: "English source (The First Law); PT-BR rendering provisional"
+    confidence: provisional
+    approved: false
+  - source: The Agriont
+    target: Agriont
+    category: location
+    policy: keep
+    source_reference: "English source (The First Law); PT-BR rendering provisional"
+    confidence: provisional
+    approved: false
+  - source: Gurkish
+    target: gurkish
+    category: other
+    policy: keep
+    notes: "Adjective; keep as an exonym unless the PT-BR edition supplies a reviewed form."
+    source_reference: "English source (The First Law); PT-BR rendering provisional"
+    confidence: provisional
+    approved: false
+  - source: The First Law
+    target: A Primeira Lei
+    category: title
+    policy: translate
+    notes: "Series title; review against the PT-BR edition before locking it."
+    source_reference: "English source; PT-BR rendering provisional"
+    confidence: provisional
+    approved: false

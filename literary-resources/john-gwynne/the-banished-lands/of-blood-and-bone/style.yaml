@@ -1,0 +1,58 @@
+# Style profile for Of Blood and Bone.
+# Skeleton written from the first ten content documents of A Time of Dread.
+description: Epic third-person limited set in the Banished Lands a century after The Faithful and the Fallen; multiple POV, older world, larger stakes.
+mode: source
+context: >-
+  A century after the first series. The Ben-Elim rule from Drassil, the
+  Kadoshim have returned, and the mortal realms are caught between old faith,
+  new occupation and the memory of Corban's generation.
+rules:
+  - dimension: narrative_voice
+    instruction: >-
+      Keep a tight third-person limited POV, one viewpoint per chapter. The
+      chapter headings name the POV (Drem, Riv, Bleda, Sig); preserve them and
+      do not slide into omniscient recap.
+  - dimension: register
+    instruction: >-
+      The register is more epic than Malice but still readable. Avoid archaic
+      pastiche and modern slang; let the age of the world show through ruins,
+      institutions and remembered history rather than through a changed
+      vocabulary.
+  - dimension: sentence_rhythm
+    instruction: >-
+      The sample sits around a 12-word median with a p90 of 30, longer than
+      Malice. Preserve the long tail, but shorten sharply for action and
+      danger; do not flatten the variation.
+  - dimension: dialogue
+    instruction: >-
+      Dialogue is about 37% of paragraphs in the sample. Keep the ensemble
+      voices distinct, including giants, humans, Ben-Elim and Kadoshim; do not
+      make the non-human speakers sound like modern soldiers.
+  - dimension: imagery
+    instruction: >-
+      Draw images from weather, forests, stone, ruins, wings and old blood.
+      The world should feel older and more mythic than in Malice, but keep the
+      images physical rather than abstract.
+  - dimension: continuity
+    instruction: >-
+      References to Corban, Cywen, the old war and the first series are history
+      to these characters. Translate them as remembered history, not as
+      exposition for a new reader, and do not add explanations.
+  - dimension: terminology
+    instruction: >-
+      Use the shared Banished Lands glossary consistently. Do not re-translate
+      Ben-Elim, Kadoshim, Drassil, Dun Seren, White-Wing, draig or wolven.
+  - dimension: formatting
+    instruction: >-
+      Preserve chapter headings and the in-world extracts from The Book of the
+      Fallen. Keep them visually distinct from the narrative.
+evidence:
+  samples:
+    - "A Time of Dread, first ten content documents"
+  measurements:
+    - "A Time of Dread sample: 24,839 words; mean sentence 14.5; median 12; p90 30; dialogue paragraphs 36.8%; short sentences under 6 words 20.9%; semicolons 1.37/1,000."
+    - "A Time of Dread full book: 138,371 words; 55 content documents; 63 spine documents."
+  observations:
+    - "The first ten documents include a large cast list and in-world extracts, so the dialogue ratio is lower than a pure narrative sample."
+    - "The prose is more expansive than Malice but retains the short action sentences and the close POV."
+notes: "confidence: provisional. Measurements cover the first ten content documents, not the full book. No official PT-BR edition was verified."

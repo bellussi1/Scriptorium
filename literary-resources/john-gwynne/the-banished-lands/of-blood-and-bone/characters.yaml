@@ -1,0 +1,158 @@
+version: 1
+scope: subseries
+source_language: en
+target_language: pt-BR
+notes: >-
+  Main cast of Of Blood and Bone. Names are kept; no official PT-BR edition was
+  verified. Alcyon is shared with The Faithful and the Fallen but duplicated
+  here because the compiler only reads the current subseries sheet.
+terms:
+  - source: Drem
+    target: Drem
+    category: character
+    policy: keep
+    gender: male
+    notes: "Central POV; a hunter of Kergard."
+    source_reference: "English source (A Time of Dread); no official PT-BR verified"
+    confidence: provisional
+    first_appearance: a-time-of-dread
+    approved: false
+  - source: Sig
+    target: Sig
+    category: character
+    policy: keep
+    gender: female
+    notes: "Giant; weapons-master of Dun Seren."
+    source_reference: "English source (A Time of Dread); no official PT-BR verified"
+    confidence: provisional
+    first_appearance: a-time-of-dread
+    approved: false
+  - source: Riv
+    target: Riv
+    category: character
+    policy: keep
+    gender: female
+    notes: "White-Wing of Drassil; central POV."
+    source_reference: "English source (A Time of Dread); no official PT-BR verified"
+    confidence: provisional
+    first_appearance: a-time-of-dread
+    approved: false
+  - source: Bleda
+    target: Bleda
+    category: character
+    policy: keep
+    gender: male
+    notes: "Sirak prince; ward of the Ben-Elim."
+    source_reference: "English source (A Time of Dread); no official PT-BR verified"
+    confidence: provisional
+    first_appearance: a-time-of-dread
+    approved: false
+  - source: Aphra
+    target: Aphra
+    category: character
+    policy: keep
+    gender: female
+    notes: "Riv's sister; White-Wing captain."
+    source_reference: "English source (A Time of Dread); no official PT-BR verified"
+    confidence: provisional
+    first_appearance: a-time-of-dread
+    approved: false
+  - source: Jin
+    target: Jin
+    category: character
+    policy: keep
+    gender: female
+    notes: "Cheren princess; ward of the Ben-Elim."
+    source_reference: "English source (A Time of Dread); no official PT-BR verified"
+    confidence: provisional
+    first_appearance: a-time-of-dread
+    approved: false
+  - source: Israfil
+    target: Israfil
+    category: character
+    policy: keep
+    gender: male
+    notes: "Lord Protector of the Land of the Faithful; High Captain of the Ben-Elim."
+    source_reference: "English source (A Time of Dread); no official PT-BR verified"
+    confidence: provisional
+    first_appearance: a-time-of-dread
+    approved: false
+  - source: Kol
+    target: Kol
+    category: character
+    policy: keep
+    gender: male
+    notes: "Ben-Elim captain of Drassil."
+    source_reference: "English source (A Time of Dread); no official PT-BR verified"
+    confidence: provisional
+    first_appearance: a-time-of-dread
+    approved: false
+  - source: Gulla
+    target: Gulla
+    category: character
+    policy: keep
+    gender: male
+    notes: "High Captain of the Kadoshim."
+    source_reference: "English source (A Time of Dread); no official PT-BR verified"
+    confidence: provisional
+    first_appearance: a-time-of-dread
+    approved: false
+  - source: Alcyon
+    target: Alcyon
+    category: character
+    policy: keep
+    gender: male
+    notes: "Giant of Drassil; also appears in The Faithful and the Fallen."
+    source_reference: "English source (Malice, A Time of Dread); no official PT-BR verified"
+    confidence: provisional
+    first_appearance: a-time-of-dread
+    approved: false
+  - source: Rab
+    target: Rab
+    category: character
+    policy: keep
+    notes: "White talking crow of Dun Seren; keep the name and do not force a gender."
+    source_reference: "English source (A Time of Dread); no official PT-BR verified"
+    confidence: provisional
+    first_appearance: a-time-of-dread
+    approved: false
+  - source: Keld
+    target: Keld
+    category: character
+    policy: keep
+    gender: male
+    notes: "Warrior and huntsman of Dun Seren."
+    source_reference: "English source (A Time of Dread); no official PT-BR verified"
+    confidence: provisional
+    first_appearance: a-time-of-dread
+    approved: false
+  - source: Cullen
+    target: Cullen
+    category: character
+    policy: keep
+    gender: male
+    notes: "Warrior of Kergard."
+    source_reference: "English source (A Time of Dread); no official PT-BR verified"
+    confidence: provisional
+    first_appearance: a-time-of-dread
+    approved: false
+  - source: Olin
+    target: Olin
+    category: character
+    policy: keep
+    gender: male
+    notes: "Drem's companion."
+    source_reference: "English source (A Time of Dread); no official PT-BR verified"
+    confidence: provisional
+    first_appearance: a-time-of-dread
+    approved: false
+  - source: Ulf
+    target: Ulf
+    category: character
+    policy: keep
+    gender: male
+    notes: "Warrior; member of the Kergard cast."
+    source_reference: "English source (A Time of Dread); no official PT-BR verified"
+    confidence: provisional
+    first_appearance: a-time-of-dread
+    approved: false

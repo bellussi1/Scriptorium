@@ -1,0 +1,57 @@
+# Style profile for The Faithful and the Fallen.
+# Skeleton written from the first ten content documents of Malice.
+description: Grounded third-person limited epic fantasy; short kinetic chapters, multiple POV, and a pre-industrial Banished Lands.
+mode: source
+context: >-
+  A pre-industrial world of kingdoms, warbands, giant clans and old gods. The
+  Ben-Elim and the Kadoshim are at war in the Otherworld; the Faithful await a
+  prophecy, and the mortal realms are drawn into it.
+rules:
+  - dimension: narrative_voice
+    instruction: >-
+      Keep a tight third-person limited POV, one viewpoint per chapter. The
+      chapter headings name the POV (Corban, Veradis, Nathair, Evnis, Camlin);
+      preserve that structure and do not slip into omniscient explanation.
+  - dimension: register
+    instruction: >-
+      Use modern, direct, grounded prose. Avoid epic archaism, pseudo-medieval
+      diction and modern slang. Dialogue can be colloquial; narration should
+      stay clean and physical.
+  - dimension: sentence_rhythm
+    instruction: >-
+      Keep the measured sample around a 9-word median with a p90 of 22. Use
+      short sentences and fragments in action and suspense; reserve longer
+      reflective periods for aftermath and decision, and do not even out the
+      short sentences into a uniform rhythm.
+  - dimension: dialogue
+    instruction: >-
+      Dialogue is frequent (about 56% of paragraphs in the sample). Keep the
+      interruptions, banter, half-answers and regional differences; do not
+      formalize the speech or turn every exchange into exposition.
+  - dimension: imagery
+    instruction: >-
+      Draw images from weather, wood, mud, steel, animals and the body. Keep
+      battle imagery close and sensory rather than cosmic or picturesque.
+  - dimension: battle
+    instruction: >-
+      Keep combat kinetic and confusing: fear, injuries, noise, bad footing and
+      sudden death. Do not stage heroic tableaux or soften the violence.
+  - dimension: terminology
+    instruction: >-
+      Keep names and invented terms exactly as the glossary dictates. Do not
+      explain Ben-Elim, Kadoshim, draig, wyrm, wolven or the Otherworld inside
+      the narrative; let context carry them.
+  - dimension: formatting
+    instruction: >-
+      Preserve chapter headings, in-world extracts and the short-chapter
+      architecture. Do not merge chapters or add editorial notes.
+evidence:
+  samples:
+    - "Malice, first ten content documents"
+  measurements:
+    - "Malice sample: 24,206 words; mean sentence 11.31; median 9; p90 22; dialogue paragraphs 56.1%; short sentences under 6 words 26.8%; semicolons 0.66/1,000."
+    - "Malice full book: 215,351 words; 94 content documents; 105 spine documents."
+  observations:
+    - "The sample is dialogue-heavy because the opening chapters alternate training, court and warband scenes; the action chapters shorten further."
+    - "The prose is modern and direct; the epic scale comes from the world and the stakes, not from an archaic sentence style."
+notes: "confidence: provisional. Measurements cover the first ten content documents, not the full book. No official PT-BR edition was verified."

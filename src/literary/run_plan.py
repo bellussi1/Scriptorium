@@ -49,6 +49,17 @@ _SERIES_TO_SUBSERIES = {
     "the rain wild chronicles": "rain-wild-chronicles",
 }
 
+# John Gwynne and Joe Abercrombie write multiple series in one shared world.
+# The world glossary lives at the universe level; the series directories only
+# carry their own order, style and cast.
+_GWYNNE_SERIES = {
+    "the faithful and the fallen": "the-faithful-and-the-fallen",
+    "of blood and bone": "of-blood-and-bone",
+}
+_ABERCROMBIE_SERIES = {
+    "the age of madness": "the-age-of-madness",
+}
+
 
 def infer_scopes(book: Any) -> BookScopes:
     """Infer resource-tree coordinates from a queue book row.
@@ -78,6 +89,22 @@ def infer_scopes(book: Any) -> BookScopes:
     series = str(getattr(book, "series", "") or "").strip()
     title = slugify(str(getattr(book, "title", "") or ""))
     series_key = series.casefold()
+
+    if "gwynne" in author:
+        return BookScopes(
+            author=author,
+            universe="the-banished-lands",
+            subseries=_GWYNNE_SERIES.get(series_key, ""),
+            book=title,
+        )
+
+    if "abercrombie" in author:
+        return BookScopes(
+            author=author,
+            universe="the-first-law",
+            subseries=_ABERCROMBIE_SERIES.get(series_key, ""),
+            book=title,
+        )
 
     if "hobb" in author:
         universe = "realm-of-the-elderlings"

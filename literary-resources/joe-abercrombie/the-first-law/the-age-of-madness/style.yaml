@@ -1,0 +1,59 @@
+# Style profile for The Age of Madness.
+# Skeleton written from the first ten content documents of A Little Hatred.
+description: Clipped, ironic third-person limited; an industrializing Union, multiple POV, and dark comedy inside a brutal political transition.
+mode: source
+context: >-
+  The Union is entering an industrial age of mills, chimneys, banking and
+  political agitation. The North, Styria and the Gurkish Empire remain
+  strategic threats; magic has receded but has not disappeared.
+rules:
+  - dimension: narrative_voice
+    instruction: >-
+      Keep a tight third-person limited POV, one head per chapter. Use free
+      indirect thought and let the character's bias color the narration; do not
+      add omniscient explanation or a neutral narrator.
+  - dimension: register
+    instruction: >-
+      Sustain a clipped, ironic, often vulgar register. Avoid formal, epic or
+      archaic diction; let class, region and profession shape speech. The
+      comedy comes from the gap between what characters say and what they
+      reveal.
+  - dimension: sentence_rhythm
+    instruction: >-
+      Keep the sample's short rhythm: 9-word median, p90 21, with many
+      fragments and very short paragraphs. Do not smooth the fragments into
+      long periodic sentences, and do not make every sentence equally short.
+  - dimension: dialogue
+    instruction: >-
+      Dialogue dominates (about 55% of paragraphs in the sample). Keep the
+      interruptions, slang, profanity, half-answers and self-interruptions; do
+      not turn banter into cooperative exposition.
+  - dimension: imagery
+    instruction: >-
+      Draw images from smoke, mills, money, machinery, bodies and injuries.
+      Keep the industrial world physical and unglamorous; avoid picturesque
+      fantasy scenery.
+  - dimension: violence
+    instruction: >-
+      Keep the abrupt, unglamorous violence: it is fast, ugly and often
+      pointless. Do not soften it or turn it into a heroic tableau.
+  - dimension: continuity
+    instruction: >-
+      This is the same world as the First Law trilogy, about thirty years later.
+      Use the shared glossary (A União, O Norte, Inquisição, comedores, Magos,
+      Conselho Fechado) and do not explain past events to the reader.
+  - dimension: formatting
+    instruction: >-
+      Chapter titles are thematic rather than POV names; preserve them. Keep
+      the POV shifts, the short scene breaks and the white space around
+      isolated lines.
+evidence:
+  samples:
+    - "A Little Hatred, first ten content documents"
+  measurements:
+    - "A Little Hatred sample: 21,101 words; mean sentence 10.8; median 9; p90 21; dialogue paragraphs 54.9%; short sentences under 6 words 29.3%; semicolons 0.0/1,000."
+    - "A Little Hatred full book: 177,961 words; 69 content documents; 77 spine documents."
+  observations:
+    - "The sample is dialogue-heavy and fragment-heavy even by Abercrombie's standards; the industrial setting adds commerce and machinery to the bodily imagery."
+    - "No semicolons in the sample; the voice prefers stops, dashes and short turns."
+notes: "confidence: provisional. Measurements cover the first ten content documents, not the full book. The shared First Law terms are reviewed against the PT-BR edition of The Blade Itself; Age-specific terms are provisional."

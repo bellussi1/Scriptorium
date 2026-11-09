@@ -1,0 +1,218 @@
+version: 1
+scope: subseries
+source_language: en
+target_language: pt-BR
+notes: >-
+  Main cast of The Faithful and the Fallen. Names are kept; no official PT-BR
+  edition was verified. Roles are from Malice (book 1); terms are provisional
+  and should be reviewed before later books.
+terms:
+  - source: Corban
+    target: Corban
+    category: character
+    policy: keep
+    gender: male
+    notes: "Blacksmith's son; central POV."
+    source_reference: "English source (Malice); no official PT-BR verified"
+    confidence: provisional
+    first_appearance: malice
+    approved: false
+  - source: Veradis
+    target: Veradis
+    category: character
+    policy: keep
+    gender: male
+    notes: "Prince Nathair's friend and warrior."
+    source_reference: "English source (Malice); no official PT-BR verified"
+    confidence: provisional
+    first_appearance: malice
+    approved: false
+  - source: Nathair
+    target: Nathair
+    category: character
+    policy: keep
+    gender: male
+    notes: "Prince of Tenebral; central POV."
+    source_reference: "English source (Malice); no official PT-BR verified"
+    confidence: provisional
+    first_appearance: malice
+    approved: false
+  - source: Cywen
+    target: Cywen
+    category: character
+    policy: keep
+    gender: female
+    notes: "Corban's sister."
+    source_reference: "English source (Malice); no official PT-BR verified"
+    confidence: provisional
+    first_appearance: malice
+    approved: false
+  - source: Gar
+    target: Gar
+    category: character
+    policy: keep
+    gender: male
+    notes: "Corban's father; blacksmith."
+    source_reference: "English source (Malice); no official PT-BR verified"
+    confidence: provisional
+    first_appearance: malice
+    approved: false
+  - source: Kastell
+    target: Kastell
+    category: character
+    policy: keep
+    gender: male
+    notes: "Prince of Isiltir."
+    source_reference: "English source (Malice); no official PT-BR verified"
+    confidence: provisional
+    first_appearance: malice
+    approved: false
+  - source: Brenin
+    target: Brenin
+    category: character
+    policy: keep
+    gender: male
+    notes: "King of Ardan."
+    source_reference: "English source (Malice); no official PT-BR verified"
+    confidence: provisional
+    first_appearance: malice
+    approved: false
+  - source: Rafe
+    target: Rafe
+    category: character
+    policy: keep
+    gender: male
+    notes: "Corban's friend."
+    source_reference: "English source (Malice); no official PT-BR verified"
+    confidence: provisional
+    first_appearance: malice
+    approved: false
+  - source: Dath
+    target: Dath
+    category: character
+    policy: keep
+    gender: male
+    notes: "Corban's friend."
+    source_reference: "English source (Malice); no official PT-BR verified"
+    confidence: provisional
+    first_appearance: malice
+    approved: false
+  - source: Evnis
+    target: Evnis
+    category: character
+    policy: keep
+    gender: male
+    notes: "Brenin's counsellor; POV."
+    source_reference: "English source (Malice); no official PT-BR verified"
+    confidence: provisional
+    first_appearance: malice
+    approved: false
+  - source: Halion
+    target: Halion
+    category: character
+    policy: keep
+    gender: male
+    notes: "Warrior of Ardan."
+    source_reference: "English source (Malice); no official PT-BR verified"
+    confidence: provisional
+    first_appearance: malice
+    approved: false
+  - source: Maquin
+    target: Maquin
+    category: character
+    policy: keep
+    gender: male
+    notes: "Warrior; Kastell's companion."
+    source_reference: "English source (Malice); no official PT-BR verified"
+    confidence: provisional
+    first_appearance: malice
+    approved: false
+  - source: Aquilus
+    target: Aquilus
+    category: character
+    policy: keep
+    gender: male
+    notes: "King of Tenebral."
+    source_reference: "English source (Malice); no official PT-BR verified"
+    confidence: provisional
+    first_appearance: malice
+    approved: false
+  - source: Marrock
+    target: Marrock
+    category: character
+    policy: keep
+    gender: male
+    notes: "Warrior; a central figure in the warband."
+    source_reference: "English source (Malice); no official PT-BR verified"
+    confidence: provisional
+    first_appearance: malice
+    approved: false
+  - source: Edana
+    target: Edana
+    category: character
+    policy: keep
+    gender: female
+    notes: "Princess of Ardan."
+    source_reference: "English source (Malice); no official PT-BR verified"
+    confidence: provisional
+    first_appearance: malice
+    approved: false
+  - source: Thannon
+    target: Thannon
+    category: character
+    policy: keep
+    gender: male
+    notes: "Blacksmith; Corban's mentor."
+    source_reference: "English source (Malice); no official PT-BR verified"
+    confidence: provisional
+    first_appearance: malice
+    approved: false
+  - source: Brina
+    target: Brina
+    category: character
+    policy: keep
+    gender: female
+    notes: "Healer and wise woman."
+    source_reference: "English source (Malice); no official PT-BR verified"
+    confidence: provisional
+    first_appearance: malice
+    approved: false
+  - source: Camlin
+    target: Camlin
+    category: character
+    policy: keep
+    gender: male
+    notes: "Hunter and warrior; POV."
+    source_reference: "English source (Malice); no official PT-BR verified"
+    confidence: provisional
+    first_appearance: malice
+    approved: false
+  - source: Alcyon
+    target: Alcyon
+    category: character
+    policy: keep
+    gender: male
+    notes: "Giant; shared with Of Blood and Bone. Keep the name."
+    source_reference: "English source (Malice, A Time of Dread); no official PT-BR verified"
+    confidence: provisional
+    first_appearance: malice
+    approved: false
+  - source: Jael
+    target: Jael
+    category: character
+    policy: keep
+    gender: male
+    notes: "Prince; central to the succession conflict."
+    source_reference: "English source (Malice); no official PT-BR verified"
+    confidence: provisional
+    first_appearance: malice
+    approved: false
+  - source: Storm
+    target: Storm
+    category: character
+    policy: keep
+    notes: "Corban's wolf; keep the name. Do not force a gender in Portuguese."
+    source_reference: "English source (Malice); no official PT-BR verified"
+    confidence: provisional
+    first_appearance: malice
+    approved: false

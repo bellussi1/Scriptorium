@@ -1,0 +1,142 @@
+version: 1
+scope: subseries
+source_language: en
+target_language: pt-BR
+notes: >-
+  Main cast of The Age of Madness. Names are kept; no official PT-BR edition of
+  these novels was verified. The First Law trilogy's Portuguese edition does
+  not cover these characters, so all entries are provisional.
+terms:
+  - source: Leo dan Brock
+    target: Leo dan Brock
+    category: character
+    policy: keep
+    aliases: [Leo]
+    alias_targets: {Leo: Leo}
+    gender: male
+    notes: "Young nobleman and soldier; central POV."
+    source_reference: "English source (A Little Hatred); no official PT-BR verified"
+    confidence: provisional
+    first_appearance: a-little-hatred
+    approved: false
+  - source: Savine dan Glokta
+    target: Savine dan Glokta
+    category: character
+    policy: keep
+    aliases: [Savine]
+    alias_targets: {Savine: Savine}
+    gender: female
+    notes: "Industrialist and social climber; central POV."
+    source_reference: "English source (A Little Hatred); no official PT-BR verified"
+    confidence: provisional
+    first_appearance: a-little-hatred
+    approved: false
+  - source: Rikke
+    target: Rikke
+    category: character
+    policy: keep
+    gender: female
+    notes: "Northwoman with the Long Eye; central POV."
+    source_reference: "English source (A Little Hatred); no official PT-BR verified"
+    confidence: provisional
+    first_appearance: a-little-hatred
+    approved: false
+  - source: Orso dan Luthar
+    target: Orso dan Luthar
+    category: character
+    policy: keep
+    aliases: [Orso]
+    alias_targets: {Orso: Orso}
+    gender: male
+    notes: "Crown prince; central POV."
+    source_reference: "English source (A Little Hatred); no official PT-BR verified"
+    confidence: provisional
+    first_appearance: a-little-hatred
+    approved: false
+  - source: Gunnar Broad
+    target: Gunnar Broad
+    category: character
+    policy: keep
+    aliases: [Broad]
+    alias_targets: {Broad: Broad}
+    gender: male
+    notes: "Veteran and enforcer; central POV."
+    source_reference: "English source (A Little Hatred); no official PT-BR verified"
+    confidence: provisional
+    first_appearance: a-little-hatred
+    approved: false
+  - source: Clover
+    target: Clover
+    category: character
+    policy: keep
+    notes: "Northwoman; keep the name. Do not force a gender until the text is checked."
+    source_reference: "English source (A Little Hatred); no official PT-BR verified"
+    confidence: provisional
+    first_appearance: a-little-hatred
+    approved: false
+  - source: Vick dan Teufel
+    target: Vick dan Teufel
+    category: character
+    policy: keep
+    aliases: [Vick]
+    alias_targets: {Vick: Vick}
+    gender: female
+    notes: "Inquisition agent; central POV."
+    source_reference: "English source (A Little Hatred); no official PT-BR verified"
+    confidence: provisional
+    first_appearance: a-little-hatred
+    approved: false
+  - source: Isern-i-Phail
+    target: Isern-i-Phail
+    category: character
+    policy: keep
+    aliases: [Isern]
+    alias_targets: {Isern: Isern}
+    gender: female
+    notes: "Northwoman; Rikke's companion."
+    source_reference: "English source (A Little Hatred); no official PT-BR verified"
+    confidence: provisional
+    first_appearance: a-little-hatred
+    approved: false
+  - source: Stour Nightfall
+    target: Stour Nightfall
+    category: character
+    policy: keep
+    aliases: [Stour]
+    alias_targets: {Stour: Stour}
+    gender: male
+    notes: "Young Northman; rival of Leo."
+    source_reference: "English source (A Little Hatred); no official PT-BR verified"
+    confidence: provisional
+    first_appearance: a-little-hatred
+    approved: false
+  - source: Jurand
+    target: Jurand
+    category: character
+    policy: keep
+    gender: male
+    notes: "Officer in Leo's circle."
+    source_reference: "English source (A Little Hatred); no official PT-BR verified"
+    confidence: provisional
+    first_appearance: a-little-hatred
+    approved: false
+  - source: Zuri
+    target: Zuri
+    category: character
+    policy: keep
+    gender: female
+    notes: "Savine's maid and bodyguard."
+    source_reference: "English source (A Little Hatred); no official PT-BR verified"
+    confidence: provisional
+    first_appearance: a-little-hatred
+    approved: false
+  - source: Malmer
+    target: Malmer
+    category: character
+    policy: keep
+    gender: male
+    notes: "Breaker organizer in Valbeck."
+    source_reference: "English source (A Little Hatred); no official PT-BR verified"
+    confidence: provisional
+    first_appearance: a-little-hatred
+    approved: false

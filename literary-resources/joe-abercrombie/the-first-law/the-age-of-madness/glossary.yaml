@@ -1,0 +1,54 @@
+version: 1
+scope: subseries
+source_language: en
+target_language: pt-BR
+notes: >-
+  Age of Madness terms. These are industrial-era movements and places that do
+  not appear in the First Law trilogy; no official PT-BR edition was verified,
+  so every rendering is provisional.
+terms:
+  - source: Breakers
+    target: Quebradores
+    category: organization
+    policy: translate
+    notes: "The outlawed labor radical movement; quebradores echoes the machine-breaking frame. Review before the full run."
+    source_reference: "English source (A Little Hatred); no official PT-BR verified"
+    confidence: provisional
+    first_appearance: a-little-hatred
+    approved: false
+  - source: Burners
+    target: Incendiários
+    category: organization
+    policy: translate
+    notes: "The more radical Burner faction; incendiários keeps the fire image."
+    source_reference: "English source (A Little Hatred); no official PT-BR verified"
+    confidence: provisional
+    first_appearance: a-little-hatred
+    approved: false
+  - source: The Weaver
+    target: O Tecelão
+    category: title
+    policy: translate
+    notes: "The Breakers' hidden leader; keep the capital letters."
+    source_reference: "English source (A Little Hatred); no official PT-BR verified"
+    confidence: provisional
+    first_appearance: a-little-hatred
+    approved: false
+  - source: Valbeck
+    target: Valbeck
+    category: location
+    policy: keep
+    notes: "Industrial city; keep the name."
+    source_reference: "English source (A Little Hatred); no official PT-BR verified"
+    confidence: provisional
+    first_appearance: a-little-hatred
+    approved: false
+  - source: The Long Eye
+    target: O Olho Longo
+    category: concept
+    policy: translate
+    notes: "Rikke's prophetic gift; review the capitalization."
+    source_reference: "English source (A Little Hatred); no official PT-BR verified"
+    confidence: provisional
+    first_appearance: a-little-hatred
+    approved: false
