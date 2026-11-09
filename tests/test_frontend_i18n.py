@@ -120,6 +120,8 @@ _EXEMPT_OPTION_SELECT_IDS = {
     "sampleTargetLang",
     "glossaryEditorSourceLang",
     "glossaryEditorTargetLang",
+    "styleExtractSourceLang",
+    "styleExtractTargetLang",
     # UI locale picker — option text is the locale autonym ("English", "简体中文", ...)
     "uiLocaleSelect",
     # AI provider picker — product / brand names with English technical hints

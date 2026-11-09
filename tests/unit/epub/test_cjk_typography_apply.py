@@ -293,8 +293,8 @@ def test_xhtml_round_trip_keeps_self_closing_tags_and_namespace_prefixes(cjk_epu
     apply_script_normalization_to_epub_directory(str(cjk_epub_dir), "Chinese", "French")
 
     intro = (cjk_epub_dir / "OEBPS" / "Text" / "intro.xhtml").read_text(encoding="utf-8")
-    # This is the assertion that guards against repeating rtl_support's
-    # method='html' mistake: HTML serialization writes <br></br> and <img ...>.
+    # This is the assertion that guards against method='html' serialization:
+    # it writes <br></br> and <img ...> instead of XML self-closing tags.
     assert "<br/>" in intro
     assert '<img src="x.jpg"/>' in intro
     assert "<br></br>" not in intro
@@ -367,21 +367,6 @@ def test_vertical_japanese_to_latin_resets_progression_and_writing_mode(tmp_path
 
     opf = (root / "OEBPS" / "content.opf").read_text(encoding="utf-8")
     assert 'page-progression-direction="ltr"' in opf
-
-
-def test_vertical_japanese_to_rtl_target_keeps_the_progression(tmp_path):
-    root = _build_vertical_epub(tmp_path)
-
-    result = apply_script_normalization_to_epub_directory(
-        str(root), "Japanese", "Arabic")
-
-    assert result["applied"] is True
-    assert result["progression_direction_reset"] is False
-    opf = (root / "OEBPS" / "content.opf").read_text(encoding="utf-8")
-    assert 'page-progression-direction="rtl"' in opf
-    # The typography pass still ran; only the page turn direction is left alone.
-    css = (root / "OEBPS" / "Styles" / "main.css").read_text(encoding="utf-8")
-    assert "horizontal-tb" in css
 
 
 def test_ltr_spine_is_not_touched(cjk_epub_dir):

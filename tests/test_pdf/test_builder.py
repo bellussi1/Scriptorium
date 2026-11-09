@@ -80,23 +80,6 @@ def test_many_paragraphs_span_multiple_pages(tmp_path):
     assert "P299" in _full_text(out)
 
 
-def test_rtl_target_is_right_aligned_and_ltr_is_left_aligned(tmp_path):
-    width = 595.0
-    content = _content(["short"], page_size=(width, 842.0))
-
-    rtl_out = str(tmp_path / "rtl.pdf")
-    build_pdf(["שלום עולם"], content, rtl_out, "Hebrew")
-    rtl_blocks = _text_blocks(rtl_out)
-    assert rtl_blocks
-    assert rtl_blocks[0]["bbox"][0] > width / 2
-
-    ltr_out = str(tmp_path / "ltr.pdf")
-    build_pdf(["Bonjour le monde"], content, ltr_out, "French")
-    ltr_blocks = _text_blocks(ltr_out)
-    assert ltr_blocks
-    assert ltr_blocks[0]["bbox"][0] < width / 2
-
-
 def test_cjk_text_round_trips(tmp_path):
     out = str(tmp_path / "out.pdf")
     translated = ["这是一个中文段落。", "日本語の文章です。"]

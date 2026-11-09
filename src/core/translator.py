@@ -63,10 +63,9 @@ def _build_chunk_glossary_block(
 
     Keyword-only args:
         target_language: the job's target language, forwarded to
-            `build_glossary_block`. It selects the target-side inflection
-            instruction, emitted only for the languages listed in
-            `INFLECTED_TARGET_LANGUAGES` (see src/core/glossary/inflection.py).
-            Defaults to "" so existing callers keep the previous output.
+            `build_glossary_block`. The fork targets Brazilian Portuguese, so
+            the block needs no target-side inflection line. Defaults to "" for
+            compatibility with existing callers.
     """
     if not prompt_options:
         return ""

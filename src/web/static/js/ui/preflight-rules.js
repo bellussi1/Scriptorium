@@ -21,7 +21,6 @@ import { ModelDetector } from '../providers/model-detector.js';
  * @property {boolean}  isSmallModel      ModelDetector.isSmallModel(model)
  * @property {boolean}  hasQueuedFiles    at least one file with status === 'Queued'
  * @property {string[]} queuedExts        UPPERCASED originalExtension of queued files, deduped, e.g. ['EPUB']
- * @property {Array<{source: string, target: string}>} langPairs  effective language pair per queued file to translate, refine files excluded
  * @property {boolean}  plainTextMode     #plainTextMode.checked
  * @property {string}   glossaryId        #glossarySelect value, '' if none
  * @property {string}   instructionId     #customInstructionSelect value, '' if none
@@ -61,51 +60,6 @@ function collectQueuedExtensions(files) {
 }
 
 /**
- * The language actually sent for a run: the select's value, or the free-text
- * field behind its 'Other' option. Mirrors getLanguage() in settings-summary.js
- * so the advice never disagrees with the summary chip shown right above it.
- * @param {string} selectId - Language <select> id
- * @param {string} customId - Free-text input id used when the select reads 'Other'
- * @returns {string} Language name, '' when unset or left blank
- */
-function readLanguage(selectId, customId) {
-    const select = DomHelpers.getElement(selectId);
-    if (!select) return '';
-    if (select.value === 'Other') {
-        const custom = DomHelpers.getElement(customId);
-        return custom ? (custom.value || '').trim() : '';
-    }
-    return (select.value || '').trim();
-}
-
-/**
- * The language pair each queued file will actually run with. A file carries its
- * own pair, captured on upload (the source is the *detected* language when the
- * detector was confident), and the form selects are only the fallback — this
- * mirrors the resolution in batch-controller.startBatchTranslation(), so reading
- * the two selects alone would miss the common case: an auto-detected English
- * book queued against an English target.
- *
- * Refine files are left out: monolingual refinement stores the same language on
- * both sides by design, so every one of them would look like a mistake.
- * @param {Array<Object>} queuedFiles - Queued 'files.toProcess' entries
- * @param {string} formSource - Fallback source language from the form
- * @param {string} formTarget - Fallback target language from the form
- * @returns {Array<{source: string, target: string}>} One pair per translate file
- */
-function collectLanguagePairs(queuedFiles, formSource, formTarget) {
-    const pick = (fileValue, fallback) => (
-        fileValue && fileValue !== 'Other' ? String(fileValue).trim() : fallback
-    );
-    return queuedFiles
-        .filter(file => (file.operation || 'translate') === 'translate')
-        .map(file => ({
-            source: pick(file.sourceLanguage, formSource),
-            target: pick(file.targetLanguage, formTarget),
-        }));
-}
-
-/**
  * Impure. Reads the DOM, StateManager and ModelDetector.
  * Every lookup falls back to a documented default, so a missing element can
  * never throw here: the zone has to survive a partially rendered page.
@@ -127,11 +81,6 @@ export function buildContext() {
         isSmallModel: !!ModelDetector.isSmallModel(model),
         hasQueuedFiles: queuedFiles.length > 0,
         queuedExts: collectQueuedExtensions(queuedFiles),
-        langPairs: collectLanguagePairs(
-            queuedFiles,
-            readLanguage('sourceLang', 'customSourceLang'),
-            readLanguage('targetLang', 'customTargetLang'),
-        ),
         plainTextMode: !!(plainTextModeEl && plainTextModeEl.checked),
         glossaryId: (DomHelpers.getValue('glossarySelect') || '').trim(),
         instructionId: (DomHelpers.getValue('customInstructionSelect') || '').trim(),
@@ -151,29 +100,6 @@ export function evaluateRules(ctx) {
     if (!ctx || !ctx.hasQueuedFiles) return [];
 
     const rules = [];
-
-    // First, and above every formatting concern: translating a book into the
-    // language it is already written in burns the whole run for nothing. Compared
-    // case-insensitively so a hand-typed custom language still matches its
-    // dropdown twin. A blank side means "auto-detect, and the detector was not
-    // confident", which says nothing either way, so it never triggers.
-    const samePair = (ctx.langPairs || []).find(pair => pair && pair.source && pair.target
-        && String(pair.source).trim().toLowerCase() === String(pair.target).trim().toLowerCase());
-
-    if (samePair) {
-        rules.push({
-            id: 'same-language',
-            severity: 'danger',
-            labelKey: 'translation:preflight_danger_action',
-            reasonKey: 'translation:preflight_danger_same_language',
-            params: { lang: samePair.target },
-            action: 'navigate',
-            // Matches TARGETS.languages.focus: the two selects share a row, so
-            // landing on the source one puts both on screen.
-            focusId: 'sourceLang',
-            navigateKey: 'languages',
-        });
-    }
 
     const queuedExts = ctx.queuedExts || [];
     const tagged = queuedExts.filter(ext => TAGGED_EXTENSIONS.indexOf(ext) !== -1);

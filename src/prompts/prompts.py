@@ -243,22 +243,13 @@ def generate_translation_prompt(
     custom_instructions = prompt_options.get('custom_instructions', '')
 
     # Get target-language-specific example text for output format
-    example_texts = {
-        "chinese": "您翻译的文本在这里" if not has_placeholders else f"您翻译的文本在这里，所有{TAG0}标记都精确保留",
-        "french": "Votre texte traduit ici" if not has_placeholders else f"Votre texte traduit ici, tous les marqueurs {TAG0} sont préservés exactement",
-        "spanish": "Su texto traducido aquí" if not has_placeholders else f"Su texto traducido aquí, todos los marcadores {TAG0} se preservan exactamente",
-        "german": "Ihr übersetzter Text hier" if not has_placeholders else f"Ihr übersetzter Text hier, alle {TAG0}-Markierungen werden genau beibehalten",
-        "japanese": "翻訳されたテキストはこちら" if not has_placeholders else f"翻訳されたテキストはこちら、すべての{TAG0}マーカーは正確に保持されます",
-        "italian": "Il tuo testo tradotto qui" if not has_placeholders else f"Il tuo testo tradotto qui, tutti i marcatori {TAG0} sono conservati esattamente",
-        "portuguese": "Seu texto traduzido aqui" if not has_placeholders else f"Seu texto traduzido aqui, todos os marcadores {TAG0} são preservados exatamente",
-        "russian": "Ваш переведенный текст здесь" if not has_placeholders else f"Ваш переведенный текст здесь, все маркеры {TAG0} сохранены точно",
-        "korean": "번역된 텍스트는 여기에" if not has_placeholders else f"번역된 텍스트는 여기에, 모든 {TAG0} 마커는 정확히 보존됩니다",
-    }
+    # The fork only targets Brazilian Portuguese.
+    example_format_text = (
+        "Seu texto traduzido aqui"
+        if not has_placeholders
+        else f"Seu texto traduzido aqui, todos os marcadores {TAG0} s\u00e3o preservados exatamente"
+    )
 
-    # Try to match target language to get appropriate example
-    from src.utils.lang_normalize import normalize_lang_key
-    target_lang_lower = normalize_lang_key(target_language)
-    example_format_text = example_texts.get(target_lang_lower, "Your translated text here")
 
     # Build the output format section outside the f-string to avoid backslash issues in Python 3.11.
     # The paragraph-structure contract is only emitted in Plain Text Mode (has_placeholders is
@@ -665,21 +656,9 @@ def generate_refinement_prompt(
         prompt_options = {}
 
     # Get target-language-specific example text for output format
-    example_texts = {
-        "chinese": "您润色后的文本在这里",
-        "french": "Votre texte affiné ici",
-        "spanish": "Su texto refinado aquí",
-        "german": "Ihr verfeinerter Text hier",
-        "japanese": "洗練されたテキストはこちら",
-        "italian": "Il tuo testo raffinato qui",
-        "portuguese": "Seu texto refinado aqui",
-        "russian": "Ваш улучшенный текст здесь",
-        "korean": "다듬어진 텍스트는 여기에",
-    }
+    # The fork only targets Brazilian Portuguese.
+    example_format_text = "Seu texto refinado aqui"
 
-    from src.utils.lang_normalize import normalize_lang_key
-    target_lang_lower = normalize_lang_key(target_language)
-    example_format_text = example_texts.get(target_lang_lower, "Your refined text here")
 
     output_format_section = _get_output_format_section(
         translate_tag_in,

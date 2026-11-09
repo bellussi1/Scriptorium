@@ -10,6 +10,10 @@ https://github.com/user-attachments/assets/4afc5f90-18d8-4586-ba73-626ae681ba57
 
 A desktop app that translates **books**, **subtitles**, and **documents** with AI - local or cloud. Drop a file, pick a language, get the result.
 
+> **Fork scope:** this checkout's browser UI and `/api/translate` are fixed to
+> **English -> Brazilian Portuguese**. The generic translator code remains in the
+> repository, but other pairs are not exposed by this fork.
+
 **Formats:** EPUB, SRT, DOCX, PDF, TXT
 
 - **No size limit.** Process documents of any length - from a single page to thousand-page novels. The intelligent chunking system handles unlimited content while preserving context between segments.
@@ -216,7 +220,7 @@ See [docs/DOCKER.md](docs/DOCKER.md) for more options.
 
 ### Using the web UI from several devices
 
-One server is one shared workspace - there are no user accounts, so every browser pointed at it sees the same state. A running job's progress panel, paused/interrupted jobs, the completed translation history, and the files in `translated_files/` are all shared: another device picks them up live (within a second or two) or on page load. A small set of preferences - source/target language, TTS, text cleanup, bilingual mode, plain-text mode, and the selected custom instruction - is synced too: the server wins at page load, the last change wins after that, and a tab that is already open picks up changes made elsewhere on its next reload.
+One server is one shared workspace - there are no user accounts, so every browser pointed at it sees the same state. A running job's progress panel, paused/interrupted jobs, the completed translation history, and the files in `translated_files/` are all shared: another device picks them up live (within a second or two) or on page load. A small set of preferences - TTS, text cleanup, bilingual mode, plain-text mode, and the selected custom instruction - is synced too: the server wins at page load, the last change wins after that, and a tab that is already open picks up changes made elsewhere on its next reload.
 
 Two things stay local to the device: if you queue several files, other devices only see the one currently translating, not the rest of the queue (it's held in the browser that built it); and the UI language is per-browser. Provider, model, API keys, and endpoints are never synced - they always come from the server's `.env`.
 

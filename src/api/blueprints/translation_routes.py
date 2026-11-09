@@ -370,6 +370,35 @@ def _parse_term_fix_request(raw, check_mode: bool = True):
     return {'rules_text': rules_text, 'mode': mode}, None
 
 
+def _is_supported_language_pair(
+    source: object, target: object, *, monolingual: bool = False,
+) -> bool:
+    """The fork's browser/API path is English -> Brazilian Portuguese only.
+
+    Refinement and term-fix jobs are monolingual: the input is already in the
+    target language, so source == target == pt-BR is valid for them.
+    """
+    source_key = " ".join(str(source or "").strip().casefold().split())
+    target_key = " ".join(str(target or "").strip().casefold().split()).replace("_", "-")
+    target_ok = target_key in {
+        "portuguese",
+        "portuguese (brazil)",
+        "portuguese (brasil)",
+        "pt-br",
+        "brazil",
+    } or target_key.startswith("pt-br")
+    source_ok = source_key in {"english", "en"} or source_key.startswith("en-")
+    if monolingual:
+        source_ok = source_ok or source_key in {
+            "portuguese",
+            "portuguese (brazil)",
+            "portuguese (brasil)",
+            "pt-br",
+            "brazil",
+        } or source_key.startswith("pt-br")
+    return source_ok and target_ok
+
+
 def create_translation_blueprint(state_manager, start_translation_job, output_dir):
     """
     Create and configure the translation blueprint
@@ -404,6 +433,15 @@ def create_translation_blueprint(state_manager, start_translation_job, output_di
                     pass
                 else:
                     return jsonify({"error": f"Missing or empty field: {field}"}), 400
+
+        if not _is_supported_language_pair(
+            data.get('source_language'),
+            data.get('target_language'),
+            monolingual=bool(data.get('term_fix') or data.get('refine_only')),
+        ):
+            return jsonify({
+                "error": "this fork only translates English -> Brazilian Portuguese"
+            }), 400
 
         # Generate unique translation ID
         translation_id = f"trans_{int(time.time() * 1000)}"

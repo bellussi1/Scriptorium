@@ -37,7 +37,6 @@ from src.prompts.prompts import (
 )
 from src.utils.custom_instructions import is_safe_filename, load_custom_instructions
 from src.utils.file_detector import detect_file_type
-from src.utils.language_detector import LanguageDetector
 
 
 # Per-run concurrency cap. The product spec asks for `min(K * N, 8)` to avoid
@@ -921,29 +920,8 @@ def create_sample_blueprint(sample_state_manager, socketio=None, output_dir=".")
             for col in columns
         ]
 
-        source_language = (data.get("source_language") or "").strip()
+        source_language = (data.get("source_language") or "English").strip()
         target_language = data["target_language"]
-        # Auto-detect source language from file content when the user leaves
-        # the picker on "Auto-detect" (same UX as the Translate tab).
-        if not source_language:
-            try:
-                with open(file_path, "rb") as fh:
-                    file_bytes = fh.read()
-                detected_name, confidence = LanguageDetector.detect_language_from_file(
-                    file_bytes, os.path.basename(file_path)
-                )
-                if detected_name:
-                    source_language = detected_name
-                    warnings.append({
-                        "code": "warning_lang_autodetected",
-                        "params": {"lang": detected_name, "confidence": round(confidence * 100)},
-                    })
-            except Exception as exc:
-                logger.warning("sample: language auto-detection failed: %s", exc)
-        if not source_language:
-            return jsonify({
-                "error": "Could not auto-detect source language; please pick one manually.",
-            }), 400
 
         if mode == "refine":
             target_language = source_language

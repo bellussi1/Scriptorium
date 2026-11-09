@@ -1,5 +1,5 @@
 """
-Upload security and language detection for PDF files.
+Upload security for PDF files.
 
 PDFs are generated inline with PyMuPDF (no dependency on tests/test_pdf).
 Every SecureFileHandler writes into a pytest tmp dir, never the real upload dir.
@@ -10,7 +10,6 @@ import pytest
 
 pymupdf = pytest.importorskip("pymupdf")
 
-from src.utils.language_detector import LANGUAGE_CODE_MAP, LanguageDetector
 from src.utils.security import SecureFileHandler
 
 
@@ -157,21 +156,3 @@ def test_pdf_validator_never_raises_on_pymupdf_errors(handler, monkeypatch, tmp_
 
     assert not result.is_valid
     assert result.error_message == "PDF validation failed: native failure"
-
-
-# --- Language detection ----------------------------------------------------------
-
-
-def test_language_detection_on_english_pdf():
-    language, confidence = LanguageDetector.detect_language_from_file(_text_pdf_bytes(), "a.pdf")
-
-    assert language == LANGUAGE_CODE_MAP["en"]
-    assert confidence > 0.0
-
-
-def test_language_detection_on_scanned_pdf_returns_none():
-    assert LanguageDetector.detect_language_from_file(_scanned_pdf_bytes(), "a.pdf") == (None, 0.0)
-
-
-def test_language_detection_on_invalid_pdf_never_raises():
-    assert LanguageDetector.detect_language_from_file(b"hello", "a.pdf") == (None, 0.0)

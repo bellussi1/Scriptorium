@@ -12,6 +12,7 @@
 
 import { DomHelpers } from './dom-helpers.js';
 import { StateManager } from '../core/state-manager.js';
+import { SOURCE_LANGUAGE, TARGET_LANGUAGE } from '../core/language-scope.js';
 import { t } from '../i18n/i18n.js';
 
 const PROVIDER_LABELS = {
@@ -53,7 +54,7 @@ const LLM_STYLE = {
 const TARGETS = {
     provider:     { tab: 'settings', section: 'settings', focus: 'llmProvider' },
     model:        { tab: 'settings', section: 'settings', focus: 'model' },
-    languages:    { tab: 'translate', section: null,      focus: 'sourceLang' },
+    languages:    { tab: 'translate', section: null,      focus: null },
     noPause:      { tab: 'settings', section: 'settings', focus: 'disableAutoPause' },
     bilingual:    { tab: 'translate', section: null, focus: 'bilingualMode',           panel: 'preflight' },
     plainText:    { tab: 'translate', section: null, focus: 'plainTextMode',           panel: 'preflight' },
@@ -91,16 +92,6 @@ function getSelectText(id) {
     return opt ? (opt.textContent || opt.value || '').trim() : '';
 }
 
-function getLanguage(selectId, customId) {
-    const select = DomHelpers.getElement(selectId);
-    if (!select) return '';
-    if (select.value === 'Other') {
-        const custom = DomHelpers.getElement(customId);
-        return custom ? (custom.value || '').trim() : '';
-    }
-    return select.value || '';
-}
-
 function isChecked(id) {
     const el = DomHelpers.getElement(id);
     return !!(el && el.checked);
@@ -117,26 +108,24 @@ function buildLlmLine() {
     const providerKey = (DomHelpers.getValue('llmProvider') || '').trim();
     const providerLabel = PROVIDER_LABELS[providerKey] || providerKey || '—';
     const modelLabel = getSelectText('model') || DomHelpers.getValue('model') || '—';
-    const sourceLang = getLanguage('sourceLang', 'customSourceLang') || t('translation:summary_lang_auto_detect');
-    const targetLang = getLanguage('targetLang', 'customTargetLang') || '—';
     if (queueOperation() === 'refine') {
         return [
             { key: 'provider',  label: providerLabel },
             { key: 'model',     label: modelLabel },
-            { key: 'languages', label: t('translation:summary_refining_in', { lang: targetLang }) },
+            { key: 'languages', label: t('translation:summary_refining_in', { lang: TARGET_LANGUAGE }) },
         ];
     }
     if (queueOperation() === 'term_fix') {
         return [
             { key: 'provider',  label: providerLabel },
             { key: 'model',     label: modelLabel },
-            { key: 'languages', label: t('translation:summary_term_fix_in', { lang: targetLang }) },
+            { key: 'languages', label: t('translation:summary_term_fix_in', { lang: TARGET_LANGUAGE }) },
         ];
     }
     return [
         { key: 'provider',  label: providerLabel },
         { key: 'model',     label: modelLabel },
-        { key: 'languages', label: `${sourceLang} → ${targetLang}` },
+        { key: 'languages', label: `${SOURCE_LANGUAGE} → ${TARGET_LANGUAGE}` },
     ];
 }
 

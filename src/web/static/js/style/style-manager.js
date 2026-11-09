@@ -19,6 +19,7 @@ import { ApiClient } from '../core/api-client.js';
 import { toast } from '../ui/toast.js';
 import { DomHelpers } from '../ui/dom-helpers.js';
 import { ApiKeyUtils } from '../utils/api-key-utils.js';
+import { SOURCE_LANGUAGE, TARGET_LANGUAGE } from '../core/language-scope.js';
 import { FormManager } from '../ui/form-manager.js';
 import { t } from '../i18n/i18n.js';
 
@@ -823,25 +824,6 @@ function _wireExtractDropzone() {
     });
 }
 
-function _populateExtractLangSelects() {
-    const srcSelect = $('styleExtractSourceLang');
-    const tgtSelect = $('styleExtractTargetLang');
-    const translateSrc = $('sourceLang');
-    const translateTgt = $('targetLang');
-
-    if (srcSelect && translateSrc) {
-        srcSelect.innerHTML = translateSrc.innerHTML;
-        // "Auto-detect" (empty value) isn't a valid extraction language —
-        // the extract-style endpoint defaults to English server-side.
-        srcSelect.value = translateSrc.value || 'English';
-        if (srcSelect.selectedIndex < 0) srcSelect.selectedIndex = 0;
-    }
-    if (tgtSelect && translateTgt) {
-        tgtSelect.innerHTML = translateTgt.innerHTML;
-        tgtSelect.value = translateTgt.value || 'English';
-        if (tgtSelect.selectedIndex < 0) tgtSelect.selectedIndex = 0;
-    }
-}
 
 function _setExtractHint(showNoRulesHint) {
     const hint = document.querySelector('#styleExtractResults .ner-results-hint');
@@ -1079,8 +1061,8 @@ async function handleExtractRun() {
 
     const modeModel = $('styleExtractModeModel');
     const mode = modeModel && modeModel.checked ? 'model' : 'source';
-    const sourceLang = DomHelpers.getValue('styleExtractSourceLang') || 'English';
-    const targetLang = DomHelpers.getValue('styleExtractTargetLang') || 'English';
+    const sourceLang = SOURCE_LANGUAGE;
+    const targetLang = TARGET_LANGUAGE;
     const maxChars = DomHelpers.getValue('styleExtractMaxChars');
     const sampleCount = DomHelpers.getValue('styleExtractSampleCount');
 
@@ -1186,7 +1168,6 @@ function openExtractModal() {
     _extractCandidates = [];
     _extractSummary = '';
 
-    _populateExtractLangSelects();
     _renderExtractFileList();
 
     const sourceRadio = $('styleExtractModeSource');

@@ -225,7 +225,7 @@
         }
     </style>
 </head>
-<body class="literary-language-scope">
+<body>
     <div class="container">
         <!-- Header with Neumorphic Style -->
         <header class="header">
@@ -345,146 +345,10 @@
                         <span class="fixed-language-pair__value">Portuguese (Brazil)</span>
                     </div>
                 </div>
-                <div class="language-pair" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
-                    <div class="form-group" style="margin-bottom: 0;">
-                        <label data-i18n="translation:source_language">Source Language</label>
-                        <div class="neu-inset-light">
-                            <select class="form-control" id="sourceLang">
-                                <option value="" data-i18n="translation:auto_detect_placeholder">Auto-detect from file...</option>
-                                <optgroup data-i18n-attr="label:translation:lang_group_common" label="Most Common">
-                                    <option value="English" selected>English</option>
-                                    <option value="Chinese">Chinese</option>
-                                    <option value="Spanish">Spanish</option>
-                                    <option value="French">French</option>
-                                    <option value="German">German</option>
-                                    <option value="Japanese">Japanese</option>
-                                    <option value="Korean">Korean</option>
-                                    <option value="Portuguese (Brazil)">Portuguese (Brazil)</option>
-                                    <option value="Portuguese (Portugal)">Portuguese (Portugal)</option>
-                                    <option value="Russian">Russian</option>
-                                    <option value="Arabic">Arabic</option>
-                                </optgroup>
-                                <optgroup data-i18n-attr="label:translation:lang_group_european" label="European">
-                                    <option value="Italian">Italian</option>
-                                    <option value="Dutch">Dutch</option>
-                                    <option value="Polish">Polish</option>
-                                    <option value="Swedish">Swedish</option>
-                                    <option value="Norwegian">Norwegian</option>
-                                    <option value="Danish">Danish</option>
-                                    <option value="Finnish">Finnish</option>
-                                    <option value="Greek">Greek</option>
-                                    <option value="Hungarian">Hungarian</option>
-                                    <option value="Czech">Czech</option>
-                                    <option value="Slovak">Slovak</option>
-                                    <option value="Romanian">Romanian</option>
-                                    <option value="Bulgarian">Bulgarian</option>
-                                    <option value="Croatian">Croatian</option>
-                                    <option value="Serbian">Serbian</option>
-                                    <option value="Ukrainian">Ukrainian</option>
-                                    <option value="Catalan">Catalan</option>
-                                </optgroup>
-                                <optgroup data-i18n-attr="label:translation:lang_group_asian" label="Asian">
-                                    <option value="Hindi">Hindi</option>
-                                    <option value="Bengali">Bengali</option>
-                                    <option value="Urdu">Urdu</option>
-                                    <option value="Punjabi">Punjabi</option>
-                                    <option value="Tamil">Tamil</option>
-                                    <option value="Telugu">Telugu</option>
-                                    <option value="Marathi">Marathi</option>
-                                    <option value="Gujarati">Gujarati</option>
-                                    <option value="Vietnamese">Vietnamese</option>
-                                    <option value="Thai">Thai</option>
-                                    <option value="Indonesian">Indonesian</option>
-                                    <option value="Malay">Malay</option>
-                                    <option value="Tagalog">Tagalog</option>
-                                    <option value="Burmese">Burmese</option>
-                                </optgroup>
-                                <optgroup data-i18n-attr="label:translation:lang_group_middle_east_africa" label="Middle East & Africa">
-                                    <option value="Persian">Persian</option>
-                                    <option value="Turkish">Turkish</option>
-                                    <option value="Hebrew">Hebrew</option>
-                                    <option value="Swahili">Swahili</option>
-                                    <option value="Amharic">Amharic</option>
-                                </optgroup>
-                                <optgroup data-i18n-attr="label:translation:lang_group_custom" label="Custom">
-                                    <option value="Other" data-i18n="translation:lang_other_option">Other (Specify)</option>
-                                </optgroup>
-                            </select>
-                        </div>
-                        <div class="neu-inset-light" style="margin-top: 10px; display: none;" id="customSourceLangContainer">
-                            <input type="text" class="form-control" id="customSourceLang" data-i18n-attr="placeholder:translation:custom_source_lang_placeholder" placeholder="Enter custom source language">
-                        </div>
-                    </div>
-
-                    <div class="form-group" style="margin-bottom: 0;">
-                        <label data-i18n="translation:target_language">Target Language</label>
-                        <div class="neu-inset-light">
-                            <select class="form-control" id="targetLang">
-                                <optgroup data-i18n-attr="label:translation:lang_group_common" label="Most Common">
-                                    <option value="Chinese">Chinese</option>
-                                    <option value="English">English</option>
-                                    <option value="Spanish">Spanish</option>
-                                    <option value="French">French</option>
-                                    <option value="German">German</option>
-                                    <option value="Japanese">Japanese</option>
-                                    <option value="Korean">Korean</option>
-                                    <option value="Portuguese (Brazil)" selected>Portuguese (Brazil)</option>
-                                    <option value="Portuguese (Portugal)">Portuguese (Portugal)</option>
-                                    <option value="Russian">Russian</option>
-                                    <option value="Arabic">Arabic</option>
-                                </optgroup>
-                                <optgroup data-i18n-attr="label:translation:lang_group_european" label="European">
-                                    <option value="Italian">Italian</option>
-                                    <option value="Dutch">Dutch</option>
-                                    <option value="Polish">Polish</option>
-                                    <option value="Swedish">Swedish</option>
-                                    <option value="Norwegian">Norwegian</option>
-                                    <option value="Danish">Danish</option>
-                                    <option value="Finnish">Finnish</option>
-                                    <option value="Greek">Greek</option>
-                                    <option value="Hungarian">Hungarian</option>
-                                    <option value="Czech">Czech</option>
-                                    <option value="Slovak">Slovak</option>
-                                    <option value="Romanian">Romanian</option>
-                                    <option value="Bulgarian">Bulgarian</option>
-                                    <option value="Croatian">Croatian</option>
-                                    <option value="Serbian">Serbian</option>
-                                    <option value="Ukrainian">Ukrainian</option>
-                                    <option value="Catalan">Catalan</option>
-                                </optgroup>
-                                <optgroup data-i18n-attr="label:translation:lang_group_asian" label="Asian">
-                                    <option value="Hindi">Hindi</option>
-                                    <option value="Bengali">Bengali</option>
-                                    <option value="Urdu">Urdu</option>
-                                    <option value="Punjabi">Punjabi</option>
-                                    <option value="Tamil">Tamil</option>
-                                    <option value="Telugu">Telugu</option>
-                                    <option value="Marathi">Marathi</option>
-                                    <option value="Gujarati">Gujarati</option>
-                                    <option value="Vietnamese">Vietnamese</option>
-                                    <option value="Thai">Thai</option>
-                                    <option value="Indonesian">Indonesian</option>
-                                    <option value="Malay">Malay</option>
-                                    <option value="Tagalog">Tagalog</option>
-                                    <option value="Burmese">Burmese</option>
-                                </optgroup>
-                                <optgroup data-i18n-attr="label:translation:lang_group_middle_east_africa" label="Middle East & Africa">
-                                    <option value="Persian">Persian</option>
-                                    <option value="Turkish">Turkish</option>
-                                    <option value="Hebrew">Hebrew</option>
-                                    <option value="Swahili">Swahili</option>
-                                    <option value="Amharic">Amharic</option>
-                                </optgroup>
-                                <optgroup data-i18n-attr="label:translation:lang_group_custom" label="Custom">
-                                    <option value="Other" data-i18n="translation:lang_other_option">Other (Specify)</option>
-                                </optgroup>
-                            </select>
-                        </div>
-                        <div class="neu-inset-light" style="margin-top: 10px; display: none;" id="customTargetLangContainer">
-                            <input type="text" class="form-control" id="customTargetLang" data-i18n-attr="placeholder:translation:custom_target_lang_placeholder" placeholder="Enter custom target language">
-                        </div>
-                    </div>
-                </div>
+            <div class="language-scope-fields" hidden>
+            <select id="sourceLang"><option value="English" selected>English</option></select>
+            <select id="targetLang"><option value="Portuguese (Brazil)" selected>Portuguese (Brazil)</option></select>
+            </div>
 
                 <!-- Upload zones: the primary action gets the full row; the
                      two repair flows sit side by side underneath. -->
@@ -875,49 +739,10 @@
                             <span class="fixed-language-pair__value">Portuguese (Brazil)</span>
                         </div>
                     </div>
-                    <div class="language-pair" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
-                        <div class="form-group" style="margin-bottom: 0;">
-                            <label data-i18n="translation:source_language">Source Language</label>
-                            <div class="neu-inset-light">
-                                <select class="form-control" id="sampleSourceLang">
-                                    <option value="" data-i18n="translation:auto_detect_placeholder">Auto-detect from file...</option>
-                                    <option value="English" selected>English</option>
-                                    <option value="Chinese">Chinese</option>
-                                    <option value="Spanish">Spanish</option>
-                                    <option value="French">French</option>
-                                    <option value="German">German</option>
-                                    <option value="Japanese">Japanese</option>
-                                    <option value="Korean">Korean</option>
-                                    <option value="Portuguese (Brazil)">Portuguese (Brazil)</option>
-                                    <option value="Portuguese (Portugal)">Portuguese (Portugal)</option>
-                                    <option value="Russian">Russian</option>
-                                    <option value="Arabic">Arabic</option>
-                                    <option value="Italian">Italian</option>
-                                    <option value="Dutch">Dutch</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="form-group" style="margin-bottom: 0;">
-                            <label data-i18n="translation:target_language">Target Language</label>
-                            <div class="neu-inset-light">
-                                <select class="form-control" id="sampleTargetLang">
-                                    <option value="English">English</option>
-                                    <option value="Chinese">Chinese</option>
-                                    <option value="Spanish">Spanish</option>
-                                    <option value="French" selected>French</option>
-                                    <option value="German">German</option>
-                                    <option value="Japanese">Japanese</option>
-                                    <option value="Korean">Korean</option>
-                                    <option value="Portuguese (Brazil)" selected>Portuguese (Brazil)</option>
-                                    <option value="Portuguese (Portugal)">Portuguese (Portugal)</option>
-                                    <option value="Russian">Russian</option>
-                                    <option value="Arabic">Arabic</option>
-                                    <option value="Italian">Italian</option>
-                                    <option value="Dutch">Dutch</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
+            <div class="language-scope-fields" hidden>
+            <select id="sampleSourceLang"><option value="English" selected>English</option></select>
+            <select id="sampleTargetLang"><option value="Portuguese (Brazil)" selected>Portuguese (Brazil)</option></select>
+            </div>
 
                     <!-- File Upload (same control as Translate tab) -->
                     <div class="file-upload" id="sampleFileUpload" role="button" tabindex="0"
@@ -1507,144 +1332,10 @@
                             <label><span data-i18n="glossary:name_label">Name</span> <span class="glossary-saved-indicator" id="glossaryEditorNameSaved"><span class="material-symbols-outlined">check_circle</span><span class="text" data-i18n="glossary:saved_indicator">Saved</span></span></label>
                             <div class="neu-inset-light"><input class="form-control" id="glossaryEditorName" type="text"></div>
                         </div>
-                        <div class="form-group glossary-language-field" style="margin-bottom: 0;">
-                            <label><span data-i18n="glossary:source_label">Source</span> <span class="glossary-saved-indicator" id="glossaryEditorSourceLangSaved"><span class="material-symbols-outlined">check_circle</span><span class="text" data-i18n="glossary:saved_indicator">Saved</span></span></label>
-                            <div class="neu-inset-light">
-                                <select class="form-control" id="glossaryEditorSourceLang">
-                                    <option value="">—</option>
-                                    <optgroup data-i18n-attr="label:translation:lang_group_common" label="Most Common">
-                                        <option value="English">English</option>
-                                        <option value="Chinese">Chinese</option>
-                                        <option value="Spanish">Spanish</option>
-                                        <option value="French">French</option>
-                                        <option value="German">German</option>
-                                        <option value="Japanese">Japanese</option>
-                                        <option value="Korean">Korean</option>
-                                        <option value="Portuguese (Brazil)">Portuguese (Brazil)</option>
-                                        <option value="Portuguese (Portugal)">Portuguese (Portugal)</option>
-                                        <option value="Russian">Russian</option>
-                                        <option value="Arabic">Arabic</option>
-                                    </optgroup>
-                                    <optgroup data-i18n-attr="label:translation:lang_group_european" label="European">
-                                        <option value="Italian">Italian</option>
-                                        <option value="Dutch">Dutch</option>
-                                        <option value="Polish">Polish</option>
-                                        <option value="Swedish">Swedish</option>
-                                        <option value="Norwegian">Norwegian</option>
-                                        <option value="Danish">Danish</option>
-                                        <option value="Finnish">Finnish</option>
-                                        <option value="Greek">Greek</option>
-                                        <option value="Hungarian">Hungarian</option>
-                                        <option value="Czech">Czech</option>
-                                        <option value="Slovak">Slovak</option>
-                                        <option value="Romanian">Romanian</option>
-                                        <option value="Bulgarian">Bulgarian</option>
-                                        <option value="Croatian">Croatian</option>
-                                        <option value="Serbian">Serbian</option>
-                                        <option value="Ukrainian">Ukrainian</option>
-                                        <option value="Catalan">Catalan</option>
-                                    </optgroup>
-                                    <optgroup data-i18n-attr="label:translation:lang_group_asian" label="Asian">
-                                        <option value="Hindi">Hindi</option>
-                                        <option value="Bengali">Bengali</option>
-                                        <option value="Urdu">Urdu</option>
-                                        <option value="Punjabi">Punjabi</option>
-                                        <option value="Tamil">Tamil</option>
-                                        <option value="Telugu">Telugu</option>
-                                        <option value="Marathi">Marathi</option>
-                                        <option value="Gujarati">Gujarati</option>
-                                        <option value="Vietnamese">Vietnamese</option>
-                                        <option value="Thai">Thai</option>
-                                        <option value="Indonesian">Indonesian</option>
-                                        <option value="Malay">Malay</option>
-                                        <option value="Tagalog">Tagalog</option>
-                                        <option value="Burmese">Burmese</option>
-                                    </optgroup>
-                                    <optgroup data-i18n-attr="label:translation:lang_group_middle_east_africa" label="Middle East &amp; Africa">
-                                        <option value="Persian">Persian</option>
-                                        <option value="Turkish">Turkish</option>
-                                        <option value="Hebrew">Hebrew</option>
-                                        <option value="Swahili">Swahili</option>
-                                        <option value="Amharic">Amharic</option>
-                                    </optgroup>
-                                    <optgroup data-i18n-attr="label:translation:lang_group_custom" label="Custom">
-                                        <option value="Other" data-i18n="translation:lang_other_option">Other (Specify)</option>
-                                    </optgroup>
-                                </select>
-                            </div>
-                            <div class="neu-inset-light" style="margin-top: 10px; display: none;" id="glossaryEditorCustomSourceLangContainer">
-                                <input type="text" class="form-control" id="glossaryEditorCustomSourceLang" data-i18n-attr="placeholder:translation:custom_source_lang_placeholder" placeholder="Enter custom source language">
-                            </div>
-                        </div>
-                        <div class="form-group glossary-language-field" style="margin-bottom: 0;">
-                            <label><span data-i18n="glossary:target_label">Target</span> <span class="glossary-saved-indicator" id="glossaryEditorTargetLangSaved"><span class="material-symbols-outlined">check_circle</span><span class="text" data-i18n="glossary:saved_indicator">Saved</span></span></label>
-                            <div class="neu-inset-light">
-                                <select class="form-control" id="glossaryEditorTargetLang">
-                                    <option value="">—</option>
-                                    <optgroup data-i18n-attr="label:translation:lang_group_common" label="Most Common">
-                                        <option value="Chinese">Chinese</option>
-                                        <option value="English">English</option>
-                                        <option value="Spanish">Spanish</option>
-                                        <option value="French">French</option>
-                                        <option value="German">German</option>
-                                        <option value="Japanese">Japanese</option>
-                                        <option value="Korean">Korean</option>
-                                        <option value="Portuguese (Brazil)">Portuguese (Brazil)</option>
-                                        <option value="Portuguese (Portugal)">Portuguese (Portugal)</option>
-                                        <option value="Russian">Russian</option>
-                                        <option value="Arabic">Arabic</option>
-                                    </optgroup>
-                                    <optgroup data-i18n-attr="label:translation:lang_group_european" label="European">
-                                        <option value="Italian">Italian</option>
-                                        <option value="Dutch">Dutch</option>
-                                        <option value="Polish">Polish</option>
-                                        <option value="Swedish">Swedish</option>
-                                        <option value="Norwegian">Norwegian</option>
-                                        <option value="Danish">Danish</option>
-                                        <option value="Finnish">Finnish</option>
-                                        <option value="Greek">Greek</option>
-                                        <option value="Hungarian">Hungarian</option>
-                                        <option value="Czech">Czech</option>
-                                        <option value="Slovak">Slovak</option>
-                                        <option value="Romanian">Romanian</option>
-                                        <option value="Bulgarian">Bulgarian</option>
-                                        <option value="Croatian">Croatian</option>
-                                        <option value="Serbian">Serbian</option>
-                                        <option value="Ukrainian">Ukrainian</option>
-                                        <option value="Catalan">Catalan</option>
-                                    </optgroup>
-                                    <optgroup data-i18n-attr="label:translation:lang_group_asian" label="Asian">
-                                        <option value="Hindi">Hindi</option>
-                                        <option value="Bengali">Bengali</option>
-                                        <option value="Urdu">Urdu</option>
-                                        <option value="Punjabi">Punjabi</option>
-                                        <option value="Tamil">Tamil</option>
-                                        <option value="Telugu">Telugu</option>
-                                        <option value="Marathi">Marathi</option>
-                                        <option value="Gujarati">Gujarati</option>
-                                        <option value="Vietnamese">Vietnamese</option>
-                                        <option value="Thai">Thai</option>
-                                        <option value="Indonesian">Indonesian</option>
-                                        <option value="Malay">Malay</option>
-                                        <option value="Tagalog">Tagalog</option>
-                                        <option value="Burmese">Burmese</option>
-                                    </optgroup>
-                                    <optgroup data-i18n-attr="label:translation:lang_group_middle_east_africa" label="Middle East &amp; Africa">
-                                        <option value="Persian">Persian</option>
-                                        <option value="Turkish">Turkish</option>
-                                        <option value="Hebrew">Hebrew</option>
-                                        <option value="Swahili">Swahili</option>
-                                        <option value="Amharic">Amharic</option>
-                                    </optgroup>
-                                    <optgroup data-i18n-attr="label:translation:lang_group_custom" label="Custom">
-                                        <option value="Other" data-i18n="translation:lang_other_option">Other (Specify)</option>
-                                    </optgroup>
-                                </select>
-                            </div>
-                            <div class="neu-inset-light" style="margin-top: 10px; display: none;" id="glossaryEditorCustomTargetLangContainer">
-                                <input type="text" class="form-control" id="glossaryEditorCustomTargetLang" data-i18n-attr="placeholder:translation:custom_target_lang_placeholder" placeholder="Enter custom target language">
-                            </div>
-                        </div>
+            <div class="language-scope-fields" hidden>
+            <select id="glossaryEditorSourceLang"><option value="English" selected>English</option></select>
+            <select id="glossaryEditorTargetLang"><option value="Portuguese (Brazil)" selected>Portuguese (Brazil)</option></select>
+            </div>
                     </div>
 
                     <div class="fixed-language-pair" role="group">
@@ -2108,20 +1799,10 @@
                                 <span class="fixed-language-pair__value">Portuguese (Brazil)</span>
                             </div>
                         </div>
-                        <div class="language-pair" style="display: flex; gap: 15px; flex-wrap: wrap; margin-bottom: 15px;">
-                            <div class="form-group" style="flex: 1; min-width: 160px; margin-bottom: 0;">
-                                <label data-i18n="translation:source_language">Source Language</label>
-                                <div class="neu-inset-light">
-                                    <select class="form-control" id="styleExtractSourceLang"></select>
-                                </div>
-                            </div>
-                            <div class="form-group" style="flex: 1; min-width: 160px; margin-bottom: 0;">
-                                <label data-i18n="translation:target_language">Target Language</label>
-                                <div class="neu-inset-light">
-                                    <select class="form-control" id="styleExtractTargetLang"></select>
-                                </div>
-                            </div>
-                        </div>
+            <div class="language-scope-fields" hidden>
+            <select id="styleExtractSourceLang"><option value="English" selected>English</option></select>
+            <select id="styleExtractTargetLang"><option value="Portuguese (Brazil)" selected>Portuguese (Brazil)</option></select>
+            </div>
 
                         <input type="file" id="styleExtractFileInput" accept=".txt,.srt,.epub,.docx,.pdf" multiple style="display: none;">
                         <div id="styleExtractDropzone" class="glossary-ner-dropzone">

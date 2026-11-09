@@ -1,11 +1,9 @@
 /**
  * Fork scope: English -> Brazilian Portuguese.
  *
- * The backend translator still accepts any language pair. This constant only
- * controls the browser profile: when true, the literary UI hides the other
- * language choices and pins the forms to en->pt-BR. Set it to false to
- * restore the generic translator UI without touching the server.
+ * The browser UI is intentionally fixed to this pair. The backend translator
+ * still accepts other pairs; this constant is the single source of truth for
+ * the browser's disabled/replaced language controls.
  */
-export const FIXED_LANGUAGE_PAIR = true;
-export const FIXED_SOURCE_LANGUAGE = 'English';
-export const FIXED_TARGET_LANGUAGE = 'Portuguese (Brazil)';
+export const SOURCE_LANGUAGE = 'English';
+export const TARGET_LANGUAGE = 'Portuguese (Brazil)';

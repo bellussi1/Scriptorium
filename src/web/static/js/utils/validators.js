@@ -30,22 +30,6 @@ export const Validators = {
     },
 
     /**
-     * Validate language selection
-     */
-    validateLanguages(sourceLanguage, targetLanguage) {
-        if (!sourceLanguage || sourceLanguage.trim() === '') {
-            return this.showError(t('errors:no_source_language'));
-        }
-        if (!targetLanguage || targetLanguage.trim() === '') {
-            return this.showError(t('errors:no_target_language'));
-        }
-        if (sourceLanguage.toLowerCase() === targetLanguage.toLowerCase()) {
-            return this.showError(t('errors:same_source_target_language'));
-        }
-        return true;
-    },
-
-    /**
      * Validate model selection
      */
     validateModel(model) {
@@ -120,10 +104,6 @@ export const Validators = {
      */
     validateBatchConfig(formValues, files) {
         if (!this.validateFileSelection(files)) return false;
-
-        if (!this.validateLanguages(formValues.sourceLanguage, formValues.targetLanguage)) {
-            return false;
-        }
 
         if (!this.validateModel(formValues.model)) return false;
 

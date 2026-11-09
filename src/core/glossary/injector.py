@@ -18,28 +18,8 @@ Two blocks live here:
 """
 from typing import Dict, List, Optional, Tuple
 
-from src.core.glossary.inflection import target_language_is_inflected
 from src.core.glossary.models import DEFAULT_MAX_CAST_ENTRIES, normalize_gender
 
-# Target-side counterpart of the '|' source-variants line: in an inflected
-# target the citation form listed in the glossary is routinely NOT the form a
-# grammatical sentence needs, so "EXACT" has to be scoped to the choice of
-# rendering rather than to the letters. Emitted as a single line, only for the
-# languages in INFLECTED_TARGET_LANGUAGES.
-#
-# It grants the whole morphology on purpose, rather than "keep the stem,
-# inflect the ending": that narrower licence is false for several of the gated
-# languages (Turkish kitap->kitabı, Finnish katu->kadun, Russian отец->отца,
-# German Vater->Väter) and would not cover derivation, which is where the drift
-# reported in issue #255 actually shows up.
-TARGET_INFLECTION_INSTRUCTION = (
-    "Each target above is given in its dictionary form. Apply whatever "
-    "morphological changes {target_language} grammar requires — case, number, "
-    "agreement, derived forms, and the regular stem alternations these entail. "
-    "What must never change is the choice of rendering: do not substitute a "
-    "different translation, a different transliteration, or a more familiar "
-    "variant of the term."
-)
 
 
 def build_glossary_block(
@@ -52,10 +32,9 @@ def build_glossary_block(
 
     Args:
         filtered_terms: {source: target} of terms that match the current chunk.
-        target_language: selects the target-side inflection instruction, emitted
-            only for the languages in ``INFLECTED_TARGET_LANGUAGES``. The
-            exclusion criterion (does inflection change the written form of the
-            term?) is documented in ``src/core/glossary/inflection.py``.
+        target_language: kept for API compatibility. The fork targets Brazilian
+            Portuguese, which has no productive nominal case inflection, so no
+            target-side inflection line is emitted.
         term_metadata: optional {source: {category, gender}} mapping. When a
             term has a category, it is rendered as a bracketed hint after the
             arrow so the LLM can disambiguate homonyms (e.g. a name vs a
@@ -85,8 +64,6 @@ def build_glossary_block(
         "",
         "MANDATORY: use these EXACT translations whenever the source term appears.",
         "Do NOT paraphrase, transliterate differently, or invent alternatives.",
-        *([TARGET_INFLECTION_INSTRUCTION.format(target_language=target_language)]
-          if target_language_is_inflected(target_language) else []),
         "Apply each rule consistently every time the term occurs.",
         "When several source forms are listed before the arrow (comma-separated), they are inflected variants of the same entity — translate any of them with the single target on the right.",
         "Bracketed hints after the arrow (e.g. [character, female]) describe the entity type and, where known, its gender — use them to disambiguate and to pick pronouns, never as part of the translation.",

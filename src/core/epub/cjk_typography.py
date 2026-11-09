@@ -736,9 +736,6 @@ import os
 
 from lxml import etree
 
-from .rtl_support import is_rtl_language
-
-
 # ---------------------------------------------------------------------------
 # Stylesheet I/O
 # ---------------------------------------------------------------------------
@@ -906,12 +903,7 @@ def _iter_files(directory: str, suffixes: Tuple[str, ...]) -> List[str]:
 
 
 def _find_opf_path(temp_dir: str) -> Optional[str]:
-    """First `*.opf` found while walking `temp_dir`.
-
-    Same approach as `rtl_support._apply_rtl_styles` / `_apply_ltr_reset`, which
-    inline this walk twice; it is not importable from there, so it is spelled out
-    once here.
-    """
+    """First `*.opf` found while walking `temp_dir`."""
     for root_dir, _dirs, files in os.walk(temp_dir):
         for name in files:
             if name.lower().endswith(".opf"):
@@ -992,8 +984,7 @@ def _normalize_markup_file(path: str, result: dict,
 
     Serialization is XML, never `method='html'`: HTML serialization expands
     XHTML self-closing tags into `<br></br>`, drops the XML declaration and
-    mangles namespace prefixes. `rtl_support.inject_rtl_css_to_html` makes
-    exactly that mistake; the plan (§2) forbids repeating it.
+    mangles namespace prefixes. The plan forbids repeating that mistake.
 
     The file is written only when something changed, so untouched documents keep
     their exact original bytes.
@@ -1074,19 +1065,17 @@ def _normalize_opf(opf_path: str, target_language: str, result: dict,
             result["opf_metas_removed"] += 1
             changed = True
 
-        # F4: a vertical CJK book sets rtl progression, and
-        # `apply_rtl_to_epub_directory`'s Case 4 (both LTR) returns early
-        # without resetting it, so right-to-left page turns survive into a
-        # left-to-right translation.
-        if not is_rtl_language(target_language):
-            for element in root.iter():
-                if _local_name(element.tag) != "spine":
-                    continue
-                if (element.get("page-progression-direction") or "").lower() == "rtl":
-                    element.set("page-progression-direction", "ltr")
-                    result["progression_direction_reset"] = True
-                    changed = True
-                break
+        # F4: a vertical CJK source can set rtl progression; the fork's output
+        # is always LTR, so reset it instead of letting right-to-left page
+        # turns survive into the translation.
+        for element in root.iter():
+            if _local_name(element.tag) != "spine":
+                continue
+            if (element.get("page-progression-direction") or "").lower() == "rtl":
+                element.set("page-progression-direction", "ltr")
+                result["progression_direction_reset"] = True
+                changed = True
+            break
 
         if changed:
             tree.write(opf_path, encoding="utf-8", xml_declaration=True,

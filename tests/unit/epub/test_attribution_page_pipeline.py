@@ -4,8 +4,8 @@ Reproduces steps 4.7 (add_attribution_page) -> 5 (_update_epub_metadata) ->
 6.5 (apply_target_language_to_xhtml_directory) on a synthetic extracted-EPUB
 tree, without any LLM or network. This is what proves D7 (the module never
 writes the OPF; step 5's single write persists the in-memory edits) and D10
-(the page is written before RTL/lang so it inherits them like any other
-document).
+(the page is written before the lang pass so it inherits the target language
+like any other document).
 """
 from pathlib import Path
 
@@ -14,7 +14,6 @@ from lxml import etree
 from src.core.epub.attribution_page import ATTRIBUTION_ID, add_attribution_page
 from src.core.epub.translator import _update_epub_metadata
 from src.core.epub.lang_support import apply_target_language_to_xhtml_directory
-from src.core.epub.rtl_support import apply_rtl_to_epub_directory
 from src.config import NAMESPACES
 
 
@@ -106,22 +105,3 @@ def test_attribution_page_survives_metadata_write_and_inherits_target_lang(tmp_p
     attribution_root = attribution_tree.getroot()
     assert attribution_root.get("lang") == "fr"
     assert attribution_root.get(f"{{{XML_NS}}}lang") == "fr"
-
-
-def test_attribution_page_receives_rtl_css_like_any_other_document(tmp_path: Path, monkeypatch):
-    _enable_attribution(monkeypatch)
-    opf_path = _build_minimal_opf(tmp_path)
-
-    opf_tree = etree.parse(str(opf_path))
-    href = add_attribution_page(opf_tree, str(tmp_path))
-    assert href is not None
-
-    _update_epub_metadata(opf_tree, str(opf_path), "Arabic")
-
-    attribution_path = tmp_path / href
-    before_bytes = attribution_path.read_bytes()
-
-    apply_rtl_to_epub_directory(str(tmp_path), "Arabic", "English")
-
-    after_bytes = attribution_path.read_bytes()
-    assert after_bytes != before_bytes

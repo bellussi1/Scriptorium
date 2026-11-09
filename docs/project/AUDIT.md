@@ -40,8 +40,9 @@ Main entry points:
   (`src/core/glossary/filter.py:60`; cap at `:108`).
 - A gendered cast block is injected into every chunk so pronouns remain
   correct even when the name is absent (`src/core/glossary/injector.py:107`).
-- Target-side inflection is explained for inflected target languages
-  (`src/core/glossary/injector.py:35`).
+- The fork targets Brazilian Portuguese, so the glossary block omits the
+  target-side inflection line; the `target_language` argument is kept for
+  callers that still pass it.
 - NER extraction samples evenly spaced excerpts plus short windows around names
   found by a whole-book regex scan
   (`src/core/glossary/ner.py`; `src/core/glossary/name_scan.py`).
@@ -252,9 +253,9 @@ one book at a time by default, with an explicit concurrency cap.
   (`xhtml_translator.py:95-252`; `placeholder_validator.py`).
 - A two-phase token-alignment fallback exists when placeholders cannot be
   restored (`epub/token_alignment_fallback.py`).
-- NCX and EPUB3 nav labels are updated; XHTML `lang` is set; RTL/LTR is
-  handled; OPF metadata can be localized; the ZIP is rebuilt with safe
-  extraction (`src/utils/security.py`).
+- NCX and EPUB3 nav labels are updated; XHTML `lang` is set; output layout is
+  LTR; OPF metadata can be localized; the ZIP is rebuilt with safe extraction
+  (`src/utils/security.py`).
 - Bilingual mode interleaves original and translation.
 
 **Limits**
@@ -348,7 +349,7 @@ dated, auditable registry and use the literary cost model for decisions.
 The upstream suite is substantial. In the dev container:
 
 ```
-2986 passed, 2 skipped, 10 deselected, 14 failed
+2920 passed, 2 skipped, 10 deselected, 14 failed
 ```
 
 The same 14 failures reproduce on a clean worktree at upstream `b5ed606`

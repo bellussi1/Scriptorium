@@ -7,11 +7,7 @@
 
 import { StateManager } from '../core/state-manager.js';
 import { ApiClient } from '../core/api-client.js';
-import {
-    FIXED_LANGUAGE_PAIR,
-    FIXED_SOURCE_LANGUAGE,
-    FIXED_TARGET_LANGUAGE,
-} from '../core/language-scope.js';
+import { SOURCE_LANGUAGE, TARGET_LANGUAGE } from '../core/language-scope.js';
 import { MessageLogger } from '../ui/message-logger.js';
 import { DomHelpers } from '../ui/dom-helpers.js';
 import { StatusManager } from '../utils/status-manager.js';
@@ -36,20 +32,6 @@ function sanitizeFilenamePart(value) {
 }
 
 /**
- * Resolve a language value from a <select> + custom <input> pair,
- * falling back to 'Translated' / 'Source' when empty.
- */
-function resolveLanguageValue(selectId, customId, fallback) {
-    const selectEl = DomHelpers.getElement(selectId);
-    const customEl = DomHelpers.getElement(customId);
-    let value = selectEl?.value || '';
-    if (value === 'Other') {
-        value = customEl?.value?.trim() || '';
-    }
-    return value || fallback;
-}
-
-/**
  * Generate output filename based on pattern.
  * Supported placeholders: {originalName}, {targetLang}, {sourceLang}, {model}, {date}, {datetime}, {ext}
  *
@@ -65,10 +47,8 @@ export function generateOutputFilename(file, pattern, overrides = {}) {
     const fileExtension = file.name.split('.').pop().toLowerCase();
     const originalNameWithoutExt = file.name.replace(/\.[^/.]+$/, "");
 
-    const targetLang = overrides.targetLang
-        || resolveLanguageValue('targetLang', 'customTargetLang', 'Translated');
-    const sourceLang = overrides.sourceLang
-        || resolveLanguageValue('sourceLang', 'customSourceLang', 'Source');
+    const targetLang = overrides.targetLang || TARGET_LANGUAGE;
+    const sourceLang = overrides.sourceLang || SOURCE_LANGUAGE;
     const model = overrides.model ?? DomHelpers.getValue('model') ?? '';
 
     const now = new Date();
@@ -106,50 +86,6 @@ function detectFileType(filename) {
     return 'txt';
 }
 
-/**
- * Set language in select dropdown (case-insensitive match)
- * @param {string} selectId - Select element ID
- * @param {string} languageValue - Language value to set
- * @returns {boolean} True if language was set successfully (actual language, not "Other")
- */
-function setLanguageInSelect(selectId, languageValue) {
-    const select = DomHelpers.getElement(selectId);
-    if (!select) {
-        return false;
-    }
-
-    // Skip "Other" as a language value - it's not a real language
-    if (languageValue === 'Other') {
-        return false;
-    }
-
-    // Try to find matching option (case-insensitive), excluding "Other"
-    let matchedOption = null;
-    for (let i = 0; i < select.options.length; i++) {
-        const option = select.options[i];
-        // Skip "Other" option - we only match actual languages
-        if (option.value === 'Other') continue;
-
-        if (option.value && option.value.toLowerCase() === languageValue.toLowerCase()) {
-            matchedOption = option;
-            break;
-        }
-    }
-
-    if (matchedOption) {
-        // Set the value and trigger change events
-        select.value = matchedOption.value;
-        select.selectedIndex = Array.from(select.options).indexOf(matchedOption);
-
-        // Trigger events to ensure reactivity
-        select.dispatchEvent(new Event('input', { bubbles: true }));
-        select.dispatchEvent(new Event('change', { bubbles: true }));
-
-        return true;
-    }
-
-    return false;
-}
 
 export const FileUpload = {
     /**
@@ -158,8 +94,6 @@ export const FileUpload = {
     initialize() {
         this.setupDragDrop();
         this.setupFileInput();
-        this.setupLanguageSyncListeners();
-        this.setupDefaultConfigListener();
         // Restore file queue from localStorage synchronously first
         // This ensures files are available immediately on page load
         this.restoreFileQueueSync();
@@ -171,183 +105,10 @@ export const FileUpload = {
         setTimeout(() => this.verifyAndCleanupFileQueue(), 1000);
     },
 
-    /**
-     * Set up listener for default config loaded event
-     * This ensures file languages are synced after FormManager loads defaults
-     */
-    setupDefaultConfigListener() {
-        // Listen for the event (in case it fires after this setup)
-        window.addEventListener('defaultConfigLoaded', () => {
-            this.syncPendingFileLanguages();
-        });
 
-        // Also check after a delay in case the event already fired
-        // (FormManager.initialize runs before FileUpload.initialize)
-        setTimeout(() => {
-            this.syncPendingFileLanguages();
-        }, 500);
-    },
 
-    /**
-     * Set up listeners to sync language changes with the last uploaded file
-     */
-    setupLanguageSyncListeners() {
-        const sourceLangSelect = DomHelpers.getElement('sourceLang');
-        const targetLangSelect = DomHelpers.getElement('targetLang');
-        const customSourceLang = DomHelpers.getElement('customSourceLang');
-        const customTargetLang = DomHelpers.getElement('customTargetLang');
 
-        // Sync source language changes
-        if (sourceLangSelect) {
-            sourceLangSelect.addEventListener('change', () => {
-                // If Auto-detect is selected (empty value), trigger language detection
-                if (sourceLangSelect.value === '') {
-                    this._triggerAutoDetection();
-                } else {
-                    this._syncLanguageToLastFile('source');
-                }
-            });
-        }
-        if (customSourceLang) {
-            customSourceLang.addEventListener('input', () => {
-                this._syncLanguageToLastFile('source');
-            });
-        }
 
-        // Sync target language changes
-        if (targetLangSelect) {
-            targetLangSelect.addEventListener('change', () => {
-                this._syncLanguageToLastFile('target');
-            });
-        }
-        if (customTargetLang) {
-            customTargetLang.addEventListener('input', () => {
-                this._syncLanguageToLastFile('target');
-            });
-        }
-    },
-
-    /**
-     * Sync language selection to the last uploaded file
-     * @param {string} type - 'source' or 'target'
-     */
-    _syncLanguageToLastFile(type) {
-        if (!lastUploadedFileName) return;
-
-        const filesToProcess = StateManager.getState('files.toProcess') || [];
-        const fileIndex = filesToProcess.findIndex(f => f.name === lastUploadedFileName);
-
-        if (fileIndex === -1) {
-            // File no longer in queue, reset tracking
-            lastUploadedFileName = null;
-            return;
-        }
-
-        const file = filesToProcess[fileIndex];
-
-        // Only sync if file is still queued (not started)
-        if (file.status !== 'Queued') return;
-
-        if (type === 'source') {
-            file.sourceLanguage = this._getCurrentSourceLanguage();
-        } else {
-            file.targetLanguage = this._getCurrentTargetLanguage();
-        }
-
-        StateManager.setState('files.toProcess', filesToProcess);
-        this._saveFileQueue();
-        this.updateFileDisplay();
-    },
-
-    /**
-     * Trigger automatic language detection on the last uploaded file
-     * Called when user selects "Auto-detect" in the source language dropdown
-     */
-    async _triggerAutoDetection() {
-        if (!lastUploadedFileName) {
-            MessageLogger.showMessage(t('translation:no_file_uploaded_yet'), 'info');
-            return;
-        }
-
-        const filesToProcess = StateManager.getState('files.toProcess') || [];
-        const file = filesToProcess.find(f => f.name === lastUploadedFileName);
-
-        if (!file) {
-            MessageLogger.showMessage(t('translation:file_not_in_queue'), 'error');
-            return;
-        }
-
-        if (!file.filePath) {
-            MessageLogger.showMessage(t('translation:file_no_path'), 'error');
-            return;
-        }
-
-        // Check if we already have a detected language with good confidence
-        if (file.detectedLanguage && file.languageConfidence >= 0.7) {
-            const success = setLanguageInSelect('sourceLang', file.detectedLanguage);
-            if (success) {
-                MessageLogger.showMessage(
-                    t('translation:lang_already_detected', {
-                        lang: file.detectedLanguage,
-                        confidence: (file.languageConfidence * 100).toFixed(0)
-                    }),
-                    'success'
-                );
-            }
-            return;
-        }
-
-        // Call the API to detect language
-        MessageLogger.showMessage(t('translation:lang_detecting', { name: file.name }), 'info');
-
-        try {
-            const result = await ApiClient.detectLanguage(file.filePath);
-
-            if (result.success && result.detected_language) {
-                // Update file object with detected language
-                file.detectedLanguage = result.detected_language;
-                file.languageConfidence = result.language_confidence;
-
-                // Only auto-set if confidence >= 70%
-                if (result.language_confidence >= 0.7) {
-                    file.sourceLanguage = result.detected_language;
-                    const success = setLanguageInSelect('sourceLang', result.detected_language);
-
-                    if (!success) {
-                        MessageLogger.showMessage(
-                            t('translation:lang_detected_not_in_list', { lang: result.detected_language }),
-                            'info'
-                        );
-                    }
-                } else {
-                    MessageLogger.showMessage(
-                        t('translation:lang_low_confidence', {
-                            lang: result.detected_language,
-                            confidence: (result.language_confidence * 100).toFixed(0)
-                        }),
-                        'warning'
-                    );
-                }
-
-                // Update state
-                StateManager.setState('files.toProcess', filesToProcess);
-                this._saveFileQueue();
-                this.updateFileDisplay();
-            } else {
-                MessageLogger.showMessage(t('translation:lang_detection_no_result'), 'warning');
-            }
-        } catch (error) {
-            MessageLogger.showMessage(t('translation:lang_detection_failed', { error: error.message }), 'error');
-        }
-    },
-
-    /**
-     * Get the name of the last uploaded file
-     * @returns {string|null} Last uploaded filename
-     */
-    getLastUploadedFileName() {
-        return lastUploadedFileName;
-    },
 
     /**
      * Clear the last uploaded file tracking
@@ -379,109 +140,13 @@ export const FileUpload = {
         lastUploadedFileName = filename;
 
         // Sync file parameters TO the interface (file → UI)
-        this._syncFileToInterface(file);
-
         // Update display to reflect new active file
         this.updateFileDisplay();
 
         return true;
     },
 
-    /**
-     * Sync file language parameters to the UI interface
-     * This is the reverse direction: file → interface
-     * @param {Object} file - File object with sourceLanguage and targetLanguage
-     * @private
-     */
-    _syncFileToInterface(file) {
-        if (FIXED_LANGUAGE_PAIR) return;
 
-        // Sync source language
-        if (file.sourceLanguage) {
-            const success = setLanguageInSelect('sourceLang', file.sourceLanguage);
-            if (!success) {
-                // Language not in list or is "Other", set to "Other" and show custom input
-                const sourceLangSelect = DomHelpers.getElement('sourceLang');
-                const customSourceLang = DomHelpers.getElement('customSourceLang');
-                const sourceContainer = DomHelpers.getElement('customSourceLangContainer');
-                if (sourceLangSelect) {
-                    sourceLangSelect.value = 'Other';
-                    // Trigger change event to ensure FormManager shows the container
-                    sourceLangSelect.dispatchEvent(new Event('change', { bubbles: true }));
-                }
-                // Also show the container directly (in case event handler is not yet set up)
-                if (sourceContainer) {
-                    sourceContainer.style.display = 'block';
-                }
-                // Only fill custom input if it's not literally "Other"
-                if (customSourceLang && file.sourceLanguage !== 'Other') {
-                    customSourceLang.value = file.sourceLanguage;
-                }
-            }
-        }
-
-        // Sync target language
-        if (file.targetLanguage) {
-            const success = setLanguageInSelect('targetLang', file.targetLanguage);
-            if (!success) {
-                // Language not in list or is "Other", set to "Other" and show custom input
-                const targetLangSelect = DomHelpers.getElement('targetLang');
-                const customTargetLang = DomHelpers.getElement('customTargetLang');
-                const targetContainer = DomHelpers.getElement('customTargetLangContainer');
-                if (targetLangSelect) {
-                    targetLangSelect.value = 'Other';
-                    // Trigger change event to ensure FormManager shows the container
-                    targetLangSelect.dispatchEvent(new Event('change', { bubbles: true }));
-                }
-                // Also show the container directly (in case event handler is not yet set up)
-                if (targetContainer) {
-                    targetContainer.style.display = 'block';
-                }
-                // Only fill custom input if it's not literally "Other"
-                if (customTargetLang && file.targetLanguage !== 'Other') {
-                    customTargetLang.value = file.targetLanguage;
-                }
-            }
-        }
-    },
-
-    /**
-     * Pre-populate a language field during restore
-     * If the language is not in the standard list, set select to "Other" and show container
-     * @param {string} selectId - Select element ID
-     * @param {string} inputId - Custom input element ID
-     * @param {string} containerId - Container element ID
-     * @param {string} languageValue - Language value to set
-     * @private
-     */
-    _prePopulateLanguageField(selectId, inputId, containerId, languageValue) {
-        if (FIXED_LANGUAGE_PAIR || !languageValue) return;
-
-        const select = DomHelpers.getElement(selectId);
-        const input = DomHelpers.getElement(inputId);
-        const container = DomHelpers.getElement(containerId);
-
-        if (!select || !input) return;
-
-        // Check if language is in the dropdown (case-insensitive)
-        let foundInList = false;
-        for (const option of select.options) {
-            if (option.value === 'Other' || !option.value) continue;
-            if (option.value.toLowerCase() === languageValue.toLowerCase()) {
-                foundInList = true;
-                break;
-            }
-        }
-
-        if (!foundInList) {
-            // Language not in list - set to "Other" and populate custom field
-            select.value = 'Other';
-            input.value = languageValue;
-            if (container) {
-                container.style.display = 'block';
-            }
-        }
-    },
 
     /**
      * Save file queue to localStorage
@@ -502,8 +167,6 @@ export const FileUpload = {
                 sourceLanguage: f.sourceLanguage,
                 targetLanguage: f.targetLanguage,
                 translationId: f.translationId,
-                detectedLanguage: f.detectedLanguage,
-                languageConfidence: f.languageConfidence,
                 thumbnail: f.thumbnail,
                 operation: f.operation || 'translate',
                 refineAfter: !!f.refineAfter
@@ -530,66 +193,27 @@ export const FileUpload = {
             const filesToRestore = savedFiles.map(f => ({
                 ...f,
                 status: f.status === 'Completed' ? 'Completed' : 'Queued',
-                ...(FIXED_LANGUAGE_PAIR && f.status !== 'Completed' ? {
+                ...(f.status !== 'Completed' ? {
                     sourceLanguage: (f.operation === 'refine' || f.operation === 'term_fix')
-                        ? FIXED_TARGET_LANGUAGE
-                        : FIXED_SOURCE_LANGUAGE,
-                    targetLanguage: FIXED_TARGET_LANGUAGE,
+                        ? TARGET_LANGUAGE
+                        : SOURCE_LANGUAGE,
+                    targetLanguage: TARGET_LANGUAGE,
                 } : {}),
             }));
 
             StateManager.setState('files.toProcess', filesToRestore);
             this.updateFileDisplay();
 
-            // Find the last queued file and sync its languages to the interface
+            // Mark the last queued file as active for the row highlight.
             const lastQueuedFile = [...filesToRestore].reverse().find(f => f.status === 'Queued');
             if (lastQueuedFile) {
                 lastUploadedFileName = lastQueuedFile.name;
-                // Store file for deferred sync (will be called after FormManager loads defaults)
-                this._pendingFileSync = lastQueuedFile;
-
-                // Pre-populate custom language fields and select "Other" if needed
-                // This ensures the UI state is correct before any other initialization
-                this._prePopulateLanguageField(
-                    'sourceLang',
-                    'customSourceLang',
-                    'customSourceLangContainer',
-                    lastQueuedFile.sourceLanguage
-                );
-                this._prePopulateLanguageField(
-                    'targetLang',
-                    'customTargetLang',
-                    'customTargetLangContainer',
-                    lastQueuedFile.targetLanguage
-                );
             }
         } catch {
             // Failed to restore file queue
         }
     },
 
-    /**
-     * Sync pending file languages to interface (called after FormManager.loadDefaultConfig)
-     * This ensures file languages override browser-detected defaults
-     */
-    syncPendingFileLanguages() {
-        // Get the last queued file from state if _pendingFileSync is not set
-        // This handles the case where the event fired before restoreFileQueueSync ran
-        let fileToSync = this._pendingFileSync;
-
-        if (!fileToSync) {
-            const filesToProcess = StateManager.getState('files.toProcess') || [];
-            const lastQueuedFile = [...filesToProcess].reverse().find(f => f.status === 'Queued');
-            if (lastQueuedFile) {
-                fileToSync = lastQueuedFile;
-            }
-        }
-
-        if (fileToSync) {
-            this._syncFileToInterface(fileToSync);
-            this._pendingFileSync = null;
-        }
-    },
 
     /**
      * Verify and cleanup file queue after restoration
@@ -661,31 +285,7 @@ export const FileUpload = {
         }
     },
 
-    /**
-     * Get current source language from form
-     * @returns {string} Current source language (empty string if not set)
-     */
-    _getCurrentSourceLanguage() {
-        if (FIXED_LANGUAGE_PAIR) return FIXED_SOURCE_LANGUAGE;
-        let sourceLanguageVal = DomHelpers.getValue('sourceLang');
-        if (sourceLanguageVal === 'Other') {
-            sourceLanguageVal = DomHelpers.getValue('customSourceLang').trim();
-        }
-        return sourceLanguageVal || '';
-    },
 
-    /**
-     * Get current target language from form
-     * @returns {string} Current target language (empty string if not set)
-     */
-    _getCurrentTargetLanguage() {
-        if (FIXED_LANGUAGE_PAIR) return FIXED_TARGET_LANGUAGE;
-        let targetLanguageVal = DomHelpers.getValue('targetLang');
-        if (targetLanguageVal === 'Other') {
-            targetLanguageVal = DomHelpers.getValue('customTargetLang').trim();
-        }
-        return targetLanguageVal || '';
-    },
 
     /**
      * Set up drag and drop event handlers
@@ -862,39 +462,12 @@ export const FileUpload = {
             // Upload file using ApiClient
             const uploadResult = await ApiClient.uploadFile(file);
 
-            // Determine the file's working language:
-            // - Refine: target = file's own language (auto-detected or current target)
-            // - Translate: source from detection / current value, target from current value
-            let initialSourceLanguage;
-            let initialTargetLanguage;
-
-            if (operation === 'refine' || operation === 'term_fix') {
-                // Monolingual refinement / term fix: a single language. Prefer detected, else current target.
-                if (uploadResult.detected_language && uploadResult.language_confidence >= 0.7) {
-                    initialTargetLanguage = uploadResult.detected_language;
-                } else {
-                    initialTargetLanguage = this._getCurrentTargetLanguage()
-                        || this._getCurrentSourceLanguage()
-                        || (uploadResult.detected_language || '');
-                }
-                initialSourceLanguage = initialTargetLanguage;
-            } else {
-                if (uploadResult.detected_language && uploadResult.language_confidence >= 0.7) {
-                    initialSourceLanguage = uploadResult.detected_language;
-                } else {
-                    initialSourceLanguage = this._getCurrentSourceLanguage();
-                }
-                initialTargetLanguage = this._getCurrentTargetLanguage();
-            }
-
-            if (FIXED_LANGUAGE_PAIR) {
-                // The literary UI only runs English -> Brazilian Portuguese.
-                // Refine/term-fix are monolingual, so both sides are pt-BR.
-                initialSourceLanguage = operation === 'translate'
-                    ? FIXED_SOURCE_LANGUAGE
-                    : FIXED_TARGET_LANGUAGE;
-                initialTargetLanguage = FIXED_TARGET_LANGUAGE;
-            }
+            // The literary UI only runs English -> Brazilian Portuguese.
+            // Refine/term-fix are monolingual, so both sides are pt-BR.
+            const initialSourceLanguage = operation === 'translate'
+                ? SOURCE_LANGUAGE
+                : TARGET_LANGUAGE;
+            const initialTargetLanguage = TARGET_LANGUAGE;
 
             // Create file object
             const fileObject = {
@@ -910,8 +483,6 @@ export const FileUpload = {
                 translationId: null,
                 result: null,
                 content: null,
-                detectedLanguage: uploadResult.detected_language || null,
-                languageConfidence: uploadResult.language_confidence || null,
                 thumbnail: uploadResult.thumbnail || null,  // EPUB cover thumbnail
                 operation: operation,
                 refineAfter: false
@@ -921,32 +492,8 @@ export const FileUpload = {
             const updatedFiles = [...filesToProcess, fileObject];
             StateManager.setState('files.toProcess', updatedFiles);
 
-            // Track this as the last uploaded file for language sync
+            // Track this as the last uploaded file for the active-row highlight.
             lastUploadedFileName = file.name;
-
-            // Auto-update top language fields for translate items only; refine
-            // items live with their own single language and don't propagate up
-            // (avoids polluting the source/target dropdowns).
-            if (operation === 'translate'
-                && uploadResult.detected_language
-                && uploadResult.language_confidence >= 0.7) {
-                const sourceLangInput = DomHelpers.getElement('sourceLang');
-
-                if (sourceLangInput) {
-                    const success = setLanguageInSelect('sourceLang', uploadResult.detected_language);
-
-                    if (!success) {
-                        MessageLogger.showMessage(
-                            t('translation:file_uploaded_lang_not_in_list', {
-                                name: file.name,
-                                type: uploadResult.file_type,
-                                lang: uploadResult.detected_language
-                            }),
-                            'info'
-                        );
-                    }
-                }
-            }
 
         } catch (error) {
             MessageLogger.showMessage(
@@ -1149,7 +696,6 @@ export const FileUpload = {
 
         const op = file.operation || 'translate';
 
-        // Operation badge
         const badge = document.createElement('span');
         badge.className = `file-op-badge op-${op}`;
         const badgeKeys = {
@@ -1159,81 +705,7 @@ export const FileUpload = {
         badge.textContent = t(badgeKeys[op] || 'translation:op_badge_translate');
         wrap.appendChild(badge);
 
-        // Build a small language <select> reusing options from the matching
-        // main dropdown so the per-file list stays in sync with the global
-        // one. Cloning the wrong main select (e.g. targetLang for a source
-        // field) would silently drop options that only exist on one side,
-        // most notably "Auto-detect from file..." on #sourceLang.
-        const buildLangSelect = (currentValue, ariaLabel, onChange, mainSelectId) => {
-            const select = document.createElement('select');
-            select.setAttribute('aria-label', ariaLabel);
-            const mainSelect = DomHelpers.getElement(mainSelectId);
-            if (mainSelect) {
-                const cloned = mainSelect.cloneNode(true);
-                select.innerHTML = cloned.innerHTML;
-            }
-
-            // Reset `selected` carried over from the main dropdown: without
-            // this, an empty per-file value silently inherits whatever the
-            // global Source/Target dropdown was set to.
-            for (const option of select.options) {
-                option.selected = false;
-            }
-
-            let matched = false;
-            for (const option of select.options) {
-                if (!option.value || option.value === 'Other') continue;
-                if (currentValue
-                    && option.value.toLowerCase() === currentValue.toLowerCase()) {
-                    option.selected = true;
-                    matched = true;
-                    break;
-                }
-            }
-            if (!matched && currentValue) {
-                const opt = document.createElement('option');
-                opt.value = currentValue;
-                opt.textContent = currentValue;
-                opt.selected = true;
-                select.appendChild(opt);
-            }
-
-            select.onclick = (e) => e.stopPropagation();
-            select.onchange = (e) => {
-                e.stopPropagation();
-                onChange(select.value);
-            };
-            return select;
-        };
-
         if (op === 'translate') {
-            // Source language dropdown
-            const srcLabel = document.createElement('label');
-            srcLabel.className = 'file-lang-control';
-            srcLabel.textContent = t('translation:per_file_source');
-            const srcSelect = buildLangSelect(
-                file.sourceLanguage,
-                t('translation:per_file_source'),
-                (val) => this._updateFileField(file.name, 'sourceLanguage', val),
-                'sourceLang'
-            );
-            srcLabel.appendChild(srcSelect);
-            wrap.appendChild(srcLabel);
-
-            // Target language dropdown
-            const tgtLabel = document.createElement('label');
-            tgtLabel.className = 'file-lang-control';
-            tgtLabel.textContent = t('translation:per_file_target');
-            const tgtSelect = buildLangSelect(
-                file.targetLanguage,
-                t('translation:per_file_target'),
-                (val) => this._updateFileField(file.name, 'targetLanguage', val),
-                'targetLang'
-            );
-            tgtLabel.appendChild(tgtSelect);
-            wrap.appendChild(tgtLabel);
-
-            // Refine-after toggle
             const refineLabel = document.createElement('label');
             refineLabel.title = t('translation:per_file_refine_after_title');
             const refineCheckbox = document.createElement('input');
@@ -1249,23 +721,6 @@ export const FileUpload = {
                 document.createTextNode(' ' + t('translation:per_file_refine_after'))
             );
             wrap.appendChild(refineLabel);
-        } else {
-            // Refine / term fix: single language dropdown (the file's own language)
-            const langLabel = document.createElement('label');
-            langLabel.className = 'file-lang-control';
-            langLabel.textContent = t('translation:per_file_language');
-            const langSelect = buildLangSelect(
-                file.targetLanguage,
-                t('translation:per_file_language'),
-                (val) => {
-                    // For refine and term fix, source == target (monolingual)
-                    this._updateFileField(file.name, 'targetLanguage', val);
-                    this._updateFileField(file.name, 'sourceLanguage', val);
-                },
-                'targetLang'
-            );
-            langLabel.appendChild(langSelect);
-            wrap.appendChild(langLabel);
         }
 
         return wrap;

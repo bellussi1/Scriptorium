@@ -34,7 +34,6 @@ from .xhtml_translation_state import (
 )
 from ..post_processor import clean_residual_tag_placeholders
 from ..context_optimizer import AdaptiveContextManager, INITIAL_CONTEXT_SIZE, CONTEXT_STEP, MAX_CONTEXT_SIZE
-from .rtl_support import apply_rtl_to_epub_directory, is_rtl_language
 from .lang_support import apply_target_language_to_xhtml_directory, get_language_code
 from .attribution_page import add_attribution_page
 from .cjk_typography import apply_script_normalization_to_epub_directory
@@ -258,9 +257,9 @@ async def translate_epub_file(
 
             # 4.7. Append the attribution page to the end of the spine. Runs before
             # the metadata write (step 5) so the manifest and spine edits are
-            # persisted by that single OPF write, and before RTL (6) and the lang
-            # pass (6.5) so the new page inherits RTL CSS and the target lang
-            # attribute like any other document in the book.
+            # persisted by that single OPF write, and before the lang pass (6.5)
+            # so the new page inherits the target lang attribute like any other
+            # document in the book.
             add_attribution_page(
                 opf_tree=manifest_data['opf_tree'],
                 opf_dir=manifest_data['opf_dir'],
@@ -315,31 +314,8 @@ async def translate_epub_file(
                                      f"⚠️ Packaging metadata localization "
                                      f"failed and was skipped: {e_meta}")
 
-            # 6. Apply RTL/LTR layout based on source and target languages
-            # This handles RTL->RTL, LTR->RTL, RTL->LTR, and LTR->LTR transitions
-            if log_callback:
-                if is_rtl_language(target_language):
-                    log_callback("epub_rtl_start", f"🔄 Applying RTL layout for {target_language}...")
-                elif is_rtl_language(source_language):
-                    log_callback("epub_rtl_start", f"🔄 Resetting to LTR layout (translating from {source_language})...")
-            
-            rtl_result = apply_rtl_to_epub_directory(temp_dir, target_language, source_language)
-
-            if log_callback:
-                if rtl_result.get('was_transition'):
-                    # RTL -> LTR transition
-                    log_callback("epub_ltr_applied",
-                               f"✅ LTR reset applied: {rtl_result['css_removed']} files cleaned, "
-                               f"text direction set to left-to-right")
-                elif rtl_result['is_rtl']:
-                    # Applied RTL styles
-                    log_callback("epub_rtl_applied",
-                               f"✅ RTL support applied: {rtl_result['css_injected']} files updated, "
-                               f"OPF progression: {'RTL' if rtl_result['opf_updated'] else 'unchanged'}")
-
             # 6.5. Update <html lang="..."> on every XHTML to the target language
             # so that e-readers apply the correct hyphenation, dictionary and TTS.
-            # Runs after RTL apply so it is the final authority on lang attributes.
             apply_target_language_to_xhtml_directory(
                 temp_dir, target_language, log_callback=log_callback
             )
@@ -357,11 +333,6 @@ async def translate_epub_file(
             #     one re-parses the OPF from disk, so running it first would
             #     have its meta removal and progression reset overwritten. See
             #     the longer note at step 5.5.
-            #   - after 6 (apply_rtl_to_epub_directory): that pass injects
-            #     <style> blocks and may set page-progression-direction.
-            #     Running later makes this pass the final authority on
-            #     writing-mode and progression direction, and lets it
-            #     neutralize anything the RTL pass injected.
             #   - after 6.5 (apply_target_language_to_xhtml_directory): that
             #     pass rewrites every XHTML root's lang attributes; running
             #     later avoids two passes re-serializing the same files in an
@@ -418,14 +389,6 @@ async def translate_epub_file(
             if log_callback:
                 log_callback("epub_save_success",
                              f"✅ EPUB translation complete: {results['completed_files']} files translated, {results['failed_files']} failed")
-
-                # Log layout status
-                if is_rtl_language(target_language):
-                    log_callback("epub_rtl_complete", 
-                               f"📖 EPUB ready for RTL reading: text direction is right-to-left")
-                elif is_rtl_language(source_language):
-                    log_callback("epub_ltr_complete", 
-                               f"📖 EPUB ready for LTR reading: text direction reset to left-to-right")
 
         except Exception as e_epub:
             # Re-raise RateLimitError to trigger auto-pause

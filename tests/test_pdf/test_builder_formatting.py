@@ -307,27 +307,6 @@ def test_bilingual_table_cell_shows_source_before_translation(tmp_path):
         assert source["color"] == 0x666666
 
 
-def test_rtl_table_cell_is_right_aligned(tmp_path):
-    hebrew = "שלום"
-    cells = ["H0", "H1", "C0", "C1"]
-    rows = [[1, 2], [3, 4]]
-    texts, content = _table_content(cells, rows, widths=(0.5, 0.5))
-    translated = ["Intro", "A", "B", "C", hebrew]
-    out = _build(tmp_path, translated, content, target="Hebrew")
-
-    with pymupdf.open(out) as doc:
-        assert hebrew in doc[0].get_text()
-    spans = _spans(out)
-    assert hebrew in spans
-
-    # The header cell fill of the same column gives the cell's horizontal extent
-    column = max(_fills_of(out, BOX_BG), key=lambda rect: rect.x0)
-    assert spans[hebrew]["bbox"][0] > column.x0 + 0.3 * column.width
-
-
-# --- Validation (criterion 8) ----------------------------------------------------
-
-
 def _valid_table_content():
     texts = ["p", "c1", "c2", "c3", "c4"]
     table = PdfTable(first_index=1, rows=[[1, 2], [3, 4]], column_widths=[0.5, 0.5])

@@ -272,7 +272,7 @@ def _payload(**overrides):
     body = {
         'text': 'Hello world.',
         'source_language': 'English',
-        'target_language': 'French',
+        'target_language': 'Portuguese (Brazil)',
         'model': 'gpt-4o',
         'llm_api_endpoint': OPENAI_DEFAULT_ENDPOINT,
         'output_filename': 'out.txt',

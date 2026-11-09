@@ -16,7 +16,6 @@ from typing import List, Optional, Tuple
 
 import pymupdf
 
-from src.core.epub.rtl_support import is_rtl_language
 from src.core.pdf.content import (
     FONT_FAMILIES,
     ParagraphFormat,
@@ -217,7 +216,7 @@ def _build_html(
     """Build the story HTML and the archive holding its images."""
     writer = _HtmlWriter(
         translated_paragraphs, content, content_width, content_height,
-        is_rtl_language(target_language), is_rtl_language(source_language), bilingual,
+        False, False, bilingual,  # the fork's output is always LTR
     )
     return writer.build()
 

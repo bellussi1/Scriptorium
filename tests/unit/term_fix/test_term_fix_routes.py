@@ -39,8 +39,8 @@ def app_client(tmp_path):
 def _payload(**overrides):
     body = {
         'text': 'Ashe came.',
-        'source_language': 'English',
-        'target_language': 'English',
+        'source_language': 'Portuguese (Brazil)',
+        'target_language': 'Portuguese (Brazil)',
         'model': 'gpt-4o',
         'llm_api_endpoint': OPENAI_DEFAULT_ENDPOINT,
         'output_filename': 'out.txt',
@@ -61,7 +61,10 @@ def test_term_fix_is_recorded_and_disables_refine(app_client):
 
 def test_no_term_fix_by_default(app_client):
     client, state_manager, _ = app_client
-    assert client.post('/api/translate', json=_payload(term_fix=None)).status_code == 200
+    assert client.post(
+        '/api/translate',
+        json=_payload(source_language='English', term_fix=None),
+    ).status_code == 200
     assert state_manager.created[0][1]['term_fix'] is None
 
 

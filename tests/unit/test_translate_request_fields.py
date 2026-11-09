@@ -54,7 +54,7 @@ def _payload(**overrides):
     body = {
         'text': 'Hello world.',
         'source_language': 'English',
-        'target_language': 'French',
+        'target_language': 'Portuguese (Brazil)',
         'model': 'gpt-4o',
         'llm_api_endpoint': OPENAI_DEFAULT_ENDPOINT,
         'output_filename': 'out.txt',
@@ -150,3 +150,32 @@ def test_display_input_filename_keeps_full_name_when_prefix_does_not_match(tmp_p
 def test_display_input_filename_returns_none_without_either_source():
     assert _display_input_filename(None, None) is None
     assert _display_input_filename('   ', None) is None
+
+# ---------------------------------------------------------------------------
+# POST /api/translate - fork language scope
+# ---------------------------------------------------------------------------
+
+def test_rejects_non_english_source(translate_app):
+    client, state_manager, started = translate_app
+    resp = client.post('/api/translate', json=_payload(source_language='French'))
+    assert resp.status_code == 400
+    assert 'English -> Brazilian Portuguese' in resp.get_json()['error']
+    assert not state_manager.created
+    assert not started
+
+
+def test_rejects_non_brazilian_target(translate_app):
+    client, state_manager, started = translate_app
+    resp = client.post('/api/translate', json=_payload(target_language='Portuguese (Portugal)'))
+    assert resp.status_code == 400
+    assert 'English -> Brazilian Portuguese' in resp.get_json()['error']
+    assert not state_manager.created
+    assert not started
+
+
+def test_accepts_english_and_pt_br_codes(translate_app):
+    client, _state_manager, _started = translate_app
+    resp = client.post('/api/translate', json=_payload(
+        source_language='en', target_language='pt-BR',
+    ))
+    assert resp.status_code == 200

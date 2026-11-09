@@ -192,23 +192,13 @@ html.dark .btn-danger:hover {
    ---------------------------------------- */
 
 .fixed-language-pair {
-    display: none;
+    display: flex;
     align-items: flex-end;
     gap: 1rem;
     margin-bottom: 15px;
 }
 
-body.literary-language-scope .fixed-language-pair {
-    display: flex;
-}
-
-body.literary-language-scope .language-pair,
-body.literary-language-scope .glossary-language-field,
-body.literary-language-scope .file-lang-control {
-    display: none !important;
-}
-
-body.literary-language-scope .glossary-meta-row {
+.glossary-meta-row {
     grid-template-columns: minmax(0, 1fr) !important;
 }
 

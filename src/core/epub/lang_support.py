@@ -13,7 +13,9 @@ This module owns:
   - `apply_target_language_to_xhtml_directory(dir, target_language)` — walk an
     extracted EPUB tree and rewrite every .xhtml/.html file in place.
 
-RTL-specific concerns (CSS, page-progression-direction) remain in rtl_support.
+The fork translates English into Brazilian Portuguese, so layout is always LTR;
+this module still maps RTL language names so imported/source metadata keeps a
+valid BCP 47 tag.
 """
 from __future__ import annotations
 
@@ -21,8 +23,6 @@ import os
 from typing import Callable, Dict, Optional
 
 from lxml import etree
-
-from .rtl_support import LANGUAGE_NAME_TO_CODE as _RTL_NAME_TO_CODE
 
 
 # Comprehensive map: keys are lower-case language names, values are IANA
@@ -93,6 +93,21 @@ _LTR_NAME_TO_CODE: Dict[str, str] = {
     "swahili": "sw",
     "filipino": "fil",
     "tagalog": "tl",
+}
+
+# RTL language names are kept only for BCP 47 metadata lookups; the fork's
+# output layout is always LTR (English -> Brazilian Portuguese).
+_RTL_NAME_TO_CODE: Dict[str, str] = {
+    "arabic": "ar",
+    "hebrew": "he",
+    "persian": "fa",
+    "farsi": "fa",
+    "urdu": "ur",
+    "pashto": "ps",
+    "sindhi": "sd",
+    "yiddish": "yi",
+    "uyghur": "ug",
+    "kurdish": "ku",
 }
 
 # Regional language variants that map to BCP47 tags with region subtags.

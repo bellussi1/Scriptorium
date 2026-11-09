@@ -30,7 +30,7 @@ def _start(api, file_path, file_type, output_filename, model=None):
         "file_path": file_path,
         "file_type": file_type,
         "source_language": "English",
-        "target_language": "French",
+        "target_language": "Portuguese (Brazil)",
         "model": model or E2E_MODEL,
         "llm_provider": E2E_PROVIDER,
         E2E_KEY_FIELD: "__USE_ENV__",

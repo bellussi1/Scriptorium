@@ -7,11 +7,7 @@
 
 import { StateManager } from '../core/state-manager.js';
 import { ApiClient } from '../core/api-client.js';
-import {
-    FIXED_LANGUAGE_PAIR,
-    FIXED_SOURCE_LANGUAGE,
-    FIXED_TARGET_LANGUAGE,
-} from '../core/language-scope.js';
+import { SOURCE_LANGUAGE, TARGET_LANGUAGE } from '../core/language-scope.js';
 import { MessageLogger } from '../ui/message-logger.js';
 import { DomHelpers } from '../ui/dom-helpers.js';
 import { Validators } from '../utils/validators.js';
@@ -183,22 +179,9 @@ export const BatchController = {
 
         if (isBatchActive || filesToProcess.length === 0) return;
 
-        // Validate configuration
-        let sourceLanguageVal = DomHelpers.getValue('sourceLang');
-        if (sourceLanguageVal === 'Other') {
-            sourceLanguageVal = DomHelpers.getValue('customSourceLang').trim();
-            if (!sourceLanguageVal) {
-                return earlyValidationFail(t('translation:validation_custom_source'));
-            }
-        }
-
-        let targetLanguageVal = DomHelpers.getValue('targetLang');
-        if (targetLanguageVal === 'Other') {
-            targetLanguageVal = DomHelpers.getValue('customTargetLang').trim();
-            if (!targetLanguageVal) {
-                return earlyValidationFail(t('translation:validation_custom_target'));
-            }
-        }
+        // The literary UI has a fixed English -> Brazilian Portuguese scope.
+        const sourceLanguageVal = SOURCE_LANGUAGE;
+        const targetLanguageVal = TARGET_LANGUAGE;
 
         const hasTermFix = filesToProcess.some(
             f => f.status === 'Queued' && f.operation === 'term_fix'
@@ -224,24 +207,12 @@ export const BatchController = {
         for (const file of filesToProcess) {
             if (file.status !== 'Queued') continue;
 
-            if (FIXED_LANGUAGE_PAIR) {
-                // Literal scope guard for files restored from an older queue.
-                file.sourceLanguage = (file.operation === 'refine' || file.operation === 'term_fix')
-                    ? FIXED_TARGET_LANGUAGE
-                    : FIXED_SOURCE_LANGUAGE;
-                file.targetLanguage = FIXED_TARGET_LANGUAGE;
-                filesUpdated = true;
-                continue;
-            }
-
-            if (!file.sourceLanguage || file.sourceLanguage === 'Other') {
-                file.sourceLanguage = sourceLanguageVal;
-                filesUpdated = true;
-            }
-            if (!file.targetLanguage || file.targetLanguage === 'Other') {
-                file.targetLanguage = targetLanguageVal;
-                filesUpdated = true;
-            }
+            // Also normalizes files restored from an older queue.
+            file.sourceLanguage = (file.operation === 'refine' || file.operation === 'term_fix')
+                ? targetLanguageVal
+                : sourceLanguageVal;
+            file.targetLanguage = targetLanguageVal;
+            filesUpdated = true;
         }
 
         if (filesUpdated) {

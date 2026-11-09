@@ -68,7 +68,7 @@ pytest -p no:cacheprovider tests/unit/glossary -q
 # 183 passed
 
 pytest -p no:cacheprovider -q
-# 2986 passed, 2 skipped, 10 deselected, 14 failed
+# 2920 passed, 2 skipped, 10 deselected, 14 failed
 ```
 
 The same 14 failures reproduce on a clean worktree at upstream `b5ed606` under
@@ -456,7 +456,7 @@ model for *Ship of Magic* worked against the copy; all three actions were then
 reverted by restoring the copy from the live queue. The second instance does not
 touch the real `data/jobs.db`.
 
-Validation: **19** route tests, full suite **2,986 passed, 2 skipped, 14
+Validation: **19** route tests, full suite **2,920 passed, 2 skipped, 14
 pre-existing failures**.
 
 #### 2.13.1 Cross-screen UI polish
@@ -469,8 +469,8 @@ pre-existing failures**.
 - Translate now has one primary drop zone and two compact repair zones side by
   side; the fixed English -> Portuguese (Brazil) pair stacks on narrow screens.
 - The Sample, Glossary editor and Style extraction surfaces use the same fixed
-  pair. `src/web/static/js/core/language-scope.js` is the single flag that
-  restores the upstream language controls when set to `false`.
+  pair; the old language option lists, custom-language inputs, per-file pickers
+  and language persistence were removed.
 - The Queue table keeps Book, Status, Progress and Actions on mobile, hides the
   Model, Series, Updated and Position columns progressively, and adds a
   status-distribution strip under the summary cards.
@@ -718,14 +718,29 @@ reprocesses; `--no-epubcheck` skips the Docker-based check.
 This fork's literary pipeline is deliberately **English → Brazilian Portuguese
 only**. The queue rejects non-English sources and non-`pt-BR` targets, the runner
 has the same guard, and the read/validation/terminology passes are built around
-pt-BR. The browser UI now defaults to a fixed English -> Portuguese (Brazil)
-profile: the language rows are replaced by a read-only pair, per-file language
-selectors are hidden, and file/sample/glossary/style language values are
-pinned. The generic translator code is untouched; set
-`FIXED_LANGUAGE_PAIR = false` in
-`src/web/static/js/core/language-scope.js` to restore the upstream language
-controls. Other language pairs are not part of the supported literary workflow
-and receive no new feature or quality work here.
+pt-BR. The browser UI is fixed to English -> Portuguese (Brazil): the language
+rows are replaced by a read-only pair, per-file language selectors are gone,
+and file/sample/glossary/style values are pinned. `/api/translate` rejects
+non-English sources and non-pt-BR targets; monolingual refine/term-fix jobs may
+use pt-BR on both sides. The underlying translator remains parameterized, but
+the fork's public UI and API only expose this pair.
+
+Cleanup landed with that scope:
+
+- the six fixed language tables (~220 repeated options) were replaced by
+  single-option hidden selects plus the read-only pair; custom-language inputs,
+  language preference persistence and per-file language pickers were removed;
+- `validateLanguages` and the pre-flight "same language" rule were removed;
+  `POST /api/translate` now rejects anything outside en -> pt-BR (refine and
+  term-fix jobs may use pt-BR on both sides);
+- prompt output examples are Portuguese-only, TTS default voices are pt-BR,
+  the glossary inflection branch is gone, and `LanguageDetector` was removed
+  from upload/sample (the literary QA still uses `langdetect` to catch English
+  leakage);
+- the EPUB/PDF RTL layout pass and its three test modules were removed; the
+  language-name -> BCP 47 map keeps RTL names so source metadata still resolves;
+- the queue's `source_language`/`target_language` columns and the runner guard
+  remain as the data-level safety net.
 
 ## 3. What is not implemented
 

@@ -12,53 +12,8 @@ import { MessageLogger } from './message-logger.js';
 import { ApiKeyUtils } from '../utils/api-key-utils.js';
 import { TranslationTracker } from '../translation/translation-tracker.js';
 import { SettingsManager } from '../core/settings-manager.js';
+import { SOURCE_LANGUAGE, TARGET_LANGUAGE } from '../core/language-scope.js';
 import { t } from '../i18n/i18n.js';
-
-/**
- * Set default language in select/input
- * @param {string} selectId - Select element ID
- * @param {string} customInputId - Custom input element ID
- * @param {string} defaultLanguage - Default language value
- * @param {boolean} [forceOverwrite=false] - If true, overwrite even if "Other" is selected with a value
- */
-function setDefaultLanguage(selectId, customInputId, defaultLanguage, forceOverwrite = false) {
-    const select = DomHelpers.getElement(selectId);
-    const customInput = DomHelpers.getElement(customInputId);
-    const containerId = customInputId + 'Container';
-    const container = DomHelpers.getElement(containerId);
-
-    if (!select || !customInput) return;
-
-    // Don't overwrite if "Other" is already selected with a custom value (restored from file)
-    // This preserves custom languages across page reloads
-    if (!forceOverwrite && select.value === 'Other' && customInput.value.trim()) {
-        // Keep the existing "Other" selection and show the container
-        if (container) container.style.display = 'block';
-        return;
-    }
-
-    // Check if the default language is in the dropdown options (excluding "Other")
-    let languageFound = false;
-    for (let option of select.options) {
-        // Skip "Other" option - we only want to match actual language values
-        if (option.value === 'Other') continue;
-
-        if (option.value.toLowerCase() === defaultLanguage.toLowerCase()) {
-            select.value = option.value;
-            languageFound = true;
-            if (container) container.style.display = 'none';
-            break;
-        }
-    }
-
-    // If language not found in dropdown, use "Other" and set custom input
-    if (!languageFound) {
-        select.value = 'Other';
-        customInput.value = defaultLanguage;
-        // Show the container (not just the input)
-        if (container) container.style.display = 'block';
-    }
-}
 
 export const FormManager = {
     /**
@@ -80,22 +35,6 @@ export const FormManager = {
      * Set up event listeners for form elements
      */
     setupEventListeners() {
-        // Source language change
-        const sourceLang = DomHelpers.getElement('sourceLang');
-        if (sourceLang) {
-            sourceLang.addEventListener('change', (e) => {
-                this.checkCustomSourceLanguage(e.target);
-            });
-        }
-
-        // Target language change
-        const targetLang = DomHelpers.getElement('targetLang');
-        if (targetLang) {
-            targetLang.addEventListener('change', (e) => {
-                this.checkCustomTargetLanguage(e.target);
-            });
-        }
-
         // TTS enabled checkbox
         const ttsEnabled = DomHelpers.getElement('ttsEnabled');
         if (ttsEnabled) {
@@ -176,41 +115,6 @@ export const FormManager = {
     },
 
     /**
-     * Check if custom source language input should be shown
-     * @param {HTMLSelectElement} selectElement - Source language select element
-     */
-    checkCustomSourceLanguage(selectElement) {
-        const container = DomHelpers.getElement('customSourceLangContainer');
-        const customLangInput = DomHelpers.getElement('customSourceLang');
-        if (!container || !customLangInput) return;
-
-        if (selectElement.value === 'Other') {
-            container.style.display = 'block';
-            customLangInput.focus();
-        } else {
-            container.style.display = 'none';
-        }
-    },
-
-    /**
-     * Check if custom target language input should be shown
-     * @param {HTMLSelectElement} selectElement - Target language select element
-     */
-    checkCustomTargetLanguage(selectElement) {
-        const container = DomHelpers.getElement('customTargetLangContainer');
-        const customLangInput = DomHelpers.getElement('customTargetLang');
-        if (!container || !customLangInput) return;
-
-        if (selectElement.value === 'Other') {
-            container.style.display = 'block';
-            customLangInput.focus();
-        } else {
-            container.style.display = 'none';
-        }
-    },
-
-
-    /**
      * Toggle settings options panel
      */
     toggleSettingsOptions() {
@@ -261,75 +165,6 @@ export const FormManager = {
         window.dispatchEvent(new CustomEvent('ttsChanged', { detail: { enabled: isChecked } }));
     },
 
-    /**
-     * Detect browser language and map to full language name
-     * @returns {string} Full language name (e.g., "French", "English")
-     */
-    detectBrowserLanguage() {
-        // Get browser language (e.g., "fr-FR", "en-US", "zh-CN")
-        const browserLang = navigator.language || navigator.userLanguage || 'en';
-        const fullLangCode = browserLang.toLowerCase();
-        const langCode = fullLangCode.split('-')[0];
-
-        // Map language codes to full names used in the UI
-        const languageMap = {
-            'en': 'English',
-            'zh': 'Chinese',
-            'es': 'Spanish',
-            'fr': 'French',
-            'de': 'German',
-            'ja': 'Japanese',
-            'ko': 'Korean',
-            'pt': 'Portuguese (Brazil)',
-            'ru': 'Russian',
-            'ar': 'Arabic',
-            'it': 'Italian',
-            'nl': 'Dutch',
-            'pl': 'Polish',
-            'sv': 'Swedish',
-            'no': 'Norwegian',
-            'da': 'Danish',
-            'fi': 'Finnish',
-            'el': 'Greek',
-            'hu': 'Hungarian',
-            'cs': 'Czech',
-            'sk': 'Slovak',
-            'ro': 'Romanian',
-            'bg': 'Bulgarian',
-            'hr': 'Croatian',
-            'sr': 'Serbian',
-            'uk': 'Ukrainian',
-            'ca': 'Catalan',
-            'hi': 'Hindi',
-            'bn': 'Bengali',
-            'ur': 'Urdu',
-            'pa': 'Punjabi',
-            'ta': 'Tamil',
-            'te': 'Telugu',
-            'mr': 'Marathi',
-            'gu': 'Gujarati',
-            'vi': 'Vietnamese',
-            'th': 'Thai',
-            'id': 'Indonesian',
-            'ms': 'Malay',
-            'tl': 'Tagalog',
-            'my': 'Burmese',
-            'fa': 'Persian',
-            'tr': 'Turkish',
-            'he': 'Hebrew',
-            'sw': 'Swahili',
-            'am': 'Amharic'
-        };
-
-        // Regional variant overrides: check full locale before base code.
-        // Any pt-* locale other than pt-BR is closer to European Portuguese,
-        // and a bare "pt" keeps the Brazilian default set in languageMap.
-        if (langCode === 'pt' && fullLangCode !== 'pt' && !fullLangCode.startsWith('pt-br')) {
-            return 'Portuguese (Portugal)';
-        }
-
-        return languageMap[langCode] || 'English'; // Default to English if not found
-    },
 
     /**
      * Load default configuration from server
@@ -340,22 +175,6 @@ export const FormManager = {
 
             // Store config in state first so other modules can access it
             StateManager.setState('ui.defaultConfig', config);
-
-            // Set target language from server config if available
-            // This fixes GitHub issue #108: DEFAULT_TARGET_LANGUAGE was ignored
-            // Only override if server has a default target language configured
-            if (config.default_target_language && config.default_target_language.trim()) {
-                console.log('[FormManager] Applying DEFAULT_TARGET_LANGUAGE from server:', config.default_target_language);
-                setDefaultLanguage('targetLang', 'customTargetLang', config.default_target_language);
-            } else {
-                console.log('[FormManager] No DEFAULT_TARGET_LANGUAGE from server, keeping current value');
-            }
-
-            // Set source language from server config if available
-            const sourceLanguage = config.default_source_language && config.default_source_language.trim()
-                ? config.default_source_language
-                : '';  // Empty = auto-detect from file
-            setDefaultLanguage('sourceLang', 'customSourceLang', sourceLanguage)
 
             // Set provider-specific API endpoints with smart merge:
             // - If user has customized endpoint, keep it and show badge
@@ -587,10 +406,6 @@ export const FormManager = {
         DomHelpers.setDisabled('interruptBtn', false);
 
         // Reset language selectors
-        const sourceContainer = DomHelpers.getElement('customSourceLangContainer');
-        const targetContainer = DomHelpers.getElement('customTargetLangContainer');
-        if (sourceContainer) sourceContainer.style.display = 'none';
-        if (targetContainer) targetContainer.style.display = 'none';
         DomHelpers.getElement('sourceLang').selectedIndex = 0;
         DomHelpers.getElement('targetLang').selectedIndex = 0;
 
@@ -637,17 +452,8 @@ export const FormManager = {
      * @returns {Object} Translation configuration object
      */
     getTranslationConfig() {
-        // Get source language
-        let sourceLanguageVal = DomHelpers.getValue('sourceLang');
-        if (sourceLanguageVal === 'Other') {
-            sourceLanguageVal = DomHelpers.getValue('customSourceLang').trim();
-        }
-
-        // Get target language
-        let targetLanguageVal = DomHelpers.getValue('targetLang');
-        if (targetLanguageVal === 'Other') {
-            targetLanguageVal = DomHelpers.getValue('customTargetLang').trim();
-        }
+        const sourceLanguageVal = SOURCE_LANGUAGE;
+        const targetLanguageVal = TARGET_LANGUAGE;
 
         // Get provider and model
         const provider = DomHelpers.getValue('llmProvider');

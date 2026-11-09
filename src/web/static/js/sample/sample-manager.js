@@ -17,11 +17,7 @@
 import { ApiClient } from '../core/api-client.js';
 import { WebSocketManager } from '../core/websocket-manager.js';
 import { SettingsManager } from '../core/settings-manager.js';
-import {
-    FIXED_LANGUAGE_PAIR,
-    FIXED_SOURCE_LANGUAGE,
-    FIXED_TARGET_LANGUAGE,
-} from '../core/language-scope.js';
+import { SOURCE_LANGUAGE, TARGET_LANGUAGE } from '../core/language-scope.js';
 import { DomHelpers } from '../ui/dom-helpers.js';
 import { t, applyToDOM } from '../i18n/i18n.js';
 import { SampleTable } from './sample-table.js';
@@ -635,71 +631,8 @@ function setMode(mode) {
     });
 }
 
-/**
- * Set the Sample-tab source-language <select> by language name, matching
- * options case-insensitively. Returns false if the language isn't an option.
- */
-function setSampleSourceLang(languageValue) {
-    const select = $('sampleSourceLang');
-    if (FIXED_LANGUAGE_PAIR && select) {
-        select.value = FIXED_SOURCE_LANGUAGE;
-        return true;
-    }
-    if (!select || !languageValue || languageValue === 'Other') return false;
-    for (const opt of select.options) {
-        if (opt.value && opt.value.toLowerCase() === languageValue.toLowerCase()) {
-            select.value = opt.value;
-            select.dispatchEvent(new Event('change', { bubbles: true }));
-            return true;
-        }
-    }
-    return false;
-}
 
-/**
- * Set the Sample-tab target-language <select> by language name, matching
- * options case-insensitively. Returns false if the language isn't an option.
- */
-function setSampleTargetLang(languageValue) {
-    const select = $('sampleTargetLang');
-    if (FIXED_LANGUAGE_PAIR && select) {
-        select.value = FIXED_TARGET_LANGUAGE;
-        return true;
-    }
-    if (!select || !languageValue || languageValue === 'Other') return false;
-    for (const opt of select.options) {
-        if (opt.value && opt.value.toLowerCase() === languageValue.toLowerCase()) {
-            select.value = opt.value;
-            select.dispatchEvent(new Event('change', { bubbles: true }));
-            return true;
-        }
-    }
-    return false;
-}
 
-/**
- * Auto-detect the source language of the uploaded file and reflect it in the
- * source-language picker, so the user sees the detection immediately on drop
- * instead of leaving it on "Auto-detect". Best-effort: only applies on a
- * confident match (>= 0.7); silent on failure (the Run still auto-detects).
- */
-async function detectAndSetSourceLanguage() {
-    if (FIXED_LANGUAGE_PAIR || !state.uploadedPath) return;
-    try {
-        const result = await ApiClient.detectLanguage(state.uploadedPath);
-        if (result && result.success && result.detected_language && (result.language_confidence || 0) >= 0.7) {
-            const matched = setSampleSourceLang(result.detected_language);
-            if (!matched) {
-                showSampleMessage(
-                    t('translation:lang_detected_not_in_list', { lang: result.detected_language }),
-                    'info',
-                );
-            }
-        }
-    } catch (err) {
-        console.warn('[sample] language detection failed', err);
-    }
-}
 
 async function uploadFileIfNeeded() {
     if (state.uploadedPath) return state.uploadedPath;
@@ -801,8 +734,6 @@ async function initializeSamples() {
         return;
     }
     // Reflect the detected source language in the picker right away; runs in
-    // parallel so it never delays the sample cards.
-    detectAndSetSourceLanguage();
     await _runInitialize({ preserveContext: false });
 }
 
@@ -928,8 +859,9 @@ async function addSample() {
 }
 
 function buildRunPayload({ defer = false } = {}) {
-    const sourceLang = $('sampleSourceLang')?.value || '';
-    const targetLang = $('sampleTargetLang')?.value || '';
+    const refining = state.mode === 'refine';
+    const sourceLang = refining ? TARGET_LANGUAGE : SOURCE_LANGUAGE;
+    const targetLang = TARGET_LANGUAGE;
     const nSamples = parseInt($('sampleNSamples')?.value, 10) || SAMPLE_DEFAULT_N_SAMPLES;
     const maxChars = parseInt($('sampleMaxChars')?.value, 10) || SAMPLE_DEFAULT_MAX_CHARS;
 
@@ -1236,9 +1168,6 @@ async function loadServerFile(info) {
 
     updateFileCard();
     showFileCardMode(true);
-
-    if (info.sourceLanguage) setSampleSourceLang(info.sourceLanguage);
-    if (info.targetLanguage) setSampleTargetLang(info.targetLanguage);
 
     const warningsBox = $('sampleWarnings');
     if (warningsBox) warningsBox.innerHTML = '';

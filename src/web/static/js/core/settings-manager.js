@@ -30,8 +30,6 @@ const STORAGE_KEY = `${STORAGE_KEY_PREFIX}_v${STORAGE_VERSION}`;
  * to `/api/preferences`.
  */
 const SYNCED_PREF_KEYS = [
-    'lastSourceLanguage',
-    'lastTargetLanguage',
     'ttsEnabled',
     'textCleanup',
     'bilingualMode',
@@ -152,10 +150,6 @@ export const SettingsManager = {
         // (provider, model, endpoints, API keys, naming convention) are saved
         // exclusively via the explicit "Save Settings to .env" button.
         const localAutoSaveElements = [
-            { id: 'sourceLang', event: 'change' },
-            { id: 'targetLang', event: 'change' },
-            { id: 'customSourceLang', event: 'change' },
-            { id: 'customTargetLang', event: 'change' },
             { id: 'ttsEnabled', event: 'change' },
             { id: 'textCleanup', event: 'change' },
             { id: 'bilingualMode', event: 'change' },
@@ -319,14 +313,6 @@ export const SettingsManager = {
             window.__pendingModelSelection = prefs.lastModel;
         }
 
-        // Apply last languages
-        if (prefs.lastSourceLanguage) {
-            this._setLanguage('sourceLang', 'customSourceLang', prefs.lastSourceLanguage);
-        }
-        if (prefs.lastTargetLanguage) {
-            this._setLanguage('targetLang', 'customTargetLang', prefs.lastTargetLanguage);
-        }
-
         // Apply API endpoints BEFORE setting provider (so models load with correct endpoint)
         if (prefs.lastApiEndpoint) {
             DomHelpers.setValue('apiEndpoint', prefs.lastApiEndpoint);
@@ -459,13 +445,6 @@ export const SettingsManager = {
         isInitializing = true;
 
         try {
-            if (prefs.lastSourceLanguage) {
-                this._setLanguage('sourceLang', 'customSourceLang', prefs.lastSourceLanguage);
-            }
-            if (prefs.lastTargetLanguage) {
-                this._setLanguage('targetLang', 'customTargetLang', prefs.lastTargetLanguage);
-            }
-
             if (prefs.ttsEnabled !== undefined) {
                 const ttsEnabledCheckbox = DomHelpers.getElement('ttsEnabled');
                 if (ttsEnabledCheckbox) {
@@ -521,49 +500,6 @@ export const SettingsManager = {
     },
 
     /**
-     * Set language in select/custom input
-     * @private
-     */
-    _setLanguage(selectId, customInputId, value) {
-        const select = DomHelpers.getElement(selectId);
-        const customInput = DomHelpers.getElement(customInputId);
-
-        if (!select) return;
-
-        // Check if value exists in options (excluding "Other" which is just a placeholder)
-        let found = false;
-        for (let option of select.options) {
-            // Skip "Other" option - we only want to match actual language values
-            if (option.value === 'Other') continue;
-
-            if (option.value.toLowerCase() === value.toLowerCase()) {
-                select.value = option.value;
-                found = true;
-                break;
-            }
-        }
-
-        // If language is not in the predefined list, use "Other" and fill custom input
-        if (!found && customInput) {
-            select.value = 'Other';
-            customInput.value = value;
-            // Show the custom input - need both class removal AND style change
-            // because HTML has inline style="display: none"
-            customInput.classList.remove('hidden');
-            customInput.style.display = 'block';
-        } else if (found && customInput) {
-            // The value matched a real option: hide the stale custom field and
-            // clear it. Without this the Translate tab shows two stacked
-            // controls (the select and an empty "custom language" input).
-            customInput.value = '';
-            const container = customInput.closest('.neu-inset-light');
-            if (container) {
-                container.style.display = 'none';
-            }
-        }
-    },
-
-    /**
      * Save current form state to local preferences
      * @param {Object} [options] - Options
      * @param {boolean} [options.remote=true] - Also mirror the synced subset to
@@ -578,8 +514,6 @@ export const SettingsManager = {
         const prefs = {
             lastProvider: DomHelpers.getValue('llmProvider'),
             lastModel: DomHelpers.getValue('model'),
-            lastSourceLanguage: this._getLanguageValue('sourceLang', 'customSourceLang'),
-            lastTargetLanguage: this._getLanguageValue('targetLang', 'customTargetLang'),
             lastApiEndpoint: DomHelpers.getValue('apiEndpoint'),
             lastOpenaiEndpoint: DomHelpers.getValue('openaiEndpoint'),
             outputFilenamePattern: DomHelpers.getValue('outputFilenamePattern'),
@@ -599,18 +533,6 @@ export const SettingsManager = {
         if (remote) {
             this._pushSyncedPreferences(prefs);
         }
-    },
-
-    /**
-     * Get language value from select or custom input
-     * @private
-     */
-    _getLanguageValue(selectId, customInputId) {
-        const selectVal = DomHelpers.getValue(selectId);
-        if (selectVal === 'Other') {
-            return DomHelpers.getValue(customInputId) || selectVal;
-        }
-        return selectVal;
     },
 
     /**

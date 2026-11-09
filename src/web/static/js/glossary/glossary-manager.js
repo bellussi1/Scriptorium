@@ -9,11 +9,7 @@
  */
 
 import { ApiClient } from '../core/api-client.js';
-import {
-    FIXED_LANGUAGE_PAIR,
-    FIXED_SOURCE_LANGUAGE,
-    FIXED_TARGET_LANGUAGE,
-} from '../core/language-scope.js';
+import { SOURCE_LANGUAGE, TARGET_LANGUAGE } from '../core/language-scope.js';
 import { toast } from '../ui/toast.js';
 import { DomHelpers } from '../ui/dom-helpers.js';
 import { ApiKeyUtils } from '../utils/api-key-utils.js';
@@ -581,8 +577,8 @@ async function handleNewGlossary() {
     try {
         created = await ApiClient.createGlossary({
             name,
-            source_lang: '',
-            target_lang: '',
+            source_lang: SOURCE_LANGUAGE,
+            target_lang: TARGET_LANGUAGE,
         });
     } catch (err) {
         console.error('Create glossary failed:', err);
@@ -635,79 +631,8 @@ async function openEditor(gid) {
     _openEditorWithData(g);
 }
 
-function _setLangSelect(selectId, customContainerId, customInputId, value) {
-    const select = $(selectId);
-    const customContainer = $(customContainerId);
-    const customInput = $(customInputId);
-    const v = value || '';
 
-    if (!select) return;
 
-    if (FIXED_LANGUAGE_PAIR) {
-        select.value = selectId === 'glossaryEditorSourceLang'
-            ? FIXED_SOURCE_LANGUAGE
-            : FIXED_TARGET_LANGUAGE;
-        if (customContainer) customContainer.style.display = 'none';
-        if (customInput) customInput.value = '';
-        return;
-    }
-
-    if (!v) {
-        select.value = '';
-        if (customContainer) customContainer.style.display = 'none';
-        if (customInput) customInput.value = '';
-        return;
-    }
-
-    const knownValues = Array.from(select.options)
-        .map((o) => o.value)
-        .filter((val) => val && val !== 'Other');
-
-    if (knownValues.includes(v)) {
-        select.value = v;
-        if (customContainer) customContainer.style.display = 'none';
-        if (customInput) customInput.value = '';
-    } else {
-        select.value = 'Other';
-        if (customInput) customInput.value = v;
-        if (customContainer) customContainer.style.display = 'block';
-    }
-}
-
-function _resolveLangValue(selectId, customInputId) {
-    const select = $(selectId);
-    if (!select) return '';
-    if (select.value === 'Other') {
-        const c = $(customInputId);
-        return c ? (c.value || '').trim() : '';
-    }
-    return select.value || '';
-}
-
-function _wireLangSelect(selectId, customContainerId, customInputId, fieldKey) {
-    const select = $(selectId);
-    const customContainer = $(customContainerId);
-    const customInput = $(customInputId);
-
-    if (select) {
-        select.addEventListener('change', () => {
-            if (select.value === 'Other') {
-                if (customContainer) customContainer.style.display = 'block';
-                if (customInput) customInput.focus();
-                // Wait for the user to type — commit happens on blur of the
-                // custom input. Committing now would save an empty value.
-            } else {
-                if (customContainer) customContainer.style.display = 'none';
-                if (customInput) customInput.value = '';
-                handleEditorMetaCommit(fieldKey);
-            }
-        });
-    }
-
-    if (customInput) {
-        customInput.addEventListener('blur', () => handleEditorMetaCommit(fieldKey));
-    }
-}
 
 function _openEditorWithData(g) {
     if (!g || g.id == null) return;
@@ -728,20 +653,8 @@ function _openEditorWithData(g) {
         nameInput.dataset.lastValue = nameInput.value;
     }
 
-    _setLangSelect(
-        'glossaryEditorSourceLang',
-        'glossaryEditorCustomSourceLangContainer',
-        'glossaryEditorCustomSourceLang',
-        g.source_lang,
-    );
-    _setLangSelect(
-        'glossaryEditorTargetLang',
-        'glossaryEditorCustomTargetLangContainer',
-        'glossaryEditorCustomTargetLang',
-        g.target_lang,
-    );
-    _lastMeta.source_lang = g.source_lang || '';
-    _lastMeta.target_lang = g.target_lang || '';
+    _lastMeta.source_lang = SOURCE_LANGUAGE;
+    _lastMeta.target_lang = TARGET_LANGUAGE;
 
     currentTerms = (g.terms || []).slice();
 
@@ -1132,8 +1045,6 @@ function handleEditorMetaCommit(fieldKey) {
 
 function _indicatorFor(fieldKey) {
     if (fieldKey === 'name') return $('glossaryEditorNameSaved');
-    if (fieldKey === 'source_lang') return $('glossaryEditorSourceLangSaved');
-    if (fieldKey === 'target_lang') return $('glossaryEditorTargetLangSaved');
     return null;
 }
 
@@ -1142,8 +1053,8 @@ async function _doEditorMetaCommit(fieldKey) {
 
     const nameInput = $('glossaryEditorName');
     const newName = nameInput ? nameInput.value : '';
-    const newSrc = _resolveLangValue('glossaryEditorSourceLang', 'glossaryEditorCustomSourceLang');
-    const newTgt = _resolveLangValue('glossaryEditorTargetLang', 'glossaryEditorCustomTargetLang');
+    const newSrc = SOURCE_LANGUAGE;
+    const newTgt = TARGET_LANGUAGE;
 
     let changed = false;
     if (fieldKey === 'name') {
@@ -1554,8 +1465,8 @@ async function handleNerExtract() {
     if (extractBtn) extractBtn.disabled = true;
     _setNerLoading(true);
 
-    const srcLang = _resolveLangValue('glossaryEditorSourceLang', 'glossaryEditorCustomSourceLang');
-    const tgtLang = _resolveLangValue('glossaryEditorTargetLang', 'glossaryEditorCustomTargetLang');
+    const srcLang = SOURCE_LANGUAGE;
+    const tgtLang = TARGET_LANGUAGE;
     const maxChars = maxCharsEl ? parseInt(maxCharsEl.value, 10) : NaN;
     const sampleCount = sampleCountEl ? parseInt(sampleCountEl.value, 10) : NaN;
 
@@ -1921,7 +1832,7 @@ function wireListView() {
             try {
                 // Create a fresh glossary first, then import into it.
                 const name = await _generateUniqueDefaultName();
-                const created = await ApiClient.createGlossary({ name, source_lang: '', target_lang: '' });
+                const created = await ApiClient.createGlossary({ name, source_lang: SOURCE_LANGUAGE, target_lang: TARGET_LANGUAGE });
                 const newId = created && (created.id != null ? created.id : (created.glossary && created.glossary.id));
                 if (newId == null) {
                     toast.error(t('glossary:create_for_import_failed'));
@@ -1945,7 +1856,7 @@ function wireListView() {
         _wireDragDropImport(emptyList, async (file) => {
             try {
                 const name = await _generateUniqueDefaultName();
-                const created = await ApiClient.createGlossary({ name, source_lang: '', target_lang: '' });
+                const created = await ApiClient.createGlossary({ name, source_lang: SOURCE_LANGUAGE, target_lang: TARGET_LANGUAGE });
                 const newId = created && (created.id != null ? created.id : (created.glossary && created.glossary.id));
                 if (newId == null) {
                     toast.error(t('glossary:create_for_import_failed'));
@@ -1971,19 +1882,6 @@ function wireEditorView() {
 
     const nameInput = $('glossaryEditorName');
     if (nameInput) nameInput.addEventListener('blur', () => handleEditorMetaCommit('name'));
-
-    _wireLangSelect(
-        'glossaryEditorSourceLang',
-        'glossaryEditorCustomSourceLangContainer',
-        'glossaryEditorCustomSourceLang',
-        'source_lang',
-    );
-    _wireLangSelect(
-        'glossaryEditorTargetLang',
-        'glossaryEditorCustomTargetLangContainer',
-        'glossaryEditorCustomTargetLang',
-        'target_lang',
-    );
 
     const addRowBtn = $('glossaryAddRowBtn');
     if (addRowBtn) addRowBtn.addEventListener('click', handleAddRow);

@@ -29,9 +29,6 @@ from src.core.epub.lang_support import (
     set_xhtml_lang_attributes,
     apply_target_language_to_xhtml_directory,
 )
-from src.core.epub.rtl_support import is_rtl_language
-
-
 XML_LANG = "{http://www.w3.org/XML/1998/namespace}lang"
 
 
@@ -67,7 +64,7 @@ XML_LANG = "{http://www.w3.org/XML/1998/namespace}lang"
     ("Thai", "th"),
     ("Hindi", "hi"),
     ("Ukrainian", "uk"),
-    # RTL languages must still resolve (regression check vs rtl_support map)
+    # RTL language names still resolve for BCP 47 metadata
     ("Arabic", "ar"),
     ("Hebrew", "he"),
     ("Persian", "fa"),
@@ -99,17 +96,6 @@ def test_get_language_code_unknown_returns_none():
     assert get_language_code("Klingon") is None
     assert get_language_code("") is None
     assert get_language_code(None) is None
-
-
-def test_rtl_detection_still_works_after_map_extension():
-    """The map now includes LTR languages — is_rtl_language must not regress."""
-    assert is_rtl_language("Arabic") is True
-    assert is_rtl_language("Hebrew") is True
-    assert is_rtl_language("Persian") is True
-    assert is_rtl_language("Spanish") is False
-    assert is_rtl_language("English") is False
-    assert is_rtl_language("French") is False
-    assert is_rtl_language("Chinese") is False
 
 
 # -------------------- set_xhtml_lang_attributes --------------------
