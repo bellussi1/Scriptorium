@@ -325,10 +325,17 @@ class TestCheckpointManagerServerRestart:
         with tempfile.TemporaryDirectory() as tmpdir:
             db_path = os.path.join(tmpdir, "test.db")
 
-            # Simulate first server session
+            # Simulate first server session with real checkpoints: a row with
+            # no preserved input and no chunk cannot be resumed.
             manager1 = CheckpointManager(db_path=db_path, server_session_id="session_1")
-            manager1.start_job("trans_001", "txt", {"file": "test1.txt"})
-            manager1.start_job("trans_002", "txt", {"file": "test2.txt"})
+            manager1.uploads_dir = Path(tmpdir) / "uploads"
+            for tid, name in (("trans_001", "test1.txt"), ("trans_002", "test2.txt")):
+                source = Path(tmpdir) / name
+                source.write_text("source text", encoding="utf-8")
+                manager1.start_job(
+                    tid, "txt", {"file": name}, input_file_path=str(source)
+                )
+                manager1.db.save_chunk(tid, 0, "source text", "translated text")
             manager1.close()
 
             # Simulate server restart with new session
@@ -541,18 +548,25 @@ class TestStateManagerCheckpointIntegration:
             db_path = os.path.join(tmpdir, "test.db")
             checkpoint_mgr = CheckpointManager(db_path=db_path, server_session_id="session_1")
 
-            # Create jobs with different statuses
-            checkpoint_mgr.start_job("trans_001", "txt", {"file": "1.txt"})
+            # Create jobs with different statuses and real checkpoints.
+            checkpoint_mgr.uploads_dir = Path(tmpdir) / "uploads"
+            for tid, name in (
+                ("trans_001", "1.txt"),
+                ("trans_002", "2.txt"),
+                ("trans_003", "3.txt"),
+                ("trans_004", "4.txt"),
+            ):
+                source = Path(tmpdir) / name
+                source.write_text("source text", encoding="utf-8")
+                checkpoint_mgr.start_job(
+                    tid, "txt", {"file": name}, input_file_path=str(source)
+                )
+                checkpoint_mgr.db.save_chunk(tid, 0, "source text", "translated text")
+
             checkpoint_mgr.mark_paused("trans_001")
-
-            checkpoint_mgr.start_job("trans_002", "txt", {"file": "2.txt"})
             checkpoint_mgr.mark_interrupted("trans_002")
-
-            checkpoint_mgr.start_job("trans_003", "txt", {"file": "3.txt"})
             checkpoint_mgr.mark_completed("trans_003")
-
-            checkpoint_mgr.start_job("trans_004", "txt", {"file": "4.txt"})
-            # Still running
+            # trans_004 stays running
 
             # Get resumable
             resumable = checkpoint_mgr.get_resumable_jobs()

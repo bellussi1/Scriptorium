@@ -4,6 +4,7 @@ Translation job management routes
 import logging
 import os
 import re
+import sqlite3
 import time
 import copy
 from pathlib import Path
@@ -28,6 +29,44 @@ from src.api.api_keys import (
 )
 
 logger = logging.getLogger('translation_routes')
+
+
+def _queue_finished_translation_ids() -> set:
+    """Translation ids the literary queue has already finished with.
+
+    Editorial completion is a queue decision, not an upstream one: the CLI can
+    leave a row as ``interrupted`` after a successful run. A book that is
+    completed or awaiting review in the queue must never reappear in Paused
+    Translations, so the API subtracts those ids from the resumable list.
+
+    Missing/unreadable queue databases are not an error here: the queue is an
+    optional companion to the translation workbench.
+    """
+    db_path = Path(os.getenv('LITERARY_QUEUE_DB', 'data/literary_queue.db'))
+    if not db_path.exists():
+        return set()
+    try:
+        conn = sqlite3.connect(
+            f"file:{db_path.resolve().as_posix()}?mode=ro", uri=True
+        )
+    except sqlite3.Error:
+        return set()
+    try:
+        rows = conn.execute(
+            """
+            SELECT j.translation_id
+            FROM jobs j
+            JOIN books b ON b.id = j.book_id
+            WHERE b.status IN ('completed', 'needs_review')
+              AND j.translation_id IS NOT NULL
+              AND j.translation_id <> ''
+            """
+        ).fetchall()
+        return {row[0] for row in rows}
+    except sqlite3.Error:
+        return set()
+    finally:
+        conn.close()
 
 
 def _clamp_parallel_workers(value):
@@ -680,6 +719,12 @@ def create_translation_blueprint(state_manager, start_translation_job, output_di
         .env or the request body, so the client never needs them.
         """
         resumable_jobs = state_manager.get_resumable_jobs()
+        finished_in_queue = _queue_finished_translation_ids()
+        if finished_in_queue:
+            resumable_jobs = [
+                job for job in resumable_jobs
+                if job.get('translation_id') not in finished_in_queue
+            ]
         for job in resumable_jobs:
             _strip_api_keys(job.get('config'))
         return jsonify({"resumable_jobs": resumable_jobs})

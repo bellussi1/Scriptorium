@@ -26,9 +26,17 @@ import src.core.common.plain_text_pipeline as plain_pipeline
 # resolve_parallel_workers
 # ---------------------------------------------------------------------------
 class TestResolveParallelWorkers:
-    def test_local_provider_forced_to_one(self):
+    def test_local_provider_uses_configured_slot_cap(self, monkeypatch):
+        # The local cap is opt-in: 1 by default, 2 after the Fase C benchmark.
+        import src.config as config
+
+        monkeypatch.setattr(config, "OLLAMA_PARALLEL_TRANSLATIONS", 1)
         assert resolve_parallel_workers("ollama", 8) == 1
         assert resolve_parallel_workers("OLLAMA", 8) == 1
+
+        monkeypatch.setattr(config, "OLLAMA_PARALLEL_TRANSLATIONS", 2)
+        assert resolve_parallel_workers("ollama", 8) == 2
+        assert resolve_parallel_workers("ollama", 1) == 1
 
     def test_cloud_provider_honors_request(self):
         assert resolve_parallel_workers("openrouter", 4) == 4

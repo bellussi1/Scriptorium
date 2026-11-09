@@ -449,6 +449,44 @@ class Database:
                 print(f"Error getting chunks: {e}")
                 return []
 
+    def get_chunk_stats(self, translation_id: str) -> Dict[str, int]:
+        """
+        Count the checkpoint chunks stored for a job, without loading text.
+
+        The running counters in ``translation_jobs.progress`` can drift from
+        the real checkpoint when rows are pruned or a cleanup runs between
+        attempts. The chunk table is the source of truth for what can actually
+        be resumed.
+
+        Returns:
+            Dict with 'total', 'completed', 'failed' and 'last_index'
+            (-1 when the job has no chunks).
+        """
+        with self._lock:
+            try:
+                conn = self._get_connection()
+                cursor = conn.cursor()
+                cursor.execute("""
+                    SELECT COUNT(*) AS total,
+                           SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) AS completed,
+                           SUM(CASE WHEN status = 'failed' THEN 1 ELSE 0 END) AS failed,
+                           MAX(chunk_index) AS last_index
+                    FROM checkpoint_chunks
+                    WHERE translation_id = ?
+                """, (translation_id,))
+                row = cursor.fetchone()
+                if not row or not row['total']:
+                    return {'total': 0, 'completed': 0, 'failed': 0, 'last_index': -1}
+                return {
+                    'total': int(row['total']),
+                    'completed': int(row['completed'] or 0),
+                    'failed': int(row['failed'] or 0),
+                    'last_index': int(row['last_index']),
+                }
+            except Exception as e:
+                print(f"Error getting chunk stats: {e}")
+                return {'total': 0, 'completed': 0, 'failed': 0, 'last_index': -1}
+
     def get_failed_chunk_indices(self, translation_id: str) -> List[int]:
         """
         Return the chunk_index of every chunk currently marked 'failed'.

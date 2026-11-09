@@ -21,6 +21,21 @@ def _strip_upload_prefix(filename: str) -> str:
     return _UPLOAD_PREFIX_RE.sub('', filename)
 
 
+def _source_identity(job: Dict[str, Any]) -> str:
+    """Key used to spot two interrupted attempts at the same source book.
+
+    The upload directory is per translation, so the stored path differs between
+    attempts; the original filename does not. Jobs without a recorded path fall
+    back to their own id and are therefore never collapsed together.
+    """
+    config = job.get('config') or {}
+    input_path = config.get('preserved_input_path') or config.get('file_path')
+    if not input_path:
+        return f"id:{job.get('translation_id', '')}"
+    name = _strip_upload_prefix(Path(input_path).name).casefold()
+    return f"{job.get('file_type', '')}:{name}"
+
+
 class CheckpointManager:
     """
     Manages translation job checkpoints including database persistence
@@ -261,39 +276,86 @@ class CheckpointManager:
 
     def get_resumable_jobs(self) -> List[Dict[str, Any]]:
         """
-        Get all jobs that can be resumed.
+        Get only the jobs that can actually be resumed, one per source book.
+
+        A paused row is not proof of a resumable job. Three things are checked
+        against the real state before a row reaches the UI:
+
+        - the preserved input file must still exist, because the resume path
+          has to re-read and re-chunk the source;
+        - the job must still have work left: a row whose progress reached
+          ``total_chunks`` is finished even if the CLI left it as
+          ``interrupted`` instead of flipping it to ``completed``;
+        - the job must have at least one persisted checkpoint chunk.
+
+        Progress counters are rebuilt from ``checkpoint_chunks`` instead of the
+        running ``progress`` JSON: after a partial cleanup the counters can
+        claim hundreds of chunks while only a handful survived.
+
+        Duplicate attempts at the same source book are collapsed to the most
+        recently updated row (the database query orders by ``updated_at``
+        DESC), so restarting an upload cannot leave two paused cards for the
+        same book.
 
         Returns:
             List of job summaries with progress information
         """
         jobs = self.db.get_resumable_jobs()
+        resumable: List[Dict[str, Any]] = []
+        seen_sources = set()
 
-        # Enrich with additional info
         for job in jobs:
-            progress = job['progress']
-            total = progress.get('total_chunks', 0)
-            completed = progress.get('completed_chunks', 0)
+            config = job.get('config') or {}
+            progress = job.get('progress') or {}
+
+            # A job whose input file is gone can never be resumed. Keeping it
+            # in the list only offers a button that returns 404.
+            input_path = config.get('preserved_input_path') or config.get('file_path')
+            if input_path and not Path(input_path).exists():
+                continue
+
+            total = int(progress.get('total_chunks') or 0)
+            completed = int(progress.get('completed_chunks') or 0)
+            failed = int(progress.get('failed_chunks') or 0)
+            unfinished = progress.get('unfinished_chunks')
+            if total > 0 and completed >= total and not failed and not unfinished:
+                continue
+
+            stats = self.db.get_chunk_stats(job['translation_id'])
+            if stats['total'] == 0:
+                # No stored chunk means nothing to carry over; resuming would
+                # silently redo the job from an arbitrary position.
+                continue
+
+            # Report the checkpoint itself, not the drifting running counter.
+            stored_completed = stats['completed']
+            progress['completed_chunks'] = stored_completed
+            job['checkpoint_chunks'] = stats['total']
+            job['checkpoint_completed_chunks'] = stored_completed
+            job['checkpoint_failed_chunks'] = stats['failed']
 
             if total > 0:
-                job['progress_percentage'] = int((completed / total) * 100)
+                job['progress_percentage'] = int((stored_completed / total) * 100)
             else:
                 job['progress_percentage'] = 0
 
-            # Get input and output file names from config
-            config = job['config']
+            # Extract input filename (prefer the persisted display name, then
+            # the preserved path, then the original path).
+            job['input_filename'] = (
+                config.get('input_filename')
+                or (Path(input_path).name if input_path else 'unknown')
+            )
 
-            # Extract input filename (use file_path, then preserved_input_path as fallback)
-            input_path = config.get('file_path') or config.get('preserved_input_path', 'unknown')
-            if input_path != 'unknown':
-                job['input_filename'] = Path(input_path).name
-            else:
-                job['input_filename'] = 'unknown'
-
-            # Extract output filename
             output_filename = config.get('output_filename', 'unknown')
             job['output_filename'] = output_filename if output_filename != 'unknown' else 'unknown'
 
-        return jobs
+            source = _source_identity(job)
+            if source in seen_sources:
+                continue
+            seen_sources.add(source)
+            resumable.append(job)
+
+        return resumable
 
     def get_job_history(self, limit: int = 50) -> List[Dict[str, Any]]:
         """
