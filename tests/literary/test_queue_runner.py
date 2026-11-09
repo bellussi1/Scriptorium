@@ -48,6 +48,28 @@ def test_library_path_is_kept_and_windows_path_is_mapped(tmp_path: Path, monkeyp
     assert queue_runner.container_source(windows) == "/library/Author/Book (42)/Book - Author.epub"
 
 
+def test_data_path_maps_to_app_data_mount(tmp_path: Path, monkeypatch):
+    monkeypatch.setattr(queue_runner, "ROOT", tmp_path)
+    source = tmp_path / "data" / "calibre" / "malazan-split" / "01 - Gardens of the Moon.epub"
+    source.parent.mkdir(parents=True)
+    source.write_bytes(b"fake")
+
+    absolute = SimpleNamespace(source_path=str(source), calibre_id=9001)
+    assert (
+        queue_runner.container_source(absolute)
+        == "/app/data/calibre/malazan-split/01 - Gardens of the Moon.epub"
+    )
+
+    relative = SimpleNamespace(
+        source_path="data/calibre/malazan-split/01 - Gardens of the Moon.epub",
+        calibre_id=9001,
+    )
+    assert (
+        queue_runner.container_source(relative)
+        == "/app/data/calibre/malazan-split/01 - Gardens of the Moon.epub"
+    )
+
+
 def test_host_source_falls_back_to_inventory_epub(tmp_path: Path, monkeypatch):
     epub = tmp_path / "Book - Author.epub"
     epub.write_bytes(b"fake")

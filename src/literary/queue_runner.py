@@ -111,8 +111,14 @@ def host_source(book: Any) -> Path:
 
 def container_source(book: Any) -> str:
     path = str(book.source_path or "")
-    if path.startswith("/library/"):
+    if path.startswith("/library/") or path.startswith("/app/data/"):
         return path
+    normalized = path.replace("\\", "/")
+    data_root = str(ROOT / "data").replace("\\", "/").rstrip("/")
+    if normalized.startswith(data_root + "/"):
+        return "/app/data/" + normalized[len(data_root) + 1 :]
+    if normalized.startswith("data/"):
+        return "/app/data/" + normalized[len("data/") :]
     row = _inventory_row(int(book.calibre_id))
     if row:
         calibre_path = str(row.get("calibre_path") or "").replace("\\", "/").strip("/")
