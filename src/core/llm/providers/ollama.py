@@ -24,6 +24,7 @@ from src.config import (
     DEFAULT_MODEL,
     REQUEST_TIMEOUT,
     OLLAMA_NUM_CTX,
+    OLLAMA_SAMPLING_ENABLED,
     OLLAMA_TEMPERATURE,
     OLLAMA_TOP_P,
     OLLAMA_TOP_K,
@@ -54,7 +55,9 @@ class OllamaProvider(LLMProvider):
         self._known_controllable = any(_model_matches_pattern(model, tm) for tm in CONTROLLABLE_THINKING_MODELS)
 
     def _sampling_options(self) -> dict:
-        """Explicit Ollama sampling; server defaults vary between releases."""
+        """Optional sampling overrides; server defaults won the fail-case matrix."""
+        if not OLLAMA_SAMPLING_ENABLED:
+            return {}
         return {
             "temperature": OLLAMA_TEMPERATURE,
             "top_p": OLLAMA_TOP_P,

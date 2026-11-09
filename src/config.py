@@ -309,10 +309,13 @@ else:
 # variation.
 TEMPERATURE = float(os.getenv('TEMPERATURE', '0.3'))
 
-# Ollama sampling options. Sent explicitly so server defaults cannot drift
-# between Ollama releases. The low-temperature values below are the ones the
-# fail-case matrix tested: they improved chrF from 0.892 to 0.903 and raised
-# first-pass validity on the curated fail set from 16.7% to 25%.
+# Ollama sampling options. The fail-case matrix showed no first-pass validity
+# gain from explicit low-temperature/model-card sampling over the server
+# defaults, so sampling is opt-in. Enable it only when a specific deployment
+# has a measured reason; the values below are the tested low-temperature set.
+OLLAMA_SAMPLING_ENABLED = os.getenv(
+    'OLLAMA_SAMPLING_ENABLED', 'false'
+).strip().lower() in ('1', 'true', 'yes', 'on')
 OLLAMA_TEMPERATURE = float(os.getenv('OLLAMA_TEMPERATURE', '0.2'))
 OLLAMA_TOP_P = float(os.getenv('OLLAMA_TOP_P', '0.9'))
 OLLAMA_TOP_K = int(os.getenv('OLLAMA_TOP_K', '40'))

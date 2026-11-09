@@ -11,8 +11,13 @@ from src.core.llm.providers.ollama import OllamaProvider
 from src.prompts.prompts import generate_translation_prompt
 
 
-def test_ollama_sampling_options_have_explicit_values():
+def test_ollama_sampling_is_opt_in(monkeypatch):
     provider = OllamaProvider(model="stub", context_window=8192)
+    assert provider._sampling_options() == {}
+
+    monkeypatch.setattr(
+        "src.core.llm.providers.ollama.OLLAMA_SAMPLING_ENABLED", True
+    )
     assert provider._sampling_options() == {
         "temperature": OLLAMA_TEMPERATURE,
         "top_p": OLLAMA_TOP_P,

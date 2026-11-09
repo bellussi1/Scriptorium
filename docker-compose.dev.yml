@@ -20,11 +20,12 @@ services:
       LLM_PROVIDER: ollama
       DEFAULT_MODEL: translategemma:12b
       OLLAMA_API_ENDPOINT: http://host.docker.internal:11434/api/generate
-      OLLAMA_NUM_CTX: "4096"
+      OLLAMA_NUM_CTX: "8192"
       DEFAULT_SOURCE_LANGUAGE: English
       DEFAULT_TARGET_LANGUAGE: Portuguese (Brazil)
       MAX_TOKENS_PER_CHUNK: "450"
       PARALLEL_TRANSLATIONS: "1"
+      OLLAMA_PARALLEL_TRANSLATIONS: "2"
       EPUB_TRANSLATE_METADATA_ENABLED: "true"
       ATTRIBUTION_ENABLED: "true"
       PYTHONPATH: /app:/app/src
