@@ -1213,11 +1213,19 @@
                             <span class="material-symbols-outlined">delete</span>
                             <span data-i18n="files:delete_selected">Delete Selected</span>
                         </button>
+                        <label class="file-artifact-toggle">
+                            <input type="checkbox" id="showAllArtifacts">
+                            <span data-i18n="files:show_all_versions">Show intermediate versions</span>
+                        </label>
                         <label style="margin-left: auto; display: flex; align-items: center; gap: 5px; cursor: pointer;">
                             <input type="checkbox" id="selectAllFiles">
                             <span data-i18n="files:select_all">Select All</span>
                         </label>
                     </div>
+                    <p id="fileFilterStatus" class="file-filter-status"></p>
+                    <p class="file-artifact-help" data-i18n="files:artifact_help">
+                        Final is the reader edition, ready to read or import. Fixed, corrected base and raw are intermediate pipeline outputs; the quality report is not a book.
+                    </p>
 
                     <div id="fileListLoading" style="text-align: center; padding: 20px;">
                         <p data-i18n="common:loading">Loading files...</p>

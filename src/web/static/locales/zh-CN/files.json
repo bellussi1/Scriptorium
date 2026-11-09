@@ -9,19 +9,16 @@
   "open_folder_title": "打开翻译文件夹",
   "refresh": "刷新",
   "refresh_list_title": "刷新文件列表",
-
   "name_column": "名称",
   "filename_column": "文件名",
   "size_column": "大小",
   "modified_column": "修改时间",
   "actions_column": "操作",
-
   "no_files": "尚无文件。",
   "confirm_delete_one": "删除此文件？",
   "confirm_delete_many": "删除 {{count}} 个文件？",
   "confirm_delete_named": "确定要删除 \"{{name}}\" 吗？",
   "confirm_delete_selected": "确定要删除 {{count}} 个文件吗？",
-
   "no_selection_download": "未选择要下载的文件",
   "no_selection_delete": "未选择要删除的文件",
   "downloading": "正在下载 {{name}}...",
@@ -37,7 +34,6 @@
   "delete_failed": "删除失败：{{error}}",
   "download_failed": "下载失败：{{error}}",
   "load_failed": "加载文件列表出错：{{error}}",
-
   "open_action": "打开文件",
   "open_log": "📂 已打开文件：{{name}}",
   "open_error": "打开文件出错：{{error}}",
@@ -51,16 +47,20 @@
   "folder_opened_log_with_path": "📁 已打开翻译文件夹：{{path}}",
   "folder_open_error": "打开文件夹出错：{{error}}",
   "delete_default_msg": "已删除 {{name}}",
-
   "file_too_large": "文件过大：{{name}}（{{size}}）",
   "unsupported_format": "不支持的格式：{{name}}",
   "upload_failed": "上传失败：{{error}}",
-
   "total_label": "总计：",
   "files_unit": "个文件",
   "badge_reader": "阅读版",
   "badge_quality": "质量报告",
   "badge_fixed_v2": "基础版 (v2)",
   "badge_fixed": "已修正",
-  "badge_raw": "原始译文"
+  "badge_raw": "原始译文",
+  "badge_final": "最终版",
+  "badge_final_title": "最适合阅读或导入的文件；其他 EPUB 是中间产物",
+  "badge_reader_legacy": "阅读版（旧）",
+  "show_all_versions": "显示中间版本",
+  "final_only_status": "仅显示每本书的最佳版本（共 {{total}} 个文件，显示 {{visible}} 个）。",
+  "artifact_help": "Final 是可供阅读或导入的最终阅读版。Fixed、修正基础版和 Raw 是中间产物；质量报告不是书。"
 }

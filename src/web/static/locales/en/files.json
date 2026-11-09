@@ -9,19 +9,16 @@
   "open_folder_title": "Open translations folder",
   "refresh": "Refresh",
   "refresh_list_title": "Refresh file list",
-
   "name_column": "Name",
   "filename_column": "Filename",
   "size_column": "Size",
   "modified_column": "Modified",
   "actions_column": "Actions",
-
   "no_files": "No files yet.",
   "confirm_delete_one": "Delete this file?",
   "confirm_delete_many": "Delete {{count}} files?",
   "confirm_delete_named": "Are you sure you want to delete \"{{name}}\"?",
   "confirm_delete_selected": "Are you sure you want to delete {{count}} file(s)?",
-
   "no_selection_download": "No files selected for download",
   "no_selection_delete": "No files selected for deletion",
   "downloading": "Downloading {{name}}...",
@@ -37,7 +34,6 @@
   "delete_failed": "Failed to delete: {{error}}",
   "download_failed": "Failed to download: {{error}}",
   "load_failed": "Error loading file list: {{error}}",
-
   "open_action": "Open file",
   "open_log": "📂 Opened file: {{name}}",
   "open_error": "Error opening file: {{error}}",
@@ -51,16 +47,20 @@
   "folder_opened_log_with_path": "📁 Opened translations folder: {{path}}",
   "folder_open_error": "Error opening folder: {{error}}",
   "delete_default_msg": "Deleted {{name}}",
-
   "file_too_large": "File too large: {{name}} ({{size}})",
   "unsupported_format": "Unsupported format: {{name}}",
   "upload_failed": "Upload failed: {{error}}",
-
   "total_label": "Total:",
   "files_unit": "files",
   "badge_reader": "Reader edition",
   "badge_quality": "Quality report",
   "badge_fixed_v2": "Base (v2)",
   "badge_fixed": "Fixed",
-  "badge_raw": "Raw translation"
+  "badge_raw": "Raw translation",
+  "badge_final": "Final",
+  "badge_final_title": "Best file to read or import; other EPUBs are intermediate pipeline outputs",
+  "badge_reader_legacy": "Reader (old)",
+  "show_all_versions": "Show intermediate versions",
+  "final_only_status": "Showing the best edition per book ({{visible}} of {{total}} files).",
+  "artifact_help": "Final is the reader edition, ready to read or import. Fixed, corrected base and raw are intermediate pipeline outputs; the quality report is not a book."
 }

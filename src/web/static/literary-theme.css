@@ -1605,6 +1605,13 @@ html.dark .queue-table tbody tr:hover {
     color: var(--data-accent) !important;
 }
 
+.file-artifact-badge.is-final {
+    background: var(--success-light) !important;
+    border-color: var(--success-light) !important;
+    color: var(--paper) !important;
+    font-weight: 700;
+}
+
 html:not(.dark) .btn-danger,
 html.dark .btn-danger {
     background: transparent;

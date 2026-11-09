@@ -60,6 +60,14 @@ export const FileManager = {
                 this.deleteSelectedFiles();
             });
         }
+
+        // Artifact filter: final editions only by default.
+        const showAllArtifacts = DomHelpers.getElement('showAllArtifacts');
+        if (showAllArtifacts) {
+            showAllArtifacts.addEventListener('change', () => {
+                this.refreshFileList();
+            });
+        }
     },
 
     /**
@@ -98,7 +106,32 @@ export const FileManager = {
 
             this.updateFileSelectionButtons();
 
-            if (data.files.length === 0) {
+            const showAll = Boolean(DomHelpers.getElement('showAllArtifacts')?.checked);
+            const bestByBook = this.finalArtifacts(data.files);
+            const bestEntries = [...bestByBook.values()];
+            const bestNames = new Set(bestEntries.map(entry => entry.file.filename));
+            const bestByFile = new Map(bestEntries.map(entry => [entry.file.filename, entry]));
+            const visibleFiles = data.files.filter(file => {
+                const info = this.artifactInfo(file.filename);
+                if (!info) return true;
+                if (!info.bookFile) return showAll;
+                return showAll || bestNames.has(file.filename);
+            });
+            visibleFiles.sort((a, b) => {
+                const infoA = this.artifactInfo(a.filename) || { rank: 0, book: a.filename };
+                const infoB = this.artifactInfo(b.filename) || { rank: 0, book: b.filename };
+                const finalA = bestNames.has(a.filename) ? 0 : 1;
+                const finalB = bestNames.has(b.filename) ? 0 : 1;
+                if (finalA !== finalB) return finalA - finalB;
+                const qualityA = infoA.bookFile === false ? 1 : 0;
+                const qualityB = infoB.bookFile === false ? 1 : 0;
+                if (qualityA !== qualityB) return qualityA - qualityB;
+                if (infoA.book !== infoB.book) return String(infoA.book).localeCompare(String(infoB.book));
+                if (infoA.rank !== infoB.rank) return infoB.rank - infoA.rank;
+                return new Date(b.modified_date) - new Date(a.modified_date);
+            });
+
+            if (data.files.length === 0 || visibleFiles.length === 0) {
                 if (emptyDiv) emptyDiv.style.display = 'block';
                 const fileTable = containerDiv.querySelector('.file-table');
                 if (fileTable) {
@@ -111,11 +144,26 @@ export const FileManager = {
                     fileTable.style.display = 'table';
                 }
 
-                // Populate table with files
-                data.files.forEach(file => {
-                    const row = this.createFileRow(file);
+                // Populate table with the final edition of each book first;
+                // intermediates stay behind the "show all versions" toggle.
+                visibleFiles.forEach(file => {
+                    const artifact = bestByFile.get(file.filename) || {
+                        info: this.artifactInfo(file.filename),
+                        final: false,
+                    };
+                    const row = this.createFileRow(file, artifact);
                     tableBody.appendChild(row);
                 });
+            }
+
+            const filterStatus = DomHelpers.getElement('fileFilterStatus');
+            if (filterStatus) {
+                filterStatus.textContent = showAll
+                    ? ''
+                    : t('files:final_only_status', {
+                        visible: visibleFiles.length,
+                        total: data.files.length,
+                    });
             }
 
             // Update totals
@@ -134,25 +182,69 @@ export const FileManager = {
     /**
      * Classify an EPUB pipeline artifact so the Files tab says which copy is
      * the reader edition instead of showing six near-identical filenames.
+     *
+     * Rank is the pipeline order used by the queue artifact picker:
+     * refined > reader legacy > fixed-v2 > fixed > raw.
      * @param {string} filename
-     * @returns {{kind: string, key: string}|null}
+     * @returns {{kind: string, key: string, rank: number, book: string, bookFile: boolean}|null}
      */
-    artifactBadge(filename) {
+    artifactInfo(filename) {
         const name = String(filename || '');
-        if (/\.refined\.epub$/i.test(name)) return { kind: 'reader', key: 'badge_reader' };
-        if (/\.quality\.json$/i.test(name)) return { kind: 'quality', key: 'badge_quality' };
-        if (/- fixed-v2\.epub$/i.test(name)) return { kind: 'base', key: 'badge_fixed_v2' };
-        if (/- fixed\.epub$/i.test(name)) return { kind: 'fixed', key: 'badge_fixed' };
-        if (/\(pt-BR\)\.epub$/i.test(name)) return { kind: 'raw', key: 'badge_raw' };
+        if (/\.quality\.json$/i.test(name)) {
+            return { kind: 'quality', key: 'badge_quality', rank: 0, book: '', bookFile: false };
+        }
+        const book = name
+            .replace(/\.refined\.epub$/i, '')
+            .replace(/ - reader\d+\.epub$/i, '')
+            .replace(/ - fixed-v2\.epub$/i, '')
+            .replace(/ - fixed\.epub$/i, '')
+            .replace(/\.epub$/i, '')
+            .replace(/\s*\(pt-BR\)$/i, '')
+            .trim();
+        if (/\.refined\.epub$/i.test(name)) {
+            return { kind: 'reader', key: 'badge_reader', rank: 5, book, bookFile: true };
+        }
+        if (/ - reader\d+\.epub$/i.test(name)) {
+            return { kind: 'reader-legacy', key: 'badge_reader_legacy', rank: 4, book, bookFile: true };
+        }
+        if (/ - fixed-v2\.epub$/i.test(name)) {
+            return { kind: 'base', key: 'badge_fixed_v2', rank: 3, book, bookFile: true };
+        }
+        if (/ - fixed\.epub$/i.test(name)) {
+            return { kind: 'fixed', key: 'badge_fixed', rank: 2, book, bookFile: true };
+        }
+        if (/\(pt-BR\)\.epub$/i.test(name)) {
+            return { kind: 'raw', key: 'badge_raw', rank: 1, book, bookFile: true };
+        }
         return null;
+    },
+
+    /**
+     * Pick the best artifact for each book. A raw/fixed-only book is still
+     * shown (otherwise the EPUB would disappear), but it is not marked Final.
+     * @param {Array} files
+     * @returns {Map<string, {file: Object, info: Object, final: boolean}>}
+     */
+    finalArtifacts(files) {
+        const best = new Map();
+        for (const file of files) {
+            const info = this.artifactInfo(file.filename);
+            if (!info || !info.bookFile) continue;
+            const current = best.get(info.book);
+            if (!current || info.rank > current.info.rank) {
+                best.set(info.book, { file, info, final: info.rank >= 4 });
+            }
+        }
+        return best;
     },
 
     /**
      * Create file row element
      * @param {Object} file - File data object
+     * @param {{info: Object|null, final: boolean}} [artifact] - Pipeline role
      * @returns {HTMLElement} Table row element
      */
-    createFileRow(file) {
+    createFileRow(file, artifact = null) {
         const row = document.createElement('tr');
 
         const modifiedDate = new Date(file.modified_date);
@@ -167,9 +259,13 @@ export const FileManager = {
 
         const supportsTTS = ['epub', 'txt', 'srt'].includes(file.file_type);
         const safeFilename = DomHelpers.escapeHtml(file.filename);
-        const badge = this.artifactBadge(file.filename);
-        const badgeHtml = badge
-            ? `<span class="file-artifact-badge is-${badge.kind}">${DomHelpers.escapeHtml(t(`files:${badge.key}`))}</span>`
+        const info = artifact ? artifact.info : this.artifactInfo(file.filename);
+        const isFinal = Boolean(artifact && artifact.final);
+        const finalBadge = isFinal
+            ? `<span class="file-artifact-badge is-final" title="${DomHelpers.escapeHtml(t('files:badge_final_title'))}">${DomHelpers.escapeHtml(t('files:badge_final'))}</span>`
+            : '';
+        const badgeHtml = info
+            ? `<span class="file-artifact-badge is-${info.kind}">${DomHelpers.escapeHtml(t(`files:${info.key}`))}</span>`
             : '';
         const tooltipInfo = `${file.file_type.toUpperCase()} • ${file.size_mb} MB • ${formattedDate}`;
 
@@ -184,7 +280,7 @@ export const FileManager = {
                         <span class="material-symbols-outlined file-icon-cell">${fileIconClass}</span>
                         <span class="filename-text">${safeFilename}</span>
                     </span>
-                    ${badgeHtml}
+                    ${finalBadge}${badgeHtml}
                 </div>
             </td>
             <td class="file-row-actions">

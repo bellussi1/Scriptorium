@@ -9,19 +9,16 @@
   "open_folder_title": "翻訳フォルダを開く",
   "refresh": "更新",
   "refresh_list_title": "ファイルリストを更新",
-
   "name_column": "名前",
   "filename_column": "ファイル名",
   "size_column": "サイズ",
   "modified_column": "更新日時",
   "actions_column": "操作",
-
   "no_files": "ファイルはまだありません。",
   "confirm_delete_one": "このファイルを削除しますか?",
   "confirm_delete_many": "{{count}} 個のファイルを削除しますか?",
   "confirm_delete_named": "「{{name}}」を削除してもよろしいですか?",
   "confirm_delete_selected": "{{count}} 個のファイルを削除してもよろしいですか?",
-
   "no_selection_download": "ダウンロードするファイルが選択されていません",
   "no_selection_delete": "削除するファイルが選択されていません",
   "downloading": "{{name}} をダウンロード中...",
@@ -37,7 +34,6 @@
   "delete_failed": "削除に失敗しました: {{error}}",
   "download_failed": "ダウンロードに失敗しました: {{error}}",
   "load_failed": "ファイルリストの読み込みエラー: {{error}}",
-
   "open_action": "ファイルを開く",
   "open_log": "📂 ファイルを開きました: {{name}}",
   "open_error": "ファイルを開く際にエラーが発生しました: {{error}}",
@@ -51,16 +47,20 @@
   "folder_opened_log_with_path": "📁 翻訳フォルダを開きました: {{path}}",
   "folder_open_error": "フォルダを開く際にエラーが発生しました: {{error}}",
   "delete_default_msg": "{{name}} を削除しました",
-
   "file_too_large": "ファイルサイズが大きすぎます: {{name}} ({{size}})",
   "unsupported_format": "未対応の形式です: {{name}}",
   "upload_failed": "アップロードに失敗しました: {{error}}",
-
   "total_label": "合計:",
   "files_unit": "個のファイル",
   "badge_reader": "読書版",
   "badge_quality": "品質レポート",
   "badge_fixed_v2": "ベース (v2)",
   "badge_fixed": "修正済み",
-  "badge_raw": "未加工テキスト"
+  "badge_raw": "未加工テキスト",
+  "badge_final": "最終",
+  "badge_final_title": "読む・取り込むための最適なファイル。他の EPUB は中間生成物です",
+  "badge_reader_legacy": "リーダー（旧）",
+  "show_all_versions": "中間バージョンを表示",
+  "final_only_status": "書籍ごとの最良版を表示中（{{total}} 件中 {{visible}} 件）。",
+  "artifact_help": "Final は読書・取り込み用の最終版です。Fixed、修正済みベース、Raw は中間生成物で、品質レポートは書籍ではありません。"
 }

@@ -9,19 +9,16 @@
   "open_folder_title": "번역 폴더 열기",
   "refresh": "새로 고침",
   "refresh_list_title": "파일 목록 새로 고침",
-
   "name_column": "이름",
   "filename_column": "파일명",
   "size_column": "크기",
   "modified_column": "수정됨",
   "actions_column": "작업",
-
   "no_files": "아직 파일이 없습니다.",
   "confirm_delete_one": "이 파일을 삭제하시겠습니까?",
   "confirm_delete_many": "{{count}}개의 파일을 삭제하시겠습니까?",
   "confirm_delete_named": "\"{{name}}\"을(를) 삭제하시겠습니까?",
   "confirm_delete_selected": "{{count}}개의 파일을 삭제하시겠습니까?",
-
   "no_selection_download": "다운로드할 파일이 선택되지 않았습니다",
   "no_selection_delete": "삭제할 파일이 선택되지 않았습니다",
   "downloading": "{{name}} 다운로드 중...",
@@ -37,7 +34,6 @@
   "delete_failed": "삭제 실패: {{error}}",
   "download_failed": "다운로드 실패: {{error}}",
   "load_failed": "파일 목록 로드 오류: {{error}}",
-
   "open_action": "파일 열기",
   "open_log": "📂 파일 열림: {{name}}",
   "open_error": "파일 열기 오류: {{error}}",
@@ -51,16 +47,20 @@
   "folder_opened_log_with_path": "📁 번역 폴더가 열렸습니다: {{path}}",
   "folder_open_error": "폴더 열기 오류: {{error}}",
   "delete_default_msg": "{{name}} 삭제됨",
-
   "file_too_large": "파일이 너무 큽니다: {{name}} ({{size}})",
   "unsupported_format": "지원되지 않는 형식: {{name}}",
   "upload_failed": "업로드 실패: {{error}}",
-
   "total_label": "합계:",
   "files_unit": "파일",
   "badge_reader": "읽기용 버전",
   "badge_quality": "품질 보고서",
   "badge_fixed_v2": "기본 (v2)",
   "badge_fixed": "수정됨",
-  "badge_raw": "원문 번역"
+  "badge_raw": "원문 번역",
+  "badge_final": "최종",
+  "badge_final_title": "읽거나 가져오기에 가장 좋은 파일입니다. 다른 EPUB은 중간 산출물입니다",
+  "badge_reader_legacy": "리더(이전)",
+  "show_all_versions": "중간 버전 표시",
+  "final_only_status": "책별 최선판만 표시 중 ({{total}}개 중 {{visible}}개).",
+  "artifact_help": "Final은 읽기/가져오기용 최종판입니다. Fixed, 수정된 기본본, Raw는 중간 산출물이며 품질 보고서는 책이 아닙니다."
 }

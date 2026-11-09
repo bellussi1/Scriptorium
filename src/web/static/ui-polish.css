@@ -443,6 +443,29 @@ html.dark .btn-danger:hover {
     color: var(--text-muted-light);
 }
 
+.file-artifact-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    color: var(--text-muted-light);
+}
+
+.file-filter-status {
+    margin: 0 0 8px;
+    font-size: 0.78rem;
+    color: var(--text-muted-light);
+}
+
+.file-artifact-help {
+    margin: 0 0 14px;
+    max-width: 78ch;
+    font-size: 0.78rem;
+    line-height: 1.5;
+    color: var(--text-muted-light);
+}
+
 @media (max-width: 760px) {
     #tab-files .card-header {
         flex-wrap: wrap;
