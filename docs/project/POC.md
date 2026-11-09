@@ -462,8 +462,9 @@ pre-existing failures**.
 #### 2.13.1 Cross-screen UI polish
 
 - `src/web/static/ui-polish.css` layers responsive layout, focus and contrast
-  fixes on top of the incumbent design tokens. It is separate from the local
-  `style.css` typography override, which stays uncommitted.
+  fixes on top of the incumbent design tokens. The Roboto typography override
+  lives in `style.css` and the three font files are bundled under
+  `src/web/static/fonts/` (Apache-2.0).
 - Desktop workspace grows from 900 px to 1160 px (1280 px on wide monitors).
 - Translate now has one primary drop zone and two compact repair zones side by
   side; the language pair stacks on narrow screens.

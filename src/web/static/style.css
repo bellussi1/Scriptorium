@@ -3,6 +3,31 @@
    Light Mode - Inspired by reference design
    ======================================== */
 
+/* Bundled typography: Roboto for the interface. The font files live in
+   src/web/static/fonts/ and are redistributed under Apache-2.0 (see the
+   README and LICENSE in that folder). */
+@font-face {
+    font-family: 'Roboto Local';
+    src: url('/static/fonts/Roboto-Regular.ttf') format('truetype');
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+}
+@font-face {
+    font-family: 'Roboto Local';
+    src: url('/static/fonts/Roboto-Medium.ttf') format('truetype');
+    font-weight: 500;
+    font-style: normal;
+    font-display: swap;
+}
+@font-face {
+    font-family: 'Roboto Local';
+    src: url('/static/fonts/Roboto-Bold.ttf') format('truetype');
+    font-weight: 700;
+    font-style: normal;
+    font-display: swap;
+}
+
 :root {
     /* Light mode colors from reference */
     --primary-light: #3676d8;
@@ -61,13 +86,14 @@
     /* Typography.
        --font-text  reading face, inherited by the whole page.
        --font-ui    interface chrome (labels, buttons, tabs, badges).
-       Both point at Spectral today. Setting --font-ui to var(--font-sans)
-       switches the app to the hybrid setup in one line: serif for what is
-       read, Inter for what is operated. */
-    --font-sans: "Inter", -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+       Both use the bundled Roboto stack. Set --font-text back to
+       var(--font-serif) for the old serif reading pane, or --font-ui to
+       var(--font-serif) for a serif interface. */
+    --font-sans: "Roboto Local", "Roboto", -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     --font-serif: "Spectral", Georgia, 'Times New Roman', serif;
-    --font-text: var(--font-serif);
-    --font-ui: var(--font-serif);
+    /* Bundled Roboto for both the interface and the reading pane. */
+    --font-text: var(--font-sans);
+    --font-ui: var(--font-sans);
 
     /* Translation preview height (based on MAX_TOKENS_PER_CHUNK) */
     /* Default: 300px for 450 tokens. Formula: (tokens / 450) * 300 */
