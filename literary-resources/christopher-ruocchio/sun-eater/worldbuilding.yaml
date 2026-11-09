@@ -236,3 +236,159 @@ terms:
     confidence: provisional
     first_appearance: howling-dark
     approved: false
+  - source: Tamerlane
+    target: Tamerlane
+    category: item
+    policy: keep
+    notes: "Eriel-class battleship; keep the ship name."
+    source_reference: "Approved PT-BR translation, Howling Dark (2026)"
+    confidence: reviewed
+    first_appearance: howling-dark
+    approved: true
+  - source: Demiurge
+    target: Demiurge
+    category: item
+    policy: keep
+    notes: "Cielcin worldship; keep the ship name."
+    source_reference: "Approved PT-BR translation, Howling Dark (2026)"
+    confidence: reviewed
+    first_appearance: howling-dark
+    approved: true
+  - source: Ascalon
+    target: Ascalon
+    category: item
+    policy: keep
+    notes: "Imperial ship; keep the name."
+    source_reference: "Source text (Kingdoms of Death); name kept"
+    confidence: provisional
+    first_appearance: kingdoms-of-death
+    approved: false
+  - source: Forum
+    target: Forum
+    category: location
+    policy: keep
+    notes: "Gas giant and site of the Eternal City; keep the name."
+    source_reference: "Approved PT-BR translation, Howling Dark (2026)"
+    confidence: reviewed
+    first_appearance: howling-dark
+    approved: true
+  - source: Gododdin
+    target: Gododdin
+    category: location
+    policy: keep
+    source_reference: "Approved PT-BR translation, Howling Dark (2026)"
+    confidence: reviewed
+    first_appearance: howling-dark
+    approved: true
+  - source: Jadd
+    target: Jadd
+    category: location
+    policy: keep
+    notes: "The Jaddian Principalities; keep the place name, Jaddian becomes jaddiano."
+    source_reference: "Approved PT-BR translation, Howling Dark (2026)"
+    confidence: reviewed
+    first_appearance: howling-dark
+    approved: true
+  - source: Dharan-Tun
+    target: Dharan-Tun
+    category: location
+    policy: keep
+    notes: "Cielcin worldship and seat of the Prophet; keep the name."
+    source_reference: "Source text (Kingdoms of Death); name kept"
+    confidence: provisional
+    first_appearance: demon-in-white
+    approved: false
+  - source: Pale
+    target: Pale
+    category: location
+    policy: keep
+    source_reference: "Approved PT-BR translation, Howling Dark (2026)"
+    confidence: reviewed
+    first_appearance: howling-dark
+    approved: true
+  - source: Eue
+    target: Eue
+    category: location
+    policy: keep
+    source_reference: "Source text (Ashes of Man); name kept"
+    confidence: provisional
+    first_appearance: ashes-of-man
+    approved: false
+  - source: Akterumu
+    target: Akterumu
+    category: location
+    policy: keep
+    source_reference: "Source text (Ashes of Man); name kept"
+    confidence: provisional
+    first_appearance: ashes-of-man
+    approved: false
+  - source: Colchis
+    target: Colchis
+    category: location
+    policy: keep
+    source_reference: "Source text (Kingdoms of Death); name kept"
+    confidence: provisional
+    first_appearance: kingdoms-of-death
+    approved: false
+  - source: Judecca
+    target: Judecca
+    category: location
+    policy: keep
+    notes: "Irchtani home world; keep the name."
+    source_reference: "Source text (Ashes of Man); name kept"
+    confidence: provisional
+    first_appearance: ashes-of-man
+    approved: false
+  - source: Patmos
+    target: Patmos
+    category: location
+    policy: keep
+    source_reference: "Source text (Demon in White); name kept"
+    confidence: provisional
+    first_appearance: demon-in-white
+    approved: false
+  - source: Imperium
+    target: Império
+    category: organization
+    policy: translate
+    notes: >-
+      The Sollan polity. Prefer Império Sollano for the full name; use Império
+      for the anaphoric "Imperium" only when the source uses it that way.
+    source_reference: "Source text (Howling Dark); editorial rendering"
+    confidence: provisional
+    first_appearance: howling-dark
+    approved: false
+  - source: Watchers
+    target: Vigilantes
+    category: other
+    policy: translate
+    notes: >-
+      The entities the Cielcin call Watchers; the source treats them as real
+      within the fiction. Translate the descriptive name; do not explain them.
+    source_reference: "Source text (Kingdoms of Death); editorial rendering"
+    confidence: provisional
+    first_appearance: howling-dark
+    approved: false
+  - source: Irchtani
+    target: irchtani
+    category: other
+    policy: transliterate
+    aliases: [Irchtanis]
+    alias_targets: {Irchtanis: irchtanis}
+    notes: "Bird-like xenobite species; lowercase in running text like cielcin."
+    source_reference: "Source text (Demon in White); editorial rendering"
+    confidence: provisional
+    first_appearance: howling-dark
+    approved: false
+  - source: Quiet
+    target: Quiet
+    category: concept
+    policy: keep
+    notes: >-
+      The cosmic phenomenon; keep the English term until an official PT-BR
+      rendering is confirmed. Do not reduce it to the ordinary noun silêncio or
+      confuse it with the book title Império do Silêncio.
+    source_reference: "Source text (Howling Dark); editorial decision"
+    confidence: provisional
+    first_appearance: howling-dark
+    approved: false

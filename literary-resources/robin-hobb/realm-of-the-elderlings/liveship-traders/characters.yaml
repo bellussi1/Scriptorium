@@ -1,0 +1,272 @@
+version: 1
+scope: subseries
+source_language: en
+target_language: pt-BR
+notes: >-
+  Liveship Traders names not already covered by the universe character sheet.
+  Ship of Magic was approved in 2026; its Portuguese text is the terminology
+  canon for names that already appeared there. Terms introduced in The Mad Ship
+  or Ship of Destiny remain provisional until the trilogy review is complete.
+terms:
+  - source: Keffria Vestrit
+    target: Keffria Vestrit
+    category: character
+    policy: keep
+    aliases: [Keffria]
+    alias_targets: {Keffria: Keffria}
+    gender: female
+    notes: "Ronica's daughter, Kyle's wife; the approved Ship of Magic keeps Keffria."
+    source_reference: "Approved PT-BR translation, Ship of Magic (2026)"
+    confidence: reviewed
+    first_appearance: ship-of-magic
+    approved: true
+  - source: Kyle Haven
+    target: Kyle Haven
+    category: character
+    policy: keep
+    aliases: [Kyle]
+    alias_targets: {Kyle: Kyle}
+    gender: male
+    source_reference: "Approved PT-BR translation, Ship of Magic (2026)"
+    confidence: reviewed
+    first_appearance: ship-of-magic
+    approved: true
+  - source: Selden Vestrit
+    target: Selden Vestrit
+    category: character
+    policy: keep
+    aliases: [Selden]
+    alias_targets: {Selden: Selden}
+    gender: male
+    source_reference: "Approved PT-BR translation, Ship of Magic (2026)"
+    confidence: reviewed
+    first_appearance: ship-of-magic
+    approved: true
+  - source: Reyn Khuprus
+    target: Reyn Khuprus
+    category: character
+    policy: keep
+    aliases: [Reyn]
+    alias_targets: {Reyn: Reyn}
+    gender: male
+    source_reference: "Approved PT-BR translation, Ship of Magic (2026)"
+    confidence: reviewed
+    first_appearance: ship-of-magic
+    approved: true
+  - source: Jani Khuprus
+    target: Jani Khuprus
+    category: character
+    policy: keep
+    aliases: [Jani]
+    alias_targets: {Jani: Jani}
+    gender: female
+    source_reference: "Approved PT-BR translation, Ship of Magic (2026)"
+    confidence: reviewed
+    first_appearance: ship-of-magic
+    approved: true
+  - source: Davad Restart
+    target: Davad Restart
+    category: character
+    policy: keep
+    aliases: [Davad]
+    alias_targets: {Davad: Davad}
+    gender: male
+    source_reference: "Approved PT-BR translation, Ship of Magic (2026)"
+    confidence: reviewed
+    first_appearance: ship-of-magic
+    approved: true
+  - source: Etta
+    target: Etta
+    category: character
+    policy: keep
+    gender: female
+    source_reference: "Approved PT-BR translation, Ship of Magic (2026)"
+    confidence: reviewed
+    first_appearance: ship-of-magic
+    approved: true
+  - source: Sorcor
+    target: Sorcor
+    category: character
+    policy: keep
+    gender: male
+    source_reference: "Approved PT-BR translation, Ship of Magic (2026)"
+    confidence: reviewed
+    first_appearance: ship-of-magic
+    approved: true
+  - source: Grag Tenira
+    target: Grag Tenira
+    category: character
+    policy: keep
+    aliases: [Grag, Tenira]
+    alias_targets: {Grag: Grag, Tenira: Tenira}
+    gender: male
+    source_reference: "Approved PT-BR translation, Ship of Magic (2026)"
+    confidence: reviewed
+    first_appearance: ship-of-magic
+    approved: true
+  - source: Cosgo
+    target: Cosgo
+    category: character
+    policy: keep
+    aliases: [Satrap Cosgo]
+    alias_targets: {Satrap Cosgo: "Sátrapa Cosgo"}
+    gender: male
+    notes: "The Satrap; keep the personal name, translate the title."
+    source_reference: "Approved PT-BR translation, Ship of Magic (2026)"
+    confidence: reviewed
+    first_appearance: ship-of-magic
+    approved: true
+  - source: Amber
+    target: Amber
+    category: character
+    policy: keep
+    gender: female
+    source_reference: "Approved PT-BR translation, Ship of Magic (2026)"
+    confidence: reviewed
+    first_appearance: ship-of-magic
+    approved: true
+  - source: Jek
+    target: Jek
+    category: character
+    policy: keep
+    gender: female
+    source_reference: "Source text (The Mad Ship); name kept"
+    confidence: provisional
+    first_appearance: the-mad-ship
+    approved: false
+  - source: Serilla
+    target: Serilla
+    category: character
+    policy: keep
+    gender: female
+    source_reference: "Source text (The Mad Ship); name kept"
+    confidence: provisional
+    first_appearance: the-mad-ship
+    approved: false
+  - source: Rache
+    target: Rache
+    category: character
+    policy: keep
+    source_reference: "Approved PT-BR translation, Ship of Magic (2026)"
+    confidence: reviewed
+    first_appearance: ship-of-magic
+    approved: true
+  - source: Clef
+    target: Clef
+    category: character
+    policy: keep
+    source_reference: "Source text (The Mad Ship); name kept"
+    confidence: provisional
+    first_appearance: the-mad-ship
+    approved: false
+  - source: Ephron Vestrit
+    target: Ephron Vestrit
+    category: character
+    policy: keep
+    aliases: [Ephron]
+    alias_targets: {Ephron: Ephron}
+    gender: male
+    source_reference: "Approved PT-BR translation, Ship of Magic (2026)"
+    confidence: reviewed
+    first_appearance: ship-of-magic
+    approved: true
+  - source: Torg
+    target: Torg
+    category: character
+    policy: keep
+    source_reference: "Approved PT-BR translation, Ship of Magic (2026)"
+    confidence: reviewed
+    first_appearance: ship-of-magic
+    approved: true
+  - source: Cerwin
+    target: Cerwin
+    category: character
+    policy: keep
+    source_reference: "Approved PT-BR translation, Ship of Magic (2026)"
+    confidence: reviewed
+    first_appearance: ship-of-magic
+    approved: true
+  - source: Gankis
+    target: Gankis
+    category: character
+    policy: keep
+    source_reference: "Approved PT-BR translation, Ship of Magic (2026)"
+    confidence: reviewed
+    first_appearance: ship-of-magic
+    approved: true
+  - source: Mingsley
+    target: Mingsley
+    category: character
+    policy: keep
+    source_reference: "Approved PT-BR translation, Ship of Magic (2026)"
+    confidence: reviewed
+    first_appearance: ship-of-magic
+    approved: true
+  - source: Ophelia
+    target: Ophelia
+    category: character
+    policy: keep
+    gender: female
+    notes: "Liveship; keep the name and the feminine pronoun."
+    source_reference: "Approved PT-BR translation, Ship of Magic (2026)"
+    confidence: reviewed
+    first_appearance: ship-of-magic
+    approved: true
+  - source: Maulkin
+    target: Maulkin
+    category: character
+    policy: keep
+    notes: "Serpent; the source withholds a human gender frame. Do not force one."
+    source_reference: "Approved PT-BR translation, Ship of Magic (2026)"
+    confidence: reviewed
+    first_appearance: ship-of-magic
+    approved: true
+  - source: Shreever
+    target: Shreever
+    category: character
+    policy: keep
+    notes: "Serpent; keep the name."
+    source_reference: "Approved PT-BR translation, Ship of Magic (2026)"
+    confidence: reviewed
+    first_appearance: ship-of-magic
+    approved: true
+  - source: Sessurea
+    target: Sessurea
+    category: character
+    policy: keep
+    notes: "Serpent; keep the name."
+    source_reference: "Approved PT-BR translation, Ship of Magic (2026)"
+    confidence: reviewed
+    first_appearance: ship-of-magic
+    approved: true
+  - source: Tintaglia
+    target: Tintaglia
+    category: character
+    policy: keep
+    gender: female
+    notes: "Dragon; first appears in The Mad Ship."
+    source_reference: "Source text (The Mad Ship); name kept"
+    confidence: provisional
+    first_appearance: the-mad-ship
+    approved: false
+  - source: She Who Remembers
+    target: Aquela Que Se Lembra
+    category: character
+    policy: translate
+    gender: female
+    notes: >-
+      Serpent matriarch. Ship of Magic does not settle the title; the natural
+      Portuguese relative clause keeps the epithet without inventing a name.
+    source_reference: "Approved PT-BR translation, Ship of Magic (2026)"
+    confidence: reviewed
+    first_appearance: ship-of-magic
+    approved: true
+  - source: Bolt
+    target: Bolt
+    category: character
+    policy: keep
+    notes: "Liveship; keep the name."
+    source_reference: "Source text (Ship of Destiny); name kept"
+    confidence: provisional
+    first_appearance: ship-of-destiny
+    approved: false

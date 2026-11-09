@@ -119,3 +119,177 @@ terms:
     confidence: provisional
     first_appearance: howling-dark
     approved: false
+  - source: Lorian Aristedes
+    target: Lorian Aristedes
+    category: character
+    policy: keep
+    aliases: [Lorian]
+    alias_targets: {Lorian: Lorian}
+    gender: male
+    source_reference: "Approved PT-BR translation, Howling Dark (2026); later volumes checked against the source"
+    confidence: reviewed
+    first_appearance: demon-in-white
+    approved: true
+  - source: Selene
+    target: Selene
+    category: character
+    policy: keep
+    gender: female
+    source_reference: "Source text (Demon in White); name kept"
+    confidence: provisional
+    first_appearance: demon-in-white
+    approved: false
+  - source: Edouard Albé
+    target: Edouard Albé
+    category: character
+    policy: keep
+    aliases: [Edouard]
+    alias_targets: {Edouard: Edouard}
+    gender: male
+    source_reference: "Approved PT-BR translation, Howling Dark (2026)"
+    confidence: reviewed
+    first_appearance: howling-dark
+    approved: true
+  - source: Alexander
+    target: Alexander
+    category: character
+    policy: keep
+    gender: male
+    source_reference: "Approved PT-BR translation, Howling Dark (2026)"
+    confidence: reviewed
+    first_appearance: howling-dark
+    approved: true
+  - source: Syriani Dorayaica
+    target: Syriani Dorayaica
+    category: character
+    policy: keep
+    aliases: [Dorayaica, Syriani]
+    alias_targets: {Dorayaica: Dorayaica, Syriani: Syriani}
+    notes: >-
+      Cielcin Prophet and Prince of Princes. The source uses "it" for Cielcin
+      persons; do not force a gendered pronoun in Portuguese where the source
+      withholds one.
+    source_reference: "Approved PT-BR translation, Howling Dark (2026)"
+    confidence: reviewed
+    first_appearance: howling-dark
+    approved: true
+  - source: Gibson of Syracuse
+    target: Gibson of Syracuse
+    category: character
+    policy: keep
+    aliases: [Gibson]
+    alias_targets: {Gibson: Gibson}
+    gender: male
+    source_reference: "Approved PT-BR translation, Howling Dark (2026)"
+    confidence: reviewed
+    first_appearance: howling-dark
+    approved: true
+  - source: Kharn Sagara
+    target: Kharn Sagara
+    category: character
+    policy: keep
+    aliases: [Sagara]
+    alias_targets: {Sagara: Sagara}
+    gender: male
+    source_reference: "Approved PT-BR translation, Howling Dark (2026)"
+    confidence: reviewed
+    first_appearance: howling-dark
+    approved: true
+  - source: Olorin Milta
+    target: Olorin Milta
+    category: character
+    policy: keep
+    aliases: [Olorin]
+    alias_targets: {Olorin: Olorin}
+    gender: male
+    source_reference: "Approved PT-BR translation, Howling Dark (2026)"
+    confidence: reviewed
+    first_appearance: howling-dark
+    approved: true
+  - source: William XXIII
+    target: William XXIII
+    category: character
+    policy: keep
+    aliases: [William, Emperor William]
+    alias_targets: {William: William, Emperor William: "Imperador William"}
+    gender: male
+    source_reference: "Approved PT-BR translation, Howling Dark (2026)"
+    confidence: reviewed
+    first_appearance: howling-dark
+    approved: true
+  - source: Otavia Corvo
+    target: Otavia Corvo
+    category: character
+    policy: keep
+    aliases: [Corvo]
+    alias_targets: {Corvo: Corvo}
+    gender: female
+    source_reference: "Approved PT-BR translation, Howling Dark (2026)"
+    confidence: reviewed
+    first_appearance: howling-dark
+    approved: true
+  - source: Nicephorus
+    target: Nicephorus
+    category: character
+    policy: keep
+    notes: "The Emperor's androgynous homunculus butler; do not assign a gender."
+    source_reference: "Source text (Kingdoms of Death); name kept"
+    confidence: provisional
+    first_appearance: kingdoms-of-death
+    approved: false
+  - source: Siran of Emesh
+    target: Siran of Emesh
+    category: character
+    policy: keep
+    aliases: [Siran]
+    alias_targets: {Siran: Siran}
+    gender: female
+    source_reference: "Approved PT-BR translation, Howling Dark (2026)"
+    confidence: reviewed
+    first_appearance: howling-dark
+    approved: true
+  - source: Cassandra
+    target: Cassandra
+    category: character
+    policy: keep
+    gender: female
+    source_reference: "Source text (Disquiet Gods); name kept"
+    confidence: provisional
+    first_appearance: disquiet-gods
+    approved: false
+  - source: Ushara
+    target: Ushara
+    category: other
+    policy: keep
+    notes: "Recurring name in Disquiet Gods; role not yet verified against the appendix."
+    source_reference: "Source text (Disquiet Gods); name kept"
+    confidence: provisional
+    first_appearance: disquiet-gods
+    approved: false
+  - source: Neema
+    target: Neema
+    category: other
+    policy: keep
+    notes: "Recurring name in Disquiet Gods; role not yet verified against the appendix."
+    source_reference: "Source text (Disquiet Gods); name kept"
+    confidence: provisional
+    first_appearance: disquiet-gods
+    approved: false
+  - source: Abba
+    target: Abba
+    category: other
+    policy: keep
+    notes: "Recurring name in Disquiet Gods; role not yet verified against the appendix."
+    source_reference: "Source text (Disquiet Gods); name kept"
+    confidence: provisional
+    first_appearance: disquiet-gods
+    approved: false
+  - source: Ramanthanu
+    target: Ramanthanu
+    category: other
+    policy: keep
+    notes: "Recurring name in Disquiet Gods; role not yet verified against the appendix."
+    source_reference: "Source text (Disquiet Gods); name kept"
+    confidence: provisional
+    first_appearance: disquiet-gods
+    approved: false

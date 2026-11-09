@@ -1,0 +1,73 @@
+name: Malazan Book of the Fallen
+slug: malazan-book-of-the-fallen
+author: Steven Erikson
+universe: Malazan
+notes: >-
+  Ten novels, split from the Calibre omnibus 343 (The Complete Malazan Book of
+  the Fallen) on 2026-11-09. The split EPUBs are under
+  data/calibre/malazan-split/ and each one passes EPUBCheck 5.4.0 with 0 fatals,
+  0 errors and 0 warnings. They are not imported into Calibre yet. Glossary and
+  style are intentionally deferred until the Realm of the Elderlings and Sun
+  Eater passes are done; this file only fixes the book order and the split
+  provenance.
+books:
+  - slug: gardens-of-the-moon
+    title: Gardens of the Moon
+    order: 1
+    kind: novel
+    status: source
+    notes: "Split from omnibus 343; 44 documents; EPUBCheck 0/0/0."
+  - slug: deadhouse-gates
+    title: Deadhouse Gates
+    order: 2
+    kind: novel
+    status: source
+    notes: "Split from omnibus 343; 37 documents; EPUBCheck 0/0/0."
+  - slug: memories-of-ice
+    title: Memories of Ice
+    order: 3
+    kind: novel
+    status: source
+    notes: "Split from omnibus 343; 39 documents; EPUBCheck 0/0/0."
+  - slug: house-of-chains
+    title: House of Chains
+    order: 4
+    kind: novel
+    status: source
+    notes: "Split from omnibus 343; 44 documents; EPUBCheck 0/0/0."
+  - slug: midnight-tides
+    title: Midnight Tides
+    order: 5
+    kind: novel
+    status: source
+    notes: "Split from omnibus 343; 43 documents; EPUBCheck 0/0/0."
+  - slug: the-bonehunters
+    title: The Bonehunters
+    order: 6
+    kind: novel
+    status: source
+    notes: "Split from omnibus 343; 39 documents; EPUBCheck 0/0/0."
+  - slug: reapers-gale
+    title: Reaper's Gale
+    order: 7
+    kind: novel
+    status: source
+    notes: "Split from omnibus 343; 39 documents; EPUBCheck 0/0/0."
+  - slug: toll-the-hounds
+    title: Toll the Hounds
+    order: 8
+    kind: novel
+    status: source
+    notes: "Split from omnibus 343; 37 documents; EPUBCheck 0/0/0."
+  - slug: dust-of-dreams
+    title: Dust of Dreams
+    order: 9
+    kind: novel
+    status: source
+    notes: "Split from omnibus 343; 38 documents; EPUBCheck 0/0/0."
+  - slug: the-crippled-god
+    title: The Crippled God
+    order: 10
+    kind: novel
+    status: source
+    notes: "Split from omnibus 343; 50 documents; EPUBCheck 0/0/0."

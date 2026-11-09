@@ -1,6 +1,6 @@
-# Style profile for the Tawny Man trilogy (provisional).
-# Hand-authored structural prior; no local sample of this subseries was supplied.
-description: Older first-person retrospect, elegiac register, and political weariness (provisional).
+# Style profile for the Tawny Man trilogy.
+# Rewritten from the English originals after the first full-book pass.
+description: Older first-person retrospect, elegiac register, political weariness, and the return of old bonds.
 mode: source
 context: A pre-industrial kingdom some years after a long war, with a mature narrator moving between court, country estate, and frontier. Travel and communication remain slow and animal-powered, and old obligations outlast the institutions that created them.
 rules:
@@ -9,18 +9,30 @@ rules:
   - dimension: register
     instruction: Sustain an elegiac, dryly humorous register; let domestic detail and political weariness coexist, and avoid both heroic posturing and modern therapeutic vocabulary.
   - dimension: sentence_rhythm
-    instruction: Favor long reflective periods that circle a memory before settling on a plain statement; shorten sharply for action, and let the plain statement carry more weight than the surrounding period.
+    instruction: Favor long reflective periods that circle a memory before settling on a plain statement; shorten sharply for action, and let the plain statement carry more weight than the surrounding period. The measured prose sits around a 12–13-word median with a p90 in the mid-20s; preserve the long tail rather than evening it out.
   - dimension: dialogue
-    instruction: Write adult intimacy as evasion and shared history rather than exposition; let old companions interrupt and tease, and leave important things unsaid, without making the court fool merely cryptic.
+    instruction: Write adult intimacy as evasion and shared history rather than exposition; let old companions interrupt and tease, and leave important things unsaid, without making the court fool merely cryptic. Dialogue-heavy chapters are common; keep the interruptions, half-answers, and shifts of register.
   - dimension: imagery
     instruction: Draw images from age and scar tissue, winter and hearth, animal care, and the failures of the body; keep the imagery domestic and physical rather than cosmic.
   - dimension: lexicon
     instruction: Maintain continuity with the earlier first-person books and avoid new pseudo-archaic diction; let change in the world appear through institutions and manners, not through a changed vocabulary.
+  - dimension: wit_and_skill
+    instruction: Keep the official Farseer terms Manha (Wit) and Talento (Skill); distinguish the two magics by how they are used and by the social judgment around them, and do not explain them to the reader.
+  - dimension: political_household
+    instruction: Let the court and household detail carry the political tension; use address forms, service, meals, and estate business instead of modern political vocabulary or explicit faction labels.
   - dimension: other
     instruction: Let reunions and returns carry their weight through understatement and concrete habit; do not stage them as explanatory set pieces.
 evidence:
-  samples: []
-  basis:
-    - "No local sample of this subseries. The profile is a structural prior derived from the known narrative situation and from the universe-level profile."
-    - "The main differences from the sampled Farseer books are the narrator's age, the more measured retrospective pace, and the adult social and political frame."
-notes: "confidence: provisional. No sample of this subseries was supplied. Validate against at least three chapters before treating any rule as a close-reading finding; the profile avoids quantitative claims about sentence length or dialogue ratio that cannot be observed locally."
+  samples:
+    - "Fool's Errand, first three content documents"
+    - "The Golden Fool, first three content documents"
+    - "Fool's Fate, first three content documents"
+  measurements:
+    - "Fool's Errand sample: 23,897 words; mean sentence 13.19; median 12; p90 25; dialogue-paragraph ratio 0.075; fragments 17.1%; semicolons 1.17/1,000."
+    - "The Golden Fool sample: 18,281 words; mean sentence 13.38; median 12; p90 24; dialogue-paragraph ratio 0.410; fragments 17.3%; semicolons 0.88/1,000."
+    - "Fool's Fate sample: 27,029 words; mean sentence 14.26; median 13; p90 26; dialogue-paragraph ratio 0.426; fragments 14.2%; semicolons 0.78/1,000."
+  observations:
+    - "The first sample is more expository; the later two are dialogue-heavy, so a single dialogue ratio would misrepresent the trilogy."
+    - "The narrator's age shows in the reflective periods and in the domestic imagery, not in a new dictionary."
+    - "Manha and Talento are load-bearing terms; translating them as generic 'magic' erases the social distinction the books depend on."
+notes: "confidence: provisional. The measurements come from the first three content documents of each book, not a full-book annotation. Validate against later chapters and the official Farseer terminology before treating any rule as a close-reading finding."

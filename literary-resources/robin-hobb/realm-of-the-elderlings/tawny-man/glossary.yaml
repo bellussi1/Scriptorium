@@ -1,0 +1,84 @@
+version: 1
+scope: subseries
+source_language: en
+target_language: pt-BR
+notes: >-
+  Tawny Man terminology. Wit and Skill keep the official Farseer renderings
+  Manha and Talento; the new Tawny Man political and Wit terms are provisional.
+terms:
+  - source: Old Blood
+    target: Sangue Antigo
+    category: concept
+    policy: translate
+    aliases: [Old Bloods]
+    alias_targets: {Old Bloods: Sangues Antigos}
+    notes: >-
+      The old Wit-blooded families. Do not confuse with the Farseer "blood"
+      rhetoric or with the Six Duchies nobility.
+    source_reference: "Source text (Fool's Errand); editorial rendering"
+    confidence: provisional
+    first_appearance: fools-errand
+    approved: false
+  - source: Piebalds
+    target: Malhados
+    category: organization
+    policy: translate
+    aliases: [Piebald]
+    alias_targets: {Piebald: Malhado}
+    notes: >-
+      The militant Wit-user group. "Malhados" keeps the animal-coat image
+      without turning the name into a generic insult.
+    source_reference: "Source text (Fool's Errand); editorial rendering"
+    confidence: provisional
+    first_appearance: fools-errand
+    approved: false
+  - source: Catalyst
+    target: Catalisador
+    category: title
+    policy: translate
+    notes: "The White Prophet's counterpart; translate the title."
+    source_reference: "Source text (Fool's Errand); editorial rendering"
+    confidence: provisional
+    first_appearance: fools-errand
+    approved: false
+  - source: White Prophet
+    target: Profeta Branco
+    category: title
+    policy: translate
+    aliases: [White Prophets]
+    alias_targets: {White Prophets: Profetas Brancos}
+    source_reference: "Source text (Fool's Errand); editorial rendering"
+    confidence: provisional
+    first_appearance: fools-errand
+    approved: false
+  - source: Hetgurd
+    target: Hetgurd
+    category: organization
+    policy: keep
+    notes: "Outislander council of elders; keep the name."
+    source_reference: "Source text (Fool's Fate); name kept"
+    confidence: provisional
+    first_appearance: fools-fate
+    approved: false
+  - source: Aslevjal
+    target: Aslevjal
+    category: location
+    policy: keep
+    notes: "The ice island of the dragon; keep the name."
+    source_reference: "Source text (The Golden Fool); name kept"
+    confidence: provisional
+    first_appearance: the-golden-fool
+    approved: false
+  - source: Outislander
+    target: ilhéu
+    category: other
+    policy: translate
+    aliases: [Outislanders]
+    alias_targets: {Outislanders: ilhéus}
+    notes: >-
+      The official PT Farseer editions use ilhéu/ilhéus for the people of the
+      Out Islands. Keep Ilhas Externas for the place.
+    source_reference: "Official PT-BR editions, Calibre 94/92/71"
+    confidence: confirmed
+    first_appearance: assassins-apprentice
+    approved: true

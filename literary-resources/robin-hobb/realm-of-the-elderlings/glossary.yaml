@@ -54,9 +54,11 @@ terms:
     target: Ilhas Externas
     category: location
     policy: translate
-    aliases: [Out Islanders]
-    alias_targets: {Out Islanders: "habitantes das Ilhas Externas"}
-    notes: "Out Islanders may need a natural periphrase; the place is Ilhas Externas."
+    aliases: [Out Islanders, Out Islander]
+    alias_targets: {Out Islanders: ilhéus, Out Islander: ilhéu}
+    notes: >-
+      The official PT edition calls the people ilhéus, not a periphrase with
+      Ilhas Externas. Keep the place name Ilhas Externas and the demonym ilhéu.
     source_reference: "Official PT-BR editions, Calibre 94/92/71"
     confidence: confirmed
     first_appearance: assassins-apprentice
@@ -83,6 +85,91 @@ terms:
       The trade and the book title use Assassino (O Aprendiz de Assassino).
       Do not use "executor" or "matador" for the formal trade.
     source_reference: "Official PT-BR edition, Calibre 94"
+    confidence: confirmed
+    first_appearance: assassins-apprentice
+    approved: true
+  - source: Buckkeep
+    target: Torre do Cervo
+    category: location
+    policy: translate
+    aliases: [Buckkeep Castle, Buckkeep Town]
+    alias_targets:
+      Buckkeep Castle: Castelo de Torre do Cervo
+      Buckkeep Town: cidade de Torre do Cervo
+    notes: >-
+      The official PT edition uses Torre do Cervo. The castle and the town use
+      the same name; add Castelo/cidade only when the source makes the
+      distinction explicit.
+    source_reference: "Official PT-BR editions, Calibre 94/92/71"
+    confidence: confirmed
+    first_appearance: assassins-apprentice
+    approved: true
+  - source: Buck
+    target: Buck
+    category: location
+    policy: keep
+    notes: "Duchy name; the official PT edition keeps Buck (Ducados de Buck e Farrow)."
+    source_reference: "Official PT-BR editions, Calibre 94/92/71"
+    confidence: confirmed
+    first_appearance: assassins-apprentice
+    approved: true
+  - source: Farrow
+    target: Farrow
+    category: location
+    policy: keep
+    source_reference: "Official PT-BR editions, Calibre 94/92/71"
+    confidence: confirmed
+    first_appearance: assassins-apprentice
+    approved: true
+  - source: Skill
+    target: Talento
+    category: concept
+    policy: translate
+    aliases: [Skilling, Skilled]
+    alias_targets: {Skilling: Talento, Skilled: Talentoso}
+    notes: >-
+      The official PT edition calls the magic Talento and a trained user
+      Talentoso. Do not use Habilidade for the named magic; reserve it for the
+      ordinary sense of skill.
+    source_reference: "Official PT-BR editions, Calibre 94/92/71"
+    confidence: confirmed
+    first_appearance: assassins-apprentice
+    approved: true
+  - source: Wit
+    target: Manha
+    category: concept
+    policy: translate
+    aliases: [Witted, Wit-bond]
+    alias_targets: {Witted: dotado da Manha, Wit-bond: vínculo da Manha}
+    notes: >-
+      The official PT edition calls the magic Manha. Witted is best rendered
+      contextually as "dotado da Manha" or "quem tem a Manha"; do not turn the
+      magic into a common noun like astúcia.
+    source_reference: "Official PT-BR editions, Calibre 94/92/71"
+    confidence: confirmed
+    first_appearance: assassins-apprentice
+    approved: true
+  - source: Elderlings
+    target: Antigos
+    category: other
+    policy: translate
+    aliases: [Elderling]
+    alias_targets: {Elderling: Antigo}
+    notes: >-
+      The official PT edition uses os Antigos. This is the ancient race, not a
+      generic adjective; keep the capital A when the source capitalizes it.
+    source_reference: "Official PT-BR editions, Calibre 94/92/71"
+    confidence: confirmed
+    first_appearance: assassins-apprentice
+    approved: true
+  - source: Others
+    target: Outros
+    category: other
+    policy: translate
+    notes: >-
+      Mythical beings in the Farseer frame; the official PT edition uses os
+      Outros. Do not confuse with the ordinary pronoun outros.
+    source_reference: "Official PT-BR editions, Calibre 94/92/71"
     confidence: confirmed
     first_appearance: assassins-apprentice
     approved: true

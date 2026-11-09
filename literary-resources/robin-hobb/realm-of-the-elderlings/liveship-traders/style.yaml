@@ -1,6 +1,6 @@
-# Style profile for the Liveship Traders trilogy (provisional).
-# Hand-authored structural prior; no local sample of this subseries was supplied.
-description: Third-person multiple viewpoint, maritime trade, and family intrigue (provisional).
+# Style profile for the Liveship Traders trilogy.
+# Rewritten from the English originals after the first full-book pass.
+description: Third-person multiple viewpoint, maritime trade, family intrigue, and non-human ship consciousness.
 mode: source
 context: A pre-industrial maritime trading society of merchant families, where ocean-going ships are living vessels and trade law, family alliance, and navigation govern daily life. Ports are multilingual, credit is personal, and weather and tide decide what is possible.
 rules:
@@ -9,18 +9,30 @@ rules:
   - dimension: register
     instruction: Keep the register concrete and commercial even when the subject is fantastic; let manners, credit, and family obligation carry the social texture, and avoid both epic inflation and modern slang.
   - dimension: sentence_rhythm
-    instruction: Give sailing, loading, and confrontation scenes a clear spatial geometry and a steady accumulation of physical detail; shorten sentences when a negotiation or a danger closes in.
+    instruction: Give sailing, loading, and confrontation scenes a clear spatial geometry and a steady accumulation of physical detail; shorten sentences when a negotiation or a danger closes in. The measured prose sits around a 12–13-word median with a long p90 tail; preserve that contrast instead of flattening every period.
   - dimension: formatting
     instruction: Move between viewpoints at scene or chapter boundaries, not inside a paragraph; end sections on a decision, a reversal, or a material image rather than on summary.
   - dimension: dialogue
-    instruction: Differentiate speakers by class, nation, and family habit; let bargaining, evasion, and polite hostility do the work, and do not make every voice equally witty or equally plain.
+    instruction: Differentiate speakers by class, nation, and family habit; let bargaining, evasion, and polite hostility do the work, and do not make every voice equally witty or equally plain. Dialogue paragraphs are a substantial share of the book; keep interruptions and non-answers rather than turning every exchange into cooperative exposition.
   - dimension: imagery
     instruction: Draw images from ships and rigging and from water and weather; draw them too from wood and rope and from the body under strain, and keep the fantastic elements embedded in ordinary labor rather than staged as spectacle.
   - dimension: lexicon
     instruction: Use precise nautical, mercantile, and legal vocabulary, and keep ship parts and trade terms consistent; avoid explanatory glosses and modern business jargon.
+  - dimension: liveship_consciousness
+    instruction: When a liveship speaks through its figurehead, keep the voice distinct from the human viewpoint. Preserve the ship's limited sensory frame, its long memory, and its dependence on the crew; do not turn it into a generic omniscient narrator or a human interiority with a wooden body.
+  - dimension: serpent_thread
+    instruction: The serpent chapters use a non-human collective sensorium. Keep their idiom concrete and bodily, with memory, hunger, and orientation doing the work; do not domesticate it into human introspection or explain the serpents' nature to the reader.
 evidence:
-  samples: []
-  basis:
-    - "No local sample of this subseries. The profile is a structural prior derived from the known narrative situation and from the universe-level profile."
-    - "The main differences from the sampled first-person series are the third-person multiple viewpoint, the larger cast, and the weight of maritime and commercial detail."
-notes: "confidence: provisional. No sample of this subseries was supplied. Validate against at least three chapters before treating any rule as a close-reading finding; the profile avoids quantitative claims about sentence length or dialogue ratio that cannot be observed locally."
+  samples:
+    - "Ship of Magic, first three content documents"
+    - "The Mad Ship, first three content documents"
+    - "Ship of Destiny, first three content documents"
+  measurements:
+    - "Ship of Magic sample: 94,417 words; mean sentence 16.20; median 13; p90 30; dialogue-paragraph ratio 0.229; fragments 13.2%; semicolons 1.06/1,000."
+    - "The Mad Ship sample: 105,680 words; mean sentence 12.75; median 11; p90 23; dialogue-paragraph ratio 0.377; fragments 16.5%; semicolons 0.96/1,000."
+    - "Ship of Destiny sample: 88,486 words; mean sentence 12.82; median 11; p90 23; dialogue-paragraph ratio 0.279; fragments 15.8%; semicolons 1.06/1,000."
+  observations:
+    - "The trilogy alternates long accumulative periods with short scene work; the median is consistently lower than the mean, so sentence-length variance is part of the voice."
+    - "Dialogue load rises in The Mad Ship and remains high in Ship of Destiny; the first book is more expository."
+    - "The serpent and liveship chapters are structurally distinct; they should not be smoothed into the human third person."
+notes: "confidence: provisional. The measurements come from the first three content documents of each book, not a full-book annotation. Validate against later chapters and the approved Ship of Magic translation before treating any rule as a close-reading finding."

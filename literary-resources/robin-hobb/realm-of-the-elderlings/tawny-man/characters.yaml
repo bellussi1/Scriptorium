@@ -1,0 +1,179 @@
+version: 1
+scope: subseries
+source_language: en
+target_language: pt-BR
+notes: >-
+  Tawny Man characters not already covered by the universe sheet. Farseer
+  names keep the official PT renderings; new Tawny Man names are provisional
+  until the trilogy review.
+terms:
+  - source: Thick
+    target: Thick
+    category: character
+    policy: keep
+    gender: male
+    notes: "Servant and Wit-user; keep the name, do not translate it as Grosso."
+    source_reference: "Source text (Fool's Errand); name kept"
+    confidence: provisional
+    first_appearance: fools-errand
+    approved: false
+  - source: Lord Golden
+    target: Lorde Golden
+    category: character
+    policy: translate
+    aliases: [Golden]
+    alias_targets: {Golden: Golden}
+    notes: >-
+      The Fool's Tawny Man persona. Translate the title (Lorde) and keep the
+      name; do not force a gender reading where the source withholds it.
+    source_reference: "Source text (Fool's Errand); editorial rendering"
+    confidence: provisional
+    first_appearance: fools-errand
+    approved: false
+  - source: Tom Badgerlock
+    target: Tom Badgerlock
+    category: character
+    policy: keep
+    aliases: [Badgerlock]
+    alias_targets: {Badgerlock: Badgerlock}
+    gender: male
+    notes: "Fitz's alias; keep the English name."
+    source_reference: "Source text (Fool's Errand); name kept"
+    confidence: provisional
+    first_appearance: fools-errand
+    approved: false
+  - source: Web
+    target: Web
+    category: character
+    policy: keep
+    gender: male
+    notes: "Wit-user and Skill-council member; keep the name."
+    source_reference: "Source text (The Golden Fool); name kept"
+    confidence: provisional
+    first_appearance: the-golden-fool
+    approved: false
+  - source: Peottre
+    target: Peottre
+    category: character
+    policy: keep
+    gender: male
+    source_reference: "Source text (The Golden Fool); name kept"
+    confidence: provisional
+    first_appearance: the-golden-fool
+    approved: false
+  - source: Elliania
+    target: Elliania
+    category: character
+    policy: keep
+    gender: female
+    source_reference: "Source text (The Golden Fool); name kept"
+    confidence: provisional
+    first_appearance: the-golden-fool
+    approved: false
+  - source: Narcheska
+    target: Narcheska
+    category: title
+    policy: keep
+    gender: female
+    notes: "Outislander title borne by Elliania; keep the title form."
+    source_reference: "Source text (The Golden Fool); name kept"
+    confidence: provisional
+    first_appearance: the-golden-fool
+    approved: false
+  - source: Starling Birdsong
+    target: Starling Birdsong
+    category: character
+    policy: keep
+    aliases: [Starling]
+    alias_targets: {Starling: Starling}
+    gender: female
+    source_reference: "Source text (Fool's Errand); name kept"
+    confidence: provisional
+    first_appearance: fools-errand
+    approved: false
+  - source: Hap
+    target: Hap
+    category: character
+    policy: keep
+    gender: male
+    notes: "Fitz's adopted son; keep the short name."
+    source_reference: "Source text (Fool's Errand); name kept"
+    confidence: provisional
+    first_appearance: fools-errand
+    approved: false
+  - source: Nighteyes
+    target: Nighteyes
+    category: character
+    policy: keep
+    gender: male
+    notes: "Fitz's Wit-bonded wolf; keep the English name."
+    source_reference: "Source text (Fool's Errand); name kept"
+    confidence: provisional
+    first_appearance: fools-errand
+    approved: false
+  - source: Jinna
+    target: Jinna
+    category: character
+    policy: keep
+    gender: female
+    notes: "Hedge-witch in Buckkeep Town; keep the name."
+    source_reference: "Source text (Fool's Errand); name kept"
+    confidence: provisional
+    first_appearance: fools-errand
+    approved: false
+  - source: Laudwine
+    target: Laudwine
+    category: character
+    policy: keep
+    source_reference: "Source text (Fool's Errand); name kept"
+    confidence: provisional
+    first_appearance: fools-errand
+    approved: false
+  - source: Civil Bresinga
+    target: Civil Bresinga
+    category: character
+    policy: keep
+    aliases: [Civil]
+    alias_targets: {Civil: Civil}
+    source_reference: "Source text (Fool's Errand); name kept"
+    confidence: provisional
+    first_appearance: fools-errand
+    approved: false
+  - source: Myblack
+    target: Myblack
+    category: character
+    policy: keep
+    notes: "Horse; keep the name. Do not translate as 'minha preta'."
+    source_reference: "Source text (Fool's Errand); name kept"
+    confidence: provisional
+    first_appearance: fools-errand
+    approved: false
+  - source: Icefyre
+    target: Icefyre
+    category: character
+    policy: keep
+    gender: male
+    notes: "Dragon; keep the name."
+    source_reference: "Source text (Fool's Fate); name kept"
+    confidence: provisional
+    first_appearance: fools-fate
+    approved: false
+  - source: Pale Woman
+    target: Mulher Pálida
+    category: character
+    policy: translate
+    gender: female
+    notes: "The antagonist's title; translate the descriptive title."
+    source_reference: "Source text (Fool's Errand); editorial rendering"
+    confidence: provisional
+    first_appearance: fools-errand
+    approved: false
+  - source: Black Man
+    target: Homem Negro
+    category: character
+    policy: translate
+    notes: "The Pale Woman's servant; translate the descriptive title."
+    source_reference: "Source text (Fool's Fate); editorial rendering"
+    confidence: provisional
+    first_appearance: fools-fate
+    approved: false

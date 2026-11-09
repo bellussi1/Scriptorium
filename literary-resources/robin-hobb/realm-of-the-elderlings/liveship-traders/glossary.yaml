@@ -1,0 +1,178 @@
+version: 1
+scope: subseries
+source_language: en
+target_language: pt-BR
+notes: >-
+  Liveship Traders terminology. Ship of Magic was approved in 2026; terms that
+  occur there use its Portuguese surface forms as the canon. Terms introduced
+  later remain provisional until the trilogy review.
+terms:
+  - source: Liveship
+    target: navio vivo
+    category: item
+    policy: translate
+    aliases: [Liveships]
+    alias_targets: {Liveships: navios vivos}
+    notes: >-
+      The approved translation uses navio vivo; navio-vivo also occurs. Prefer
+      the spaced form in running text and keep the hyphen only where the
+      approved edition uses it.
+    source_reference: "Approved PT-BR translation, Ship of Magic (2026)"
+    confidence: reviewed
+    first_appearance: ship-of-magic
+    approved: true
+  - source: Trader
+    target: Trader
+    category: title
+    policy: keep
+    aliases: [Traders]
+    alias_targets: {Traders: Traders}
+    notes: >-
+      The approved translation keeps Trader as a title (Trader Restart). The
+      common noun is comerciante; do not capitalize it when the source does not.
+    source_reference: "Approved PT-BR translation, Ship of Magic (2026)"
+    confidence: reviewed
+    first_appearance: ship-of-magic
+    approved: true
+  - source: Old Traders
+    target: Velhos Comerciantes
+    category: organization
+    policy: translate
+    notes: "The approved text uses Velhos Comerciantes de Bingtown."
+    source_reference: "Approved PT-BR translation, Ship of Magic (2026)"
+    confidence: reviewed
+    first_appearance: ship-of-magic
+    approved: true
+  - source: New Traders
+    target: Novos Comerciantes
+    category: organization
+    policy: translate
+    source_reference: "Approved PT-BR translation, Ship of Magic (2026)"
+    confidence: reviewed
+    first_appearance: ship-of-magic
+    approved: true
+  - source: Bingtown
+    target: Bingtown
+    category: location
+    policy: keep
+    source_reference: "Approved PT-BR translation, Ship of Magic (2026)"
+    confidence: reviewed
+    first_appearance: ship-of-magic
+    approved: true
+  - source: Bingtown Traders
+    target: Comerciantes de Bingtown
+    category: organization
+    policy: translate
+    aliases: [Bingtown Trader]
+    alias_targets: {Bingtown Trader: Comerciante de Bingtown}
+    source_reference: "Approved PT-BR translation, Ship of Magic (2026)"
+    confidence: reviewed
+    first_appearance: ship-of-magic
+    approved: true
+  - source: Jamaillia
+    target: Jamaillia
+    category: location
+    policy: keep
+    source_reference: "Approved PT-BR translation, Ship of Magic (2026)"
+    confidence: reviewed
+    first_appearance: ship-of-magic
+    approved: true
+  - source: Jamaillia City
+    target: Jamaillia City
+    category: location
+    policy: keep
+    notes: >-
+      The approved text also uses Cidade de Jamaillia when the city is referred
+      to descriptively; keep Jamaillia City for the proper name.
+    source_reference: "Approved PT-BR translation, Ship of Magic (2026)"
+    confidence: reviewed
+    first_appearance: ship-of-magic
+    approved: true
+  - source: Jamaillian
+    target: jamailliano
+    category: other
+    policy: adapt
+    aliases: [Jamaillians]
+    alias_targets: {Jamaillians: jamaillianos}
+    source_reference: "Approved PT-BR translation, Ship of Magic (2026)"
+    confidence: reviewed
+    first_appearance: ship-of-magic
+    approved: true
+  - source: Chalced
+    target: Chalced
+    category: location
+    policy: keep
+    source_reference: "Approved PT-BR translation, Ship of Magic (2026)"
+    confidence: reviewed
+    first_appearance: ship-of-magic
+    approved: true
+  - source: Chalcedean
+    target: chalcedeano
+    category: other
+    policy: adapt
+    aliases: [Chalcedeans]
+    alias_targets: {Chalcedeans: chalcedeanos}
+    notes: >-
+      The approved text uses chalcedeanos. The spelling with the extra e is the
+      canon; do not normalize it to chalcedano.
+    source_reference: "Approved PT-BR translation, Ship of Magic (2026)"
+    confidence: reviewed
+    first_appearance: ship-of-magic
+    approved: true
+  - source: Divvytown
+    target: Divvytown
+    category: location
+    policy: keep
+    source_reference: "Approved PT-BR translation, Ship of Magic (2026)"
+    confidence: reviewed
+    first_appearance: ship-of-magic
+    approved: true
+  - source: Rain Wild
+    target: Rain Wild
+    category: location
+    policy: keep
+    aliases: [Rain Wilds]
+    alias_targets: {Rain Wilds: Rain Wild}
+    source_reference: "Approved PT-BR translation, Ship of Magic (2026)"
+    confidence: reviewed
+    first_appearance: ship-of-magic
+    approved: true
+  - source: Rain Wild River
+    target: rio Rain Wild
+    category: location
+    policy: translate
+    notes: "The approved text uses rio Rain Wild."
+    source_reference: "Approved PT-BR translation, Ship of Magic (2026)"
+    confidence: reviewed
+    first_appearance: ship-of-magic
+    approved: true
+  - source: Rain Wild Traders
+    target: Comerciantes do Rain Wild
+    category: organization
+    policy: translate
+    aliases: [Rain Wild Trader]
+    alias_targets: {Rain Wild Trader: Comerciante do Rain Wild}
+    source_reference: "Approved PT-BR translation, Ship of Magic (2026)"
+    confidence: reviewed
+    first_appearance: ship-of-magic
+    approved: true
+  - source: Pirate Isles
+    target: Ilhas Piratas
+    category: location
+    policy: translate
+    source_reference: "Approved PT-BR translation, Ship of Magic (2026)"
+    confidence: reviewed
+    first_appearance: ship-of-magic
+    approved: true
+  - source: Satrap
+    target: Satrap
+    category: title
+    policy: keep
+    notes: >-
+      The approved text keeps Satrap capitalized as a title and uses lowercase
+      satrapa for the common noun. Do not replace the title form.
+    source_reference: "Approved PT-BR translation, Ship of Magic (2026)"
+    confidence: reviewed
+    first_appearance: ship-of-magic
+    approved: true
+

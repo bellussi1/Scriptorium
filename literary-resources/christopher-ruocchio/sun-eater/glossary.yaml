@@ -48,6 +48,17 @@ terms:
     confidence: provisional
     first_appearance: howling-dark
     approved: false
+  - source: Lord Marlowe
+    target: Lorde Marlowe
+    category: title
+    policy: translate
+    aliases: [Lord Hadrian Marlowe]
+    alias_targets: {Lord Hadrian Marlowe: "Lorde Hadrian Marlowe"}
+    notes: "Title + surname; do not treat it as a name variant of Hadrian Marlowe."
+    source_reference: "Approved PT-BR translation, Howling Dark (2026)"
+    confidence: reviewed
+    first_appearance: howling-dark
+    approved: true
   - source: Lord Commandant
     target: Lorde Comandante
     category: title
