@@ -207,8 +207,9 @@ async def test_placeholder_path_preserves_heading_class_when_model_emits_literal
     )
 
     assert success is True
-    # Two calls: the placeholder attempt, then the placeholder-free fallback.
-    assert len(client.prompts) == 2
+    # One call: phase 2a aligns the literal-tag answer in place and only asks
+    # for a clean re-translation if that alignment fails.
+    assert len(client.prompts) == 1
     assert _heading_open_tags(doc_root) == ['<h3 class="head">']
 
 

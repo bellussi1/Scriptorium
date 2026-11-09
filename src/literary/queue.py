@@ -772,6 +772,14 @@ class QueueStore:
             row = conn.execute("SELECT * FROM jobs WHERE id = ?", (job_id,)).fetchone()
             return dict(row) if row else None
 
+    def latest_job(self, book_id: int) -> Optional[Dict[str, Any]]:
+        with self._connect() as conn:
+            row = conn.execute(
+                "SELECT * FROM jobs WHERE book_id = ? ORDER BY id DESC LIMIT 1",
+                (book_id,),
+            ).fetchone()
+            return dict(row) if row else None
+
     def set_job_state(self, job_id: int, state: str, error: str = "", checkpoint: Optional[Dict[str, Any]] = None) -> bool:
         self._assert_state(state)
         now = utc_now()

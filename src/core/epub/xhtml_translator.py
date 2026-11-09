@@ -507,6 +507,8 @@ async def translate_chunk_with_fallback(
 
     # ==========================================================================
     # PHASE 2: TOKEN ALIGNMENT FALLBACK
+    # 2a: align the first translation (no new model call).
+    # 2b: clean re-translation + alignment, only if 2a fails.
     # ==========================================================================
     from src.config import EPUB_TOKEN_ALIGNMENT_ENABLED
 
@@ -519,9 +521,39 @@ async def translate_chunk_with_fallback(
                 log_callback("phase2_hint",
                     "💡 Tip: A more capable LLM model may better preserve placeholders and avoid layout issues")
 
-            # 1. Extract clean text (without placeholders)
             from src.common.placeholder_format import PlaceholderFormat
             fmt = PlaceholderFormat.from_config()
+            placeholders_list = list(local_tag_map.keys())  # ["[id0]", "[id1]", ...]
+
+            # 3. Initialize aligner (lazy loading, cached on function)
+            if not hasattr(translate_chunk_with_fallback, '_aligner'):
+                from .token_alignment_fallback import TokenAlignmentFallback
+                translate_chunk_with_fallback._aligner = TokenAlignmentFallback()
+
+            # 2a. Align the FIRST translation before paying for a clean re-decode.
+            # Most placeholder failures preserve the translated text and only
+            # corrupt the markers; reusing that text saves a full model call.
+            if translated:
+                clean_first = fmt.remove_all(translated)
+                first_aligned = translate_chunk_with_fallback._aligner.align_and_insert_placeholders(
+                    original_with_placeholders=chunk_text,
+                    translated_without_placeholders=clean_first,
+                    placeholders=placeholders_list
+                )
+                if validate_placeholders(first_aligned, local_tag_map):
+                    stats.token_alignment_success += 1
+                    if log_callback:
+                        log_callback("phase2_first_translation_success",
+                            "✓ Phase 2 successful: aligned the first translation without re-translating")
+                    stats.record_chunk_outcome(chunk_index, CHUNK_TOKEN_ALIGNED)
+                    result = placeholder_mgr.restore_to_global(first_aligned, global_indices)
+                    stats.record_processed()
+                    return result
+                if log_callback:
+                    log_callback("phase2_first_translation_failed",
+                        "⚠️ First-translation alignment failed; falling back to a clean re-translation")
+
+            # 1. Extract clean text (without placeholders)
             clean_text = fmt.remove_all(chunk_text)
 
             # 2. Translate WITHOUT placeholders (guaranteed to work)
@@ -545,14 +577,7 @@ async def translate_chunk_with_fallback(
             if translated_clean is None:
                 raise Exception("LLM returned None for clean translation")
 
-            # 3. Initialize aligner (lazy loading, cached on function)
-            if not hasattr(translate_chunk_with_fallback, '_aligner'):
-                from .token_alignment_fallback import TokenAlignmentFallback
-                translate_chunk_with_fallback._aligner = TokenAlignmentFallback()
-
             # 4. Align and reinsert placeholders
-            placeholders_list = list(local_tag_map.keys())  # ["[id0]", "[id1]", ...]
-
             result_with_placeholders = translate_chunk_with_fallback._aligner.align_and_insert_placeholders(
                 original_with_placeholders=chunk_text,
                 translated_without_placeholders=translated_clean,

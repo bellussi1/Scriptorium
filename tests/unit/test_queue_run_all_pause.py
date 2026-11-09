@@ -17,6 +17,7 @@ def _args(db: Path, **overrides) -> argparse.Namespace:
         "refine_limit": 0,
         "no_refine": False,
         "pov": "",
+        "parallel": 0,
         "max_books": 0,
         "stop_on_review": False,
         "stop_on_error": False,

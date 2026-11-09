@@ -152,10 +152,10 @@ class TestChunkLevelInterruption:
         # Should fail (interrupted)
         assert success is False, "Translation should be incomplete due to interruption"
 
-        # Interruption callback is checked AFTER processing each chunk
-        # So with >= 3, it processes chunks 1, 2, 3, then checks and interrupts before chunk 4
-        # The number depends on timing, but should be at least 3
-        assert len(chunks_processed) >= 3, f"Expected at least 3 chunks processed, got {len(chunks_processed)}"
+        # The callback is checked before each chunk, so the third check stops
+        # the pass before chunk 3: chunks 1 and 2 were translated. Phase 2a
+        # reuses the first answer, so one counted call is one chunk here.
+        assert len(chunks_processed) >= 2, f"Expected at least 2 chunks processed, got {len(chunks_processed)}"
 
         # Check that partial state was saved
         saved_state = temp_checkpoint_manager.load_xhtml_partial_state(translation_id, file_href)

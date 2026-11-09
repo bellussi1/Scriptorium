@@ -53,9 +53,12 @@ def _runner_alive(pid: int) -> bool:
     return str(pid) in (completed.stdout or "")
 
 
-def _container_translation_pids(output_name: str = "") -> list[int]:
-    completed = subprocess.run(
-        COMPOSE + ["top", "app"],
+def _signal_translation(output_name: str, sig: str) -> None:
+    subprocess.run(
+        COMPOSE + [
+            "exec", "-T", "app", "python", "-m", "src.literary.kill_translation",
+            output_name, "--signal", sig,
+        ],
         cwd=ROOT,
         capture_output=True,
         text=True,
@@ -63,21 +66,6 @@ def _container_translation_pids(output_name: str = "") -> list[int]:
         errors="replace",
         timeout=30,
     )
-    lines = [
-        line for line in (completed.stdout or "").splitlines()
-        if "translate.py" in line and "translation_api.py" not in line
-    ]
-    for require_output in (True, False):
-        pids: list[int] = []
-        for line in lines:
-            if require_output and output_name and output_name not in line:
-                continue
-            parts = line.split()
-            if len(parts) > 3 and parts[0] == "app" and parts[3].isdigit():
-                pids.append(int(parts[3]))
-        if pids:
-            return pids
-    return []
 
 
 def _kill_runner(pid: int) -> None:
@@ -93,29 +81,9 @@ def _kill_runner(pid: int) -> None:
 
 
 def _kill_translation(output_name: str) -> None:
-    for pid in _container_translation_pids(output_name):
-        subprocess.run(
-            COMPOSE + ["exec", "-T", "app", "kill", "-TERM", str(pid)],
-            cwd=ROOT,
-            capture_output=True,
-            text=True,
-            encoding="utf-8",
-            errors="replace",
-            timeout=30,
-        )
-    deadline = time.time() + 15
-    while time.time() < deadline and _container_translation_pids(output_name):
-        time.sleep(1)
-    for pid in _container_translation_pids(output_name):
-        subprocess.run(
-            COMPOSE + ["exec", "-T", "app", "kill", "-KILL", str(pid)],
-            cwd=ROOT,
-            capture_output=True,
-            text=True,
-            encoding="utf-8",
-            errors="replace",
-            timeout=30,
-        )
+    _signal_translation(output_name, "TERM")
+    time.sleep(10)
+    _signal_translation(output_name, "KILL")
 
 
 def _latest_job_id(db: Path, book_id: int) -> int | None:
@@ -201,10 +169,9 @@ def main() -> int:
             flush=True,
         )
         if args.dry_run:
-            pids = _container_translation_pids(output_name)
             print(
                 f"pause-now: dry run; runner alive={_runner_alive(runner_pid)} "
-                f"container pids={pids}",
+                f"output={output_name!r}",
                 flush=True,
             )
             return 0

@@ -136,9 +136,11 @@ OLLAMA_NUM_CTX = int(os.getenv('OLLAMA_NUM_CTX', '4096'))
 # once in ordered windows; the per-chunk "previous translation" context is
 # dropped in that mode (source context_before/after is still used).
 #
-# Only cloud providers benefit: a single local Ollama instance serializes
-# requests anyway, so resolve_parallel_workers() forces local providers back to
-# 1 regardless of this setting. See is_local_provider().
+# Only cloud providers benefit by default: a single local Ollama instance used
+# to serialize requests, so resolve_parallel_workers() forces local providers
+# back to 1. Ollama can be started with multiple slots (OLLAMA_NUM_PARALLEL),
+# and the EPUB chunker has no cross-chunk context, so an explicit local cap can
+# opt into 1..N workers. Defaults to 1 to keep the old behavior.
 # PARALLEL_TRANSLATIONS is set via _apply_reloadable_env_settings() (above) so
 # the web UI can change it at runtime through /api/settings.
 
@@ -146,6 +148,12 @@ OLLAMA_NUM_CTX = int(os.getenv('OLLAMA_NUM_CTX', '4096'))
 # the web UI slider/CLI within a reasonable range. Cloud rate limits make very
 # high values counter-productive.
 MAX_PARALLEL_TRANSLATIONS = int(os.getenv('MAX_PARALLEL_TRANSLATIONS', '16'))
+
+# Explicit opt-in for local Ollama parallel slots. The server must be started
+# with OLLAMA_NUM_PARALLEL >= this value; otherwise requests simply queue.
+OLLAMA_PARALLEL_TRANSLATIONS = max(
+    1, int(os.getenv('OLLAMA_PARALLEL_TRANSLATIONS', '1'))
+)
 
 # Extra hostnames the LLM endpoint validator accepts, comma-separated.
 # Deliberately not exposed through /api/settings: widening the allowlist from
@@ -168,12 +176,22 @@ def is_local_provider(provider: Optional[str]) -> bool:
 def resolve_parallel_workers(provider: Optional[str], requested: Optional[int] = None) -> int:
     """Resolve the effective number of concurrent translation workers.
 
-    Local providers are always forced to 1 (no benefit, risk of saturation).
-    Cloud providers honor `requested` (falling back to PARALLEL_TRANSLATIONS),
-    clamped to the [1, MAX_PARALLEL_TRANSLATIONS] window.
+    Local providers stay at 1 unless the caller explicitly requests more and
+    ``OLLAMA_PARALLEL_TRANSLATIONS`` allows it; the Ollama server must have
+    enough slots. Cloud providers honor `requested` (falling back to
+    PARALLEL_TRANSLATIONS), clamped to the [1, MAX_PARALLEL_TRANSLATIONS]
+    window.
     """
     if is_local_provider(provider):
-        return 1
+        if requested is None:
+            return 1
+        try:
+            requested = int(requested)
+        except (TypeError, ValueError):
+            return 1
+        if requested <= 1:
+            return 1
+        return max(1, min(MAX_PARALLEL_TRANSLATIONS, requested, OLLAMA_PARALLEL_TRANSLATIONS))
     if requested is None:
         requested = PARALLEL_TRANSLATIONS
     try:

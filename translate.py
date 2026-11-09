@@ -205,7 +205,8 @@ if __name__ == "__main__":
     parser.add_argument("--deepseek_api_key", default=DEEPSEEK_API_KEY, help="DeepSeek API key (required if using deepseek provider).")
     parser.add_argument("--poe_api_key", default=POE_API_KEY, help="Poe API key (required if using poe provider). Get your key at https://poe.com/api_key")
     parser.add_argument("--nim_api_key", default=NIM_API_KEY, help="NVIDIA NIM API key (required if using nim provider). Get your key at https://build.nvidia.com/")
-    parser.add_argument("--parallel", type=int, default=PARALLEL_TRANSLATIONS, metavar="N", help=f"Number of chunks translated concurrently (default: {PARALLEL_TRANSLATIONS}). Only cloud providers benefit; local providers (Ollama) are forced to 1. Values > 1 drop cross-chunk context chaining.")
+    parser.add_argument("--parallel", type=int, default=PARALLEL_TRANSLATIONS, metavar="N", help=f"Number of chunks translated concurrently (default: {PARALLEL_TRANSLATIONS}). Only cloud providers benefit by default; Ollama needs OLLAMA_PARALLEL_TRANSLATIONS and enough server slots. Values > 1 drop cross-chunk context chaining.")
+    parser.add_argument("--translation-id", default="", help="Resume the checkpoint stored under this translation ID instead of creating a new one.")
     parser.add_argument("--no-color", action="store_true", help="Disable colored output.")
 
     # Prompt options (optional system prompt instructions)
@@ -462,8 +463,8 @@ if __name__ == "__main__":
         # Create checkpoint manager for resume capability
         checkpoint_manager = CheckpointManager()
 
-        # Generate unique translation ID
-        translation_id = f"cli_{uuid.uuid4().hex[:8]}"
+        # Resume the requested checkpoint or generate a unique translation ID
+        translation_id = (getattr(args, "translation_id", "") or "").strip() or f"cli_{uuid.uuid4().hex[:8]}"
 
         if args.refine_only:
             asyncio.run(refine_file(

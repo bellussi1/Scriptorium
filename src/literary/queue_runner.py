@@ -44,6 +44,9 @@ CHECKPOINT_DB = ROOT / "data" / "jobs.db"
 INVENTORY = ROOT / "data" / "calibre" / "targets.json"
 OUTPUT_DIR = ROOT / "translated_files"
 RUN_DIR = ROOT / "data" / "queue-runs"
+# Hy-MT2's practical context in the queue. 4096 measured a higher decode rate
+# but much worse end-to-end latency (model reloads), so the queue pins 8192.
+QUEUE_CONTEXT_WINDOW = 8192
 EPUBCHECK_DIR = ROOT / "data" / "tools" / "epubcheck-5.4.0"
 
 MODEL_ALIASES = {
@@ -150,8 +153,16 @@ def _compile_assets(book: Any, resources_root: str) -> Dict[str, str]:
     }
 
 
-def _translation_command(book: Any, model: str, provider: str, assets: Dict[str, str], output: str) -> List[str]:
-    return [
+def _translation_command(
+    book: Any,
+    model: str,
+    provider: str,
+    assets: Dict[str, str],
+    output: str,
+    parallel_workers: int = 0,
+    translation_id: str = "",
+) -> List[str]:
+    command = [
         "docker",
         "compose",
         "-f",
@@ -160,6 +171,12 @@ def _translation_command(book: Any, model: str, provider: str, assets: Dict[str,
         "-T",
         "-e",
         "PYTHONUNBUFFERED=1",
+        "-e",
+        f"OLLAMA_NUM_CTX={QUEUE_CONTEXT_WINDOW}",
+    ]
+    if parallel_workers and parallel_workers > 1:
+        command.extend(["-e", f"OLLAMA_PARALLEL_TRANSLATIONS={parallel_workers}"])
+    command.extend([
         "app",
         "python",
         "translate.py",
@@ -180,7 +197,12 @@ def _translation_command(book: Any, model: str, provider: str, assets: Dict[str,
         "--custom-instruction",
         assets["style_container"],
         "--no-color",
-    ]
+    ])
+    if parallel_workers and parallel_workers > 1:
+        command.extend(["--parallel", str(parallel_workers)])
+    if translation_id:
+        command.extend(["--translation-id", translation_id])
+    return command
 
 
 def _terminate_process_tree(process: subprocess.Popen) -> None:
@@ -198,12 +220,20 @@ def _terminate_process_tree(process: subprocess.Popen) -> None:
         process.kill()
 
 
-def _container_translation_pids(output_name: str) -> List[int]:
-    """PIDs of translate.py inside the app container, newest output first."""
-    command = ["docker", "compose", "-f", "docker-compose.dev.yml", "top", "app"]
+def _signal_container_translation(output_name: str, sig: str) -> None:
+    """Signal a translate.py process from inside the container.
+
+    ``docker exec kill`` cannot use the shell builtin, and ``docker top`` PIDs
+    are host PIDs. The helper script reads /proc inside the container and uses
+    the container PID.
+    """
     try:
-        completed = subprocess.run(
-            command,
+        subprocess.run(
+            [
+                "docker", "compose", "-f", "docker-compose.dev.yml",
+                "exec", "-T", "app", "python", "-m", "src.literary.kill_translation",
+                output_name, "--signal", sig,
+            ],
             cwd=ROOT,
             capture_output=True,
             text=True,
@@ -212,51 +242,26 @@ def _container_translation_pids(output_name: str) -> List[int]:
             timeout=30,
         )
     except Exception:
-        return []
-    lines = [
-        line for line in (completed.stdout or "").splitlines()
-        if "translate.py" in line and "translation_api.py" not in line
-    ]
-    for require_output in (True, False):
-        pids: List[int] = []
-        for line in lines:
-            if require_output and output_name and output_name not in line:
-                continue
-            parts = line.split()
-            if len(parts) > 3 and parts[0] == "app" and parts[3].isdigit():
-                pids.append(int(parts[3]))
-        if pids:
-            return pids
-    return []
+        pass
 
 
 def _stop_translation_process(process: subprocess.Popen, output_name: str) -> None:
     """Stop the container-side translation, then the docker exec wrapper.
 
     The queue runner owns a ``docker compose exec`` process on the host; the
-    actual ``translate.py`` runs inside the container. Killing only the host
-    wrapper can leave the container process alive, so the container PID is
-    signalled first. The per-chunk checkpoint on disk is what makes this safe.
+    actual ``translate.py`` runs inside the container. The helper resolves the
+    container PID from /proc; SIGTERM first, SIGKILL if it survives. The
+    per-chunk checkpoint on disk is what makes this safe.
     """
-    for pid in _container_translation_pids(output_name):
-        try:
-            subprocess.run(
-                [
-                    "docker", "compose", "-f", "docker-compose.dev.yml",
-                    "exec", "-T", "app", "kill", "-TERM", str(pid),
-                ],
-                cwd=ROOT,
-                capture_output=True,
-                text=True,
-                encoding="utf-8",
-                errors="replace",
-                timeout=30,
-            )
-        except Exception:
-            pass
-    deadline = time.time() + 20
+    _signal_container_translation(output_name, "TERM")
+    deadline = time.time() + 15
     while process.poll() is None and time.time() < deadline:
         time.sleep(1)
+    if process.poll() is None:
+        _signal_container_translation(output_name, "KILL")
+        deadline = time.time() + 10
+        while process.poll() is None and time.time() < deadline:
+            time.sleep(1)
     if process.poll() is None:
         _terminate_process_tree(process)
 
@@ -418,16 +423,18 @@ def run_queue_book(
     refine: bool = True,
     dry_run: bool = False,
     pov: str = "",
+    parallel_workers: int = 0,
 ) -> Dict[str, Any]:
     store = QueueStore(db_path)
     try:
         book = store.get_book(book_id) if book_id else store.next_pending()
+        latest_job = store.latest_job(book.id) if book else None
     finally:
         store.close()
     if not book:
         raise ValueError("no pending book in the queue")
-    if book.status != "pending":
-        raise ValueError(f"book {book.id} is {book.status}, not pending")
+    if book.status not in {"pending", "paused"}:
+        raise ValueError(f"book {book.id} is {book.status}, not pending or paused")
     source_language = str(book.source_language or "").casefold()
     target_language = str(book.target_language or "").casefold()
     if source_language and not source_language.startswith(("en", "eng")):
@@ -442,6 +449,14 @@ def run_queue_book(
         raise ValueError(
             f"book {book.id} target is {book.target_language!r}; this fork only translates to pt-BR"
         )
+
+    resume_id = ""
+    if (
+        book.status == "paused"
+        and latest_job
+        and latest_job.get("state") in {"paused", "interrupted"}
+    ):
+        resume_id = str(latest_job.get("translation_id") or "").strip()
 
     model = resolve_model(book.model)
     provider = (book.provider or "ollama").strip().lower()
@@ -459,7 +474,15 @@ def run_queue_book(
     fixed_host = OUTPUT_DIR / f"{output_host.stem} - fixed.epub"
     v2_host = OUTPUT_DIR / f"{output_host.stem} - fixed-v2.epub"
     refined_host = OUTPUT_DIR / f"{output_host.stem}.refined.epub"
-    command = _translation_command(book, model, provider, assets, name)
+    command = _translation_command(
+        book,
+        model,
+        provider,
+        assets,
+        name,
+        parallel_workers=parallel_workers,
+        translation_id=resume_id,
+    )
 
     if dry_run:
         return {
@@ -481,11 +504,23 @@ def run_queue_book(
 
     store = QueueStore(db_path)
     try:
-        job_id = store.create_job(book.id)
-        store.clear_reviewed(book.id)
-        store.set_book_state(book.id, "preparing", "queue runner preparing")
-        store.set_job_state(job_id, "preparing")
-        store.add_event("queue runner started", book_id=book.id, job_id=job_id)
+        if resume_id and latest_job:
+            job_id = int(latest_job["id"])
+            store.clear_reviewed(book.id)
+            store.set_job_state(job_id, "preparing", "resuming paused translation")
+            store.set_book_state(book.id, "preparing", "resuming paused translation")
+            store.add_event(
+                "queue runner resuming paused translation",
+                book_id=book.id,
+                job_id=job_id,
+            )
+            log(book.title, f"resuming translation_id {resume_id}")
+        else:
+            job_id = store.create_job(book.id)
+            store.clear_reviewed(book.id)
+            store.set_book_state(book.id, "preparing", "queue runner preparing")
+            store.set_job_state(job_id, "preparing")
+            store.add_event("queue runner started", book_id=book.id, job_id=job_id)
     finally:
         store.close()
 
@@ -515,7 +550,7 @@ def run_queue_book(
 
     started = time.time()
     since = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
-    translation_id = None
+    translation_id = resume_id or None
     last_sync = 0.0
     complete_since = None
     stuck_terminated = False

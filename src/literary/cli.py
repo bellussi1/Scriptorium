@@ -233,6 +233,7 @@ def cmd_queue_run(args: argparse.Namespace) -> int:
             refine=not args.no_refine,
             dry_run=args.dry_run,
             pov=args.pov,
+            parallel_workers=args.parallel,
         )
     except Exception as exc:
         _print_json({"error": str(exc)})
@@ -277,6 +278,7 @@ def cmd_queue_run_all(args: argparse.Namespace) -> int:
                 refine=not args.no_refine,
                 dry_run=False,
                 pov=args.pov,
+                parallel_workers=args.parallel,
             )
             last_finished = {"id": book.id, "title": book.title}
             results.append({"book_id": book.id, "title": book.title, "state": result.get("queue_state"), "report": result})
@@ -295,6 +297,17 @@ def cmd_queue_run_all(args: argparse.Namespace) -> int:
                 break
         except Exception as exc:
             results.append({"book_id": book.id, "title": book.title, "error": str(exc)})
+            # Mark the book failed before moving on. Without a state change it
+            # stays pending and the loop would pick it again forever. Stop the
+            # batch if even that write fails.
+            try:
+                store = QueueStore(args.db)
+                try:
+                    store.set_book_state(book.id, "failed", f"runner error: {exc}")
+                finally:
+                    store.close()
+            except Exception:
+                break
             if args.stop_on_error:
                 break
 
@@ -783,6 +796,10 @@ def build_parser() -> argparse.ArgumentParser:
     run_parser.add_argument("--no-refine", action="store_true")
     run_parser.add_argument("--dry-run", action="store_true")
     run_parser.add_argument("--pov", default="", help="Narrator/POV note for refinement")
+    run_parser.add_argument(
+        "--parallel", type=int, default=0,
+        help="Ollama slots for EPUB chunks; requires OLLAMA_NUM_PARALLEL on the server (0/1 = sequential)",
+    )
     run_parser.set_defaults(func=cmd_queue_run)
     export_parser = queue_sub.add_parser("export-kindle", help="Build a standardized Kindle folder from queue artifacts")
     export_parser.add_argument("--db", default="data/literary_queue.db")
@@ -808,6 +825,10 @@ def build_parser() -> argparse.ArgumentParser:
     run_all_parser.add_argument("--refine-limit", type=int, default=0)
     run_all_parser.add_argument("--no-refine", action="store_true")
     run_all_parser.add_argument("--pov", default="")
+    run_all_parser.add_argument(
+        "--parallel", type=int, default=0,
+        help="Ollama slots for EPUB chunks; requires OLLAMA_NUM_PARALLEL on the server (0/1 = sequential)",
+    )
     run_all_parser.add_argument("--max-books", type=int, default=0)
     run_all_parser.add_argument("--stop-on-review", action="store_true")
     run_all_parser.add_argument("--stop-on-error", action="store_true")

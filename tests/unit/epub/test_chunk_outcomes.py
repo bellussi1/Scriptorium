@@ -307,3 +307,23 @@ async def test_interrupted_run_persists_pending_tail(monkeypatch, temp_checkpoin
     assert state.chunk_statuses[:done] == [CHUNK_TRANSLATED] * done
     assert state.chunk_statuses[done:] == [CHUNK_PENDING] * (len(chunks) - done)
     assert unfinished_chunk_indices(state.chunk_statuses) == list(range(done, len(chunks)))
+
+
+@pytest.mark.asyncio
+async def test_first_translation_alignment_skips_clean_retranslation(monkeypatch):
+    """A failed placeholder pass reuses the first translation when alignment works.
+
+    This is the cheap Phase 2 path: no second model call, same final chunk status.
+    """
+    monkeypatch.setattr("src.config.EPUB_TOKEN_ALIGNMENT_ENABLED", True)
+    calls = _stub_generate(monkeypatch, lambda text: "Hello world.")
+    stats = TranslationMetrics()
+
+    result = await _translate(TAGGED_CHUNK, stats, chunk_index=4)
+
+    assert len(calls) == 1
+    assert stats.token_alignment_used == 1
+    assert stats.token_alignment_success == 1
+    assert stats.fallback_used == 0
+    assert stats.chunk_outcomes == {4: CHUNK_TOKEN_ALIGNED}
+    assert "[id4]" in result and "[id5]" in result

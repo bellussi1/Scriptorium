@@ -452,3 +452,12 @@ async def test_plain_pipeline_failed_chunk_keeps_original(monkeypatch):
     assert stats.failed_chunks == 1
     # The failed paragraph keeps its original text (no "T::" prefix).
     assert any("number 1 " in p and not p.startswith("T::") for p in out)
+
+
+def test_local_provider_opt_in_parallel(monkeypatch):
+    """An explicit local cap enables Ollama slots without changing the default."""
+    monkeypatch.setattr("src.config.OLLAMA_PARALLEL_TRANSLATIONS", 2)
+    assert resolve_parallel_workers("ollama", 2) == 2
+    assert resolve_parallel_workers("ollama", 4) == 2
+    assert resolve_parallel_workers("ollama", 1) == 1
+    assert resolve_parallel_workers("ollama", None) == 1
