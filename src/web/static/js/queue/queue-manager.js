@@ -158,7 +158,12 @@ function modelOptionsFor(current) {
         if (model && !names.includes(model)) names.push(model);
     }
     const options = names
-        .map((model) => `<option value="${escapeHtml(model)}" ${model === current ? 'selected' : ''}>${escapeHtml(model)}</option>`)
+        .map((model) => {
+            // Keep the full id as the value; show only the final path segment
+            // so the select fits the column without truncating mid-name.
+            const label = String(model).split('/').pop();
+            return `<option value="${escapeHtml(model)}" ${model === current ? 'selected' : ''}>${escapeHtml(label)}</option>`;
+        })
         .join('');
     return `${options}<option value="__custom__">${escapeHtml(t('queue:custom_model'))}</option>`;
 }
@@ -196,7 +201,7 @@ function progressCell(book) {
         <div class="queue-progress" title="${escapeHtml(chunks)}">
             <span style="width: ${pct}%"></span>
         </div>
-        <span class="queue-progress-text">${escapeHtml(chunks)} · ${pct}%</span>
+        <span class="queue-progress-text">${current}/${total} · ${pct}%</span>
     `;
 }
 
@@ -245,12 +250,23 @@ function renderDistribution(summary, running) {
         return;
     }
     const total = segments.reduce((sum, [, , count]) => sum + Number(count), 0);
-    host.innerHTML = segments
+    const bars = segments
         .map(([key, label, count]) => {
             const pct = total > 0 ? (Number(count) / total) * 100 : 0;
             return `<span class="queue-distribution-segment is-${key}" style="width: ${pct.toFixed(2)}%" title="${escapeHtml(`${label}: ${count}`)}"></span>`;
         })
         .join('');
+    const legend = segments
+        .map(([key, label, count]) => `
+            <span class="queue-distribution-legend-item is-${key}">
+                <i aria-hidden="true"></i>${escapeHtml(label)} <b>${escapeHtml(String(count))}</b>
+            </span>
+        `)
+        .join('');
+    host.innerHTML = `
+        <div class="queue-distribution-bar">${bars}</div>
+        <div class="queue-distribution-legend">${legend}</div>
+    `;
     host.setAttribute(
         'aria-label',
         segments.map(([key, label, count]) => `${label}: ${count}`).join(' | ')
@@ -284,9 +300,26 @@ function renderNow(data) {
         ? `${escapeHtml(book.series)} #${escapeHtml(book.series_index ?? '')}`
         : '';
     const showError = (state === 'failed' || state === 'needs_review') && book.error;
-    const error = showError
-        ? `<span class="queue-now-error">${escapeHtml(t('queue:now_error', { message: book.error }))}</span>`
-        : `<span class="queue-muted">${escapeHtml(t('queue:now_no_error'))}</span>`;
+    const progress = total > 0
+        ? `
+            <div class="queue-progress queue-now-progress"><span style="width: ${pct}%"></span></div>
+            <div class="queue-now-progress-line">
+                <span>${escapeHtml(t('queue:chunks', { current, total }))}</span>
+                <span>${escapeHtml(eta ? t('queue:now_eta', { time: eta }) : t('queue:now_unknown_eta'))}</span>
+            </div>
+        `
+        : '';
+    const logLine = isActive
+        ? `
+            <div class="queue-now-log" id="queueNowLog">
+                <span class="queue-muted">${escapeHtml(t('queue:now_last_log'))}:</span>
+                <code id="queueNowLogLine">—</code>
+            </div>
+        `
+        : '';
+    const errorLine = showError
+        ? `<div class="queue-now-error-line"><span class="queue-now-error">${escapeHtml(t('queue:now_error', { message: book.error }))}</span></div>`
+        : '';
     const buttons = [];
     if (isActive) {
         const pauseLabel = controlState.pause_now
@@ -345,16 +378,9 @@ function renderNow(data) {
                     <span>${escapeHtml(modelLabel(book))}</span>
                     ${book.translation_id ? `<code>${escapeHtml(book.translation_id)}</code>` : ''}
                 </div>
-                <div class="queue-progress queue-now-progress"><span style="width: ${pct}%"></span></div>
-                <div class="queue-now-progress-line">
-                    <span>${escapeHtml(total > 0 ? t('queue:chunks', { current, total }) : '—')}</span>
-                    <span>${escapeHtml(eta ? t('queue:now_eta', { time: eta }) : t('queue:now_unknown_eta'))}</span>
-                </div>
-                <div class="queue-now-log" id="queueNowLog">
-                    <span class="queue-muted">${escapeHtml(t('queue:now_last_log'))}:</span>
-                    <code id="queueNowLogLine">—</code>
-                </div>
-                <div class="queue-now-error-line">${error}</div>
+                ${progress}
+                ${logLine}
+                ${errorLine}
             </div>
             <div class="queue-now-actions">${buttons.join('')}</div>
         </div>

@@ -109,9 +109,11 @@ function formatJobCard(job, hasActiveTranslation, activeNames) {
                     <button class="btn btn-primary" onclick="resumeJob('${job.translation_id}')"
                             title="${resumeTitle}"
                             ${hasActiveTranslation ? 'disabled style="opacity: 0.5; cursor: not-allowed;"' : ''}>
+                        <span class="material-symbols-outlined" aria-hidden="true">play_arrow</span>
                         ${t('translation:job_card_resume_btn')}
                     </button>
                     <button class="btn btn-danger" onclick="deleteCheckpoint('${job.translation_id}')" title="${t('translation:job_card_delete_title')}">
+                        <span class="material-symbols-outlined" aria-hidden="true">delete</span>
                         ${t('translation:job_card_delete_btn')}
                     </button>
                 </div>
@@ -121,8 +123,8 @@ function formatJobCard(job, hasActiveTranslation, activeNames) {
                 <div style="display: flex; justify-content: space-between; font-size: 13px; color: var(--text-muted-light); margin-bottom: 5px;">
                     <span>${t('translation:job_card_progress', { completed: completedChunks, total: totalChunks, percent: progressPercent })}</span>
                 </div>
-                <div style="width: 100%; background: #e5e7eb; border-radius: 4px; height: 8px; overflow: hidden;">
-                    <div style="width: ${progressPercent}%; background: var(--primary-light); height: 100%; transition: width 0.3s;"></div>
+                <div style="width: 100%; background: var(--border-light); height: 4px; overflow: hidden;">
+                    <div style="width: ${progressPercent}%; background: var(--text-dark); height: 100%; transition: width 0.3s;"></div>
                 </div>
             </div>
 

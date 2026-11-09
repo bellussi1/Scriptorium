@@ -236,8 +236,9 @@ function switchTopTab(name) {
         if (isActive) {
             btn.setAttribute('aria-current', 'page');
             // Keep the active tab visible when the strip scrolls on narrow
-            // screens. "nearest" avoids jumping when it is already in view.
-            btn.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+            // screens. Centring it leaves the neighbouring tabs readable on
+            // both sides instead of clipping the label at the edge.
+            btn.scrollIntoView({ block: 'nearest', inline: 'center' });
         } else {
             btn.removeAttribute('aria-current');
         }

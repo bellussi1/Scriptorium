@@ -46,10 +46,8 @@
     <script src="https://cdn.jsdelivr.net/npm/i18next@23.16.4/dist/umd/i18next.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/i18next-http-backend@2.6.2/i18nextHttpBackend.min.js"></script>
 
-    <!-- Google Fonts. Spectral is the reading face, Inter is kept for the
-         hybrid setup (see --font-ui in style.css) and as the metric-close
-         fallback while Spectral loads. -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Spectral:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+    <!-- Typography is bundled locally: Literata for display, Roboto for the
+         interface. No external font request is needed. -->
 
     <!-- Google Material Icons -->
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
@@ -224,6 +222,7 @@
             font-size: 0.85rem;
         }
     </style>
+    <link rel="stylesheet" href="/static/literary-theme.css">
 </head>
 <body>
     <div class="container">
@@ -420,7 +419,7 @@
                 </div>
 
                 <!-- Action Buttons -->
-                <div style="text-align: center; margin-top: 30px; display: flex; justify-content: center; gap: 15px; align-items: center; flex-wrap: wrap;">
+                <div class="translate-actions">
                     <button class="btn btn-primary" id="translateBtn" onclick="startBatchTranslation()" disabled>
                         <span class="material-symbols-outlined">play_circle</span>
                         <span data-i18n="translation:start_batch">Start</span>
@@ -1297,7 +1296,7 @@
                                 <col style="width: 110px;">
                                 <col style="width: 110px;">
                                 <col style="width: 80px;">
-                                <col style="width: 160px;">
+                                <col style="width: 190px;">
                             </colgroup>
                             <thead>
                                 <tr>
@@ -1665,7 +1664,7 @@
                                 <col>
                                 <col style="width: 90px;">
                                 <col style="width: 130px;">
-                                <col style="width: 160px;">
+                                <col style="width: 200px;">
                             </colgroup>
                             <thead>
                                 <tr>
