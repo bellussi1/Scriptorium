@@ -68,7 +68,7 @@ pytest -p no:cacheprovider tests/unit/glossary -q
 # 183 passed
 
 pytest -p no:cacheprovider -q
-# 2920 passed, 2 skipped, 10 deselected, 14 failed
+# 2931 passed, 2 skipped, 10 deselected, 14 failed
 ```
 
 The same 14 failures reproduce on a clean worktree at upstream `b5ed606` under
@@ -456,7 +456,7 @@ model for *Ship of Magic* worked against the copy; all three actions were then
 reverted by restoring the copy from the live queue. The second instance does not
 touch the real `data/jobs.db`.
 
-Validation: **19** route tests, full suite **2,920 passed, 2 skipped, 14
+Validation: **19** route tests, full suite **2,931 passed, 2 skipped, 14
 pre-existing failures**.
 
 #### 2.13.1 Cross-screen UI polish
@@ -733,6 +733,10 @@ Cleanup landed with that scope:
 - `validateLanguages` and the pre-flight "same language" rule were removed;
   `POST /api/translate` now rejects anything outside en -> pt-BR (refine and
   term-fix jobs may use pt-BR on both sides);
+- uploads and translate requests run a best-effort content check
+  (`src/utils/source_guard.py`): a confident non-English translate source is
+  rejected, refine/term-fix uploads must already be Portuguese, and uncertain
+  detections only warn. The guard never overrides a declared valid pair;
 - prompt output examples are Portuguese-only, TTS default voices are pt-BR,
   the glossary inflection branch is gone, and `LanguageDetector` was removed
   from upload/sample (the literary QA still uses `langdetect` to catch English

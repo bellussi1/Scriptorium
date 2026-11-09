@@ -179,3 +179,18 @@ def test_accepts_english_and_pt_br_codes(translate_app):
         source_language='en', target_language='pt-BR',
     ))
     assert resp.status_code == 200
+
+
+def test_rejects_french_text_despite_english_declaration(translate_app):
+    client, state_manager, started = translate_app
+    french = (
+        "Le vieux gardien de phare montait les escaliers étroits chaque soir "
+        "avant le coucher du soleil. Il portait une petite lanterne et un "
+        "carnet dans lequel il notait le temps et les noms des oiseaux posés "
+        "sur les rochers. Personne dans le village ne se rappelait son arrivée."
+    ) * 3
+    resp = client.post('/api/translate', json=_payload(text=french))
+    assert resp.status_code == 400
+    assert 'English sources' in resp.get_json()['error']
+    assert not state_manager.created
+    assert not started

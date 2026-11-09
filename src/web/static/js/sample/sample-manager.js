@@ -639,7 +639,7 @@ async function uploadFileIfNeeded() {
     if (!state.file) {
         throw new Error(t('sample:error_no_file'));
     }
-    const result = await ApiClient.uploadFile(state.file);
+    const result = await ApiClient.uploadFile(state.file, 'sample');
     state.uploadedPath = result.file_path;
     state.fileType = result.file_type;
     state.thumbnail = result.thumbnail || null;

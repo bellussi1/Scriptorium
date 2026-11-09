@@ -12,6 +12,7 @@ from flask import Blueprint, request, jsonify
 import src.config as _config
 from src.api.services.path_validator import PathValidator
 from src.api.services.endpoint_validator import EndpointValidator
+from src.utils.source_guard import check_file, check_text
 from src.config import (
     REQUEST_TIMEOUT,
     OLLAMA_NUM_CTX,
@@ -399,6 +400,19 @@ def _is_supported_language_pair(
     return source_ok and target_ok
 
 
+def _source_guard_error(guard: dict):
+    name = guard.get("language_name") or guard.get("language") or "unknown"
+    percent = round(float(guard.get("confidence") or 0) * 100)
+    return jsonify({
+        "error": (
+            "This fork only translates English sources; "
+            f"detected {name} ({percent}%)."
+        ),
+        "source_language": guard.get("language", ""),
+        "language_confidence": guard.get("confidence", 0),
+    }), 400
+
+
 def create_translation_blueprint(state_manager, start_translation_job, output_dir):
     """
     Create and configure the translation blueprint
@@ -434,14 +448,20 @@ def create_translation_blueprint(state_manager, start_translation_job, output_di
                 else:
                     return jsonify({"error": f"Missing or empty field: {field}"}), 400
 
+        monolingual = bool(data.get('term_fix') or data.get('refine_only'))
         if not _is_supported_language_pair(
             data.get('source_language'),
             data.get('target_language'),
-            monolingual=bool(data.get('term_fix') or data.get('refine_only')),
+            monolingual=monolingual,
         ):
             return jsonify({
                 "error": "this fork only translates English -> Brazilian Portuguese"
             }), 400
+
+        if not monolingual and isinstance(data.get('text'), str) and data['text'].strip():
+            guard = check_text(data['text'])
+            if guard["status"] == "rejected":
+                return _source_guard_error(guard)
 
         # Generate unique translation ID
         translation_id = f"trans_{int(time.time() * 1000)}"
@@ -500,6 +520,10 @@ def create_translation_blueprint(state_manager, start_translation_job, output_di
             )
             if path_error is not None:
                 return jsonify({"error": path_error}), 403
+            if not monolingual:
+                guard = check_file(safe_path)
+                if guard["status"] == "rejected":
+                    return _source_guard_error(guard)
             config['file_path'] = str(safe_path)
             config['file_type'] = data['file_type']
         else:

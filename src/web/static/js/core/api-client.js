@@ -171,9 +171,10 @@ export const ApiClient = {
      * @param {File} file - File to upload
      * @returns {Promise<Object>} Upload result with file_path and file_type
      */
-    async uploadFile(file) {
+    async uploadFile(file, operation = 'translate') {
         const formData = new FormData();
         formData.append('file', file);
+        formData.append('operation', operation);
 
         const response = await fetch(`${API_BASE_URL}/api/upload`, {
             method: 'POST',

@@ -459,8 +459,16 @@ export const FileUpload = {
         MessageLogger.showMessage(t('translation:file_uploading', { name: file.name }), 'info', 4000);
 
         try {
-            // Upload file using ApiClient
-            const uploadResult = await ApiClient.uploadFile(file);
+            // Upload file using ApiClient. The operation tells the server
+            // whether to expect an English source (translate) or an already
+            // translated Portuguese file (refine/term fix).
+            const uploadResult = await ApiClient.uploadFile(file, operation);
+
+            if (uploadResult.source_language_warning) {
+                MessageLogger.showMessage(
+                    uploadResult.source_language_warning, 'warning', 8000
+                );
+            }
 
             // The literary UI only runs English -> Brazilian Portuguese.
             // Refine/term-fix are monolingual, so both sides are pt-BR.

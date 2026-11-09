@@ -5,6 +5,7 @@ from pathlib import Path
 from flask import Blueprint, request, jsonify, current_app
 
 from src.utils.security import SecureFileHandler, rate_limiter, get_client_ip, SecurityError
+from src.utils.source_guard import check_text, extract_text
 
 
 def create_security_blueprint(output_dir):
@@ -80,6 +81,36 @@ def create_security_blueprint(output_dir):
             file_size = len(file_data)
             secure_path = validation_result.file_path
 
+            # Source-language guard: the fork translates English -> pt-BR.
+            # Refine/term-fix uploads are already translated, so they expect
+            # Portuguese instead.
+            operation = (request.form.get("operation") or "translate").strip().lower()
+            expected = "pt" if operation in {"refine", "term_fix"} else "en"
+            source_guard = check_text(
+                extract_text(file_data, file.filename), expected=expected
+            )
+            if source_guard["status"] == "rejected":
+                detected = (
+                    f"{source_guard['language_name']} "
+                    f"({round(source_guard['confidence'] * 100)}%)"
+                )
+                if expected == "en":
+                    message = (
+                        "This fork only translates English sources; "
+                        f"detected {detected}. Use Refine/Term fix only for an "
+                        "already translated Portuguese file."
+                    )
+                else:
+                    message = (
+                        "Refine and term fix expect an already translated "
+                        f"Portuguese file; detected {detected}."
+                    )
+                return jsonify({
+                    "error": message,
+                    "source_language": source_guard["language"],
+                    "language_confidence": source_guard["confidence"],
+                }), 400
+
             # Extract cover for EPUB files
             thumbnail_filename = None
             if file_type == "epub":
@@ -116,6 +147,14 @@ def create_security_blueprint(output_dir):
             # Add thumbnail if available
             if thumbnail_filename:
                 response_data["thumbnail"] = thumbnail_filename
+
+            response_data["source_language"] = source_guard["language"]
+            response_data["language_confidence"] = source_guard["confidence"]
+            if source_guard["status"] == "uncertain":
+                response_data["source_language_warning"] = (
+                    "Could not confidently identify this file's source language. "
+                    "This fork only translates English sources."
+                )
 
             # Add warnings if any
             if validation_result.warnings:
