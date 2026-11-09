@@ -114,8 +114,11 @@ def build_kindle_library(
         if artifact is None:
             skipped.append({"title": book.title, "reason": "no artifact"})
             continue
-        if book.status == "needs_review" and not include_needs_review:
-            skipped.append({"title": book.title, "reason": "needs_review"})
+        allowed_states = {"completed"}
+        if include_needs_review:
+            allowed_states.add("needs_review")
+        if book.status not in allowed_states:
+            skipped.append({"title": book.title, "reason": book.status})
             continue
         info = read_epub(str(artifact), include_text=False)
         translated_title = info.title or book.title

@@ -82,3 +82,35 @@ def test_build_kindle_library_copies_and_standardizes(tmp_path: Path):
     assert "TranslateBook with LLM (TBL)" in opf
     assert (root / "manifest.csv").exists()
     assert (root / "README.md").exists()
+
+def test_build_kindle_library_completed_only_skips_pending_artifacts(tmp_path: Path):
+    db = tmp_path / "queue.db"
+    store = QueueStore(str(db))
+    source = make_epub(tmp_path / "source.epub", title="Pending Book")
+    store.add_book(
+        BookRecord(
+            calibre_id=43,
+            title="Pending Book",
+            author="Test Author",
+            series="Test Series",
+            series_index=1.0,
+            languages=["en"],
+            epub_path=str(source),
+        )
+    )
+    store.close()
+
+    outputs = tmp_path / "translated_files"
+    outputs.mkdir()
+    make_epub(outputs / "Pending Book (pt-BR).refined.epub", title="Livro Pendente")
+    root = tmp_path / "kindle"
+
+    result = build_kindle_library(
+        db_path=str(db),
+        outputs_dir=str(outputs),
+        output_root=str(root),
+        include_needs_review=False,
+    )
+
+    assert result["books"] == 0
+    assert result["skipped"] == [{"title": "Pending Book", "reason": "pending"}]
