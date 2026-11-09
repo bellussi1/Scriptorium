@@ -1,0 +1,4 @@
+# Optional COMET scoring environment.
+# Install in a separate environment: COMET pulls PyTorch and downloads the
+# checkpoint on first use. CPU is enough for the post-generation pass.
+unbabel-comet>=2.2

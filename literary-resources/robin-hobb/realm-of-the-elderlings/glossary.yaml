@@ -30,11 +30,14 @@ terms:
     target: Navio Vermelho
     category: item
     policy: translate
-    aliases: [Red Ship, Red Ships]
-    alias_targets: {Red Ships: "Navios Vermelhos"}
+    aliases: [Red Ship, Red Ships, Red-Ship Raiders]
+    alias_targets:
+      Red Ships: "Navios Vermelhos"
+      Red-Ship Raiders: "Salteadores dos Navios Vermelhos"
     notes: >-
       The official PT edition uses Navio Vermelho; plural contexts use Navios
-      Vermelhos. Let Portuguese inflection handle the plural.
+      Vermelhos. The raiders are the Salteadores dos Navios Vermelhos, with the
+      capital letters used in the official edition.
     source_reference: "Official PT-BR editions, Calibre 94/92/71"
     confidence: confirmed
     first_appearance: assassins-apprentice
@@ -95,7 +98,7 @@ terms:
     aliases: [Buckkeep Castle, Buckkeep Town]
     alias_targets:
       Buckkeep Castle: Castelo de Torre do Cervo
-      Buckkeep Town: cidade de Torre do Cervo
+      Buckkeep Town: Cidade de Torre do Cervo
     notes: >-
       The official PT edition uses Torre do Cervo. The castle and the town use
       the same name; add Castelo/cidade only when the source makes the
@@ -105,18 +108,33 @@ terms:
     first_appearance: assassins-apprentice
     approved: true
   - source: Buck
-    target: Buck
+    target: Cervo
     category: location
-    policy: keep
-    notes: "Duchy name; the official PT edition keeps Buck (Ducados de Buck e Farrow)."
+    policy: translate
+    notes: >-
+      Duchy name. The official PT edition uses Cervo, not Buck: the text says
+      "Ducados de Cervo e Vara". The earlier note claiming the edition kept
+      Buck was wrong.
     source_reference: "Official PT-BR editions, Calibre 94/92/71"
     confidence: confirmed
     first_appearance: assassins-apprentice
     approved: true
   - source: Farrow
-    target: Farrow
+    target: Vara
     category: location
-    policy: keep
+    policy: translate
+    notes: >-
+      Duchy name. The official PT edition uses Vara, not Farrow: the text says
+      "Ducados de Cervo e Vara".
+    source_reference: "Official PT-BR editions, Calibre 94/92/71"
+    confidence: confirmed
+    first_appearance: assassins-apprentice
+    approved: true
+  - source: Buckriver
+    target: rio Cervo
+    category: location
+    policy: translate
+    notes: "The official PT edition uses rio Cervo."
     source_reference: "Official PT-BR editions, Calibre 94/92/71"
     confidence: confirmed
     first_appearance: assassins-apprentice
