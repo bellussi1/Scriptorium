@@ -716,19 +716,19 @@ Safe queue actions:
 
 Run controls:
 
-- `POST /api/literary/queue/run` — write a run request (`next` or `all`) into
+- `POST /api/literary/queue/run` — write a `next` run request into
   `data/literary_queue.run-request.json`; the request is visible in the
   snapshot and in the queue events.
 - `GET /api/literary/queue/runner` — host agent heartbeat, runner info and the
   pending request.
 - `scripts/queue_runner_agent.py` — host-side supervisor. It watches the
-  request file, starts `queue run-all` (one book with `--max-books 1
-  --stop-on-review` for `next`, or the pending queue for `all`), exports the
-  Kindle folder, and publishes `data/literary_queue.agent.json` and
-  `data/literary_queue.runner.json` through the shared data mount.
+  request file, starts one book with `queue run-all --max-books 1
+  --stop-on-review`, exports the Kindle folder, and publishes
+  `data/literary_queue.agent.json` and `data/literary_queue.runner.json`
+  through the shared data mount.
 - `start-queue-agent.bat` — convenience launcher for the agent. The Queue tab's
-  **Run next** and **Run all** buttons require this agent; without it the
-  buttons still queue the request and show an offline warning.
+  **Run next** button requires this agent; without it the button still queues
+  the request and shows an offline warning.
 
 The queue remains local-only in the UI: the model picker lists Ollama models and
 rejects a non-`ollama` provider for pending books. A book whose upstream

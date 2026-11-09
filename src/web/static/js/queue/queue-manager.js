@@ -698,7 +698,6 @@ function applySnapshot(data) {
 function renderRunnerStatus(data) {
     const status = byId('queueRunnerStatus');
     const runNext = byId('queueRunBtn');
-    const runAll = byId('queueRunAllBtn');
     if (!status) return;
 
     const agent = data.agent || {};
@@ -716,15 +715,11 @@ function renderRunnerStatus(data) {
     status.textContent = label;
     status.className = `queue-runner-status ${cls}`;
 
-    for (const [button, titleKey] of [
-        [runNext, 'queue:run_next_title'],
-        [runAll, 'queue:run_all_title'],
-    ]) {
-        if (!button) continue;
-        button.disabled = actionInFlight || !pending || running;
-        button.title = running
+    if (runNext) {
+        runNext.disabled = actionInFlight || !pending || running;
+        runNext.title = running
             ? t('queue:run_already_running')
-            : (!online ? t('queue:run_agent_offline') : t(titleKey));
+            : (!online ? t('queue:run_agent_offline') : t('queue:run_next_title'));
     }
 }
 
@@ -1273,26 +1268,24 @@ async function approveBook(bookId) {
     }
 }
 
-async function runQueue(mode) {
+async function runQueue() {
     if (actionInFlight) return;
-    const normalized = mode === 'all' ? 'all' : 'next';
     const pending = lastBooks.find((book) => statusKey(book) === 'pending');
     if (!pending) {
         setActionStatus(t('queue:run_none'), true);
         return;
     }
-    const confirmKey = normalized === 'all' ? 'queue:run_all_confirm' : 'queue:run_next_confirm';
-    if (!window.confirm(t(confirmKey, { title: pending.title }))) return;
+    if (!window.confirm(t('queue:run_next_confirm', { title: pending.title }))) return;
 
     actionInFlight = true;
-    const button = byId(normalized === 'all' ? 'queueRunAllBtn' : 'queueRunBtn');
+    const button = byId('queueRunBtn');
     if (button) button.disabled = true;
     setActionStatus(t('queue:run_requesting'));
     try {
         const response = await fetch(RUN_URL, {
             method: 'POST',
             headers: { ...apiHeaders(), 'Content-Type': 'application/json' },
-            body: JSON.stringify({ mode: normalized }),
+            body: JSON.stringify({ mode: 'next' }),
         });
         const data = await response.json().catch(() => ({}));
         if (!response.ok) throw new Error(data.error || `HTTP ${response.status}`);
@@ -1419,9 +1412,7 @@ function initialize() {
     if (button) button.addEventListener('click', refresh);
 
     const runButton = byId('queueRunBtn');
-    if (runButton) runButton.addEventListener('click', () => runQueue('next'));
-    const runAllButton = byId('queueRunAllBtn');
-    if (runAllButton) runAllButton.addEventListener('click', () => runQueue('all'));
+    if (runButton) runButton.addEventListener('click', runQueue);
 
     const pauseButton = byId('queuePauseBtn');
     if (pauseButton) pauseButton.addEventListener('click', togglePause);
