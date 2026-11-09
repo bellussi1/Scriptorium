@@ -1,7 +1,7 @@
 {
   "tab": "대기열",
   "title": "영구 대기열",
-  "intro_html": "<code>data/literary_queue.db</code> 보기입니다. 대기열은 로컬 CLI와 번역 래퍼가 기록합니다. 이 페이지에서는 인벤토리의 책을 대기열에 추가하고 대기 중인 항목의 순서를 바꿀 수 있지만, 작업을 시작, 일시 중지 또는 검증하지는 않습니다.",
+  "intro_html": "<code>data/literary_queue.db</code> 보기입니다. 대기열은 로컬 CLI와 번역 래퍼가 기록합니다. 이 페이지에서는 인벤토리 책을 추가하고, 대기 항목의 순서를 바꾸고, 현재 책이 끝난 뒤 일시 중지하도록 요청할 수 있습니다. 작업 실행과 검증은 러너가 담당합니다.",
   "refresh": "새로고침",
   "updated": "{{time}}에 업데이트됨",
   "book": "책",
@@ -136,5 +136,11 @@
   "action_retry_error": "Could not retry: {{message}}",
   "local_only": "Local translation only: use Ollama models.",
   "local_only_error": "Use only the local ollama provider in this queue.",
-  "quality_report": "Report"
+  "quality_report": "Report",
+  "pause_after_book": "현재 책이 끝난 뒤 일시 중지",
+  "pause_cancel": "일시 중지 취소",
+  "pause_requested": "일시 중지가 요청되었습니다. 러너는 다음 책 경계에서 중지됩니다.",
+  "pause_idle_hint": "번역 중인 책이 끝난 뒤 중지하며, 대기 중이면 다음 책을 시작하기 전에 중지합니다.",
+  "paused_after": "《{{title}}》 뒤에 일시 중지했습니다.",
+  "pause_error": "일시 중지 요청을 업데이트하지 못했습니다: {{message}}"
 }

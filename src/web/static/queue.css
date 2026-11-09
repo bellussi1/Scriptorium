@@ -64,6 +64,21 @@
     color: var(--text-muted-light);
 }
 
+.queue-pause-btn.is-requested {
+    border-color: var(--warning-light-border);
+    background: var(--warning-light-bg);
+    color: var(--warning-light-text);
+}
+
+.queue-control-status {
+    font-size: 0.75rem;
+    color: var(--text-muted-light);
+}
+
+.queue-control-status.is-error {
+    color: var(--danger-light-text);
+}
+
 .queue-table-wrap {
     overflow-x: auto;
     border: 1px solid var(--border-light);

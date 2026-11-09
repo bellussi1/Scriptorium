@@ -1,7 +1,7 @@
 {
   "tab": "队列",
   "title": "持久队列",
-  "intro_html": "查看 <code>data/literary_queue.db</code>。队列由本地 CLI 和翻译包装器写入；此页面可将清单中的书籍加入队列并调整待处理条目的顺序，但不会启动、暂停或验证任何任务。",
+  "intro_html": "查看 <code>data/literary_queue.db</code>。队列由本地 CLI 和翻译包装器写入；此页面可以添加清单中的书籍、调整待处理条目的顺序，并请求在当前书籍完成后暂停。运行器负责启动和校验任务。",
   "refresh": "刷新",
   "updated": "更新于 {{time}}",
   "book": "书籍",
@@ -136,5 +136,11 @@
   "action_retry_error": "Could not retry: {{message}}",
   "local_only": "Local translation only: use Ollama models.",
   "local_only_error": "Use only the local ollama provider in this queue.",
-  "quality_report": "Report"
+  "quality_report": "Report",
+  "pause_after_book": "当前书籍完成后暂停",
+  "pause_cancel": "取消暂停",
+  "pause_requested": "已请求暂停。运行器将在下一本书的边界停止。",
+  "pause_idle_hint": "在正在翻译的书籍完成后停止；队列空闲时则在下一本开始前停止。",
+  "paused_after": "已在《{{title}}》后暂停。",
+  "pause_error": "无法更新暂停请求：{{message}}"
 }

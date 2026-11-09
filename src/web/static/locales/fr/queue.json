@@ -1,7 +1,7 @@
 {
   "tab": "File d'attente",
   "title": "File d'attente persistante",
-  "intro_html": "Vue de <code>data/literary_queue.db</code>. La file est écrite par le CLI local et le wrapper de traduction ; cette page peut ajouter des livres de l'inventaire et réordonner les entrées en attente, mais ne démarre, ne met en pause ni ne valide aucun job.",
+  "intro_html": "Vue de <code>data/literary_queue.db</code>. La file est écrite par le CLI local et le wrapper de traduction ; cette page peut ajouter des livres de l'inventaire, réordonner les entrées en attente et demander une pause après le livre en cours. Le runner démarre et valide les tâches.",
   "refresh": "Actualiser",
   "updated": "Mis à jour {{time}}",
   "book": "Livre",
@@ -136,5 +136,11 @@
   "action_retry_error": "Could not retry: {{message}}",
   "local_only": "Local translation only: use Ollama models.",
   "local_only_error": "Use only the local ollama provider in this queue.",
-  "quality_report": "Report"
+  "quality_report": "Report",
+  "pause_after_book": "Pause après le livre en cours",
+  "pause_cancel": "Annuler la pause",
+  "pause_requested": "Pause demandée. Le runner s'arrêtera à la prochaine limite de livre.",
+  "pause_idle_hint": "S'arrête après le livre en cours, ou avant le suivant si la file est inactive.",
+  "paused_after": "Pause après {{title}}.",
+  "pause_error": "Impossible de mettre à jour la demande de pause : {{message}}"
 }

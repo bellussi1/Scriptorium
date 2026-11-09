@@ -1,7 +1,7 @@
 {
   "tab": "Queue",
   "title": "Persistent Queue",
-  "intro_html": "View of <code>data/literary_queue.db</code>. The queue is written by the local CLI and the translation wrapper; this page can enqueue inventory books and reorder pending entries, but never starts, pauses or validates a job.",
+  "intro_html": "View of <code>data/literary_queue.db</code>. The queue is written by the local CLI and the translation wrapper; this page can enqueue inventory books, reorder pending entries, and request a pause after the current book. The runner itself starts and validates jobs.",
   "refresh": "Refresh",
   "updated": "Updated {{time}}",
   "book": "Book",
@@ -136,5 +136,11 @@
   "action_retry_error": "Could not retry: {{message}}",
   "local_only": "Local translation only: use Ollama models.",
   "local_only_error": "Use only the local ollama provider in this queue.",
-  "quality_report": "Report"
+  "quality_report": "Report",
+  "pause_after_book": "Pause after current book",
+  "pause_cancel": "Cancel pause",
+  "pause_requested": "Pause requested. The runner stops at the next book boundary.",
+  "pause_idle_hint": "Stops after the book in progress, or before the next one when the queue is idle.",
+  "paused_after": "Paused after {{title}}.",
+  "pause_error": "Could not update the pause request: {{message}}"
 }

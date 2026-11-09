@@ -1,9 +1,11 @@
 /**
- * Persistent literary queue view and the two controlled queue actions:
- * enqueueing books from the Calibre inventory and reordering pending entries.
+ * Persistent literary queue view and its controlled actions: enqueueing books
+ * from the Calibre inventory, reordering pending entries and requesting a
+ * pause after the current book.
  *
  * The queue is written by the local CLI/wrapper. This module never starts,
- * pauses or validates a translation job.
+ * kills or validates a translation job; the pause request is consumed by the
+ * runner between books.
  */
 
 import { t } from '../i18n/i18n.js';
@@ -11,6 +13,7 @@ import { t } from '../i18n/i18n.js';
 const QUEUE_URL = '/api/literary/queue';
 const LIBRARY_URL = '/api/literary/library';
 const ADD_URL = '/api/literary/queue/books';
+const CONTROL_URL = '/api/literary/queue/control';
 const MODELS_URL = '/api/models?provider=ollama';
 const REFRESH_MS = 10000;
 // The queue is local-only by design; cloud providers are intentionally hidden.
@@ -44,6 +47,13 @@ let activeSeries = '';
 let searchTerm = '';
 let qualityBookId = null;
 let logPreviewRequest = 0;
+let controlState = {
+    pause_after_book: false,
+    requested_at: null,
+    honored_at: null,
+    honored_after: null,
+};
+let controlInFlight = false;
 
 function byId(id) {
     return document.getElementById(id);
@@ -619,10 +629,86 @@ function applySnapshot(data) {
     renderEvents(data);
 }
 
+function renderControl() {
+    const button = byId('queuePauseBtn');
+    const label = byId('queuePauseLabel');
+    const icon = byId('queuePauseIcon');
+    const status = byId('queueControlStatus');
+    const active = Boolean(controlState.pause_after_book);
+
+    if (button) {
+        button.classList.toggle('is-requested', active);
+        button.setAttribute('aria-pressed', active ? 'true' : 'false');
+    }
+    if (label) {
+        label.textContent = t(active ? 'queue:pause_cancel' : 'queue:pause_after_book');
+    }
+    if (icon) icon.textContent = active ? 'play_circle' : 'pause_circle';
+    if (status) {
+        status.classList.remove('is-error');
+        if (active) {
+            status.textContent = t('queue:pause_requested');
+        } else if (controlState.honored_after && controlState.honored_after.title) {
+            status.textContent = t('queue:paused_after', {
+                title: controlState.honored_after.title,
+            });
+        } else {
+            status.textContent = t('queue:pause_idle_hint');
+        }
+    }
+}
+
+async function loadControl() {
+    try {
+        const response = await fetch(CONTROL_URL, {
+            headers: apiHeaders(),
+            cache: 'no-store',
+        });
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        controlState = await response.json();
+    } catch (error) {
+        // The queue table can still render; keep the last known control state.
+    }
+    renderControl();
+}
+
+async function togglePause() {
+    if (controlInFlight) return;
+    const button = byId('queuePauseBtn');
+    const status = byId('queueControlStatus');
+    const next = !controlState.pause_after_book;
+
+    controlInFlight = true;
+    if (button) button.disabled = true;
+    if (status) status.classList.remove('is-error');
+    try {
+        const response = await fetch(CONTROL_URL, {
+            method: 'POST',
+            headers: { ...apiHeaders(), 'Content-Type': 'application/json' },
+            body: JSON.stringify({ pause_after_book: next }),
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(data.error || `HTTP ${response.status}`);
+        controlState = data;
+        renderControl();
+    } catch (error) {
+        if (status) {
+            status.textContent = t('queue:pause_error', {
+                message: error.message || String(error),
+            });
+            status.classList.add('is-error');
+        }
+    } finally {
+        controlInFlight = false;
+        if (button) button.disabled = false;
+    }
+}
+
 async function refresh() {
     const button = byId('queueRefreshBtn');
     if (button) button.disabled = true;
     clearError();
+    loadControl();
     try {
         const response = await fetch(QUEUE_URL, {
             headers: apiHeaders(),
@@ -1118,6 +1204,10 @@ async function moveBook(bookId, direction) {
 function initialize() {
     const button = byId('queueRefreshBtn');
     if (button) button.addEventListener('click', refresh);
+
+    const pauseButton = byId('queuePauseBtn');
+    if (pauseButton) pauseButton.addEventListener('click', togglePause);
+    window.addEventListener('localeChanged', renderControl);
 
     const addButton = byId('queueAddBtn');
     if (addButton) addButton.addEventListener('click', addSelectedBooks);

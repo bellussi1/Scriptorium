@@ -1473,8 +1473,8 @@
                     <p class="queue-intro" data-i18n-html="queue:intro_html">
                         View of <code>data/literary_queue.db</code>. The queue is written by the
                         local CLI and the translation wrapper; this page can enqueue inventory
-                        books and reorder pending entries, but never starts, pauses or validates
-                        a job.
+                        books, reorder pending entries, and request a pause after the current
+                        book. The runner itself starts and validates jobs.
                     </p>
                     <div class="queue-filters">
                         <div id="queueStatusFilters" class="queue-filter-chips" role="group"
@@ -1496,6 +1496,12 @@
                             <span class="material-symbols-outlined" style="font-size: 18px; vertical-align: middle;">archive</span>
                             <span data-i18n="queue:kindle_zip">Download Kindle (.zip)</span>
                         </button>
+                        <button type="button" id="queuePauseBtn" class="btn btn-secondary queue-pause-btn"
+                                aria-pressed="false">
+                            <span id="queuePauseIcon" class="material-symbols-outlined" style="font-size: 18px; vertical-align: middle;" aria-hidden="true">pause_circle</span>
+                            <span id="queuePauseLabel" data-i18n="queue:pause_after_book">Pause after current book</span>
+                        </button>
+                        <span id="queueControlStatus" class="queue-control-status" aria-live="polite"></span>
                         <span id="queueUpdatedAt" class="queue-updated"></span>
                     </div>
                     <div id="queueError" class="queue-error hidden" role="alert"></div>

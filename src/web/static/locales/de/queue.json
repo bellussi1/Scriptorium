@@ -1,7 +1,7 @@
 {
   "tab": "Warteschlange",
   "title": "Persistente Warteschlange",
-  "intro_html": "Ansicht von <code>data/literary_queue.db</code>. Die Warteschlange wird vom lokalen CLI und vom Übersetzungs-Wrapper geschrieben; diese Seite kann Bücher aus dem Inventar hinzufügen und ausstehende Einträge umsortieren, startet, pausiert oder validiert aber keine Jobs.",
+  "intro_html": "Ansicht von <code>data/literary_queue.db</code>. Die Warteschlange wird vom lokalen CLI und dem Übersetzungs-Wrapper geschrieben; diese Seite kann Bücher aus dem Inventar einreihen, ausstehende Einträge umsortieren und eine Pause nach dem aktuellen Buch anfordern. Der Runner startet und validiert die Aufträge.",
   "refresh": "Aktualisieren",
   "updated": "Aktualisiert {{time}}",
   "book": "Buch",
@@ -136,5 +136,11 @@
   "action_retry_error": "Could not retry: {{message}}",
   "local_only": "Local translation only: use Ollama models.",
   "local_only_error": "Use only the local ollama provider in this queue.",
-  "quality_report": "Report"
+  "quality_report": "Report",
+  "pause_after_book": "Nach dem aktuellen Buch pausieren",
+  "pause_cancel": "Pause abbrechen",
+  "pause_requested": "Pause angefordert. Der Runner stoppt an der nächsten Buchgrenze.",
+  "pause_idle_hint": "Stoppt nach dem laufenden Buch oder vor dem nächsten, wenn die Warteschlange inaktiv ist.",
+  "paused_after": "Pausiert nach {{title}}.",
+  "pause_error": "PausenAnforderung konnte nicht aktualisiert werden: {{message}}"
 }

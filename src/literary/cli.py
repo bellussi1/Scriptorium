@@ -24,6 +24,7 @@ from .cost import SCENARIOS, estimate_book, estimate_scenario, estimate_series, 
 from .epub import read_epub, update_opf_metadata, validate_epub_structure
 from .models import BookRecord, Severity
 from .queue import QueueStore
+from .queue_control import honor_pause, pause_requested, set_pause
 from .refine_runner import (
     find_flagged_segments,
     generate_ollama,
@@ -246,7 +247,19 @@ def cmd_queue_run_all(args: argparse.Namespace) -> int:
 
     results = []
     processed = 0
+    last_finished = None
     while not args.max_books or processed < args.max_books:
+        # The web UI and `queue pause` arm this flag; it is checked between
+        # books so an in-flight translation is never interrupted.
+        if pause_requested(args.db):
+            control = honor_pause(args.db, last_finished)
+            results.append({
+                "paused": "after_book",
+                "after": last_finished,
+                "control": control,
+            })
+            break
+
         store = QueueStore(args.db)
         try:
             book = store.next_pending()
@@ -265,6 +278,7 @@ def cmd_queue_run_all(args: argparse.Namespace) -> int:
                 dry_run=False,
                 pov=args.pov,
             )
+            last_finished = {"id": book.id, "title": book.title}
             results.append({"book_id": book.id, "title": book.title, "state": result.get("queue_state"), "report": result})
             if args.export_kindle:
                 try:
@@ -290,6 +304,16 @@ def cmd_queue_run_all(args: argparse.Namespace) -> int:
             output_root=args.kindle_out,
         )
     _print_json({"processed": processed, "results": results, "kindle": kindle_result})
+    return 0
+
+
+def cmd_queue_pause(args: argparse.Namespace) -> int:
+    _print_json(set_pause(args.db, True))
+    return 0
+
+
+def cmd_queue_resume(args: argparse.Namespace) -> int:
+    _print_json(set_pause(args.db, False))
     return 0
 
 
@@ -782,6 +806,16 @@ def build_parser() -> argparse.ArgumentParser:
     run_all_parser.add_argument("--outputs", default="translated_files")
     run_all_parser.add_argument("--kindle-out", default="translated_files/kindle")
     run_all_parser.set_defaults(func=cmd_queue_run_all)
+    pause_parser = queue_sub.add_parser(
+        "pause", help="Ask run-all to stop after the current book"
+    )
+    pause_parser.add_argument("--db", default="data/literary_queue.db")
+    pause_parser.set_defaults(func=cmd_queue_pause)
+    resume_parser = queue_sub.add_parser(
+        "resume", help="Cancel a pending pause-after-book request"
+    )
+    resume_parser.add_argument("--db", default="data/literary_queue.db")
+    resume_parser.set_defaults(func=cmd_queue_resume)
     state_parser = queue_sub.add_parser("set-state")
     state_parser.add_argument("--db", default="data/literary_queue.db")
     state_parser.add_argument("--book-id", type=int, required=True)

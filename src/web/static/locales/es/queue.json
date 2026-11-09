@@ -1,7 +1,7 @@
 {
   "tab": "Cola",
   "title": "Cola persistente",
-  "intro_html": "Vista de <code>data/literary_queue.db</code>. La cola la escriben el CLI local y el wrapper de traducción; esta página puede agregar libros del inventario y reordenar las entradas pendientes, pero nunca inicia, pausa ni valida un trabajo.",
+  "intro_html": "Vista de <code>data/literary_queue.db</code>. La cola la escribe el CLI local y el wrapper de traducción; esta página puede añadir libros del inventario, reordenar las entradas pendientes y solicitar una pausa después del libro actual. El runner inicia y valida los trabajos.",
   "refresh": "Actualizar",
   "updated": "Actualizado {{time}}",
   "book": "Libro",
@@ -136,5 +136,11 @@
   "action_retry_error": "Could not retry: {{message}}",
   "local_only": "Local translation only: use Ollama models.",
   "local_only_error": "Use only the local ollama provider in this queue.",
-  "quality_report": "Report"
+  "quality_report": "Report",
+  "pause_after_book": "Pausar después del libro actual",
+  "pause_cancel": "Cancelar pausa",
+  "pause_requested": "Pausa solicitada. El runner se detendrá en el próximo límite de libro.",
+  "pause_idle_hint": "Se detiene después del libro actual, o antes del siguiente si la cola está inactiva.",
+  "paused_after": "Pausado después de {{title}}.",
+  "pause_error": "No se pudo actualizar la solicitud de pausa: {{message}}"
 }

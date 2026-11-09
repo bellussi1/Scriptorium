@@ -1,7 +1,7 @@
 {
   "tab": "キュー",
   "title": "永続キュー",
-  "intro_html": "<code>data/literary_queue.db</code> のビューです。キューはローカル CLI と翻訳ラッパーが書き込みます。このページではインベントリの書籍をキューに追加し、待機中の項目を並べ替えられますが、ジョブの開始、一時停止、検証は行いません。",
+  "intro_html": "<code>data/literary_queue.db</code> の表示です。キューはローカル CLI と翻訳ラッパーが書き込みます。このページでは在庫の書籍追加、待機項目の並べ替え、現在の書籍の後の一時停止要求ができます。実行と検証はランナーが行います。",
   "refresh": "更新",
   "updated": "{{time}} に更新",
   "book": "書籍",
@@ -136,5 +136,11 @@
   "action_retry_error": "Could not retry: {{message}}",
   "local_only": "Local translation only: use Ollama models.",
   "local_only_error": "Use only the local ollama provider in this queue.",
-  "quality_report": "Report"
+  "quality_report": "Report",
+  "pause_after_book": "現在の書籍の後に一時停止",
+  "pause_cancel": "一時停止をキャンセル",
+  "pause_requested": "一時停止を要求しました。ランナーは次の書籍の区切りで停止します。",
+  "pause_idle_hint": "翻訳中の書籍が終わった後に停止します。待機中なら次の書籍を開始する前に停止します。",
+  "paused_after": "「{{title}}」の後に一時停止しました。",
+  "pause_error": "一時停止要求を更新できませんでした: {{message}}"
 }

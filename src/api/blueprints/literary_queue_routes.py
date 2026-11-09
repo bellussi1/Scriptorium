@@ -3,8 +3,9 @@
 The queue database itself is written by ``src/literary/queue.py`` (CLI and the
 full-book wrapper). This blueprint reads it for the Queue tab and exposes the
 two controlled mutations the UI needs: enqueueing books from the Calibre
-inventory and reordering pending entries. It never starts, pauses or validates
-a translation job.
+inventory and reordering pending entries. It also writes the pause-after-book
+request consumed by ``run-all``; it never starts, kills or validates a
+translation job.
 """
 from __future__ import annotations
 
@@ -21,6 +22,7 @@ from flask import Blueprint, jsonify, request, send_file
 
 from src.literary.models import BookRecord
 from src.literary.queue import QueueStore, _transition_path
+from src.literary.queue_control import read_control, set_pause
 from src.literary.queue_insights import (
     DEFAULT_KINDLE_DIR,
     DEFAULT_PILOT_DIR,
@@ -359,6 +361,21 @@ def create_literary_queue_blueprint() -> Blueprint:
             return jsonify(build_queue_snapshot(_db_path()))
         except Exception as exc:  # pragma: no cover - defensive boundary
             return _json_error(str(exc), 500)
+
+    @bp.route("/api/literary/queue/control", methods=["GET"])
+    def get_literary_queue_control():
+        return jsonify(read_control(_db_path()))
+
+    @bp.route("/api/literary/queue/control", methods=["POST"])
+    def update_literary_queue_control():
+        payload = request.get_json(silent=True) or {}
+        pause = payload.get("pause_after_book")
+        if not isinstance(pause, bool):
+            return _json_error("pause_after_book must be a boolean")
+        try:
+            return jsonify(set_pause(_db_path(), pause))
+        except OSError as exc:
+            return _json_error(f"could not write the control file: {exc}", 500)
 
     @bp.route("/api/literary/library", methods=["GET"])
     def get_literary_library():

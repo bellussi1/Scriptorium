@@ -495,3 +495,41 @@ def test_add_books_rejects_a_non_ptbr_target(tmp_path: Path, monkeypatch):
 
     assert response.status_code == 400
     assert "Brazilian Portuguese" in response.get_json()["error"]
+
+
+def test_control_route_round_trips_a_pause_request(tmp_path: Path, monkeypatch):
+    app = _client(tmp_path, monkeypatch, rows=[])
+    client = app.test_client()
+
+    initial = client.get("/api/literary/queue/control")
+    assert initial.status_code == 200
+    assert initial.get_json()["pause_after_book"] is False
+
+    requested = client.post(
+        "/api/literary/queue/control", json={"pause_after_book": True}
+    )
+    assert requested.status_code == 200
+    payload = requested.get_json()
+    assert payload["pause_after_book"] is True
+    assert payload["requested_at"]
+
+    current = client.get("/api/literary/queue/control").get_json()
+    assert current["pause_after_book"] is True
+    assert (tmp_path / "queue.control.json").is_file()
+
+    cleared = client.post(
+        "/api/literary/queue/control", json={"pause_after_book": False}
+    )
+    assert cleared.status_code == 200
+    assert cleared.get_json()["pause_after_book"] is False
+
+
+def test_control_route_rejects_a_non_boolean_value(tmp_path: Path, monkeypatch):
+    app = _client(tmp_path, monkeypatch, rows=[])
+
+    response = app.test_client().post(
+        "/api/literary/queue/control", json={"pause_after_book": "yes"}
+    )
+
+    assert response.status_code == 400
+    assert "boolean" in response.get_json()["error"]

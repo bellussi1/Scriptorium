@@ -17,6 +17,7 @@ Hy-MT2-7B and Index-Translate-9B (about 10 GB total).
 | `src/literary/resources.py` | Hierarchical YAML loader/validator/compiler; glossary/style merge; first-appearance filtering |
 | `src/literary/glossary.py` | Alias-aware, forbidden-aware, budgeted per-chunk selection and prompt block |
 | `src/literary/queue.py` | Persistent SQLite book/chapter queue; states; idempotency; events |
+| `src/literary/queue_control.py` | Pause-after-book request file read by `run-all` between books |
 | `src/literary/cost.py` | Dated pricing registry; measured token ratios; scenarios A–E |
 | `src/literary/validation.py` | Pair and EPUB validation, including TOC-label corruption |
 | `src/literary/cli.py` | Inventory, resources, queue, estimate, validate, metadata |
@@ -68,7 +69,7 @@ pytest -p no:cacheprovider tests/unit/glossary -q
 # 183 passed
 
 pytest -p no:cacheprovider -q
-# 2931 passed, 2 skipped, 10 deselected, 14 failed
+# 2943 passed, 2 skipped, 10 deselected, 14 failed
 ```
 
 The same 14 failures reproduce on a clean worktree at upstream `b5ed606` under
@@ -407,7 +408,7 @@ the layout is visually perfect.
 ### 2.13 Queue UI
 
 The SPA has a **Queue** tab that reads the persistent literary queue and exposes
-the two controlled actions the queue needs from the browser:
+the controlled actions the queue needs from the browser:
 
 - `GET /api/literary/queue` reads `data/literary_queue.db` in SQLite
   `mode=ro` and returns the book list, summary, latest job/progress and recent
@@ -418,6 +419,10 @@ the two controlled actions the queue needs from the browser:
 - `POST /api/literary/queue/books` enqueues up to 100 `calibre_ids` at a time,
   skips duplicates, and maps host paths to the `/library` container mount so the
   EPUB can be hashed and read by the runner.
+- `GET/POST /api/literary/queue/control` reads and writes the
+  pause-after-book request in `<queue>.control.json`. `run-all` checks it
+  between books, so an in-flight translation is never interrupted. The same
+  request is available from the CLI as `queue pause` / `queue resume`.
 - `POST /api/literary/queue/books/<id>/move` moves a **pending** book up or
   down and renumbers pending priorities; non-pending entries are rejected with
   `409`.
@@ -444,8 +449,9 @@ the two controlled actions the queue needs from the browser:
   disables move buttons at the queue edges, and reports action results.
 - The strings are in a new `queue` i18n namespace across all seven supported
   locales.
-- The boundary is explicit: the UI can enqueue, reorder and set the model for
-  pending books, but never starts, pauses or validates a translation job.
+- The boundary is explicit: the UI can enqueue, reorder, set the model for
+  pending books and request a pause that the runner honours at a book boundary.
+  It never starts, kills or validates a translation job itself.
 
 The active UI on port 5000 gets the tab after a restart. For validation I ran a
 second isolated app on **`http://127.0.0.1:5001`** with a copy of the queue
@@ -456,7 +462,7 @@ model for *Ship of Magic* worked against the copy; all three actions were then
 reverted by restoring the copy from the live queue. The second instance does not
 touch the real `data/jobs.db`.
 
-Validation: **19** route tests, full suite **2,931 passed, 2 skipped, 14
+Validation: **22** route tests, full suite **2,943 passed, 2 skipped, 14
 pre-existing failures**.
 
 #### 2.13.1 Cross-screen UI polish
