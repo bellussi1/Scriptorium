@@ -124,10 +124,21 @@ def cmd_resources_compile(args: argparse.Namespace) -> int:
 
 
 def cmd_queue_add(args: argparse.Namespace) -> int:
+    target = str(args.target or "pt-BR")
+    if target not in {"pt-BR", "Portuguese", "Portuguese (Brazil)"}:
+        _print_json(
+            {
+                "error": "this fork only queues English -> Brazilian Portuguese books",
+                "target": target,
+            }
+        )
+        return 1
     payload = _read_json(args.inventory)
     books = [_book_from_dict(row) for row in payload.get("books", [])]
     selected = []
     for book in books:
+        if not book.is_english:
+            continue
         if args.author and args.author.casefold() not in book.author.casefold():
             continue
         if args.series and args.series.casefold() not in book.series.casefold():
@@ -154,7 +165,7 @@ def cmd_queue_add(args: argparse.Namespace) -> int:
         ids.append(
             store.add_book(
                 book,
-                target_language=args.target,
+                target_language="pt-BR",
                 priority=args.priority,
                 glossary_scope=args.glossary_scope or "",
                 style_scope=args.style_scope or "",

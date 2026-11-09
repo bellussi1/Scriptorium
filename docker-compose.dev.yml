@@ -22,7 +22,7 @@ services:
       OLLAMA_API_ENDPOINT: http://host.docker.internal:11434/api/generate
       OLLAMA_NUM_CTX: "4096"
       DEFAULT_SOURCE_LANGUAGE: English
-      DEFAULT_TARGET_LANGUAGE: Portuguese
+      DEFAULT_TARGET_LANGUAGE: Portuguese (Brazil)
       MAX_TOKENS_PER_CHUNK: "450"
       PARALLEL_TRANSLATIONS: "1"
       EPUB_TRANSLATE_METADATA_ENABLED: "true"

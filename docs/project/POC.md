@@ -68,7 +68,7 @@ pytest -p no:cacheprovider tests/unit/glossary -q
 # 183 passed
 
 pytest -p no:cacheprovider -q
-# 2985 passed, 2 skipped, 10 deselected, 14 failed
+# 2986 passed, 2 skipped, 10 deselected, 14 failed
 ```
 
 The same 14 failures reproduce on a clean worktree at upstream `b5ed606` under
@@ -456,7 +456,7 @@ model for *Ship of Magic* worked against the copy; all three actions were then
 reverted by restoring the copy from the live queue. The second instance does not
 touch the real `data/jobs.db`.
 
-Validation: **19** route tests, full suite **2,985 passed, 2 skipped, 14
+Validation: **19** route tests, full suite **2,986 passed, 2 skipped, 14
 pre-existing failures**.
 
 ### 2.14 PT-BR grammar layer
@@ -685,6 +685,15 @@ as reader-repaired, runs the deterministic pass, validates the result, writes
 `<artifact>.quality.json` (reader report, EPUBCheck, metrics and flags), and
 rebuilds the Kindle folder. `--book-id` limits the run to one book; `--force`
 reprocesses; `--no-epubcheck` skips the Docker-based check.
+
+### 2.21 Fork scope: English to Brazilian Portuguese
+
+This fork's literary pipeline is deliberately **English → Brazilian Portuguese
+only**. The queue rejects non-English sources and non-`pt-BR` targets, the runner
+has the same guard, and the read/validation/terminology passes are built around
+pt-BR. The generic translator UI still exposes the upstream language list; other
+language pairs are not part of the supported literary workflow and receive no
+new feature or quality work here.
 
 ## 3. What is not implemented
 

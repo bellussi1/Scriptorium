@@ -360,6 +360,20 @@ def run_queue_book(
         raise ValueError("no pending book in the queue")
     if book.status != "pending":
         raise ValueError(f"book {book.id} is {book.status}, not pending")
+    source_language = str(book.source_language or "").casefold()
+    target_language = str(book.target_language or "").casefold()
+    if source_language and not source_language.startswith(("en", "eng")):
+        raise ValueError(
+            f"book {book.id} source is {book.source_language!r}; this fork only translates English sources"
+        )
+    if target_language and target_language not in {
+        "pt-br",
+        "portuguese",
+        "portuguese (brazil)",
+    }:
+        raise ValueError(
+            f"book {book.id} target is {book.target_language!r}; this fork only translates to pt-BR"
+        )
 
     model = resolve_model(book.model)
     provider = (book.provider or "ollama").strip().lower()

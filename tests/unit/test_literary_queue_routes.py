@@ -483,3 +483,15 @@ def test_retry_route_returns_a_failed_book_to_pending(tmp_path: Path, monkeypatc
     book = next(item for item in snapshot["books"] if item["id"] == book_id)
     assert book["state"] == "pending"
     assert book["position"] == 1
+
+def test_add_books_rejects_a_non_ptbr_target(tmp_path: Path, monkeypatch):
+    rows = [_inventory_row(30, "English One")]
+    app = _client(tmp_path, monkeypatch, rows=rows)
+
+    response = app.test_client().post(
+        "/api/literary/queue/books",
+        json={"calibre_ids": [30], "target_language": "French"},
+    )
+
+    assert response.status_code == 400
+    assert "Brazilian Portuguese" in response.get_json()["error"]

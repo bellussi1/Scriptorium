@@ -398,6 +398,11 @@ def create_literary_queue_blueprint() -> Blueprint:
                 "only English source books can be enqueued: "
                 + ", ".join(str(calibre_id) for calibre_id in ineligible)
             )
+        target_language = str(payload.get("target_language") or "pt-BR")
+        if target_language not in {"pt-BR", "Portuguese", "Portuguese (Brazil)"}:
+            return _json_error(
+                "this fork only queues English -> Brazilian Portuguese books"
+            )
         duplicates = [calibre_id for calibre_id in calibre_ids if calibre_id in queued]
         selected = [
             inventory[calibre_id]
@@ -413,7 +418,7 @@ def create_literary_queue_blueprint() -> Blueprint:
                 for row in selected:
                     book_id = store.add_book(
                         _book_from_inventory(row),
-                        target_language=str(payload.get("target_language") or "pt-BR"),
+                        target_language="pt-BR",
                         priority=store.next_pending_priority(),
                         model=str(payload.get("model") or ""),
                         provider=str(payload.get("provider") or ""),
