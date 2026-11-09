@@ -151,5 +151,20 @@
   "pause_error": "Impossible de mettre à jour la demande de pause : {{message}}",
   "pause_now": "Mettre en pause maintenant",
   "pause_now_requested": "Mise en pause du livre en cours au prochain point de contrôle…",
-  "pause_now_error": "Impossible de mettre en pause le livre en cours : {{message}}"
+  "pause_now_error": "Impossible de mettre en pause le livre en cours : {{message}}",
+  "run_next": "Lancer le suivant",
+  "run_all": "Tout lancer",
+  "run_next_title": "Démarrer le prochain livre en attente et s’arrêter à la relecture",
+  "run_all_title": "Démarrer tous les livres en attente ; la pause après le livre courant s’arrête à la limite suivante",
+  "run_next_confirm": "Démarrer le prochain livre en attente ({{title}}) ?",
+  "run_all_confirm": "Démarrer tous les livres en attente ? Utilisez Pause après le livre courant pour vous arrêter à une limite.",
+  "run_requesting": "Demande d’exécution de la file...",
+  "run_requested": "Exécution demandée. L’agent hôte va démarrer la file.",
+  "run_agent_offline": "Exécution demandée, mais l’agent hôte est hors ligne. Lancez scripts/queue_runner_agent.py sur l’hôte.",
+  "run_none": "Aucun livre en attente à exécuter.",
+  "run_already_running": "L’exécuteur de la file est déjà actif.",
+  "run_error": "Impossible de demander une exécution : {{message}}",
+  "runner_online": "Agent de l’exécuteur en ligne",
+  "runner_offline": "Agent de l’exécuteur hors ligne",
+  "runner_running": "Exécuteur de la file actif"
 }

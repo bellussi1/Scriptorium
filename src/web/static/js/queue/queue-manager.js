@@ -3,9 +3,9 @@
  * from the Calibre inventory, reordering pending entries and requesting a
  * pause after the current book.
  *
- * The queue is written by the local CLI/wrapper. This module never starts,
- * kills or validates a translation job; the pause request is consumed by the
- * runner between books.
+ * The queue is written by the local CLI/wrapper. This module never spawns a
+ * process itself: the Run buttons write a request that the host-side agent
+ * consumes, and the pause request is consumed by the runner between books.
  */
 
 import { t } from '../i18n/i18n.js';
@@ -15,6 +15,7 @@ const QUEUE_URL = '/api/literary/queue';
 const LIBRARY_URL = '/api/literary/library';
 const ADD_URL = '/api/literary/queue/books';
 const CONTROL_URL = '/api/literary/queue/control';
+const RUN_URL = '/api/literary/queue/run';
 const MODELS_URL = '/api/models?provider=ollama';
 const REFRESH_MS = 10000;
 // The queue is local-only by design; cloud providers are intentionally hidden.
@@ -681,6 +682,9 @@ function applySnapshot(data) {
         books: Array.isArray(data.books) ? data.books : [],
         summary: data.summary || {},
         events: Array.isArray(data.events) ? data.events : [],
+        agent: data.agent || {},
+        runner: data.runner || {},
+        run_request: data.run_request || null,
     };
     lastBooks = lastSnapshot.books;
     renderSummary(data);
@@ -688,6 +692,40 @@ function applySnapshot(data) {
     renderFilters();
     renderRows();
     renderEvents(data);
+    renderRunnerStatus(data);
+}
+
+function renderRunnerStatus(data) {
+    const status = byId('queueRunnerStatus');
+    const runNext = byId('queueRunBtn');
+    const runAll = byId('queueRunAllBtn');
+    if (!status) return;
+
+    const agent = data.agent || {};
+    const runner = data.runner || {};
+    const online = Boolean(agent.online);
+    const running = Boolean(runner.running);
+    const pending = (data.books || []).some((book) => statusKey(book) === 'pending');
+
+    let label = t('queue:runner_offline');
+    let cls = 'is-offline';
+    if (online) {
+        label = running ? t('queue:runner_running') : t('queue:runner_online');
+        cls = running ? 'is-running' : 'is-online';
+    }
+    status.textContent = label;
+    status.className = `queue-runner-status ${cls}`;
+
+    for (const [button, titleKey] of [
+        [runNext, 'queue:run_next_title'],
+        [runAll, 'queue:run_all_title'],
+    ]) {
+        if (!button) continue;
+        button.disabled = actionInFlight || !pending || running;
+        button.title = running
+            ? t('queue:run_already_running')
+            : (!online ? t('queue:run_agent_offline') : t(titleKey));
+    }
 }
 
 function renderControl() {
@@ -1235,6 +1273,44 @@ async function approveBook(bookId) {
     }
 }
 
+async function runQueue(mode) {
+    if (actionInFlight) return;
+    const normalized = mode === 'all' ? 'all' : 'next';
+    const pending = lastBooks.find((book) => statusKey(book) === 'pending');
+    if (!pending) {
+        setActionStatus(t('queue:run_none'), true);
+        return;
+    }
+    const confirmKey = normalized === 'all' ? 'queue:run_all_confirm' : 'queue:run_next_confirm';
+    if (!window.confirm(t(confirmKey, { title: pending.title }))) return;
+
+    actionInFlight = true;
+    const button = byId(normalized === 'all' ? 'queueRunAllBtn' : 'queueRunBtn');
+    if (button) button.disabled = true;
+    setActionStatus(t('queue:run_requesting'));
+    try {
+        const response = await fetch(RUN_URL, {
+            method: 'POST',
+            headers: { ...apiHeaders(), 'Content-Type': 'application/json' },
+            body: JSON.stringify({ mode: normalized }),
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(data.error || `HTTP ${response.status}`);
+        applySnapshot(data);
+        const agent = data.agent || {};
+        if (!agent.online) {
+            setActionStatus(t('queue:run_agent_offline'), true);
+        } else {
+            setActionStatus(t('queue:run_requested'));
+        }
+    } catch (error) {
+        setActionStatus(t('queue:run_error', { message: error.message || String(error) }), true);
+    } finally {
+        actionInFlight = false;
+        renderRunnerStatus(lastSnapshot);
+    }
+}
+
 async function retryBook(bookId) {
     const book = lastBooks.find((item) => item.id === bookId);
     const confirmKey = book && statusKey(book) === 'paused'
@@ -1342,9 +1418,15 @@ function initialize() {
     const button = byId('queueRefreshBtn');
     if (button) button.addEventListener('click', refresh);
 
+    const runButton = byId('queueRunBtn');
+    if (runButton) runButton.addEventListener('click', () => runQueue('next'));
+    const runAllButton = byId('queueRunAllBtn');
+    if (runAllButton) runAllButton.addEventListener('click', () => runQueue('all'));
+
     const pauseButton = byId('queuePauseBtn');
     if (pauseButton) pauseButton.addEventListener('click', togglePause);
     window.addEventListener('localeChanged', renderControl);
+    window.addEventListener('localeChanged', () => renderRunnerStatus(lastSnapshot));
 
     const addButton = byId('queueAddBtn');
     if (addButton) addButton.addEventListener('click', addSelectedBooks);

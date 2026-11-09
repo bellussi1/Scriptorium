@@ -1487,6 +1487,18 @@
                     <div id="queueSummary" class="queue-summary" aria-live="polite"></div>
                     <div id="queueDistribution" class="queue-distribution hidden" role="img"></div>
                     <div class="queue-toolbar">
+                        <button type="button" id="queueRunBtn" class="btn btn-primary"
+                                data-i18n-attr="title:queue:run_next_title"
+                                title="Start the next pending book and stop at the review gate">
+                            <span class="material-symbols-outlined" style="font-size: 18px; vertical-align: middle;">play_arrow</span>
+                            <span data-i18n="queue:run_next">Run next</span>
+                        </button>
+                        <button type="button" id="queueRunAllBtn" class="btn btn-secondary"
+                                data-i18n-attr="title:queue:run_all_title"
+                                title="Start all pending books; pause-after-book stops at the next boundary">
+                            <span class="material-symbols-outlined" style="font-size: 18px; vertical-align: middle;">fast_forward</span>
+                            <span data-i18n="queue:run_all">Run all</span>
+                        </button>
                         <button type="button" id="queueRefreshBtn" class="btn btn-secondary">
                             <span class="material-symbols-outlined" style="font-size: 18px; vertical-align: middle;">refresh</span>
                             <span data-i18n="queue:refresh">Refresh</span>
@@ -1501,6 +1513,7 @@
                             <span id="queuePauseLabel" data-i18n="queue:pause_after_book">Pause after current book</span>
                         </button>
                         <span id="queueControlStatus" class="queue-control-status" aria-live="polite"></span>
+                        <span id="queueRunnerStatus" class="queue-runner-status is-offline" aria-live="polite"></span>
                         <span id="queueUpdatedAt" class="queue-updated"></span>
                     </div>
                     <div id="queueError" class="queue-error hidden" role="alert"></div>

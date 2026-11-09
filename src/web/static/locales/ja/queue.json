@@ -151,5 +151,20 @@
   "pause_error": "一時停止要求を更新できませんでした: {{message}}",
   "pause_now": "今すぐ一時停止",
   "pause_now_requested": "次のチェックポイントで現在の書籍を一時停止しています…",
-  "pause_now_error": "現在の書籍を一時停止できませんでした: {{message}}"
+  "pause_now_error": "現在の書籍を一時停止できませんでした: {{message}}",
+  "run_next": "次を実行",
+  "run_all": "すべて実行",
+  "run_next_title": "次の待機中の本を開始し、レビューゲートで停止します",
+  "run_all_title": "すべての待機中の本を開始します。現在の本の後に一時停止すると次の境界で停止します",
+  "run_next_confirm": "次の待機中の本（{{title}}）を開始しますか？",
+  "run_all_confirm": "すべての待機中の本を開始しますか？現在の本の後に一時停止すると境界で停止します。",
+  "run_requesting": "キューの実行を要求しています...",
+  "run_requested": "実行を要求しました。ホストエージェントがキューを開始します。",
+  "run_agent_offline": "実行を要求しましたが、ホストエージェントがオフラインです。ホストで scripts/queue_runner_agent.py を起動してください。",
+  "run_none": "実行する待機中の本がありません。",
+  "run_already_running": "キューのランナーはすでに実行中です。",
+  "run_error": "実行を要求できませんでした: {{message}}",
+  "runner_online": "ランナーエージェントはオンライン",
+  "runner_offline": "ランナーエージェントはオフライン",
+  "runner_running": "キューのランナーが実行中"
 }

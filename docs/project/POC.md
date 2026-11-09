@@ -714,6 +714,22 @@ Safe queue actions:
   released (id and progress cleared) so the runner starts a fresh translation
   instead of failing after marking the book as preparing.
 
+Run controls:
+
+- `POST /api/literary/queue/run` — write a run request (`next` or `all`) into
+  `data/literary_queue.run-request.json`; the request is visible in the
+  snapshot and in the queue events.
+- `GET /api/literary/queue/runner` — host agent heartbeat, runner info and the
+  pending request.
+- `scripts/queue_runner_agent.py` — host-side supervisor. It watches the
+  request file, starts `queue run-all` (one book with `--max-books 1
+  --stop-on-review` for `next`, or the pending queue for `all`), exports the
+  Kindle folder, and publishes `data/literary_queue.agent.json` and
+  `data/literary_queue.runner.json` through the shared data mount.
+- `start-queue-agent.bat` — convenience launcher for the agent. The Queue tab's
+  **Run next** and **Run all** buttons require this agent; without it the
+  buttons still queue the request and show an offline warning.
+
 The queue remains local-only in the UI: the model picker lists Ollama models and
 rejects a non-`ollama` provider for pending books. A book whose upstream
 checkpoint briefly says `interrupted` while the log is still being written is
@@ -791,8 +807,10 @@ Cleanup landed with that scope:
 - Side-by-side review and glossary-conflict UI are not implemented; the Queue
   tab covers enqueue, reorder, model selection, live progress, logs, quality
   metrics, approve/retry and the Kindle zip.
-- Starting or pausing the host runner from the browser is not implemented; that
-  needs a supervisor/control channel, not just a UI button.
+- The browser never spawns the host runner: starting is a file-based request
+  consumed by `scripts/queue_runner_agent.py`. Pausing still uses the queue
+  control file (`pause_after_book` / `pause_now`). The agent must be running
+  for the Run buttons to take effect.
 - Cloud model benchmark; no paid calls.
 - KOReader/GUI read test; not run. Calibre `ebook-meta` and `ebook-convert`
   succeeded on the repaired pilot.

@@ -33,6 +33,7 @@ services:
       - ./translate.py:/app/translate.py:ro
       - ./src:/app/src:ro
       - ./tests:/app/tests:ro
+      - ./scripts:/app/scripts:ro
       - ./benchmark:/app/benchmark:ro
       - ./literary-resources:/app/literary-resources:ro
       - ./Custom_Instructions:/app/Custom_Instructions

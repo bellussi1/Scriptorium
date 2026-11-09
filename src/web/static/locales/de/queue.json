@@ -151,5 +151,20 @@
   "pause_error": "PausenAnforderung konnte nicht aktualisiert werden: {{message}}",
   "pause_now": "Jetzt pausieren",
   "pause_now_requested": "Das aktuelle Buch wird am nächsten Prüfpunkt pausiert…",
-  "pause_now_error": "Das aktuelle Buch konnte nicht pausiert werden: {{message}}"
+  "pause_now_error": "Das aktuelle Buch konnte nicht pausiert werden: {{message}}",
+  "run_next": "Nächstes starten",
+  "run_all": "Alle starten",
+  "run_next_title": "Das nächste ausstehende Buch starten und am Review-Gate anhalten",
+  "run_all_title": "Alle ausstehenden Bücher starten; Pause nach aktuellem Buch hält an der nächsten Grenze an",
+  "run_next_confirm": "Das nächste ausstehende Buch ({{title}}) starten?",
+  "run_all_confirm": "Alle ausstehenden Bücher starten? Mit Pause nach aktuellem Buch an einer Grenze anhalten.",
+  "run_requesting": "Queue-Lauf wird angefordert...",
+  "run_requested": "Lauf angefordert. Der Host-Agent startet die Queue.",
+  "run_agent_offline": "Lauf angefordert, aber der Host-Agent ist offline. Starte scripts/queue_runner_agent.py auf dem Host.",
+  "run_none": "Keine ausstehenden Bücher zum Starten.",
+  "run_already_running": "Der Queue-Runner läuft bereits.",
+  "run_error": "Lauf konnte nicht angefordert werden: {{message}}",
+  "runner_online": "Runner-Agent online",
+  "runner_offline": "Runner-Agent offline",
+  "runner_running": "Queue-Runner aktiv"
 }

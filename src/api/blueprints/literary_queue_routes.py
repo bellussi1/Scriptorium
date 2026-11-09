@@ -23,6 +23,12 @@ from flask import Blueprint, jsonify, request, send_file
 from src.literary.models import BookRecord
 from src.literary.queue import QueueStore, _transition_path
 from src.literary.queue_control import read_control, set_pause, set_pause_now
+from src.literary.queue_run_control import (
+    read_agent_status,
+    read_run_request,
+    read_runner_info,
+    request_run,
+)
 from src.literary.queue_insights import (
     DEFAULT_KINDLE_DIR,
     DEFAULT_PILOT_DIR,
@@ -261,6 +267,9 @@ def build_queue_snapshot(db_path: str | Path) -> Dict[str, Any]:
             "summary": {"books": 0, "words": 0, "by_status": {}},
             "books": [],
             "events": [],
+            "agent": read_agent_status(path),
+            "runner": read_runner_info(path),
+            "run_request": read_run_request(path),
         }
 
     conn = sqlite3.connect(f"file:{path.resolve().as_posix()}?mode=ro", uri=True)
@@ -361,6 +370,9 @@ def build_queue_snapshot(db_path: str | Path) -> Dict[str, Any]:
         },
         "books": books,
         "events": events,
+        "agent": read_agent_status(path),
+        "runner": read_runner_info(path),
+        "run_request": read_run_request(path),
     }
 
 
@@ -421,6 +433,54 @@ def create_literary_queue_blueprint() -> Blueprint:
             return jsonify(state)
         except OSError as exc:
             return _json_error(f"could not write the control file: {exc}", 500)
+
+    @bp.route("/api/literary/queue/runner", methods=["GET"])
+    def get_literary_queue_runner():
+        """Host agent heartbeat, runner info and any pending run request."""
+        db_path = _db_path()
+        return jsonify({
+            "status": "ok",
+            "agent": read_agent_status(db_path),
+            "runner": read_runner_info(db_path),
+            "run_request": read_run_request(db_path),
+        })
+
+    @bp.route("/api/literary/queue/run", methods=["POST"])
+    def run_literary_queue():
+        """Ask the host-side agent to start the queue runner.
+
+        The web app cannot start a host process, so this endpoint only writes
+        the request file. The agent picks it up, starts ``queue run-all`` and
+        publishes its heartbeat; the response already contains the current
+        agent state so the UI can say whether the request will be honored now
+        or needs the host agent to be started.
+        """
+        db_path = _db_path()
+        payload = request.get_json(silent=True) or {}
+        mode = str(payload.get("mode") or "next").strip().lower()
+        if mode not in {"next", "all"}:
+            return _json_error("mode must be 'next' or 'all'")
+
+        store = QueueStore(str(db_path))
+        try:
+            pending = store.next_pending()
+            if pending is None:
+                return _json_error("no pending books in the queue", 409)
+            store.add_event(
+                f"queue run requested from Queue UI ({mode})",
+                book_id=pending.id,
+            )
+        finally:
+            store.close()
+
+        try:
+            request_payload = request_run(db_path, mode=mode)
+        except (OSError, ValueError) as exc:
+            return _json_error(f"could not write the run request: {exc}", 500)
+
+        snapshot = build_queue_snapshot(db_path)
+        snapshot["run_request"] = request_payload
+        return jsonify(snapshot), 202
 
     @bp.route("/api/literary/library", methods=["GET"])
     def get_literary_library():
