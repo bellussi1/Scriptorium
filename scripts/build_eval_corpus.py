@@ -943,6 +943,19 @@ def main() -> int:
     _write_jsonl(OUT / "probes_terms_first_law.jsonl", source_probes["first_law_terms"])
     _write_jsonl(OUT / "probes_names_banished.jsonl", source_probes["banished_names"])
     _write_jsonl(OUT / "probes_names_first_law.jsonl", source_probes["first_law_names"])
+    # Combined runner input. load_corpus filters the probe-only fields, so the
+    # six files can be concatenated without rewriting their contents.
+    probe_paths = [
+        OUT / "probes_names_farseer.jsonl",
+        OUT / "probes_terms_farseer.jsonl",
+        OUT / "probes_terms_banished.jsonl",
+        OUT / "probes_terms_first_law.jsonl",
+        OUT / "probes_names_banished.jsonl",
+        OUT / "probes_names_first_law.jsonl",
+    ]
+    with (OUT / "probes_run.jsonl").open("w", encoding="utf-8") as handle:
+        for probe_path in probe_paths:
+            handle.write(probe_path.read_text(encoding="utf-8"))
 
     long_chapters = build_long_chapters()
     _write_jsonl(OUT / "long_chapters_farseer.jsonl", long_chapters)
@@ -988,6 +1001,7 @@ def main() -> int:
             "probes_terms_first_law.jsonl",
             "probes_names_banished.jsonl",
             "probes_names_first_law.jsonl",
+            "probes_run.jsonl",
             "long_chapters_farseer.jsonl",
             "fase-d-audit.jsonl",
         ],

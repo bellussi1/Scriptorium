@@ -13,7 +13,6 @@ def test_load_corpus_ignores_eval_metadata_fields(tmp_path: Path):
         "id": "ex-1",
         "book": "Book",
         "author": "Author",
-        "chapter_href": "OEBPS/ch1.xhtml",
         "category": "dialogue",
         "text": "A source paragraph.",
         "source_language": "en",
@@ -31,5 +30,5 @@ def test_load_corpus_ignores_eval_metadata_fields(tmp_path: Path):
 
     assert len(rows) == 1
     assert rows[0].id == "ex-1"
-    assert rows[0].chapter_href == "OEBPS/ch1.xhtml"
+    assert rows[0].chapter_href == ""
     assert rows[0].reference_pt == "Um parágrafo fonte."

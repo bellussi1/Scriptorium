@@ -174,6 +174,7 @@ def load_corpus(path: str) -> List[Excerpt]:
             if line:
                 data = json.loads(line)
                 data = {key: value for key, value in data.items() if key in allowed}
+                data.setdefault("chapter_href", "")
                 rows.append(Excerpt(**data))
     return rows
 

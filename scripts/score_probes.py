@@ -38,6 +38,28 @@ def _contains(haystack: str, needle: str) -> bool:
     return _normalize(needle) in _normalize(haystack)
 
 
+def _same_entity(left: str, right: str) -> bool:
+    """True when one label is a short form of the other (King Shrewd/Shrewd)."""
+    left = _normalize(left).strip()
+    right = _normalize(right).strip()
+    if not left or not right:
+        return False
+    if left == right:
+        return True
+    if min(len(left), len(right)) < 3:
+        return False
+    return left in right or right in left
+
+
+def _name_present(name: str, output: str, pool: Sequence[str]) -> bool:
+    if _contains(output, name):
+        return True
+    for alias in pool:
+        if alias != name and _same_entity(name, alias) and _contains(output, alias):
+            return True
+    return False
+
+
 def _read_jsonl(paths: Sequence[Path]) -> List[Dict[str, Any]]:
     rows = []
     for path in paths:
@@ -104,7 +126,13 @@ def score(
         missing = []
         for term in expected:
             target = str(term.get("target") or "")
-            if target and _contains(output, target):
+            is_character = str(term.get("category") or "") == "character"
+            present = (
+                _name_present(target, output, pool)
+                if is_character
+                else _contains(output, target)
+            )
+            if target and present:
                 term_hits += 1
             else:
                 missing.append({"source": term.get("source"), "target": target})
@@ -112,13 +140,16 @@ def score(
         name_missing = []
         other_hits = []
         for name in characters:
-            if _contains(output, name):
+            if _name_present(name, output, pool):
                 name_hits += 1
             else:
                 name_missing.append(name)
         for name in pool - characters:
-            if _contains(output, name):
-                other_hits.append(name)
+            if not _contains(output, name):
+                continue
+            if any(_same_entity(name, expected_name) for expected_name in characters):
+                continue
+            other_hits.append(name)
         swap = bool(name_missing and other_hits)
         reference = str(probe.get("reference_pt") or "")
         chrf_value = None
