@@ -7,6 +7,11 @@
 
 import { StateManager } from '../core/state-manager.js';
 import { ApiClient } from '../core/api-client.js';
+import {
+    FIXED_LANGUAGE_PAIR,
+    FIXED_SOURCE_LANGUAGE,
+    FIXED_TARGET_LANGUAGE,
+} from '../core/language-scope.js';
 import { MessageLogger } from '../ui/message-logger.js';
 import { DomHelpers } from '../ui/dom-helpers.js';
 import { StatusManager } from '../utils/status-manager.js';
@@ -389,6 +394,8 @@ export const FileUpload = {
      * @private
      */
     _syncFileToInterface(file) {
+        if (FIXED_LANGUAGE_PAIR) return;
+
         // Sync source language
         if (file.sourceLanguage) {
             const success = setLanguageInSelect('sourceLang', file.sourceLanguage);
@@ -448,7 +455,7 @@ export const FileUpload = {
      * @private
      */
     _prePopulateLanguageField(selectId, inputId, containerId, languageValue) {
-        if (!languageValue) return;
+        if (FIXED_LANGUAGE_PAIR || !languageValue) return;
 
         const select = DomHelpers.getElement(selectId);
         const input = DomHelpers.getElement(inputId);
@@ -522,7 +529,13 @@ export const FileUpload = {
             // Restore files to state immediately (reset status to Queued for non-completed files)
             const filesToRestore = savedFiles.map(f => ({
                 ...f,
-                status: f.status === 'Completed' ? 'Completed' : 'Queued'
+                status: f.status === 'Completed' ? 'Completed' : 'Queued',
+                ...(FIXED_LANGUAGE_PAIR && f.status !== 'Completed' ? {
+                    sourceLanguage: (f.operation === 'refine' || f.operation === 'term_fix')
+                        ? FIXED_TARGET_LANGUAGE
+                        : FIXED_SOURCE_LANGUAGE,
+                    targetLanguage: FIXED_TARGET_LANGUAGE,
+                } : {}),
             }));
 
             StateManager.setState('files.toProcess', filesToRestore);
@@ -653,6 +666,7 @@ export const FileUpload = {
      * @returns {string} Current source language (empty string if not set)
      */
     _getCurrentSourceLanguage() {
+        if (FIXED_LANGUAGE_PAIR) return FIXED_SOURCE_LANGUAGE;
         let sourceLanguageVal = DomHelpers.getValue('sourceLang');
         if (sourceLanguageVal === 'Other') {
             sourceLanguageVal = DomHelpers.getValue('customSourceLang').trim();
@@ -665,6 +679,7 @@ export const FileUpload = {
      * @returns {string} Current target language (empty string if not set)
      */
     _getCurrentTargetLanguage() {
+        if (FIXED_LANGUAGE_PAIR) return FIXED_TARGET_LANGUAGE;
         let targetLanguageVal = DomHelpers.getValue('targetLang');
         if (targetLanguageVal === 'Other') {
             targetLanguageVal = DomHelpers.getValue('customTargetLang').trim();
@@ -870,6 +885,15 @@ export const FileUpload = {
                     initialSourceLanguage = this._getCurrentSourceLanguage();
                 }
                 initialTargetLanguage = this._getCurrentTargetLanguage();
+            }
+
+            if (FIXED_LANGUAGE_PAIR) {
+                // The literary UI only runs English -> Brazilian Portuguese.
+                // Refine/term-fix are monolingual, so both sides are pt-BR.
+                initialSourceLanguage = operation === 'translate'
+                    ? FIXED_SOURCE_LANGUAGE
+                    : FIXED_TARGET_LANGUAGE;
+                initialTargetLanguage = FIXED_TARGET_LANGUAGE;
             }
 
             // Create file object
@@ -1185,6 +1209,7 @@ export const FileUpload = {
         if (op === 'translate') {
             // Source language dropdown
             const srcLabel = document.createElement('label');
+            srcLabel.className = 'file-lang-control';
             srcLabel.textContent = t('translation:per_file_source');
             const srcSelect = buildLangSelect(
                 file.sourceLanguage,
@@ -1197,6 +1222,7 @@ export const FileUpload = {
 
             // Target language dropdown
             const tgtLabel = document.createElement('label');
+            tgtLabel.className = 'file-lang-control';
             tgtLabel.textContent = t('translation:per_file_target');
             const tgtSelect = buildLangSelect(
                 file.targetLanguage,
@@ -1226,6 +1252,7 @@ export const FileUpload = {
         } else {
             // Refine / term fix: single language dropdown (the file's own language)
             const langLabel = document.createElement('label');
+            langLabel.className = 'file-lang-control';
             langLabel.textContent = t('translation:per_file_language');
             const langSelect = buildLangSelect(
                 file.targetLanguage,

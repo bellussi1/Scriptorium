@@ -17,6 +17,11 @@
 import { ApiClient } from '../core/api-client.js';
 import { WebSocketManager } from '../core/websocket-manager.js';
 import { SettingsManager } from '../core/settings-manager.js';
+import {
+    FIXED_LANGUAGE_PAIR,
+    FIXED_SOURCE_LANGUAGE,
+    FIXED_TARGET_LANGUAGE,
+} from '../core/language-scope.js';
 import { DomHelpers } from '../ui/dom-helpers.js';
 import { t, applyToDOM } from '../i18n/i18n.js';
 import { SampleTable } from './sample-table.js';
@@ -636,6 +641,10 @@ function setMode(mode) {
  */
 function setSampleSourceLang(languageValue) {
     const select = $('sampleSourceLang');
+    if (FIXED_LANGUAGE_PAIR && select) {
+        select.value = FIXED_SOURCE_LANGUAGE;
+        return true;
+    }
     if (!select || !languageValue || languageValue === 'Other') return false;
     for (const opt of select.options) {
         if (opt.value && opt.value.toLowerCase() === languageValue.toLowerCase()) {
@@ -653,6 +662,10 @@ function setSampleSourceLang(languageValue) {
  */
 function setSampleTargetLang(languageValue) {
     const select = $('sampleTargetLang');
+    if (FIXED_LANGUAGE_PAIR && select) {
+        select.value = FIXED_TARGET_LANGUAGE;
+        return true;
+    }
     if (!select || !languageValue || languageValue === 'Other') return false;
     for (const opt of select.options) {
         if (opt.value && opt.value.toLowerCase() === languageValue.toLowerCase()) {
@@ -671,7 +684,7 @@ function setSampleTargetLang(languageValue) {
  * confident match (>= 0.7); silent on failure (the Run still auto-detects).
  */
 async function detectAndSetSourceLanguage() {
-    if (!state.uploadedPath) return;
+    if (FIXED_LANGUAGE_PAIR || !state.uploadedPath) return;
     try {
         const result = await ApiClient.detectLanguage(state.uploadedPath);
         if (result && result.success && result.detected_language && (result.language_confidence || 0) >= 0.7) {

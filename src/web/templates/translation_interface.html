@@ -225,7 +225,7 @@
         }
     </style>
 </head>
-<body>
+<body class="literary-language-scope">
     <div class="container">
         <!-- Header with Neumorphic Style -->
         <header class="header">
@@ -334,6 +334,17 @@
         <div class="main-card">
             <div class="card-body">
                 <!-- Languages Row -->
+                <div class="fixed-language-pair" role="group">
+                    <div class="fixed-language-pair__side">
+                        <span class="fixed-language-pair__label" data-i18n="translation:source_language">Source Language</span>
+                        <span class="fixed-language-pair__value">English</span>
+                    </div>
+                    <span class="fixed-language-pair__arrow" aria-hidden="true">→</span>
+                    <div class="fixed-language-pair__side">
+                        <span class="fixed-language-pair__label" data-i18n="translation:target_language">Target Language</span>
+                        <span class="fixed-language-pair__value">Portuguese (Brazil)</span>
+                    </div>
+                </div>
                 <div class="language-pair" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
                     <div class="form-group" style="margin-bottom: 0;">
                         <label data-i18n="translation:source_language">Source Language</label>
@@ -853,6 +864,17 @@
                     </p>
 
                     <!-- File upload + languages -->
+                    <div class="fixed-language-pair" role="group">
+                        <div class="fixed-language-pair__side">
+                            <span class="fixed-language-pair__label" data-i18n="translation:source_language">Source Language</span>
+                            <span class="fixed-language-pair__value">English</span>
+                        </div>
+                        <span class="fixed-language-pair__arrow" aria-hidden="true">→</span>
+                        <div class="fixed-language-pair__side">
+                            <span class="fixed-language-pair__label" data-i18n="translation:target_language">Target Language</span>
+                            <span class="fixed-language-pair__value">Portuguese (Brazil)</span>
+                        </div>
+                    </div>
                     <div class="language-pair" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
                         <div class="form-group" style="margin-bottom: 0;">
                             <label data-i18n="translation:source_language">Source Language</label>
@@ -1480,12 +1502,12 @@
                 </div>
                 <div class="card-body">
                     <!-- Meta -->
-                    <div style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 15px; margin-bottom: 20px; align-items: start;">
+                    <div class="glossary-meta-row" style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 15px; margin-bottom: 20px; align-items: start;">
                         <div class="form-group" style="margin-bottom: 0;">
                             <label><span data-i18n="glossary:name_label">Name</span> <span class="glossary-saved-indicator" id="glossaryEditorNameSaved"><span class="material-symbols-outlined">check_circle</span><span class="text" data-i18n="glossary:saved_indicator">Saved</span></span></label>
                             <div class="neu-inset-light"><input class="form-control" id="glossaryEditorName" type="text"></div>
                         </div>
-                        <div class="form-group" style="margin-bottom: 0;">
+                        <div class="form-group glossary-language-field" style="margin-bottom: 0;">
                             <label><span data-i18n="glossary:source_label">Source</span> <span class="glossary-saved-indicator" id="glossaryEditorSourceLangSaved"><span class="material-symbols-outlined">check_circle</span><span class="text" data-i18n="glossary:saved_indicator">Saved</span></span></label>
                             <div class="neu-inset-light">
                                 <select class="form-control" id="glossaryEditorSourceLang">
@@ -1554,7 +1576,7 @@
                                 <input type="text" class="form-control" id="glossaryEditorCustomSourceLang" data-i18n-attr="placeholder:translation:custom_source_lang_placeholder" placeholder="Enter custom source language">
                             </div>
                         </div>
-                        <div class="form-group" style="margin-bottom: 0;">
+                        <div class="form-group glossary-language-field" style="margin-bottom: 0;">
                             <label><span data-i18n="glossary:target_label">Target</span> <span class="glossary-saved-indicator" id="glossaryEditorTargetLangSaved"><span class="material-symbols-outlined">check_circle</span><span class="text" data-i18n="glossary:saved_indicator">Saved</span></span></label>
                             <div class="neu-inset-light">
                                 <select class="form-control" id="glossaryEditorTargetLang">
@@ -1622,6 +1644,18 @@
                             <div class="neu-inset-light" style="margin-top: 10px; display: none;" id="glossaryEditorCustomTargetLangContainer">
                                 <input type="text" class="form-control" id="glossaryEditorCustomTargetLang" data-i18n-attr="placeholder:translation:custom_target_lang_placeholder" placeholder="Enter custom target language">
                             </div>
+                        </div>
+                    </div>
+
+                    <div class="fixed-language-pair" role="group">
+                        <div class="fixed-language-pair__side">
+                            <span class="fixed-language-pair__label" data-i18n="translation:source_language">Source Language</span>
+                            <span class="fixed-language-pair__value">English</span>
+                        </div>
+                        <span class="fixed-language-pair__arrow" aria-hidden="true">→</span>
+                        <div class="fixed-language-pair__side">
+                            <span class="fixed-language-pair__label" data-i18n="translation:target_language">Target Language</span>
+                            <span class="fixed-language-pair__value">Portuguese (Brazil)</span>
                         </div>
                     </div>
 
@@ -2063,7 +2097,18 @@
                             </div>
                         </div>
 
-                        <div style="display: flex; gap: 15px; flex-wrap: wrap; margin-bottom: 15px;">
+                        <div class="fixed-language-pair" role="group">
+                            <div class="fixed-language-pair__side">
+                                <span class="fixed-language-pair__label" data-i18n="translation:source_language">Source Language</span>
+                                <span class="fixed-language-pair__value">English</span>
+                            </div>
+                            <span class="fixed-language-pair__arrow" aria-hidden="true">→</span>
+                            <div class="fixed-language-pair__side">
+                                <span class="fixed-language-pair__label" data-i18n="translation:target_language">Target Language</span>
+                                <span class="fixed-language-pair__value">Portuguese (Brazil)</span>
+                            </div>
+                        </div>
+                        <div class="language-pair" style="display: flex; gap: 15px; flex-wrap: wrap; margin-bottom: 15px;">
                             <div class="form-group" style="flex: 1; min-width: 160px; margin-bottom: 0;">
                                 <label data-i18n="translation:source_language">Source Language</label>
                                 <div class="neu-inset-light">

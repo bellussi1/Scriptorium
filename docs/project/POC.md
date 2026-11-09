@@ -467,9 +467,10 @@ pre-existing failures**.
   `src/web/static/fonts/` (Apache-2.0).
 - Desktop workspace grows from 900 px to 1160 px (1280 px on wide monitors).
 - Translate now has one primary drop zone and two compact repair zones side by
-  side; the language pair stacks on narrow screens.
-- The Sample tab defaults to English -> Portuguese (Brazil) and follows the same
-  stacked language layout on mobile.
+  side; the fixed English -> Portuguese (Brazil) pair stacks on narrow screens.
+- The Sample, Glossary editor and Style extraction surfaces use the same fixed
+  pair. `src/web/static/js/core/language-scope.js` is the single flag that
+  restores the upstream language controls when set to `false`.
 - The Queue table keeps Book, Status, Progress and Actions on mobile, hides the
   Model, Series, Updated and Position columns progressively, and adds a
   status-distribution strip under the summary cards.
@@ -717,9 +718,14 @@ reprocesses; `--no-epubcheck` skips the Docker-based check.
 This fork's literary pipeline is deliberately **English → Brazilian Portuguese
 only**. The queue rejects non-English sources and non-`pt-BR` targets, the runner
 has the same guard, and the read/validation/terminology passes are built around
-pt-BR. The generic translator UI still exposes the upstream language list; other
-language pairs are not part of the supported literary workflow and receive no
-new feature or quality work here.
+pt-BR. The browser UI now defaults to a fixed English -> Portuguese (Brazil)
+profile: the language rows are replaced by a read-only pair, per-file language
+selectors are hidden, and file/sample/glossary/style language values are
+pinned. The generic translator code is untouched; set
+`FIXED_LANGUAGE_PAIR = false` in
+`src/web/static/js/core/language-scope.js` to restore the upstream language
+controls. Other language pairs are not part of the supported literary workflow
+and receive no new feature or quality work here.
 
 ## 3. What is not implemented
 

@@ -185,6 +185,79 @@ html.dark .btn-danger:hover {
     }
 }
 
+/* ----------------------------------------
+   Fixed English -> Portuguese (Brazil) profile
+   The generic language controls stay in the DOM (see core/language-scope.js);
+   this class only swaps the visible rows for the fixed-pair summary.
+   ---------------------------------------- */
+
+.fixed-language-pair {
+    display: none;
+    align-items: flex-end;
+    gap: 1rem;
+    margin-bottom: 15px;
+}
+
+body.literary-language-scope .fixed-language-pair {
+    display: flex;
+}
+
+body.literary-language-scope .language-pair,
+body.literary-language-scope .glossary-language-field,
+body.literary-language-scope .file-lang-control {
+    display: none !important;
+}
+
+body.literary-language-scope .glossary-meta-row {
+    grid-template-columns: minmax(0, 1fr) !important;
+}
+
+.fixed-language-pair__side {
+    flex: 1 1 0;
+    min-width: 0;
+}
+
+.fixed-language-pair__label {
+    display: block;
+    margin-bottom: 6px;
+    color: var(--text-muted-light);
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.fixed-language-pair__value {
+    display: flex;
+    align-items: center;
+    min-height: 44px;
+    padding: 0.5rem 0.75rem;
+    background: var(--background-light);
+    border: 1px solid var(--border-light);
+    border-radius: 8px;
+    color: var(--text-dark);
+    font-weight: 600;
+}
+
+.fixed-language-pair__arrow {
+    margin-bottom: 0.75rem;
+    color: var(--text-muted-light);
+    font-size: 1.25rem;
+    line-height: 1;
+}
+
+@media (max-width: 560px) {
+    .fixed-language-pair {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.5rem;
+    }
+
+    .fixed-language-pair__arrow {
+        display: none;
+    }
+}
+
 @media (max-width: 760px) {
     .upload-zone-grid {
         grid-template-columns: minmax(0, 1fr);

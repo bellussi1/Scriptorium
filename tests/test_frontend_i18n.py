@@ -156,6 +156,13 @@ _HARDCODE_ALLOWLIST: set[tuple[str, str, str]] = {
     ("span", "<text>", "v"),
     ("span", "title", "TBL v"),
 
+    # --- language autonyms in the fixed literary pair --------------------
+    # The fork pins the translation pair to English -> Portuguese (Brazil);
+    # language names are shown literally, like the <option> autonyms above.
+    ("span", "<text>", "English"),
+    ("span", "<text>", "Portuguese (Brazil)"),
+    ("span", "<text>", "→"),      # fixed-pair separator (aria-hidden)
+
     # --- dynamic placeholders replaced by JS at runtime ------------------
     ("span", "<text>", "EN"),     # #uiLocaleDisplay — short locale code
     ("h3", "<text>", "0s"),       # #elapsedTime — timer initial value

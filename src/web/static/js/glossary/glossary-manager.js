@@ -9,6 +9,11 @@
  */
 
 import { ApiClient } from '../core/api-client.js';
+import {
+    FIXED_LANGUAGE_PAIR,
+    FIXED_SOURCE_LANGUAGE,
+    FIXED_TARGET_LANGUAGE,
+} from '../core/language-scope.js';
 import { toast } from '../ui/toast.js';
 import { DomHelpers } from '../ui/dom-helpers.js';
 import { ApiKeyUtils } from '../utils/api-key-utils.js';
@@ -637,6 +642,15 @@ function _setLangSelect(selectId, customContainerId, customInputId, value) {
     const v = value || '';
 
     if (!select) return;
+
+    if (FIXED_LANGUAGE_PAIR) {
+        select.value = selectId === 'glossaryEditorSourceLang'
+            ? FIXED_SOURCE_LANGUAGE
+            : FIXED_TARGET_LANGUAGE;
+        if (customContainer) customContainer.style.display = 'none';
+        if (customInput) customInput.value = '';
+        return;
+    }
 
     if (!v) {
         select.value = '';
