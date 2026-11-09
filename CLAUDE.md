@@ -22,7 +22,7 @@ Replies to the user in chat may follow the language the user writes in (typicall
 
 ## Frontend i18n rules — every user-facing string must be reactive
 
-Every user-facing string in the web frontend (`src/web/templates/`, `src/web/static/js/`) MUST be translatable AND update immediately when the user switches the UI language. The i18n machinery lives in `src/web/static/js/i18n/i18n.js`; locales live under `src/web/static/locales/<lang>/<namespace>.json` and must stay in sync across all 7 supported locales (`en`, `fr`, `es`, `de`, `zh-CN`, `ja`, `ko`).
+Every user-facing string in the web frontend (`src/web/templates/`, `src/web/static/js/`) MUST be translatable AND update immediately when the user switches the UI language. The i18n machinery lives in `src/web/static/js/i18n/i18n.js`; locales live under `src/web/static/locales/<lang>/<namespace>.json` and must stay in sync across both supported locales (`pt-BR`, `en`).
 
 **For static HTML strings**, use one of the i18n marker attributes — never write raw human text:
 
@@ -47,10 +47,10 @@ Every user-facing string in the web frontend (`src/web/templates/`, `src/web/sta
 
 - A raw English (or any-language) string literal written to `textContent`, `innerHTML`, `insertAdjacentHTML`, `.title`, `.placeholder`, `.setAttribute('aria-label'|'title'|'placeholder'|'alt', …)`, or passed to `alert()` / `confirm()` / a toast / `MessageLogger.showMessage` / `MessageLogger.addLog`.
 - A `t(...)` call cached into a `const`/module-scope variable at module load, then reused forever.
-- A `data-i18n` key that doesn't exist in **all 7** locale files.
+- A `data-i18n` key that doesn't exist in **both** locale files.
 - A translation that drops a `{{placeholder}}` token present in the English source — interpolation keys must match across locales.
 
-**When adding a new locale key**: add it to all 7 `<lang>/<namespace>.json` files in the same commit. The English version goes first and is the source of truth; the other six are translations of it.
+**When adding a new locale key**: add it to both `<lang>/<namespace>.json` files (`en`, `pt-BR`) in the same commit. The English version goes first and is the source of truth; pt-BR is the translation of it.
 
 **Before declaring an i18n change done**, smoke-test it by toggling the UI language selector and confirming the string updates without a page reload. If it doesn't, the surrounding render is not reactive — fix it before merging.
 

@@ -454,7 +454,7 @@ the controlled actions the queue needs from the browser:
 - `src/web/static/js/queue/queue-manager.js` renders the table and refreshes
   every 10 s only while the tab is visible. It also filters the library picker,
   disables move buttons at the queue edges, and reports action results.
-- The strings are in a new `queue` i18n namespace across all seven supported
+- The strings are in a new `queue` i18n namespace across the two supported
   locales.
 - Every finished book lands in `needs_review`. The approve action (CLI or the
   Queue UI) is the only path to `completed` and records `reviewed_at`; the

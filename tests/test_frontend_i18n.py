@@ -47,7 +47,7 @@ JS_DIR = ROOT / "src" / "web" / "static" / "js"
 # Must stay in sync with SUPPORTED_LOCALES / NAMESPACES in
 # src/web/static/js/i18n/i18n.js — the test will fail loudly if a locale
 # directory or namespace file is missing.
-SUPPORTED_LOCALES = ["en", "fr", "es", "de", "zh-CN", "ja", "ko"]
+SUPPORTED_LOCALES = ["pt-BR", "en"]
 NAMESPACES = ["common", "translation", "settings", "glossary", "files", "tts", "errors", "sample", "style", "queue"]
 REFERENCE_LOCALE = "en"
 
@@ -71,6 +71,23 @@ def _load_namespace(locale: str, namespace: str) -> dict:
     assert path.is_file(), f"Missing locale file: {path.relative_to(ROOT)}"
     with path.open(encoding="utf-8") as fh:
         return json.load(fh)
+
+
+def _flatten_values(node, prefix: str = ""):
+    """Yield (dot-joined path, leaf value) for every leaf in a nested dict."""
+    if isinstance(node, dict):
+        for key, value in node.items():
+            path = f"{prefix}.{key}" if prefix else key
+            yield from _flatten_values(value, path)
+    else:
+        yield prefix, node
+
+
+_PLACEHOLDER_RE = re.compile(r"\{\{[^{}]+\}\}|%[sd]|\{[a-zA-Z_][a-zA-Z0-9_]*\}")
+
+
+def _placeholders(value) -> set[str]:
+    return set(_PLACEHOLDER_RE.findall(value)) if isinstance(value, str) else set()
 
 
 @pytest.mark.parametrize("namespace", NAMESPACES)
@@ -166,7 +183,7 @@ _HARDCODE_ALLOWLIST: set[tuple[str, str, str]] = {
     ("span", "<text>", "→"),      # fixed-pair separator (aria-hidden)
 
     # --- dynamic placeholders replaced by JS at runtime ------------------
-    ("span", "<text>", "EN"),     # #uiLocaleDisplay — short locale code
+    ("span", "<text>", "PT"),     # #uiLocaleDisplay — short locale code
     ("h3", "<text>", "0s"),       # #elapsedTime — timer initial value
     ("span", "<text>", "ON"),     # #notifyStatusBadge — toggle badge
     ("span", "<text>", "0 MB"),   # #totalFileSize — initial size
@@ -197,6 +214,25 @@ def _strip_jinja_preserving_lines(src: str) -> str:
     def repl(match: re.Match[str]) -> str:
         return re.sub(r"[^\n]", " ", match.group(0))
     return _JINJA_RE.sub(repl, src)
+
+
+@pytest.mark.parametrize("namespace", NAMESPACES)
+def test_locale_placeholder_parity(namespace: str) -> None:
+    """Interpolation tokens must survive translation unchanged."""
+    reference = dict(_flatten_values(_load_namespace(REFERENCE_LOCALE, namespace)))
+    target = dict(_flatten_values(_load_namespace("pt-BR", namespace)))
+    mismatches = []
+    for key, english_value in reference.items():
+        if key not in target:
+            continue
+        english = _placeholders(english_value)
+        translated = _placeholders(target[key])
+        if english != translated:
+            mismatches.append((key, sorted(english), sorted(translated)))
+    assert not mismatches, (
+        "Placeholder mismatch between en and pt-BR in "
+        f"{namespace}.json:\n" + "\n".join(str(item) for item in mismatches)
+    )
 
 
 def _has_i18n_ancestor(el) -> bool:
@@ -359,7 +395,7 @@ _MATERIAL_ICON_NAME_RE = re.compile(r"^[a-z][a-z0-9_]*$")
 # Format: (sink_or_attr, literal-as-it-appears-in-source).
 _JS_HARDCODE_ALLOWLIST: set[tuple[str, str]] = {
     # Generic cover-image alt text used on EPUB cover thumbnails. Single
-    # English word, accessibility-only — not worth a dedicated key × 7 locales.
+    # English word, accessibility-only — not worth a dedicated key × 2 locales.
     # If full a11y i18n is required later, replace with t('translation:cover_alt').
     ("alt", "Cover"),
 }

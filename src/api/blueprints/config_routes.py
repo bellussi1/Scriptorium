@@ -29,7 +29,7 @@ from src.utils.webhook_secrets import (
 # UI locales served by /static/locales/<code>/*.json. Keep in sync with the
 # SUPPORTED_LOCALES constant in src/web/static/js/i18n/i18n.js. The list is
 # small enough that duplication beats a separate config file for now.
-SUPPORTED_UI_LOCALES = ['en', 'fr', 'es', 'de', 'zh-CN', 'ja', 'ko']
+SUPPORTED_UI_LOCALES = ['pt-BR', 'en']
 UI_LOCALE_COOKIE = 'ui_locale'
 UI_LOCALE_COOKIE_MAX_AGE = 60 * 60 * 24 * 365  # 1 year
 
@@ -38,14 +38,14 @@ def resolve_ui_locale(req):
     """Pick the UI locale to render the page with.
 
     Order: explicit cookie (user's last choice) → Accept-Language best match
-    → 'en'. Returning the code is enough; i18next-http-backend loads the
+    → 'pt-BR'. Returning the code is enough; i18next-http-backend loads the
     JSON files asynchronously from /static/locales/<code>/.
     """
     cookie_locale = req.cookies.get(UI_LOCALE_COOKIE)
     if cookie_locale in SUPPORTED_UI_LOCALES:
         return cookie_locale
     best = req.accept_languages.best_match(SUPPORTED_UI_LOCALES)
-    return best or 'en'
+    return best or 'pt-BR'
 
 
 def get_base_path():

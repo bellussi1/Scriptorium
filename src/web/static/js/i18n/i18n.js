@@ -7,7 +7,7 @@
  * window (see <script> tags in translation_interface.html).
  */
 
-export const SUPPORTED_LOCALES = ['en', 'fr', 'es', 'de', 'zh-CN', 'ja', 'ko'];
+export const SUPPORTED_LOCALES = ['pt-BR', 'en'];
 export const NAMESPACES = ['common', 'translation', 'settings', 'glossary', 'files', 'tts', 'errors', 'sample', 'style', 'queue'];
 
 let ready = false;
@@ -18,7 +18,7 @@ function resolveInitialLocale() {
     if (initial && SUPPORTED_LOCALES.includes(initial)) {
         return initial;
     }
-    return 'en';
+    return 'pt-BR';
 }
 
 /**

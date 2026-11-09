@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="{{ initial_locale|default('en') }}" class="light">
+<html lang="{{ initial_locale|default('pt-BR') }}" class="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,7 +10,7 @@
          without an extra round-trip and JSON caches bust on app upgrades.
          tojson escapes safely for a <script> context. -->
     <script>
-        window.__INITIAL_LOCALE__ = {{ initial_locale|default('en')|tojson }};
+        window.__INITIAL_LOCALE__ = {{ initial_locale|default('pt-BR')|tojson }};
         window.__APP_VERSION__    = {{ app_version|default('dev')|tojson }};
 
         // Per-session API token (issue #210). The server gates every /api/
@@ -245,16 +245,11 @@
                 </div>
                 <div class="header-lang-wrapper" data-i18n-attr="title:settings:ui_language_label" title="Interface language">
                     <span class="material-symbols-outlined header-lang-icon">language</span>
-                    <span class="header-lang-display" id="uiLocaleDisplay">EN</span>
+                    <span class="header-lang-display" id="uiLocaleDisplay">PT</span>
                     <span class="material-symbols-outlined header-lang-caret">expand_more</span>
                     <select id="uiLocaleSelect" class="header-lang-select" data-i18n-attr="aria-label:settings:ui_language_label" aria-label="Interface language">
+                        <option value="pt-BR" data-short="PT">Português (Brasil)</option>
                         <option value="en" data-short="EN">English</option>
-                        <option value="zh-CN" data-short="中">简体中文</option>
-                        <option value="es" data-short="ES">Español</option>
-                        <option value="fr" data-short="FR">Français</option>
-                        <option value="de" data-short="DE">Deutsch</option>
-                        <option value="ja" data-short="日">日本語</option>
-                        <option value="ko" data-short="한">한국어</option>
                     </select>
                 </div>
                 <button class="btn btn-secondary" id="themeToggleBtn" onclick="toggleTheme()" data-i18n-attr="title:common:theme_toggle_title" title="Toggle dark/light mode">
