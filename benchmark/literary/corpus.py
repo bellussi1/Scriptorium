@@ -10,7 +10,7 @@ import json
 import os
 import re
 import sys
-from dataclasses import dataclass, asdict
+from dataclasses import dataclass, asdict, fields
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Optional
 
@@ -166,12 +166,15 @@ def build_from_inventory(
 
 
 def load_corpus(path: str) -> List[Excerpt]:
+    allowed = {field.name for field in fields(Excerpt)}
     rows = []
     with open(path, "r", encoding="utf-8") as handle:
         for line in handle:
             line = line.strip()
             if line:
-                rows.append(Excerpt(**json.loads(line)))
+                data = json.loads(line)
+                data = {key: value for key, value in data.items() if key in allowed}
+                rows.append(Excerpt(**data))
     return rows
 
 

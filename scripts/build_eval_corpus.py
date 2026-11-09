@@ -198,6 +198,7 @@ class Candidate:
             "chapter_index": self.chapter_index,
             "chapter_title": self.chapter_title,
             "category": self.category,
+            "chapter_href": self.en_href,
             "text": self.text,
             "reference_pt": self.reference_pt,
             "source_language": "en",
