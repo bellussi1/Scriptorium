@@ -435,6 +435,23 @@ class CheckpointManager:
                     # Store the filename to check against orphan files
                     preserved_files.add(Path(preserved_path).name)
             conn.close()
+
+            # Queue jobs live in literary_queue.db, not translation_jobs. Their
+            # upload folders are named cli_<id>; without this lookup the cleanup
+            # treats them as orphans and deletes a resumable checkpoint.
+            queue_db = Path(self.db.db_path).with_name("literary_queue.db")
+            if queue_db.exists():
+                queue_conn = sqlite3.connect(queue_db)
+                try:
+                    db_job_ids.update(
+                        row[0]
+                        for row in queue_conn.execute(
+                            "SELECT translation_id FROM jobs "
+                            "WHERE translation_id IS NOT NULL AND translation_id != ''"
+                        )
+                    )
+                finally:
+                    queue_conn.close()
         except Exception as e:
             print(f"Warning: Error getting job IDs: {e}")
             return 0
@@ -450,10 +467,10 @@ class CheckpointManager:
             is_orphan = True
 
             if item.is_dir():
-                # It's a folder - check if it's a job ID folder
-                if item_name.startswith('trans_'):
-                    if item_name in db_job_ids:
-                        is_orphan = False
+                # It's a folder - keep it if any known job (legacy trans_ or
+                # queue cli_) owns it.
+                if item_name in db_job_ids:
+                    is_orphan = False
             else:
                 # It's a file - check if it's referenced by any job
                 if item_name in preserved_files:
