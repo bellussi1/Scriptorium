@@ -18,7 +18,9 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, Optional
 
-RUN_MODES = {"next", "all"}
+# This fork translates exactly one book per runner invocation. There is no
+# batch mode: a second book must wait for the first to pass the review gate.
+RUN_MODES = {"next"}
 
 
 def _now() -> str:
@@ -71,8 +73,8 @@ def request_run(
 ) -> Dict[str, Any]:
     """Write a run request for the host agent.
 
-    ``next`` runs one pending book and stops at the review gate; ``all`` lets
-    ``run-all`` walk the pending queue until it is empty or paused.
+    Only ``next`` exists: it runs one pending book and stops at the review
+    gate. A second book must never start while the first is still active.
     """
     mode = (mode or "next").strip().lower()
     if mode not in RUN_MODES:

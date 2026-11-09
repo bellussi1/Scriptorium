@@ -5,10 +5,12 @@ agent watches ``data/literary_queue.run-request.json``, starts the real
 ``queue run-all`` command on the host, and publishes a heartbeat the app reads
 through the shared ``data`` mount.
 
-Two modes are accepted:
+Only one mode exists:
 
 - ``next``: one pending book, stop at the review gate, export Kindle.
-- ``all``: walk the pending queue until it is empty or paused.
+
+There is no batch mode. The next book must wait until the first is reviewed and
+the queue is advanced.
 
 The agent never starts a second runner while one is alive. It is intentionally
 a standalone host script: run it with ``python scripts/queue_runner_agent.py``
@@ -37,7 +39,7 @@ from src.literary.queue_run_control import (  # noqa: E402
     write_agent_status,
     write_runner_info,
 )
-from src.literary.queue_runner import output_name  # noqa: E402
+from src.literary.queue_runner import active_direct_translation, output_name  # noqa: E402
 
 DEFAULT_DB = ROOT / "data" / "literary_queue.db"
 LOG_DIR = ROOT / "data" / "queue-runs"
@@ -93,7 +95,7 @@ def _command(db: Path, mode: str) -> list[str]:
         "--db",
         str(db),
         "--parallel",
-        "2",
+        "1",
         "--refine-limit",
         "0",
         "--export-kindle",
@@ -102,8 +104,9 @@ def _command(db: Path, mode: str) -> list[str]:
         "--kindle-out",
         "translated_files/kindle",
     ]
-    if mode == "next":
-        command.extend(["--max-books", "1", "--stop-on-review"])
+    # Always exactly one book, always stop at the review gate. The old batch
+    # mode was removed so a second book cannot start automatically.
+    command.extend(["--max-books", "1", "--stop-on-review"])
     return command
 
 
@@ -113,8 +116,17 @@ def _publish(db: Path, **payload) -> None:
 
 def _process_request(db: Path, request: dict, *, dry_run: bool) -> int:
     mode = str(request.get("mode") or "next").strip().lower()
-    if mode not in {"next", "all"}:
-        mode = "next"
+    if mode != "next":
+        clear_run_request(db, "one book per run")
+        _publish(
+            db,
+            running=False,
+            message="one book per run",
+            last_result="one book per run",
+            last_request=request,
+        )
+        print("run: one book per run; batch requests are refused", flush=True)
+        return 0
     pending = _pending_book(db)
     if pending is None:
         clear_run_request(db, "no pending books")
@@ -126,6 +138,28 @@ def _process_request(db: Path, request: dict, *, dry_run: bool) -> int:
             last_request=request,
         )
         print("run: no pending books", flush=True)
+        return 0
+
+    store = QueueStore(str(db))
+    try:
+        latest = store.latest_job(pending.id)
+        exclude = str((latest or {}).get("translation_id") or "")
+    finally:
+        store.close()
+    active = active_direct_translation(
+        db.with_name("jobs.db"),
+        exclude_translation_id=exclude,
+    )
+    if active:
+        clear_run_request(db, "another translation active")
+        _publish(
+            db,
+            running=False,
+            message="another translation active",
+            last_result="another translation active",
+            last_request=request,
+        )
+        print("run: another translation is active; one book at a time", flush=True)
         return 0
 
     current = read_runner_info(db)

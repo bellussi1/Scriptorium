@@ -222,8 +222,29 @@ def cmd_queue_plan(args: argparse.Namespace) -> int:
 
 
 def cmd_queue_run(args: argparse.Namespace) -> int:
-    from .queue_runner import run_queue_book
+    from .queue_runner import active_direct_translation, run_queue_book
 
+    if args.parallel and args.parallel > 1:
+        _print_json({"error": "one chunk at a time; --parallel must be 0 or 1"})
+        return 1
+    exclude = ""
+    if args.book_id:
+        store = QueueStore(args.db)
+        try:
+            job = store.latest_job(args.book_id)
+            exclude = str((job or {}).get("translation_id") or "")
+        finally:
+            store.close()
+    active = active_direct_translation(
+        Path(args.db).with_name("jobs.db"),
+        exclude_translation_id=exclude,
+    )
+    if active:
+        _print_json({
+            "error": "another translation is active; one book at a time",
+            "translation_id": active,
+        })
+        return 1
     try:
         result = run_queue_book(
             db_path=args.db,
@@ -244,14 +265,22 @@ def cmd_queue_run(args: argparse.Namespace) -> int:
 
 def cmd_queue_run_all(args: argparse.Namespace) -> int:
     from .kindle import build_kindle_library
-    from .queue_runner import run_queue_book
+    from .queue_runner import active_direct_translation, run_queue_book
 
+    if args.max_books != 1:
+        _print_json({"error": "one book per run; --max-books must be 1"})
+        return 1
+    if args.parallel and args.parallel > 1:
+        _print_json({"error": "one chunk at a time; --parallel must be 0 or 1"})
+        return 1
     results = []
     processed = 0
     last_finished = None
+    blocked = False
     while not args.max_books or processed < args.max_books:
-        # The web UI and `queue pause` arm this flag; it is checked between
-        # books so an in-flight translation is never interrupted.
+        # The web UI and `queue pause` arm this flag. With max_books=1 the
+        # runner always stops after this book; the flag is still honoured so
+        # the control file does not stay armed.
         if pause_requested(args.db):
             control = honor_pause(args.db, last_finished)
             results.append({
@@ -267,6 +296,25 @@ def cmd_queue_run_all(args: argparse.Namespace) -> int:
         finally:
             store.close()
         if not book:
+            break
+        store = QueueStore(args.db)
+        try:
+            latest = store.latest_job(book.id)
+            exclude = str((latest or {}).get("translation_id") or "")
+        finally:
+            store.close()
+        active = active_direct_translation(
+            Path(args.db).with_name("jobs.db"),
+            exclude_translation_id=exclude,
+        )
+        if active:
+            results.append({
+                "book_id": book.id,
+                "title": book.title,
+                "error": "another translation is active; one book at a time",
+                "translation_id": active,
+            })
+            blocked = True
             break
         processed += 1
         try:
@@ -311,6 +359,9 @@ def cmd_queue_run_all(args: argparse.Namespace) -> int:
             if args.stop_on_error:
                 break
 
+    if last_finished and pause_requested(args.db):
+        honor_pause(args.db, last_finished)
+
     kindle_result = None
     if args.export_kindle:
         kindle_result = build_kindle_library(
@@ -319,7 +370,7 @@ def cmd_queue_run_all(args: argparse.Namespace) -> int:
             output_root=args.kindle_out,
         )
     _print_json({"processed": processed, "results": results, "kindle": kindle_result})
-    return 0
+    return 1 if blocked else 0
 
 
 def cmd_queue_pause(args: argparse.Namespace) -> int:
@@ -797,8 +848,8 @@ def build_parser() -> argparse.ArgumentParser:
     run_parser.add_argument("--dry-run", action="store_true")
     run_parser.add_argument("--pov", default="", help="Narrator/POV note for refinement")
     run_parser.add_argument(
-        "--parallel", type=int, default=0,
-        help="Ollama slots for EPUB chunks; requires OLLAMA_NUM_PARALLEL on the server (0/1 = sequential)",
+        "--parallel", type=int, default=1,
+        help="One chunk at a time; only 0/1 are accepted",
     )
     run_parser.set_defaults(func=cmd_queue_run)
     export_parser = queue_sub.add_parser("export-kindle", help="Build a standardized Kindle folder from queue artifacts")
@@ -819,17 +870,23 @@ def build_parser() -> argparse.ArgumentParser:
     polish_parser.add_argument("--force", action="store_true")
     polish_parser.add_argument("--no-epubcheck", action="store_true")
     polish_parser.set_defaults(func=cmd_queue_polish)
-    run_all_parser = queue_sub.add_parser("run-all", help="Translate pending books sequentially and export Kindle files")
+    run_all_parser = queue_sub.add_parser(
+        "run-all",
+        help="Translate exactly one pending book and stop at the review gate",
+    )
     run_all_parser.add_argument("--db", default="data/literary_queue.db")
     run_all_parser.add_argument("--resources", default="literary-resources")
     run_all_parser.add_argument("--refine-limit", type=int, default=0)
     run_all_parser.add_argument("--no-refine", action="store_true")
     run_all_parser.add_argument("--pov", default="")
     run_all_parser.add_argument(
-        "--parallel", type=int, default=0,
-        help="Ollama slots for EPUB chunks; requires OLLAMA_NUM_PARALLEL on the server (0/1 = sequential)",
+        "--parallel", type=int, default=1,
+        help="One chunk at a time; only 0/1 are accepted",
     )
-    run_all_parser.add_argument("--max-books", type=int, default=0)
+    run_all_parser.add_argument(
+        "--max-books", type=int, default=1,
+        help="Must be 1; this fork never batches books",
+    )
     run_all_parser.add_argument("--stop-on-review", action="store_true")
     run_all_parser.add_argument("--stop-on-error", action="store_true")
     run_all_parser.add_argument("--export-kindle", action="store_true")

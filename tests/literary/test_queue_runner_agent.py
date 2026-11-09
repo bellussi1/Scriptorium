@@ -59,7 +59,44 @@ def test_agent_dry_run_consumes_the_request(tmp_path):
     assert info["dry_run"] is True
     assert info["mode"] == "next"
     assert info["title"] == "Test Book"
-    assert "--max-books" in info["command"]
+    command = info["command"]
+    assert command[command.index("--max-books") + 1] == "1"
+    assert command[command.index("--parallel") + 1] == "1"
 
     status = json.loads((tmp_path / "queue.agent.json").read_text(encoding="utf-8"))
     assert status["last_result"] == "dry run"
+
+
+def test_agent_refuses_a_batch_request(tmp_path):
+    db = tmp_path / "queue.db"
+    store = QueueStore(str(db))
+    store.add_book(_record(make_epub(tmp_path / "book.epub")))
+    store.close()
+    request_path = tmp_path / "queue.run-request.json"
+    request_path.write_text(
+        json.dumps({"mode": "all", "requested_at": "2026-11-09T00:00:00+00:00"}),
+        encoding="utf-8",
+    )
+
+    completed = subprocess.run(
+        [
+            sys.executable,
+            "scripts/queue_runner_agent.py",
+            "--db",
+            str(db),
+            "--once",
+            "--dry-run",
+        ],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        errors="replace",
+        timeout=120,
+    )
+
+    assert completed.returncode == 0, completed.stdout + completed.stderr
+    assert not request_path.exists()
+    assert not (tmp_path / "queue.runner.json").exists()
+    status = json.loads((tmp_path / "queue.agent.json").read_text(encoding="utf-8"))
+    assert status["last_result"] == "one book per run"

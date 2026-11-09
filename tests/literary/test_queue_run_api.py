@@ -63,14 +63,24 @@ def test_run_writes_a_request_for_the_host_agent(queue):
 
 def test_runner_endpoint_exposes_the_pending_request(queue):
     client, _db, _book_id = queue
-    client.post("/api/literary/queue/run", json={"mode": "all"})
+    client.post("/api/literary/queue/run", json={"mode": "next"})
 
     response = client.get("/api/literary/queue/runner")
 
     assert response.status_code == 200
     payload = response.get_json()
-    assert payload["run_request"]["mode"] == "all"
+    assert payload["run_request"]["mode"] == "next"
     assert payload["agent"]["online"] is False
+
+
+def test_run_rejects_batch_mode(queue):
+    client, db, _book_id = queue
+
+    response = client.post("/api/literary/queue/run", json={"mode": "all"})
+
+    assert response.status_code == 400
+    assert "one book" in response.get_json()["error"]
+    assert not (db.parent / "queue.run-request.json").exists()
 
 
 def test_run_rejects_invalid_mode(queue):

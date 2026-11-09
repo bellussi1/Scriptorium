@@ -674,14 +674,29 @@ Each EPUB is rewritten with standardized OPF metadata:
 - `calibre:title_sort`, `calibre:author_sort` and a standard description.
 
 The export also writes `manifest.csv` and `README.md` with reading order.
-`queue run-all` translates pending books sequentially and can call the export at
-the end (and after each completed book):
+The runner translates **exactly one book per invocation** and stops at the
+review gate; there is no batch mode. `--parallel` is a chunk setting, not a
+book setting, and is limited to one chunk at a time:
 
 ```bash
 python -m src.literary.cli queue run-all \
-  --db data/literary_queue.db --refine-limit 0 \
+  --db data/literary_queue.db --refine-limit 0 --parallel 1 \
+  --max-books 1 --stop-on-review \
   --export-kindle --kindle-out translated_files/kindle
 ```
+
+The one-book rule is enforced at every entry point:
+
+- `Run next` writes a `next` request; the host agent has no batch mode and
+  always passes `--max-books 1 --stop-on-review`.
+- `queue run-all` rejects any `--max-books` other than 1 and any `--parallel`
+  above 1.
+- `/api/translate` refuses to start a direct web translation while the queue
+  runner is active (409).
+- The queue runner refuses to start while a recent direct web translation is
+  still running.
+- `--parallel` is a chunk setting, not a book setting; the queue pins it to 1.
+  There is no supported path that translates two books at the same time.
 
 EPUB is accepted by Amazon Send to Kindle; the folder is also ready for a
 Calibre import.

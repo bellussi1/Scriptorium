@@ -272,6 +272,47 @@ def _stop_translation_process(process: subprocess.Popen, output_name: str) -> No
         _terminate_process_tree(process)
 
 
+def active_direct_translation(
+    checkpoint_db: Path = CHECKPOINT_DB,
+    *,
+    exclude_translation_id: str = "",
+    max_age_minutes: int = 10,
+) -> Optional[str]:
+    """Return a recent non-queue translation id, if one is still running.
+
+    The upstream database can keep a stale ``running`` row after a crash or a
+    pause. The age filter avoids blocking a new run on that row while keeping
+    a freshly started web translation exclusive.
+    """
+    if not checkpoint_db.exists():
+        return None
+    import sqlite3
+
+    try:
+        conn = sqlite3.connect(f"file:{checkpoint_db.as_posix()}?mode=ro", uri=True)
+    except sqlite3.Error:
+        return None
+    try:
+        row = conn.execute(
+            """
+            SELECT translation_id
+            FROM translation_jobs
+            WHERE status = 'running'
+              AND updated_at > datetime('now', ?)
+              AND translation_id != ?
+              AND translation_id NOT LIKE 'cli_%'
+            ORDER BY updated_at DESC
+            LIMIT 1
+            """,
+            (f"-{max_age_minutes} minutes", exclude_translation_id or ""),
+        ).fetchone()
+        return str(row[0]) if row else None
+    except sqlite3.Error:
+        return None
+    finally:
+        conn.close()
+
+
 def _upstream_progress(translation_id: Optional[str] = None) -> Tuple[str, int, int]:
     if not CHECKPOINT_DB.exists():
         return "", 0, 0

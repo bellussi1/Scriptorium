@@ -22,6 +22,7 @@ from src.config import (
     MAX_PARALLEL_TRANSLATIONS,
 )
 from src.tts.tts_config import TTSConfig
+from src.literary.queue_run_control import read_runner_info
 from src.api.api_keys import (
     resolve_api_key as _resolve_api_key,
     provider_env_var as _provider_env_var,
@@ -29,6 +30,21 @@ from src.api.api_keys import (
 )
 
 logger = logging.getLogger('translation_routes')
+
+
+def _queue_runner_active() -> bool:
+    """True while the host queue runner is translating a book.
+
+    The queue and the direct Translate tab share one GPU. The product rule is
+    one book at a time, so the direct route refuses to start while the queue
+    runner is alive. Missing/stale runner metadata reads as idle.
+    """
+    db_path = Path(os.getenv('LITERARY_QUEUE_DB', 'data/literary_queue.db'))
+    try:
+        info = read_runner_info(db_path)
+    except Exception:
+        return False
+    return bool(info.get("running"))
 
 
 def _queue_finished_translation_ids() -> set:
@@ -486,6 +502,11 @@ def create_translation_blueprint(state_manager, start_translation_job, output_di
                     pass
                 else:
                     return jsonify({"error": f"Missing or empty field: {field}"}), 400
+
+        if _queue_runner_active():
+            return jsonify({
+                "error": "a queue translation is active; one book at a time"
+            }), 409
 
         monolingual = bool(data.get('term_fix') or data.get('refine_only'))
         if not _is_supported_language_pair(

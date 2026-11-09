@@ -15,15 +15,16 @@ def _assets():
     }
 
 
-def test_command_includes_parallel_slots_and_resume_id():
+def test_command_stays_one_chunk_at_a_time_and_carries_resume_id():
     command = _translation_command(
         _book(), "model", "ollama", _assets(), "Test Book (pt-BR).epub",
-        parallel_workers=2,
+        parallel_workers=1,
         translation_id="cli_test",
     )
 
-    assert "OLLAMA_PARALLEL_TRANSLATIONS=2" in command
-    assert command[-4:] == ["--parallel", "2", "--translation-id", "cli_test"]
+    assert "OLLAMA_PARALLEL_TRANSLATIONS=2" not in command
+    assert "--parallel" not in command
+    assert command[-2:] == ["--translation-id", "cli_test"]
 
 
 def test_command_stays_sequential_by_default():

@@ -23,14 +23,14 @@ from src.literary.queue_run_control import (
 def test_request_run_round_trip(tmp_path):
     db = tmp_path / "queue.db"
 
-    payload = request_run(db, mode="all", requested_by="test")
+    payload = request_run(db, mode="next", requested_by="test")
 
-    assert payload["mode"] == "all"
+    assert payload["mode"] == "next"
     assert request_path(db).exists()
-    assert read_run_request(db)["mode"] == "all"
+    assert read_run_request(db)["mode"] == "next"
 
     honored = clear_run_request(db, "started")
-    assert honored["mode"] == "all"
+    assert honored["mode"] == "next"
     assert honored["message"] == "started"
     assert honored["honored_at"]
     assert read_run_request(db) is None
@@ -40,6 +40,11 @@ def test_request_run_round_trip(tmp_path):
 def test_request_run_rejects_unknown_mode(tmp_path):
     with pytest.raises(ValueError):
         request_run(tmp_path / "queue.db", mode="sideways")
+
+
+def test_request_run_rejects_batch_mode(tmp_path):
+    with pytest.raises(ValueError):
+        request_run(tmp_path / "queue.db", mode="all")
 
 
 def test_agent_status_is_online_while_heartbeat_is_fresh(tmp_path):

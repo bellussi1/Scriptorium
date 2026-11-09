@@ -458,8 +458,10 @@ def create_literary_queue_blueprint() -> Blueprint:
         db_path = _db_path()
         payload = request.get_json(silent=True) or {}
         mode = str(payload.get("mode") or "next").strip().lower()
-        if mode not in {"next", "all"}:
-            return _json_error("mode must be 'next' or 'all'")
+        if mode != "next":
+            return _json_error(
+                "mode must be 'next'; this fork translates one book per run"
+            )
 
         store = QueueStore(str(db_path))
         try:
