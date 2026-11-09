@@ -6,9 +6,12 @@ from pathlib import Path
 from src.literary.queue_control import (
     control_path,
     honor_pause,
+    honor_pause_now,
+    pause_now_requested,
     pause_requested,
     read_control,
     set_pause,
+    set_pause_now,
 )
 
 
@@ -24,6 +27,10 @@ def test_missing_control_file_reads_as_idle(tmp_path: Path):
         "requested_at": None,
         "honored_at": None,
         "honored_after": None,
+        "pause_now": False,
+        "pause_now_requested_at": None,
+        "pause_now_honored_at": None,
+        "pause_now_honored_after": None,
     }
 
 
@@ -79,3 +86,52 @@ def test_corrupt_control_file_reads_as_idle(tmp_path: Path):
 
     assert read_control(db)["pause_after_book"] is False
     assert pause_requested(db) is False
+
+
+def test_requesting_pause_now_writes_and_reads_back(tmp_path: Path):
+    db = tmp_path / "queue.db"
+    state = set_pause_now(db, True)
+
+    assert state["pause_now"] is True
+    assert state["pause_now_requested_at"]
+    assert pause_now_requested(db) is True
+    assert control_path(db).is_file()
+
+    stored = read_control(db)
+    assert stored["pause_now"] is True
+    assert stored["pause_now_requested_at"] == state["pause_now_requested_at"]
+
+
+def test_cancelling_pause_now_clears_the_request(tmp_path: Path):
+    db = tmp_path / "queue.db"
+    set_pause_now(db, True)
+
+    state = set_pause_now(db, False)
+
+    assert state["pause_now"] is False
+    assert state["pause_now_requested_at"] is None
+    assert pause_now_requested(db) is False
+
+
+def test_honouring_pause_now_records_the_book_and_clears_the_flag(tmp_path: Path):
+    db = tmp_path / "queue.db"
+    set_pause_now(db, True)
+
+    state = honor_pause_now(db, {"id": 3, "title": "The Mad Ship"})
+
+    assert state["pause_now"] is False
+    assert state["pause_now_honored_at"]
+    assert state["pause_now_honored_after"] == {"id": 3, "title": "The Mad Ship"}
+    assert pause_now_requested(db) is False
+
+
+def test_pause_now_keeps_the_pause_after_book_flag_independent(tmp_path: Path):
+    db = tmp_path / "queue.db"
+    set_pause(db, True)
+    state = set_pause_now(db, True)
+    assert state["pause_after_book"] is True
+    assert state["pause_now"] is True
+
+    state = set_pause_now(db, False)
+    assert state["pause_after_book"] is True
+    assert state["pause_now"] is False

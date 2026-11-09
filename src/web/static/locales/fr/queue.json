@@ -142,5 +142,8 @@
   "pause_requested": "Pause demandée. Le runner s'arrêtera à la prochaine limite de livre.",
   "pause_idle_hint": "S'arrête après le livre en cours, ou avant le suivant si la file est inactive.",
   "paused_after": "Pause après {{title}}.",
-  "pause_error": "Impossible de mettre à jour la demande de pause : {{message}}"
+  "pause_error": "Impossible de mettre à jour la demande de pause : {{message}}",
+  "pause_now": "Mettre en pause maintenant",
+  "pause_now_requested": "Mise en pause du livre en cours au prochain point de contrôle…",
+  "pause_now_error": "Impossible de mettre en pause le livre en cours : {{message}}"
 }

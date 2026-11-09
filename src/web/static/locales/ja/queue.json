@@ -142,5 +142,8 @@
   "pause_requested": "一時停止を要求しました。ランナーは次の書籍の区切りで停止します。",
   "pause_idle_hint": "翻訳中の書籍が終わった後に停止します。待機中なら次の書籍を開始する前に停止します。",
   "paused_after": "「{{title}}」の後に一時停止しました。",
-  "pause_error": "一時停止要求を更新できませんでした: {{message}}"
+  "pause_error": "一時停止要求を更新できませんでした: {{message}}",
+  "pause_now": "今すぐ一時停止",
+  "pause_now_requested": "次のチェックポイントで現在の書籍を一時停止しています…",
+  "pause_now_error": "現在の書籍を一時停止できませんでした: {{message}}"
 }

@@ -23,6 +23,11 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
 from .queue import QueueStore
+from .queue_control import (
+    honor_pause_now,
+    pause_now_requested,
+    set_pause,
+)
 from .reading_repair import repair_reading_epub
 from .repair import repair_doc_roles_in_epub, repair_dropcaps_in_epub
 from .resources import (
@@ -191,6 +196,69 @@ def _terminate_process_tree(process: subprocess.Popen) -> None:
         process.wait(timeout=10)
     except subprocess.TimeoutExpired:
         process.kill()
+
+
+def _container_translation_pids(output_name: str) -> List[int]:
+    """PIDs of translate.py inside the app container, newest output first."""
+    command = ["docker", "compose", "-f", "docker-compose.dev.yml", "top", "app"]
+    try:
+        completed = subprocess.run(
+            command,
+            cwd=ROOT,
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            timeout=30,
+        )
+    except Exception:
+        return []
+    lines = [
+        line for line in (completed.stdout or "").splitlines()
+        if "translate.py" in line and "translation_api.py" not in line
+    ]
+    for require_output in (True, False):
+        pids: List[int] = []
+        for line in lines:
+            if require_output and output_name and output_name not in line:
+                continue
+            parts = line.split()
+            if len(parts) > 3 and parts[0] == "app" and parts[3].isdigit():
+                pids.append(int(parts[3]))
+        if pids:
+            return pids
+    return []
+
+
+def _stop_translation_process(process: subprocess.Popen, output_name: str) -> None:
+    """Stop the container-side translation, then the docker exec wrapper.
+
+    The queue runner owns a ``docker compose exec`` process on the host; the
+    actual ``translate.py`` runs inside the container. Killing only the host
+    wrapper can leave the container process alive, so the container PID is
+    signalled first. The per-chunk checkpoint on disk is what makes this safe.
+    """
+    for pid in _container_translation_pids(output_name):
+        try:
+            subprocess.run(
+                [
+                    "docker", "compose", "-f", "docker-compose.dev.yml",
+                    "exec", "-T", "app", "kill", "-TERM", str(pid),
+                ],
+                cwd=ROOT,
+                capture_output=True,
+                text=True,
+                encoding="utf-8",
+                errors="replace",
+                timeout=30,
+            )
+        except Exception:
+            pass
+    deadline = time.time() + 20
+    while process.poll() is None and time.time() < deadline:
+        time.sleep(1)
+    if process.poll() is None:
+        _terminate_process_tree(process)
 
 
 def _upstream_progress(translation_id: Optional[str] = None) -> Tuple[str, int, int]:
@@ -450,7 +518,13 @@ def run_queue_book(
     last_sync = 0.0
     complete_since = None
     stuck_terminated = False
+    paused_by_user = False
     while process.poll() is None:
+        if pause_now_requested(db_path):
+            log(book.title, "pause-now requested; stopping the current translation")
+            _stop_translation_process(process, output_host.name)
+            paused_by_user = True
+            break
         if translation_id is None and time.time() - started > 5:
             candidate = _find_translation_id(book.title, since)
             if candidate:
@@ -496,6 +570,43 @@ def run_queue_book(
     log(book.title, f"translation process exited with {returncode}; final sync={final_sync}")
     if translation_id is None:
         translation_id = _find_translation_id(book.title, since)
+
+    if paused_by_user:
+        store = QueueStore(db_path)
+        try:
+            try:
+                store.set_job_state(job_id, "paused", "paused by user from the queue UI")
+            except ValueError:
+                pass
+            try:
+                store.set_book_state(book.id, "paused", "paused by user from the queue UI")
+            except ValueError:
+                pass
+            store.add_event(
+                "queue runner paused by user",
+                book_id=book.id,
+                job_id=job_id,
+                level="warning",
+            )
+        finally:
+            store.close()
+        honor_pause_now(db_path, {"id": book.id, "title": book.title})
+        set_pause(db_path, False)
+        report = {
+            "book": book.to_dict(),
+            "job_id": job_id,
+            "translation_id": translation_id,
+            "returncode": returncode,
+            "paused": True,
+            "queue_state": "paused",
+            "duration_s": round(time.time() - started, 1),
+            "output": str(output_host) if output_host.exists() else "",
+        }
+        _report_path(book.title).write_text(
+            json.dumps(report, ensure_ascii=False, indent=2),
+            encoding="utf-8",
+        )
+        return report
 
     if not output_host.exists():
         store = QueueStore(db_path)

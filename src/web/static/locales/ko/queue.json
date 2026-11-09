@@ -142,5 +142,8 @@
   "pause_requested": "일시 중지가 요청되었습니다. 러너는 다음 책 경계에서 중지됩니다.",
   "pause_idle_hint": "번역 중인 책이 끝난 뒤 중지하며, 대기 중이면 다음 책을 시작하기 전에 중지합니다.",
   "paused_after": "《{{title}}》 뒤에 일시 중지했습니다.",
-  "pause_error": "일시 중지 요청을 업데이트하지 못했습니다: {{message}}"
+  "pause_error": "일시 중지 요청을 업데이트하지 못했습니다: {{message}}",
+  "pause_now": "지금 일시 중지",
+  "pause_now_requested": "다음 체크포인트에서 현재 책을 일시 중지하는 중…",
+  "pause_now_error": "현재 책을 일시 중지하지 못했습니다: {{message}}"
 }

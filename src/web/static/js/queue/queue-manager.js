@@ -288,6 +288,18 @@ function renderNow(data) {
         ? `<span class="queue-now-error">${escapeHtml(t('queue:now_error', { message: book.error }))}</span>`
         : `<span class="queue-muted">${escapeHtml(t('queue:now_no_error'))}</span>`;
     const buttons = [];
+    if (isActive) {
+        const pauseLabel = controlState.pause_now
+            ? t('queue:pause_cancel')
+            : t('queue:pause_now');
+        buttons.push(`
+            <button type="button" class="btn btn-secondary queue-now-btn queue-pause-now-btn"
+                    data-now-pause="${book.id}">
+                <span class="material-symbols-outlined" aria-hidden="true">pause_circle</span>
+                <span data-now-pause-label>${escapeHtml(pauseLabel)}</span>
+            </button>
+        `);
+    }
     if (book.artifact) {
         buttons.push(`
             <button type="button" class="btn btn-secondary queue-now-btn"
@@ -635,6 +647,7 @@ function renderControl() {
     const icon = byId('queuePauseIcon');
     const status = byId('queueControlStatus');
     const active = Boolean(controlState.pause_after_book);
+    const stopping = Boolean(controlState.pause_now);
 
     if (button) {
         button.classList.toggle('is-requested', active);
@@ -644,10 +657,20 @@ function renderControl() {
         label.textContent = t(active ? 'queue:pause_cancel' : 'queue:pause_after_book');
     }
     if (icon) icon.textContent = active ? 'play_circle' : 'pause_circle';
+    const nowLabel = document.querySelector('[data-now-pause-label]');
+    if (nowLabel) {
+        nowLabel.textContent = t(controlState.pause_now ? 'queue:pause_cancel' : 'queue:pause_now');
+    }
     if (status) {
         status.classList.remove('is-error');
-        if (active) {
+        if (stopping) {
+            status.textContent = t('queue:pause_now_requested');
+        } else if (active) {
             status.textContent = t('queue:pause_requested');
+        } else if (controlState.pause_now_honored_after && controlState.pause_now_honored_after.title) {
+            status.textContent = t('queue:paused_after', {
+                title: controlState.pause_now_honored_after.title,
+            });
         } else if (controlState.honored_after && controlState.honored_after.title) {
             status.textContent = t('queue:paused_after', {
                 title: controlState.honored_after.title,
@@ -694,6 +717,39 @@ async function togglePause() {
     } catch (error) {
         if (status) {
             status.textContent = t('queue:pause_error', {
+                message: error.message || String(error),
+            });
+            status.classList.add('is-error');
+        }
+    } finally {
+        controlInFlight = false;
+        if (button) button.disabled = false;
+    }
+}
+
+async function pauseNow(bookId) {
+    if (controlInFlight) return;
+    const button = document.querySelector(`[data-now-pause="${bookId}"]`);
+    const status = byId('queueControlStatus');
+    const next = !controlState.pause_now;
+
+    controlInFlight = true;
+    if (button) button.disabled = true;
+    if (status) status.classList.remove('is-error');
+    try {
+        const response = await fetch(CONTROL_URL, {
+            method: 'POST',
+            headers: { ...apiHeaders(), 'Content-Type': 'application/json' },
+            body: JSON.stringify({ pause_now: next }),
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(data.error || `HTTP ${response.status}`);
+        controlState = data;
+        renderControl();
+        setTimeout(refresh, 1500);
+    } catch (error) {
+        if (status) {
+            status.textContent = t('queue:pause_now_error', {
                 message: error.message || String(error),
             });
             status.classList.add('is-error');
@@ -1261,6 +1317,11 @@ function initialize() {
             const approve = event.target.closest('[data-now-approve]');
             if (approve) {
                 approveBook(Number(approve.dataset.nowApprove));
+                return;
+            }
+            const pause = event.target.closest('[data-now-pause]');
+            if (pause) {
+                pauseNow(Number(pause.dataset.nowPause));
                 return;
             }
             const retry = event.target.closest('[data-now-retry]');

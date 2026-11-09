@@ -17,7 +17,7 @@ Hy-MT2-7B and Index-Translate-9B (about 10 GB total).
 | `src/literary/resources.py` | Hierarchical YAML loader/validator/compiler; glossary/style merge; first-appearance filtering |
 | `src/literary/glossary.py` | Alias-aware, forbidden-aware, budgeted per-chunk selection and prompt block |
 | `src/literary/queue.py` | Persistent SQLite book/chapter queue; states; idempotency; events |
-| `src/literary/queue_control.py` | Pause-after-book request file read by `run-all` between books |
+| `src/literary/queue_control.py` | Pause-after-book and pause-now request file read by `run-all` |
 | `src/literary/cost.py` | Dated pricing registry; measured token ratios; scenarios A–E |
 | `src/literary/validation.py` | Pair and EPUB validation, including TOC-label corruption |
 | `src/literary/cli.py` | Inventory, resources, queue, estimate, validate, metadata |
@@ -69,7 +69,7 @@ pytest -p no:cacheprovider tests/unit/glossary -q
 # 183 passed
 
 pytest -p no:cacheprovider -q
-# 2943 passed, 2 skipped, 10 deselected, 14 failed
+# 2950 passed, 2 skipped, 10 deselected, 14 failed
 ```
 
 The same 14 failures reproduce on a clean worktree at upstream `b5ed606` under
@@ -419,10 +419,17 @@ the controlled actions the queue needs from the browser:
 - `POST /api/literary/queue/books` enqueues up to 100 `calibre_ids` at a time,
   skips duplicates, and maps host paths to the `/library` container mount so the
   EPUB can be hashed and read by the runner.
-- `GET/POST /api/literary/queue/control` reads and writes the
-  pause-after-book request in `<queue>.control.json`. `run-all` checks it
-  between books, so an in-flight translation is never interrupted. The same
-  request is available from the CLI as `queue pause` / `queue resume`.
+- `GET/POST /api/literary/queue/control` reads and writes two requests in
+  `<queue>.control.json`: `pause_after_book` stops at the next book boundary,
+  and `pause_now` stops the book currently being translated. `run-all` checks
+  both; `pause_now` sends SIGTERM to the container-side `translate.py` so the
+  per-chunk checkpoint survives, marks the book/job `paused`, and stops the
+  queue. The same requests are available from the CLI as
+  `queue pause` / `queue pause-now` / `queue resume`.
+- Runners started before `pause_now` existed are bridged by
+  `scripts/pause_queue_agent.py`: a host-side watcher that reads
+  `data/literary_queue.runner.json`, stops the old wrapper and translation, and
+  records the pause. New runners do not need it.
 - `POST /api/literary/queue/books/<id>/move` moves a **pending** book up or
   down and renumbers pending priorities; non-pending entries are rejected with
   `409`.
@@ -450,8 +457,9 @@ the controlled actions the queue needs from the browser:
 - The strings are in a new `queue` i18n namespace across all seven supported
   locales.
 - The boundary is explicit: the UI can enqueue, reorder, set the model for
-  pending books and request a pause that the runner honours at a book boundary.
-  It never starts, kills or validates a translation job itself.
+  pending books, request a pause after the current book, and stop the book being
+  translated. It never starts or validates a translation job itself; the runner
+  owns execution.
 
 The active UI on port 5000 gets the tab after a restart. For validation I ran a
 second isolated app on **`http://127.0.0.1:5001`** with a copy of the queue
@@ -462,7 +470,7 @@ model for *Ship of Magic* worked against the copy; all three actions were then
 reverted by restoring the copy from the live queue. The second instance does not
 touch the real `data/jobs.db`.
 
-Validation: **22** route tests, full suite **2,943 passed, 2 skipped, 14
+Validation: **24** route tests, full suite **2,950 passed, 2 skipped, 14
 pre-existing failures**.
 
 #### 2.13.1 Cross-screen UI polish

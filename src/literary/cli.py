@@ -24,7 +24,7 @@ from .cost import SCENARIOS, estimate_book, estimate_scenario, estimate_series, 
 from .epub import read_epub, update_opf_metadata, validate_epub_structure
 from .models import BookRecord, Severity
 from .queue import QueueStore
-from .queue_control import honor_pause, pause_requested, set_pause
+from .queue_control import honor_pause, pause_requested, set_pause, set_pause_now
 from .refine_runner import (
     find_flagged_segments,
     generate_ollama,
@@ -280,6 +280,8 @@ def cmd_queue_run_all(args: argparse.Namespace) -> int:
             )
             last_finished = {"id": book.id, "title": book.title}
             results.append({"book_id": book.id, "title": book.title, "state": result.get("queue_state"), "report": result})
+            if result.get("paused"):
+                break
             if args.export_kindle:
                 try:
                     build_kindle_library(
@@ -312,8 +314,14 @@ def cmd_queue_pause(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_queue_pause_now(args: argparse.Namespace) -> int:
+    _print_json(set_pause_now(args.db, True))
+    return 0
+
+
 def cmd_queue_resume(args: argparse.Namespace) -> int:
-    _print_json(set_pause(args.db, False))
+    set_pause(args.db, False)
+    _print_json(set_pause_now(args.db, False))
     return 0
 
 
@@ -811,8 +819,13 @@ def build_parser() -> argparse.ArgumentParser:
     )
     pause_parser.add_argument("--db", default="data/literary_queue.db")
     pause_parser.set_defaults(func=cmd_queue_pause)
+    pause_now_parser = queue_sub.add_parser(
+        "pause-now", help="Stop the book currently being translated"
+    )
+    pause_now_parser.add_argument("--db", default="data/literary_queue.db")
+    pause_now_parser.set_defaults(func=cmd_queue_pause_now)
     resume_parser = queue_sub.add_parser(
-        "resume", help="Cancel a pending pause-after-book request"
+        "resume", help="Cancel a pending pause request"
     )
     resume_parser.add_argument("--db", default="data/literary_queue.db")
     resume_parser.set_defaults(func=cmd_queue_resume)

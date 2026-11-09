@@ -533,3 +533,34 @@ def test_control_route_rejects_a_non_boolean_value(tmp_path: Path, monkeypatch):
 
     assert response.status_code == 400
     assert "boolean" in response.get_json()["error"]
+
+
+def test_control_route_round_trips_pause_now(tmp_path: Path, monkeypatch):
+    app = _client(tmp_path, monkeypatch, rows=[])
+    client = app.test_client()
+
+    requested = client.post(
+        "/api/literary/queue/control", json={"pause_now": True}
+    )
+    assert requested.status_code == 200
+    payload = requested.get_json()
+    assert payload["pause_now"] is True
+    assert payload["pause_now_requested_at"]
+
+    current = client.get("/api/literary/queue/control").get_json()
+    assert current["pause_now"] is True
+
+    cleared = client.post(
+        "/api/literary/queue/control", json={"pause_now": False}
+    )
+    assert cleared.status_code == 200
+    assert cleared.get_json()["pause_now"] is False
+
+
+def test_control_route_requires_at_least_one_flag(tmp_path: Path, monkeypatch):
+    app = _client(tmp_path, monkeypatch, rows=[])
+
+    response = app.test_client().post("/api/literary/queue/control", json={})
+
+    assert response.status_code == 400
+    assert "pause_after_book or pause_now" in response.get_json()["error"]

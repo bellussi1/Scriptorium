@@ -130,3 +130,26 @@ def test_without_a_pause_the_runner_processes_every_pending_book(
     assert cmd_queue_run_all(_args(db)) == 0
     assert len(calls) == 2
     assert read_control(str(db))["honored_at"] is None
+
+
+def test_a_paused_result_stops_the_run_all_loop(tmp_path: Path, monkeypatch):
+    db = tmp_path / "queue.db"
+    _seed(db, 1, "First")
+    second = _seed(db, 2, "Second")
+    calls = []
+
+    def fake_runner(db_path, book_id, **kwargs):
+        calls.append(book_id)
+        _complete_run(db_path, book_id)
+        return {"queue_state": "paused", "paused": True}
+
+    monkeypatch.setattr("src.literary.queue_runner.run_queue_book", fake_runner)
+
+    assert cmd_queue_run_all(_args(db)) == 0
+    assert len(calls) == 1
+
+    store = QueueStore(str(db))
+    try:
+        assert [book.id for book in store.list_books(status="pending")] == [second]
+    finally:
+        store.close()

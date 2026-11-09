@@ -142,5 +142,8 @@
   "pause_requested": "已请求暂停。运行器将在下一本书的边界停止。",
   "pause_idle_hint": "在正在翻译的书籍完成后停止；队列空闲时则在下一本开始前停止。",
   "paused_after": "已在《{{title}}》后暂停。",
-  "pause_error": "无法更新暂停请求：{{message}}"
+  "pause_error": "无法更新暂停请求：{{message}}",
+  "pause_now": "立即暂停",
+  "pause_now_requested": "正在下一个检查点暂停当前书籍…",
+  "pause_now_error": "无法暂停当前书籍：{{message}}"
 }

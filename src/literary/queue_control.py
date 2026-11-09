@@ -1,19 +1,15 @@
-"""Pause-after-book control for the literary queue runner.
+"""Pause controls for the literary queue runner.
 
-The queue runner is a long-lived CLI process; the web UI must be able to ask
-it to stop at the next book boundary without killing a translation mid-chapter.
-The request therefore lives in a small JSON file next to the queue database
-rather than in the database itself: it is cheap, survives restarts, and never
-contends with the runner's SQLite writes.
+Two requests live here, both in a small JSON file next to the queue database
+rather than in SQLite: it is cheap, survives restarts, and never contends with
+the runner's database writes.
 
-Semantics: the runner checks the flag at the top of its book loop. If it is
-set, the runner records the pause, clears the flag and exits before starting
-another book. A request made while a book is translating is honoured when that
-book finishes; a request made while the queue is idle means the next run stops
-before starting a book.
+- ``pause_after_book`` stops the runner at the next book boundary.
+- ``pause_now`` stops the book currently being translated at a safe checkpoint
+  and stops the runner, so it cannot start the next book.
 
-The file also keeps the last honoured pause so the UI can say "Paused after
-<book>" instead of silently losing the request.
+The file also keeps the last honoured request so the UI can say what happened
+instead of silently losing it.
 """
 from __future__ import annotations
 
@@ -40,7 +36,24 @@ def _empty() -> Dict[str, Any]:
         "requested_at": None,
         "honored_at": None,
         "honored_after": None,
+        "pause_now": False,
+        "pause_now_requested_at": None,
+        "pause_now_honored_at": None,
+        "pause_now_honored_after": None,
     }
+
+
+def _book(value: object) -> Optional[Dict[str, Any]]:
+    if not isinstance(value, dict):
+        return None
+    try:
+        book_id = int(value.get("id"))
+    except (TypeError, ValueError):
+        book_id = None
+    title = value.get("title")
+    if book_id is None and not title:
+        return None
+    return {"id": book_id, "title": str(title or "")}
 
 
 def _normalize(data: object) -> Dict[str, Any]:
@@ -48,21 +61,12 @@ def _normalize(data: object) -> Dict[str, Any]:
     if not isinstance(data, dict):
         return result
     result["pause_after_book"] = bool(data.get("pause_after_book"))
-    for key in ("requested_at", "honored_at"):
+    for key in ("requested_at", "honored_at", "pause_now_requested_at", "pause_now_honored_at"):
         value = data.get(key)
         result[key] = str(value) if value else None
-    honored = data.get("honored_after")
-    if isinstance(honored, dict):
-        try:
-            book_id = int(honored.get("id"))
-        except (TypeError, ValueError):
-            book_id = None
-        title = honored.get("title")
-        if book_id is not None or title:
-            result["honored_after"] = {
-                "id": book_id,
-                "title": str(title or ""),
-            }
+    result["honored_after"] = _book(data.get("honored_after"))
+    result["pause_now"] = bool(data.get("pause_now"))
+    result["pause_now_honored_after"] = _book(data.get("pause_now_honored_after"))
     return result
 
 
@@ -110,11 +114,43 @@ def honor_pause(
     db_path: str | Path,
     book: Optional[Dict[str, Any]] = None,
 ) -> Dict[str, Any]:
-    """Clear a pause request and record which book it stopped after."""
+    """Clear a pause-after-book request and record which book it stopped after."""
     data = read_control(db_path)
     if not data["pause_after_book"]:
         return data
     data["pause_after_book"] = False
     data["honored_at"] = _now()
     data["honored_after"] = book
+    return _write(db_path, data)
+
+
+def set_pause_now(db_path: str | Path, pause: bool) -> Dict[str, Any]:
+    """Request or cancel an immediate pause of the book being translated."""
+    data = read_control(db_path)
+    if pause:
+        data["pause_now"] = True
+        data["pause_now_requested_at"] = _now()
+        data["pause_now_honored_at"] = None
+        data["pause_now_honored_after"] = None
+    else:
+        data["pause_now"] = False
+        data["pause_now_requested_at"] = None
+    return _write(db_path, data)
+
+
+def pause_now_requested(db_path: str | Path) -> bool:
+    return bool(read_control(db_path)["pause_now"])
+
+
+def honor_pause_now(
+    db_path: str | Path,
+    book: Optional[Dict[str, Any]] = None,
+) -> Dict[str, Any]:
+    """Clear an immediate pause request and record which book it stopped."""
+    data = read_control(db_path)
+    if not data["pause_now"]:
+        return data
+    data["pause_now"] = False
+    data["pause_now_honored_at"] = _now()
+    data["pause_now_honored_after"] = book
     return _write(db_path, data)

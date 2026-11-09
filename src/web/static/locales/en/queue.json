@@ -142,5 +142,8 @@
   "pause_requested": "Pause requested. The runner stops at the next book boundary.",
   "pause_idle_hint": "Stops after the book in progress, or before the next one when the queue is idle.",
   "paused_after": "Paused after {{title}}.",
-  "pause_error": "Could not update the pause request: {{message}}"
+  "pause_error": "Could not update the pause request: {{message}}",
+  "pause_now": "Pause now",
+  "pause_now_requested": "Pausing the current book at the next checkpoint…",
+  "pause_now_error": "Could not pause the current book: {{message}}"
 }

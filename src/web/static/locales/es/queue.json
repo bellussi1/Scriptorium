@@ -142,5 +142,8 @@
   "pause_requested": "Pausa solicitada. El runner se detendrá en el próximo límite de libro.",
   "pause_idle_hint": "Se detiene después del libro actual, o antes del siguiente si la cola está inactiva.",
   "paused_after": "Pausado después de {{title}}.",
-  "pause_error": "No se pudo actualizar la solicitud de pausa: {{message}}"
+  "pause_error": "No se pudo actualizar la solicitud de pausa: {{message}}",
+  "pause_now": "Pausar ahora",
+  "pause_now_requested": "Pausando el libro actual en el próximo punto de control…",
+  "pause_now_error": "No se pudo pausar el libro actual: {{message}}"
 }

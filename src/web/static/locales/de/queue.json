@@ -142,5 +142,8 @@
   "pause_requested": "Pause angefordert. Der Runner stoppt an der nächsten Buchgrenze.",
   "pause_idle_hint": "Stoppt nach dem laufenden Buch oder vor dem nächsten, wenn die Warteschlange inaktiv ist.",
   "paused_after": "Pausiert nach {{title}}.",
-  "pause_error": "PausenAnforderung konnte nicht aktualisiert werden: {{message}}"
+  "pause_error": "PausenAnforderung konnte nicht aktualisiert werden: {{message}}",
+  "pause_now": "Jetzt pausieren",
+  "pause_now_requested": "Das aktuelle Buch wird am nächsten Prüfpunkt pausiert…",
+  "pause_now_error": "Das aktuelle Buch konnte nicht pausiert werden: {{message}}"
 }

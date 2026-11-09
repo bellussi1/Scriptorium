@@ -22,7 +22,7 @@ from flask import Blueprint, jsonify, request, send_file
 
 from src.literary.models import BookRecord
 from src.literary.queue import QueueStore, _transition_path
-from src.literary.queue_control import read_control, set_pause
+from src.literary.queue_control import read_control, set_pause, set_pause_now
 from src.literary.queue_insights import (
     DEFAULT_KINDLE_DIR,
     DEFAULT_PILOT_DIR,
@@ -283,6 +283,8 @@ def build_queue_snapshot(db_path: str | Path) -> Dict[str, Any]:
 
     by_status: Dict[str, int] = {}
     position = 0
+    control = read_control(path)
+    paused_now_id = (control.get("pause_now_honored_after") or {}).get("id")
     for book in books:
         artifact = _artifact_for(str(book.get("title") or ""))
         if artifact:
@@ -298,7 +300,9 @@ def build_queue_snapshot(db_path: str | Path) -> Dict[str, Any]:
         book["state"] = state
         # A paused editorial state with a recently written upstream log means
         # the translation process is still alive; some upstream checkpoints
-        # briefly report "interrupted" while a retry is in flight.
+        # briefly report "interrupted" while a retry is in flight. An honoured
+        # pause-now always wins, so the UI does not keep showing a book that
+        # the user just stopped.
         book["live"] = state in {"preparing", "translating", "reviewing", "validating"}
         if not book["live"] and state == "paused" and book.get("translation_id"):
             log_path = find_log(str(book.get("title") or ""), _run_dir(), _pilot_dir())
@@ -307,6 +311,9 @@ def build_queue_snapshot(db_path: str | Path) -> Dict[str, Any]:
                     book["live"] = (time.time() - log_path.stat().st_mtime) < 180
                 except OSError:
                     book["live"] = False
+        if state == "paused" and paused_now_id == book["id"]:
+            book["live"] = False
+            book["paused_by_user"] = True
         if state == "pending":
             position += 1
             book["position"] = position
@@ -369,11 +376,21 @@ def create_literary_queue_blueprint() -> Blueprint:
     @bp.route("/api/literary/queue/control", methods=["POST"])
     def update_literary_queue_control():
         payload = request.get_json(silent=True) or {}
-        pause = payload.get("pause_after_book")
-        if not isinstance(pause, bool):
+        has_after = "pause_after_book" in payload
+        has_now = "pause_now" in payload
+        if not has_after and not has_now:
+            return _json_error("pause_after_book or pause_now is required")
+        if has_after and not isinstance(payload.get("pause_after_book"), bool):
             return _json_error("pause_after_book must be a boolean")
+        if has_now and not isinstance(payload.get("pause_now"), bool):
+            return _json_error("pause_now must be a boolean")
         try:
-            return jsonify(set_pause(_db_path(), pause))
+            state = None
+            if has_after:
+                state = set_pause(_db_path(), payload["pause_after_book"])
+            if has_now:
+                state = set_pause_now(_db_path(), payload["pause_now"])
+            return jsonify(state)
         except OSError as exc:
             return _json_error(f"could not write the control file: {exc}", 500)
 
