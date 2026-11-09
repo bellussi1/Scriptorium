@@ -820,6 +820,40 @@ class QueueStore:
             conn.commit()
             return True
 
+    def clear_job_resume_state(self, job_id: int, message: str = "") -> bool:
+        """Forget a previous attempt before a fresh run.
+
+        Keeps the job row (its events and timestamps survive) but drops the
+        upstream translation id, the progress counters and the checkpoint
+        snapshot. The next runner invocation creates a new job row and a new
+        upstream translation id. Use this only when the old checkpoint is not
+        resumable; otherwise the runner can continue from it.
+        """
+        now = utc_now()
+        with self._lock, self._connect() as conn:
+            row = conn.execute(
+                "SELECT book_id FROM jobs WHERE id = ?", (job_id,)
+            ).fetchone()
+            if not row:
+                return False
+            conn.execute(
+                """
+                UPDATE jobs
+                SET translation_id = '', current_chapter = 0, total_chapters = 0,
+                    checkpoint_json = '{}', error = '', updated_at = ?
+                WHERE id = ?
+                """,
+                (now, job_id),
+            )
+            if message:
+                conn.execute(
+                    "INSERT INTO events (book_id, job_id, level, message, created_at) "
+                    "VALUES (?, ?, 'info', ?, ?)",
+                    (row["book_id"], job_id, message, now),
+                )
+            conn.commit()
+            return True
+
     def record_chapter(
         self,
         job_id: int,

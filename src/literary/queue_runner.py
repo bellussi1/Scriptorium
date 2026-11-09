@@ -295,6 +295,29 @@ def _upstream_progress(translation_id: Optional[str] = None) -> Tuple[str, int, 
     )
 
 
+def _checkpoint_is_resumable(translation_id: str) -> bool:
+    """True when a paused job still has its input and a usable checkpoint.
+
+    A queue row can outlive its checkpoint (the upload directory was pruned,
+    the input file was deleted, or the progress already covers every chunk).
+    Resuming such a job would fail after the runner has already marked the book
+    as preparing, so the runner checks before choosing the resume path and
+    falls back to a fresh translation.
+    """
+    if not translation_id or not CHECKPOINT_DB.exists():
+        return False
+    from src.persistence.checkpoint_manager import CheckpointManager
+
+    manager = CheckpointManager(db_path=str(CHECKPOINT_DB))
+    try:
+        return any(
+            job["translation_id"] == translation_id
+            for job in manager.get_resumable_jobs()
+        )
+    finally:
+        manager.close()
+
+
 def _find_translation_id(title: str, since: Optional[str] = None) -> Optional[str]:
     import sqlite3
 
@@ -451,12 +474,21 @@ def run_queue_book(
         )
 
     resume_id = ""
-    if (
-        book.status == "paused"
-        and latest_job
-        and latest_job.get("state") in {"paused", "interrupted"}
-    ):
-        resume_id = str(latest_job.get("translation_id") or "").strip()
+    checkpoint_lost = False
+    # A queued retry can arrive as either "paused" (the runner stopped there)
+    # or "pending" (the Queue UI re-queued it). In both cases a valid
+    # checkpoint is worth keeping; only an unusable one forces a fresh run.
+    if latest_job and latest_job.get("state") in {"paused", "interrupted"}:
+        candidate = str(latest_job.get("translation_id") or "").strip()
+        if candidate and _checkpoint_is_resumable(candidate):
+            resume_id = candidate
+        elif candidate:
+            checkpoint_lost = True
+            log(
+                book.title,
+                f"checkpoint {candidate} is not resumable; "
+                "starting a fresh translation",
+            )
 
     model = resolve_model(book.model)
     provider = (book.provider or "ollama").strip().lower()
@@ -521,6 +553,13 @@ def run_queue_book(
             store.set_book_state(book.id, "preparing", "queue runner preparing")
             store.set_job_state(job_id, "preparing")
             store.add_event("queue runner started", book_id=book.id, job_id=job_id)
+            if checkpoint_lost:
+                store.add_event(
+                    "previous checkpoint is not resumable; "
+                    "starting a fresh translation",
+                    book_id=book.id,
+                    job_id=job_id,
+                )
     finally:
         store.close()
 

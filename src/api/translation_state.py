@@ -2,6 +2,7 @@
 Thread-safe translation state management
 """
 import atexit
+import os
 import threading
 import time
 import copy
@@ -29,7 +30,8 @@ class TranslationStateManager:
         # Generate a unique session ID for this server instance
         self.server_session_id = server_session_id or generate_server_session_id()
         self.checkpoint_manager = checkpoint_manager or CheckpointManager(
-            server_session_id=self.server_session_id
+            db_path=os.getenv('JOBS_DB_PATH', 'data/jobs.db'),
+            server_session_id=self.server_session_id,
         )
         self.glossary_store: Optional["GlossaryStore"] = None
         self._glossary_lock = threading.Lock()

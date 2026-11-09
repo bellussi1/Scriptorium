@@ -90,6 +90,34 @@ def test_find_translation_id_since_skips_old_jobs(tmp_path: Path, monkeypatch):
     assert queue_runner._find_translation_id("Ship of Magic", "2026-11-08 18:21:00") == "cli_new"
     assert queue_runner._find_translation_id("Ship of Magic", "2026-11-08 18:22:00") is None
 
+def test_checkpoint_is_resumable_requires_input_and_a_chunk(tmp_path: Path, monkeypatch):
+    from src.persistence.checkpoint_manager import CheckpointManager
+
+    monkeypatch.chdir(tmp_path)
+    db = tmp_path / "jobs.db"
+    monkeypatch.setattr(queue_runner, "CHECKPOINT_DB", db)
+    source = tmp_path / "Book.epub"
+    source.write_text("source", encoding="utf-8")
+    manager = CheckpointManager(db_path=str(db))
+    try:
+        assert manager.db.create_job(
+            "cli_valid", "epub", {"preserved_input_path": str(source)}
+        )
+        manager.db.save_chunk("cli_valid", 0, "source", "target")
+        manager.db.update_job_progress(
+            "cli_valid", total_chunks=10, completed_chunks=1, status="paused"
+        )
+
+        assert queue_runner._checkpoint_is_resumable("cli_valid") is True
+
+        source.unlink()
+        assert queue_runner._checkpoint_is_resumable("cli_valid") is False
+    finally:
+        manager.close()
+
+    assert queue_runner._checkpoint_is_resumable("cli_missing") is False
+
+
 def test_is_sun_eater_detects_author_and_series():
     from src.literary.queue_runner import _is_sun_eater
 

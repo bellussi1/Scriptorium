@@ -171,6 +171,25 @@ def _latest_job(db_path: Path, book_id: int) -> Optional[Dict[str, Any]]:
     return dict(row) if row else None
 
 
+def _upstream_is_resumable(translation_id: str) -> bool:
+    """Whether the paused job still has an input file and a checkpoint."""
+    if not translation_id:
+        return False
+    db_path = Path(os.getenv("JOBS_DB_PATH", "data/jobs.db"))
+    if not db_path.exists():
+        return False
+    from src.persistence.checkpoint_manager import CheckpointManager
+
+    manager = CheckpointManager(db_path=str(db_path))
+    try:
+        return any(
+            job["translation_id"] == translation_id
+            for job in manager.get_resumable_jobs()
+        )
+    finally:
+        manager.close()
+
+
 def _container_epub_path(row: Dict[str, Any]) -> str:
     """Prefer the /library container mount, then the original host path."""
     calibre_path = str(row.get("calibre_path") or "").replace("\\", "/").strip("/")
@@ -585,10 +604,21 @@ def create_literary_queue_blueprint() -> Blueprint:
         job = _latest_job(db_path, book_id)
         if job and job.get("state") in {"preparing", "translating", "reviewing", "validating"}:
             return _json_error("the translation job is still active", 409)
-        message = "retry requested from Queue UI"
+        message = (
+            "resume requested from Queue UI"
+            if book["status"] == "paused"
+            else "retry requested from Queue UI"
+        )
         store = QueueStore(str(db_path))
         try:
             store.clear_reviewed(book_id)
+            if job:
+                translation_id = str(job.get("translation_id") or "").strip()
+                if translation_id and not _upstream_is_resumable(translation_id):
+                    store.clear_job_resume_state(
+                        int(job["id"]),
+                        "stale checkpoint released before retry",
+                    )
             for state in _transition_path(str(book["status"]), "pending"):
                 store.set_book_state(book_id, state, message)
             store.add_event(message, book_id=book_id)

@@ -669,6 +669,11 @@
     border-color: var(--success-light);
 }
 
+.queue-resume-btn {
+    color: var(--data-accent);
+    border-color: var(--data-accent);
+}
+
 .queue-drawer-overlay {
     position: fixed;
     inset: 0;

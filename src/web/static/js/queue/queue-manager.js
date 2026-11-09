@@ -368,10 +368,12 @@ function renderNow(data) {
         `);
     }
     if (RETRY_STATES.has(state)) {
+        const isPaused = state === 'paused';
+        const actionLabel = t(isPaused ? 'queue:now_resume' : 'queue:now_retry');
         buttons.push(`
             <button type="button" class="btn btn-secondary queue-now-btn" data-now-retry="${book.id}">
-                <span class="material-symbols-outlined" aria-hidden="true">restart_alt</span>
-                ${escapeHtml(t('queue:now_retry'))}
+                <span class="material-symbols-outlined" aria-hidden="true">${isPaused ? 'play_arrow' : 'restart_alt'}</span>
+                ${escapeHtml(actionLabel)}
             </button>
         `);
     }
@@ -448,12 +450,13 @@ function actionButtons(book, isFirst, isLast) {
         `);
     }
     if (RETRY_STATES.has(state)) {
-        const retryLabel = escapeHtml(t('queue:now_retry'));
+        const isPaused = state === 'paused';
+        const retryLabel = escapeHtml(t(isPaused ? 'queue:now_resume' : 'queue:now_retry'));
         buttons.push(`
-            <button type="button" class="queue-move-btn"
+            <button type="button" class="queue-move-btn${isPaused ? ' queue-resume-btn' : ''}"
                     data-retry-book-id="${book.id}"
                     title="${retryLabel}" aria-label="${retryLabel}">
-                <span class="material-symbols-outlined" aria-hidden="true">restart_alt</span>
+                <span class="material-symbols-outlined" aria-hidden="true">${isPaused ? 'play_arrow' : 'restart_alt'}</span>
             </button>
         `);
     }
@@ -1233,7 +1236,11 @@ async function approveBook(bookId) {
 }
 
 async function retryBook(bookId) {
-    if (!window.confirm(t('queue:retry_confirm'))) return;
+    const book = lastBooks.find((item) => item.id === bookId);
+    const confirmKey = book && statusKey(book) === 'paused'
+        ? 'queue:resume_confirm'
+        : 'queue:retry_confirm';
+    if (!window.confirm(t(confirmKey))) return;
     try {
         const response = await fetch(`${ADD_URL}/${bookId}/retry`, {
             method: 'POST',

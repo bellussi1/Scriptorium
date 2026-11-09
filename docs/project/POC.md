@@ -708,7 +708,11 @@ Safe queue actions:
 
 - `POST /api/literary/queue/books/<id>/approve` — close a `needs_review` book;
 - `POST /api/literary/queue/books/<id>/retry` — return a failed, paused or
-  needs-review book to `pending` for the next runner invocation.
+  needs-review book to `pending` for the next runner invocation. A paused
+  book whose checkpoint still has its input and chunks keeps its
+  `translation_id`, so the next runner resumes it; a stale checkpoint is
+  released (id and progress cleared) so the runner starts a fresh translation
+  instead of failing after marking the book as preparing.
 
 The queue remains local-only in the UI: the model picker lists Ollama models and
 rejects a non-`ollama` provider for pending books. A book whose upstream
