@@ -1,51 +1,75 @@
 /* ============================================================
    Literary workbench theme
-   A flat, paper-and-ink layer over the existing UI.
-   One data hue, Literata for display, Roboto for controls.
+   Cool stone and pine: a flat, technical-editorial layer.
+   Zilla Slab for display, IBM Plex Sans for the interface.
    ============================================================ */
 
 @font-face {
-    font-family: "Literata Local";
-    src: url("/static/fonts/Literata-Variable.ttf") format("truetype");
-    font-weight: 200 900;
+    font-family: "Zilla Slab Local";
+    src: url("/static/fonts/ZillaSlab-Regular.ttf") format("truetype");
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: "Zilla Slab Local";
+    src: url("/static/fonts/ZillaSlab-Medium.ttf") format("truetype");
+    font-weight: 500;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: "Zilla Slab Local";
+    src: url("/static/fonts/ZillaSlab-SemiBold.ttf") format("truetype");
+    font-weight: 600;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: "IBM Plex Sans Local";
+    src: url("/static/fonts/IBMPlexSans-Variable.ttf") format("truetype");
+    font-weight: 100 700;
     font-style: normal;
     font-display: swap;
 }
 
 :root {
-    --paper: #f3efe6;
-    --surface: #fbf8f1;
+    --paper: #f2f4f2;
+    --surface: #fbfcfb;
     --surface-strong: #ffffff;
-    --ink: #1d1b18;
-    --ink-soft: #2b2722;
-    --muted: #6f675c;
-    --rule: #d8d0c4;
-    --rule-strong: #c7bdae;
-    --data-accent: #1d5fbf;
-    --data-accent-soft: #e5edf8;
+    --ink: #15191a;
+    --ink-soft: #2a3130;
+    --muted: #5f6a66;
+    --rule: #d9dfdb;
+    --rule-strong: #c4ccc7;
+    --data-accent: #0f5f56;
+    --data-accent-soft: #e3efec;
     --radius: 2px;
 
     /* Remap the incumbent tokens so the whole app follows the theme. */
-    --primary-light: #1d1b18;
-    --background-light: #f3efe6;
-    --background-outer: #fbf8f1;
-    --text-dark: #1d1b18;
-    --text-muted-light: #6f675c;
-    --border-light: #d8d0c4;
+    --primary-light: #15191a;
+    --background-light: #f2f4f2;
+    --background-outer: #fbfcfb;
+    --text-dark: #15191a;
+    --text-muted-light: #5f6a66;
+    --border-light: #d9dfdb;
 
     --success-light: #2f6b4f;
     --success-light-bg: #e8f0ea;
-    --info-light: #1d5fbf;
-    --info-light-bg: #e5edf8;
+    --info-light: #0f5f56;
+    --info-light-bg: #e3efec;
     --danger-light: #a33d32;
     --danger-light-hover: #8a2f26;
     --danger-light-border: #a33d32;
     --danger-light-bg: #f3e4e1;
     --danger-light-text: #7f2a22;
-    --warning-light: #a86a1f;
-    --warning-light-bg: #f5ead9;
-    --warning-light-border: #c58a3a;
-    --warning-light-text: #7a4a10;
+    --warning-light: #9a641c;
+    --warning-light-bg: #f5ecdd;
+    --warning-light-border: #c08a3e;
+    --warning-light-text: #6f4410;
 
     --shadow-dark: transparent;
     --shadow-light: transparent;
@@ -55,36 +79,36 @@
     --llm-chip-bg: transparent;
     --llm-chip-fg: var(--text-dark);
 
-    --font-serif: "Literata Local", Georgia, "Times New Roman", serif;
-    --font-display: "Literata Local", Georgia, "Times New Roman", serif;
-    --font-sans: "Roboto Local", "Roboto", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    --font-serif: "Zilla Slab Local", Georgia, "Times New Roman", serif;
+    --font-display: "Zilla Slab Local", Georgia, "Times New Roman", serif;
+    --font-sans: "IBM Plex Sans Local", "IBM Plex Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     --font-text: var(--font-sans);
     --font-ui: var(--font-sans);
 }
 
 html.dark {
-    --paper: #141210;
-    --surface: #1d1a16;
-    --surface-strong: #242019;
-    --ink: #eee7db;
-    --ink-soft: #d8cfc0;
-    --muted: #a79b89;
-    --rule: #37322b;
-    --rule-strong: #4b443a;
-    --data-accent: #83afe6;
-    --data-accent-soft: #1b2a3d;
+    --paper: #0f1212;
+    --surface: #171b1a;
+    --surface-strong: #1e2321;
+    --ink: #e6ece9;
+    --ink-soft: #cfd8d3;
+    --muted: #9aa6a0;
+    --rule: #2b3330;
+    --rule-strong: #3c4641;
+    --data-accent: #7fc3b8;
+    --data-accent-soft: #17312e;
 
-    --primary-light: #eee7db;
-    --background-light: #141210;
-    --background-outer: #1d1a16;
-    --text-dark: #eee7db;
-    --text-muted-light: #a79b89;
-    --border-light: #37322b;
+    --primary-light: #e6ece9;
+    --background-light: #0f1212;
+    --background-outer: #171b1a;
+    --text-dark: #e6ece9;
+    --text-muted-light: #9aa6a0;
+    --border-light: #2b3330;
 
     --success-light: #7fbf9c;
     --success-light-bg: #1c2b23;
-    --info-light: #83afe6;
-    --info-light-bg: #1b2a3d;
+    --info-light: #7fc3b8;
+    --info-light-bg: #17312e;
     --danger-light: #d07a6d;
     --danger-light-hover: #b96357;
     --danger-light-border: #d07a6d;
@@ -1696,6 +1720,46 @@ html.dark .btn-danger:hover {
 .prompt-options-toggle {
     background: transparent !important;
     box-shadow: none !important;
+}
+
+/* ---------- Zilla Slab / IBM Plex Sans type scale ---------- */
+
+h1,
+h2,
+h3,
+h4 {
+    font-family: var(--font-display);
+    letter-spacing: -0.015em;
+}
+
+.header .logo-text h2 {
+    font-size: 25px;
+    letter-spacing: -0.025em;
+}
+
+.card-header h2,
+.card-header h3 {
+    font-size: 21px;
+}
+
+.queue-now-title {
+    font-size: 24px;
+}
+
+.queue-stat-value {
+    font-size: 23px;
+}
+
+.file-upload h3 {
+    font-size: 20px;
+}
+
+.file-upload-secondary h4 {
+    font-size: 14px;
+}
+
+.queue-table .queue-book-title {
+    font-size: 14.5px;
 }
 
 /* ---------- Native controls ---------- */
