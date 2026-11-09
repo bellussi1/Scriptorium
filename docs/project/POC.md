@@ -68,7 +68,7 @@ pytest -p no:cacheprovider tests/unit/glossary -q
 # 183 passed
 
 pytest -p no:cacheprovider -q
-# 2981 passed, 2 skipped, 10 deselected, 14 failed
+# 2983 passed, 2 skipped, 10 deselected, 14 failed
 ```
 
 The same 14 failures reproduce on a clean worktree at upstream `b5ed606` under
@@ -456,7 +456,7 @@ model for *Ship of Magic* worked against the copy; all three actions were then
 reverted by restoring the copy from the live queue. The second instance does not
 touch the real `data/jobs.db`.
 
-Validation: **19** route tests, full suite **2,981 passed, 2 skipped, 14
+Validation: **19** route tests, full suite **2,983 passed, 2 skipped, 14
 pre-existing failures**.
 
 ### 2.14 PT-BR grammar layer
@@ -669,6 +669,22 @@ semantic refinement: chunk seams are joined, dialogue is normalized, terminology
 is fixed, headings/TOC/nav are localized and the result is revalidated before it
 can be marked completed. The reader report is stored in the queue report and
 surfaced in the quality drawer.
+
+A run started before that integration can be repaired in batch without
+retranslating:
+
+```bash
+python -m src.literary.cli queue polish \
+  --db data/literary_queue.db \
+  --outputs translated_files \
+  --kindle-out translated_files/kindle
+```
+
+`queue polish` filters completed Sun Eater books, skips artifacts already marked
+as reader-repaired, runs the deterministic pass, validates the result, writes
+`<artifact>.quality.json` (reader report, EPUBCheck, metrics and flags), and
+rebuilds the Kindle folder. `--book-id` limits the run to one book; `--force`
+reprocesses; `--no-epubcheck` skips the Docker-based check.
 
 ## 3. What is not implemented
 

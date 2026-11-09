@@ -157,17 +157,15 @@ def epub_metrics(path: str | Path) -> Dict[str, Any]:
     }
 
 
+def quality_sidecar_path(path: str | Path) -> Path:
+    path = Path(path)
+    return path.with_suffix(".quality.json")
+
+
 def _sidecar_epubcheck(path: Path) -> Optional[Dict[str, Any]]:
-    candidates = [
-        path.with_suffix(".quality.json"),
-        path.with_name(f"{path.stem}.quality.json"),
-    ]
-    for candidate in candidates:
-        payload = read_json(candidate)
-        check = payload.get("epubcheck")
-        if isinstance(check, dict):
-            return check
-    return None
+    payload = read_json(quality_sidecar_path(path))
+    check = payload.get("epubcheck")
+    return check if isinstance(check, dict) else None
 
 
 def _report_summary(report: Dict[str, Any]) -> Dict[str, Any]:
@@ -207,8 +205,16 @@ def quality_payload(
     if not artifact_path.is_file():
         raise FileNotFoundError("artifact not found")
     insights = epub_metrics(artifact_path)
+    sidecar = read_json(quality_sidecar_path(artifact_path))
+    if insights.get("epubcheck") is None and isinstance(sidecar.get("epubcheck"), dict):
+        insights["epubcheck"] = sidecar["epubcheck"]
     title = str(book.get("title") or "")
     report_path = find_report(title, run_dir=run_dir, pilot_dir=pilot_dir)
+    report = _report_summary(read_json(report_path))
+    if not report.get("reader_repair") and isinstance(sidecar.get("reader_repair"), dict):
+        report["reader_repair"] = sidecar["reader_repair"]
+    if not report.get("epubcheck") and isinstance(sidecar.get("epubcheck"), dict):
+        report["epubcheck"] = sidecar["epubcheck"]
     log_path = find_log(title, run_dir=run_dir, pilot_dir=pilot_dir)
     return {
         "status": "ok",
@@ -228,7 +234,7 @@ def quality_payload(
             "download_url": artifact.get("download_url"),
         },
         **insights,
-        "report": _report_summary(read_json(report_path)),
+        "report": report,
         "log": {
             "filename": log_path.name if log_path else "",
             "lines": tail_lines(log_path, log_limit, skip_sync=True),

@@ -299,6 +299,25 @@ def cmd_queue_export_kindle(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_queue_polish(args: argparse.Namespace) -> int:
+    from .polish import polish_completed_books
+
+    try:
+        result = polish_completed_books(
+            db_path=args.db,
+            outputs_dir=args.outputs,
+            book_id=args.book_id,
+            force=args.force,
+            run_epubcheck=not args.no_epubcheck,
+            kindle_out=args.kindle_out,
+        )
+    except Exception as exc:
+        _print_json({"error": str(exc)})
+        return 1
+    _print_json(result)
+    return 0
+
+
 def cmd_queue_set_model(args: argparse.Namespace) -> int:
     store = QueueStore(args.db)
     try:
@@ -728,6 +747,17 @@ def build_parser() -> argparse.ArgumentParser:
     export_parser.add_argument("--out", default="translated_files/kindle")
     export_parser.add_argument("--completed-only", action="store_true")
     export_parser.set_defaults(func=cmd_queue_export_kindle)
+    polish_parser = queue_sub.add_parser(
+        "polish",
+        help="Apply the reader repair to completed Sun Eater books and refresh the Kindle folder",
+    )
+    polish_parser.add_argument("--db", default="data/literary_queue.db")
+    polish_parser.add_argument("--outputs", default="translated_files")
+    polish_parser.add_argument("--kindle-out", default="translated_files/kindle")
+    polish_parser.add_argument("--book-id", type=int, default=0)
+    polish_parser.add_argument("--force", action="store_true")
+    polish_parser.add_argument("--no-epubcheck", action="store_true")
+    polish_parser.set_defaults(func=cmd_queue_polish)
     run_all_parser = queue_sub.add_parser("run-all", help="Translate pending books sequentially and export Kindle files")
     run_all_parser.add_argument("--db", default="data/literary_queue.db")
     run_all_parser.add_argument("--resources", default="literary-resources")
