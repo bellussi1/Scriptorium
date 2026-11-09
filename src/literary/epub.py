@@ -539,7 +539,9 @@ def _set_subjects(metadata: ET.Element, subjects: list[str], dc_ns: str = DC_NS)
         el.text = str(subject).strip()
 
 
-def _set_translator(metadata: ET.Element, translator: str, dc_ns: str = DC_NS) -> None:
+def _set_translator(
+    metadata: ET.Element, translator: str, dc_ns: str = DC_NS, *, epub2: bool = False
+) -> None:
     for el in list(metadata):
         if _local_name(el.tag) == "contributor" and el.attrib.get("id") == "tbl-translator":
             metadata.remove(el)
@@ -550,6 +552,9 @@ def _set_translator(metadata: ET.Element, translator: str, dc_ns: str = DC_NS) -
         metadata, f"{{{dc_ns}}}contributor", {"id": "tbl-translator"}
     )
     contributor.text = translator
+    if epub2:
+        contributor.set(f"{{{OPF_NS}}}role", "trl")
+        return
     _set_meta(
         metadata,
         property_name="role",
@@ -595,6 +600,7 @@ def update_opf_metadata(
                 break
         if metadata is None:
             metadata = ET.SubElement(opf, f"{{{OPF_NS}}}metadata")
+        epub2 = str(opf.attrib.get("version", "2.0")).strip().startswith("2")
         if title is not None:
             _set_dc_text(metadata, "title", title)
         if language is not None:
@@ -606,33 +612,35 @@ def update_opf_metadata(
         if subjects:
             _set_subjects(metadata, subjects)
         if translator:
-            _set_translator(metadata, translator)
+            _set_translator(metadata, translator, epub2=epub2)
         if title_sort:
             _set_meta(metadata, name="calibre:title_sort", value=title_sort)
         if author_sort:
             _set_meta(metadata, name="calibre:author_sort", value=author_sort)
         if series is not None:
-            _set_meta(
-                metadata,
-                property_name="belongs-to-collection",
-                value=series,
-                element_id="tbl-series",
-            )
-            _set_meta(
-                metadata,
-                property_name="collection-type",
-                value="series",
-                refines="#tbl-series",
-            )
+            if not epub2:
+                _set_meta(
+                    metadata,
+                    property_name="belongs-to-collection",
+                    value=series,
+                    element_id="tbl-series",
+                )
+                _set_meta(
+                    metadata,
+                    property_name="collection-type",
+                    value="series",
+                    refines="#tbl-series",
+                )
             _set_meta(metadata, name="calibre:series", value=series)
         if series_index is not None:
             value = f"{series_index:g}"
-            _set_meta(
-                metadata,
-                property_name="group-position",
-                value=value,
-                refines="#tbl-series",
-            )
+            if not epub2:
+                _set_meta(
+                    metadata,
+                    property_name="group-position",
+                    value=value,
+                    refines="#tbl-series",
+                )
             _set_meta(metadata, name="calibre:series_index", value=value)
 
         new_opf = ET.tostring(opf, encoding="utf-8", xml_declaration=True)

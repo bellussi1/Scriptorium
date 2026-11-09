@@ -89,6 +89,39 @@ def test_update_opf_metadata_standardizes_series_tags_and_translator(tmp_path: P
     assert 'name="calibre:author_sort"' in opf
     assert "Descri??o editorial." in opf
 
+def test_update_opf_metadata_keeps_epub2_packages_epub2(tmp_path: Path):
+    source = make_epub(tmp_path / "source.epub")
+    epub2_source = tmp_path / "source-epub2.epub"
+    with zipfile.ZipFile(source) as src, zipfile.ZipFile(epub2_source, "w") as dst:
+        for info in src.infolist():
+            data = src.read(info.filename)
+            if info.filename.endswith(".opf"):
+                data = data.replace(b'version="3.0"', b'version="2.0"')
+            dst.writestr(info, data)
+
+    output = tmp_path / "output.epub"
+    update_opf_metadata(
+        str(epub2_source),
+        str(output),
+        title="Titulo",
+        language="pt-BR",
+        series="The Sun Eater",
+        series_index=2,
+        translator="TranslateBook with LLM (TBL)",
+        title_sort="Titulo",
+        author_sort="Ruocchio, Christopher",
+    )
+    with zipfile.ZipFile(output) as archive:
+        opf_path = next(name for name in archive.namelist() if name.endswith(".opf"))
+        opf = archive.read(opf_path).decode("utf-8")
+    assert 'version="2.0"' in opf
+    assert "property=" not in opf
+    assert "refines=" not in opf
+    assert 'name="calibre:series"' in opf
+    assert 'name="calibre:series_index"' in opf
+    assert "role" in opf
+
+
 def test_update_opf_metadata_uses_content_for_calibre_name_metas(tmp_path: Path):
     import xml.etree.ElementTree as ET
 
