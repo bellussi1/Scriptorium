@@ -67,6 +67,27 @@ def test_agent_status_missing_is_offline(tmp_path):
     assert status["online"] is False
 
 
+def test_status_write_retries_when_windows_reader_holds_the_file(tmp_path, monkeypatch):
+    import src.literary.queue_run_control as control
+
+    original_replace = control.os.replace
+    calls = {"count": 0}
+
+    def flaky_replace(source, destination):
+        calls["count"] += 1
+        if calls["count"] < 3:
+            raise PermissionError("file is open in another process")
+        return original_replace(source, destination)
+
+    monkeypatch.setattr(control.os, "replace", flaky_replace)
+    db = tmp_path / "queue.db"
+
+    write_agent_status(db, {"message": "agent online"})
+
+    assert calls["count"] == 3
+    assert read_agent_status(db)["message"] == "agent online"
+
+
 def test_runner_info_round_trip(tmp_path):
     db = tmp_path / "queue.db"
     write_runner_info(db, {"runner_pid": 123, "running": True, "title": "Book"})

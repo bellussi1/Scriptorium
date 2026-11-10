@@ -58,12 +58,24 @@ def _read_json(path: Path) -> Dict[str, Any]:
 def _write_json(path: Path, payload: Dict[str, Any]) -> Dict[str, Any]:
     path.parent.mkdir(parents=True, exist_ok=True)
     temporary = path.with_name(f"{path.name}.tmp")
-    temporary.write_text(
-        json.dumps(payload, ensure_ascii=False, indent=2) + "\n",
-        encoding="utf-8",
-    )
-    os.replace(temporary, path)
-    return payload
+    text = json.dumps(payload, ensure_ascii=False, indent=2) + "\n"
+    last_error: Optional[PermissionError] = None
+    # On Windows a reader (the Flask app polling the heartbeat) can briefly hold
+    # the destination open, making os.replace fail with WinError 5. Retry the
+    # atomic replace instead of crashing the whole agent.
+    for attempt in range(20):
+        try:
+            temporary.write_text(text, encoding="utf-8")
+            os.replace(temporary, path)
+            return payload
+        except PermissionError as exc:
+            last_error = exc
+            time.sleep(min(0.05 * (attempt + 1), 0.5))
+    try:
+        temporary.unlink(missing_ok=True)
+    except OSError:
+        pass
+    raise last_error or PermissionError(f"could not write {path}")
 
 
 def request_run(
