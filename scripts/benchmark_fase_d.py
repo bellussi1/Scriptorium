@@ -30,15 +30,21 @@ from src.literary.resources import assemble_style, compile_for_book, load_tree  
 DEFAULT_MODELS = ["hy-mt2-7b", "hy-mt2-7b-q6", "index-translate-9b", "qwen3-8b"]
 
 
-def _resources() -> tuple[Dict[str, str], str]:
+def _resources(
+    author: str = "robin-hobb",
+    universe: str = "realm-of-the-elderlings",
+    subseries: str = "farseer",
+    book: str = "assassins-apprentice",
+    book_order: float = 3,
+) -> tuple[Dict[str, str], str]:
     tree = load_tree(str(ROOT / "literary-resources"))
     compiled = compile_for_book(
         tree,
-        "robin-hobb",
-        "realm-of-the-elderlings",
-        "farseer",
-        "assassins-apprentice",
-        book_order=3,
+        author,
+        universe,
+        subseries,
+        book,
+        book_order=book_order,
     )
     glossary: Dict[str, str] = {}
     for term in compiled.glossary.terms:
@@ -228,13 +234,24 @@ def main() -> int:
     parser.add_argument("--endpoint", default="http://localhost:11434")
     parser.add_argument("--out-root", default="data/benchmark/fase-d")
     parser.add_argument("--skip-vram", action="store_true")
+    parser.add_argument("--resource-author", default="robin-hobb")
+    parser.add_argument("--resource-universe", default="realm-of-the-elderlings")
+    parser.add_argument("--resource-subseries", default="farseer")
+    parser.add_argument("--resource-book", default="assassins-apprentice")
+    parser.add_argument("--resource-book-order", type=float, default=3)
     args = parser.parse_args()
 
     corpus = Path(args.corpus)
     if not corpus.exists():
         print(f"corpus not found: {corpus}", file=sys.stderr)
         return 1
-    glossary, style = _resources()
+    glossary, style = _resources(
+        args.resource_author,
+        args.resource_universe,
+        args.resource_subseries,
+        args.resource_book,
+        args.resource_book_order,
+    )
     print(f"resources: {len(glossary)} prompt terms, style {len(style)} chars", flush=True)
 
     out_root = Path(args.out_root)

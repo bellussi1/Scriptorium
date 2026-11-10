@@ -38,6 +38,14 @@ def compare(cloud: Dict[str, Dict[str, Any]], local: Dict[str, Dict[str, Any]]) 
         l = metrics(local[item]).get("chrf")
         if c is not None and l is not None:
             by_category[str(cloud[item].get("category") or "unknown")].append(c - l)
+    def mean_metric(rows: Dict[str, Dict[str, Any]], key: str):
+        values = [
+            metrics(rows[i]).get(key)
+            for i in ids
+            if metrics(rows[i]).get(key) is not None
+        ]
+        return round(statistics.mean(values), 4) if values else None
+
     return {
         "rows": len(ids),
         "cloud_chrf": round(statistics.mean(c for c, _ in pairs), 4) if pairs else None,
@@ -53,12 +61,8 @@ def compare(cloud: Dict[str, Dict[str, Any]], local: Dict[str, Dict[str, Any]]) 
             statistics.mean(generation(local[i]).get("latency_s", 0.0) for i in ids), 2
         ) if ids else None,
         "cloud_cost_usd": round(sum(generation(cloud[i]).get("cost_usd", 0.0) for i in ids), 6),
-        "cloud_name_recall": round(
-            statistics.mean(metrics(cloud[i]).get("name_recall", 0.0) for i in ids), 4
-        ) if ids else None,
-        "local_name_recall": round(
-            statistics.mean(metrics(local[i]).get("name_recall", 0.0) for i in ids), 4
-        ) if ids else None,
+        "cloud_name_recall": mean_metric(cloud, "name_recall"),
+        "local_name_recall": mean_metric(local, "name_recall"),
         "by_category_delta": {
             category: round(statistics.mean(values), 4)
             for category, values in sorted(by_category.items())

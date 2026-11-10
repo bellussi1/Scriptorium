@@ -81,6 +81,15 @@ def _run_dir(root: str) -> Path:
 
 def _summary(rows: List[Dict[str, Any]]) -> Dict[str, Any]:
     successful = [row for row in rows if not row["generation"].get("error")]
+
+    def mean_metric(key: str):
+        values = [
+            row["metrics"].get(key)
+            for row in successful
+            if row["metrics"].get(key) is not None
+        ]
+        return round(statistics.mean(values), 4) if values else None
+
     chrf = [row["metrics"]["chrf"] for row in successful if row["metrics"].get("chrf") is not None]
     latency = [row["generation"]["latency_s"] for row in successful]
     prompt_tokens = sum(row["generation"].get("prompt_tokens", 0) for row in successful)
@@ -91,18 +100,10 @@ def _summary(rows: List[Dict[str, Any]]) -> Dict[str, Any]:
         "errors": len(rows) - len(successful),
         "chrf_mean": round(statistics.mean(chrf), 4) if chrf else None,
         "chrf_std": round(statistics.stdev(chrf), 4) if len(chrf) > 1 else None,
-        "name_recall_mean": round(
-            statistics.mean(row["metrics"]["name_recall"] for row in successful), 4
-        ) if successful else None,
-        "length_ratio_mean": round(
-            statistics.mean(row["metrics"]["length_ratio"] for row in successful), 4
-        ) if successful else None,
-        "english_leakage_mean": round(
-            statistics.mean(row["metrics"]["english_leakage"] for row in successful), 4
-        ) if successful else None,
-        "repetition_mean": round(
-            statistics.mean(row["metrics"]["repetition_ratio"] for row in successful), 4
-        ) if successful else None,
+        "name_recall_mean": mean_metric("name_recall"),
+        "length_ratio_mean": mean_metric("length_ratio"),
+        "english_leakage_mean": mean_metric("english_leakage"),
+        "repetition_mean": mean_metric("repetition_ratio"),
         "latency_mean_s": round(statistics.mean(latency), 2) if latency else None,
         "prompt_tokens": prompt_tokens,
         "output_tokens": output_tokens,
@@ -114,7 +115,13 @@ async def run(args: argparse.Namespace) -> int:
     corpus = load_corpus(args.corpus)
     if args.limit:
         corpus = corpus[:args.limit]
-    glossary, style = _resources()
+    glossary, style = _resources(
+        args.resource_author,
+        args.resource_universe,
+        args.resource_subseries,
+        args.resource_book,
+        args.resource_book_order,
+    )
     system_prompt = build_system_prompt(style, glossary)
     out_dir = _run_dir(args.out_root)
     summary: Dict[str, Any] = {
@@ -230,6 +237,11 @@ def main() -> int:
     parser.add_argument("--timeout", type=int, default=300)
     parser.add_argument("--concurrency", type=int, default=4)
     parser.add_argument("--out-root", default="data/benchmark/cloud")
+    parser.add_argument("--resource-author", default="robin-hobb")
+    parser.add_argument("--resource-universe", default="realm-of-the-elderlings")
+    parser.add_argument("--resource-subseries", default="farseer")
+    parser.add_argument("--resource-book", default="assassins-apprentice")
+    parser.add_argument("--resource-book-order", type=float, default=3)
     return asyncio.run(run(parser.parse_args()))
 
 
