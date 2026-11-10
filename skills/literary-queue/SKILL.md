@@ -116,6 +116,11 @@ the book in `needs_review`.
   (<= 50 per 100k), English leakage (<= 0.01), repetition (<= 0.05), length
   ratio (0.80-1.20), and a blind Haiku review of up to five aligned samples
   (fidelity/naturalness >= 3.5, at most one meaning error).
+- The audit reads the run's compiled glossary snapshot
+  (`report.assets.glossary_host`), not the current resource tree. Terms whose
+  target or forbidden rendering changed after the run are reported as
+  glossary drift and excluded from the hard gate; new terms added after the
+  run are not held against the model.
 - Cloud audit cap: **US$ 0.05 per book**, **US$ 0.50 total**, model
   `claude-haiku-5-5` with thinking disabled. The audit writes its cost to
   `data/cost_ledger.jsonl` with `stage: auto-audit`.

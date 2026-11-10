@@ -25,6 +25,7 @@ import sys
 import zipfile
 from datetime import datetime, timezone
 from pathlib import Path
+from types import SimpleNamespace
 from typing import Any, Dict, List, Optional, Tuple
 
 import requests
@@ -177,11 +178,61 @@ def _sample_pairs(
     return samples
 
 
+def _load_glossary_snapshot(path: Path) -> List[Any]:
+    data = json.loads(path.read_text(encoding="utf-8"))
+    terms = []
+    for row in data.get("terms") or []:
+        if not isinstance(row, dict) or not row.get("source"):
+            continue
+        forms = [
+            part.strip()
+            for part in str(row.get("source") or "").split("|")
+            if part.strip()
+        ]
+        if not forms:
+            continue
+        target = str(row.get("target") or "")
+        aliases = forms[1:]
+        terms.append(
+            SimpleNamespace(
+                source=forms[0],
+                target=target,
+                category=str(row.get("category") or "other"),
+                aliases=aliases,
+                alias_targets={alias: target for alias in aliases},
+                forbidden=list(row.get("forbidden") or []),
+                policy=str(row.get("policy") or ""),
+                confidence=str(row.get("confidence") or ""),
+                source_reference=str(row.get("source_reference") or ""),
+            )
+        )
+    return terms
+
+
+def _term_form_map(terms: List[Any]) -> Dict[str, Tuple[str, Tuple[str, ...]]]:
+    mapping: Dict[str, Tuple[str, Tuple[str, ...]]] = {}
+    for term in terms:
+        forbidden = tuple(
+            sorted(str(item) for item in (getattr(term, "forbidden", []) or []))
+        )
+        mapping[term.source] = (term.target, forbidden)
+        alias_targets = getattr(term, "alias_targets", {}) or {}
+        for alias in getattr(term, "aliases", []) or []:
+            mapping[alias] = (alias_targets.get(alias, term.target), forbidden)
+    return mapping
+
+
 def _term_audit(
     book: Any,
     source_text: str,
     target_text: str,
+    *,
+    glossary_path: Optional[Path] = None,
 ) -> Dict[str, Any]:
+    snapshot_terms: List[Any] = []
+    current_terms: List[Any] = []
+    current_map: Dict[str, Tuple[str, Tuple[str, ...]]] = {}
+    snapshot = ""
     try:
         plan = build_run_plan(book)
         scopes = plan.get("scopes") or {}
@@ -194,22 +245,55 @@ def _term_audit(
             scopes.get("book", ""),
             book_order=book.series_index,
         )
+        current_terms = compiled.glossary.terms
+        current_map = _term_form_map(current_terms)
     except Exception as exc:
-        return {
-            "ok": False,
-            "error": f"{type(exc).__name__}: {exc}",
-            "coverage": None,
-            "forbidden_hits": [],
-            "missing": [],
-        }
+        if not (glossary_path and glossary_path.exists()):
+            return {
+                "ok": False,
+                "error": f"{type(exc).__name__}: {exc}",
+                "coverage": None,
+                "forbidden_hits": [],
+                "missing": [],
+            }
+
+    if glossary_path and glossary_path.exists():
+        snapshot_terms = _load_glossary_snapshot(glossary_path)
+        snapshot = str(glossary_path)
+        terms = snapshot_terms
+    else:
+        terms = current_terms
 
     source_cf = source_text.casefold()
-    target_cf = target_text.casefold()
     eligible = 0
     hits = 0
     missing: List[Dict[str, str]] = []
     forbidden_hits: List[Dict[str, Any]] = []
-    for term in compiled.glossary.terms:
+    drift: List[Dict[str, Any]] = []
+    for term in terms:
+        if snapshot_terms and current_map:
+            current = current_map.get(term.source)
+            if current is None:
+                drift.append(
+                    {
+                        "source": term.source,
+                        "snapshot_target": term.target,
+                        "current_target": "",
+                        "reason": "removed from the current glossary",
+                    }
+                )
+                continue
+            current_target, current_forbidden = current
+            if current_target != term.target or set(current_forbidden) != set(term.forbidden):
+                drift.append(
+                    {
+                        "source": term.source,
+                        "snapshot_target": term.target,
+                        "current_target": current_target,
+                        "reason": "glossary changed after the run",
+                    }
+                )
+                continue
         forms = [term.source] + list(getattr(term, "aliases", []) or [])
         if not any(form.casefold() in source_cf for form in forms if form):
             continue
@@ -242,7 +326,11 @@ def _term_audit(
     coverage = (hits / eligible) if eligible else 1.0
     return {
         "ok": True,
-        "terms": len(compiled.glossary.terms),
+        "terms": len(terms),
+        "snapshot": snapshot,
+        "snapshot_terms": len(snapshot_terms) if snapshot_terms else None,
+        "current_terms": len(current_terms),
+        "drift": drift[:50],
         "eligible": eligible,
         "hits": hits,
         "coverage": round(coverage, 4),
@@ -476,7 +564,13 @@ def main() -> int:
     source_text, source_files = _epub_text(source)
     target_text, target_files = _epub_text(target)
     samples = _sample_pairs(source_files, target_files)
-    terms = _term_audit(book, source_text, target_text)
+    glossary_path = str((report.get("assets") or {}).get("glossary_host") or "").strip()
+    terms = _term_audit(
+        book,
+        source_text,
+        target_text,
+        glossary_path=Path(glossary_path) if glossary_path else None,
+    )
     metrics = _text_metrics(source_text, target_text)
 
     validation = report.get("validation") or {}

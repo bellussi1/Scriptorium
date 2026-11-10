@@ -105,10 +105,11 @@ Expert report: `docs/project/reviews/sun-eater-model-selection-2026-11-10.md`.
   fidelity/naturalness >= 3.5 and at most one meaning error.
 - Caps: **US$ 0.05 per book**, **US$ 0.50 total**; model `claude-haiku-5-5`
   with thinking disabled. Audit rows use `stage: auto-audit` in the ledger.
-- Calibration on the archived Hy-MT2 Howling Dark: coverage 0.973 after the
-  word-boundary fix, forbidden `Chantry`/`extrassolar`, six cloud meaning
-  errors; cost US$ 0.0008. It fails on the forbidden terms as expected. The new
-  Index output is audited at the gate.
+- Calibration on the archived Hy-MT2 Howling Dark: coverage 0.977; it fails
+  only on the forbidden `Chantry` (the old output uses Chantry instead of
+  Chantria). The Extrasolarian change is recorded as glossary drift and
+  excluded from the hard gate because the run saw the old target. Cloud test:
+  six meaning errors, cost US$ 0.0008.
 - Reports: `data/audits/<book>-<timestamp>/audit.md`; supervisor status:
   `data/literary_queue.auto.json`.
 
