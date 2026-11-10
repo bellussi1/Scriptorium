@@ -14,6 +14,7 @@ scipy.
 Usage:
     python scripts/analyze_pairwise.py \
       --input data/benchmark/eval-dev/judging.jsonl \
+      --sheet data/benchmark/eval-dev/judging.jsonl \
       --key data/benchmark/eval-dev/judging-key.json \
       --reference-model index-translate-9b
 """
@@ -55,6 +56,22 @@ def _load_key(path: Path) -> Dict[str, Dict[str, str]]:
             raise ValueError(f"invalid A/B mapping for {item_id!r}")
         key[str(item_id)] = {"a": str(mapping["a"]), "b": str(mapping["b"])}
     return key
+
+
+def _merge_metadata(
+    rows: List[Dict[str, Any]],
+    sheet_rows: List[Dict[str, Any]],
+) -> List[Dict[str, Any]]:
+    """Copy book/category from the blind sheet into the judgment rows."""
+    sheet = {str(row["id"]): row for row in sheet_rows if row.get("id")}
+    for row in rows:
+        metadata = sheet.get(str(row.get("id")))
+        if not metadata:
+            continue
+        for field in ("book", "category"):
+            if metadata.get(field):
+                row[field] = metadata[field]
+    return rows
 
 
 def _normalize_rows(
@@ -243,6 +260,7 @@ def analyze(
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--input", type=Path, required=True)
+    parser.add_argument("--sheet", type=Path, help="Blind sheet with book/category metadata")
     parser.add_argument("--key", type=Path)
     parser.add_argument("--reference-model", help="Model to report as A; required with --key")
     parser.add_argument("--out", type=Path)
@@ -252,6 +270,8 @@ def main() -> int:
         raise SystemExit("--reference-model is required when --key is given")
     key = _load_key(args.key) if args.key else None
     rows = _read_jsonl(args.input)
+    if args.sheet:
+        rows = _merge_metadata(rows, _read_jsonl(args.sheet))
     result = analyze(rows, key=key, reference_model=args.reference_model)
     text = json.dumps(result, ensure_ascii=False, indent=2)
     if args.out:

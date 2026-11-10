@@ -17,6 +17,7 @@ Real run (GPU; wait for the queue to be idle):
 from __future__ import annotations
 
 import argparse
+import asyncio
 import json
 import sys
 import time
@@ -29,7 +30,10 @@ sys.path.insert(0, str(ROOT))
 
 from benchmark.literary.adapters import MODELS, build_prompt, generate_ollama  # noqa: E402
 from benchmark.literary.metrics import chrf  # noqa: E402
+from scripts.benchmark_cloud import MODELS as CLOUD_MODELS  # noqa: E402
+from scripts.benchmark_cloud import build_system_prompt  # noqa: E402
 from src.core.chunking.token_chunker import TokenChunker  # noqa: E402
+from src.core.llm.factory import create_llm_provider  # noqa: E402
 from src.literary.resources import (  # noqa: E402
     _target_groups,
     assemble_style,
@@ -81,11 +85,47 @@ def _join_chunks(chunks: List[Dict[str, Any]], outputs: List[str]) -> str:
     return "".join(parts).strip()
 
 
+def _result_row(
+    chapter: Dict[str, Any],
+    chunks: List[Dict[str, Any]],
+    model: str,
+    outputs: List[str],
+    errors: List[Dict[str, Any]],
+    started: float,
+) -> Dict[str, Any]:
+    text_out = _join_chunks(chunks, outputs)
+    expected = chapter.get("expected_terms") or []
+    term_hits = sum(
+        1
+        for term in expected
+        if term.get("target") and term["target"].casefold() in text_out.casefold()
+    )
+    return {
+        "id": chapter["id"],
+        "model": model,
+        "book_slug": chapter["book_slug"],
+        "chapter_title": chapter.get("chapter_title", ""),
+        "chunks": len(chunks),
+        "source_words": chapter.get("word_count"),
+        "reference_words": chapter.get("reference_word_count"),
+        "text": text_out,
+        "reference_pt": chapter.get("reference_pt", ""),
+        "chrf": chrf(chapter.get("reference_pt", ""), text_out),
+        "term_total": len(expected),
+        "term_hit": term_hits,
+        "term_compliance": round(term_hits / len(expected), 4) if expected else None,
+        "latency_s": round(time.time() - started, 2),
+        "errors": errors,
+    }
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--corpus", type=Path, default=DEFAULT_CORPUS)
     parser.add_argument("--models", nargs="+", default=["hy-mt2-7b", "index-translate-9b"])
+    parser.add_argument("--cloud-model", help="Cloud model key from benchmark_cloud.MODELS")
     parser.add_argument("--endpoint", default="http://localhost:11434")
+    parser.add_argument("--timeout", type=int, default=900)
     parser.add_argument("--out-root", type=Path, default=ROOT / "data" / "benchmark" / "long-context")
     parser.add_argument("--max-tokens", type=int, default=450)
     parser.add_argument("--limit", type=int, default=0)
@@ -117,6 +157,57 @@ def main() -> int:
             f"{chapter['word_count']} words, {sum(chunker.count_tokens(c['main_content']) for c in chunks)} tokens",
             flush=True,
         )
+        if args.cloud_model:
+            if args.cloud_model not in CLOUD_MODELS:
+                raise SystemExit(f"unknown cloud model key: {args.cloud_model}")
+            spec = CLOUD_MODELS[args.cloud_model]
+            print(f"  {args.cloud_model}: {len(chunks)} calls", flush=True)
+            if args.dry_run:
+                continue
+            provider = create_llm_provider(spec["provider"], model=spec["model"])
+            system_prompt = build_system_prompt(style, glossary)
+            started = time.time()
+
+            async def _generate() -> tuple[List[str], List[Dict[str, Any]]]:
+                outputs: List[str] = []
+                errors: List[Dict[str, Any]] = []
+                for index, chunk in enumerate(chunks, start=1):
+                    try:
+                        response = await provider.generate(
+                            chunk["main_content"],
+                            system_prompt=system_prompt,
+                            timeout=args.timeout,
+                        )
+                        content = (response.content or "").strip() if response else ""
+                        if not content:
+                            raise ValueError("empty response")
+                    except Exception as exc:
+                        errors.append({"chunk": index, "error": str(exc)})
+                        content = chunk["main_content"]
+                    outputs.append(content)
+                    print(f"    {index}/{len(chunks)}", flush=True)
+                return outputs, errors
+
+            outputs, errors = asyncio.run(_generate())
+            row = _result_row(chapter, chunks, args.cloud_model, outputs, errors, started)
+            out_path = args.out_root / f"{chapter['id']}-{args.cloud_model}.jsonl"
+            out_path.write_text(json.dumps(row, ensure_ascii=False) + "\n", encoding="utf-8")
+            summaries.setdefault(args.cloud_model, []).append(
+                {
+                    "id": chapter["id"],
+                    "chunks": len(chunks),
+                    "chrf": row["chrf"],
+                    "term_compliance": row["term_compliance"],
+                    "latency_s": row["latency_s"],
+                    "errors": len(errors),
+                }
+            )
+            print(
+                f"    done in {row['latency_s']}s, chrF {row['chrf']}, terms {row['term_compliance']}",
+                flush=True,
+            )
+            continue
+
         for model in args.models:
             if model not in MODELS:
                 raise SystemExit(f"unknown model key: {model}")
@@ -139,7 +230,7 @@ def main() -> int:
                     messages,
                     endpoint=args.endpoint,
                     max_tokens=1200,
-                    timeout=900,
+                    timeout=args.timeout,
                 )
                 if generation.error:
                     errors.append({"chunk": index, "error": generation.error})
@@ -147,30 +238,7 @@ def main() -> int:
                 else:
                     outputs.append(generation.text)
                 print(f"    {index}/{len(chunks)}", flush=True)
-            text_out = _join_chunks(chunks, outputs)
-            expected = chapter.get("expected_terms") or []
-            term_hits = sum(
-                1
-                for term in expected
-                if term.get("target") and term["target"].casefold() in text_out.casefold()
-            )
-            row = {
-                "id": chapter["id"],
-                "model": model,
-                "book_slug": chapter["book_slug"],
-                "chapter_title": chapter.get("chapter_title", ""),
-                "chunks": len(chunks),
-                "source_words": chapter.get("word_count"),
-                "reference_words": chapter.get("reference_word_count"),
-                "text": text_out,
-                "reference_pt": chapter.get("reference_pt", ""),
-                "chrf": chrf(chapter.get("reference_pt", ""), text_out),
-                "term_total": len(expected),
-                "term_hit": term_hits,
-                "term_compliance": round(term_hits / len(expected), 4) if expected else None,
-                "latency_s": round(time.time() - started, 2),
-                "errors": errors,
-            }
+            row = _result_row(chapter, chunks, model, outputs, errors, started)
             out_path = args.out_root / f"{chapter['id']}-{model}.jsonl"
             out_path.write_text(json.dumps(row, ensure_ascii=False) + "\n", encoding="utf-8")
             summaries.setdefault(model, []).append(

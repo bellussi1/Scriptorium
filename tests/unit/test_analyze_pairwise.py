@@ -1,7 +1,7 @@
 """Tests for the blind pairwise analyzer's A/B normalization."""
 from __future__ import annotations
 
-from scripts.analyze_pairwise import analyze
+from scripts.analyze_pairwise import _merge_metadata, analyze
 
 
 def _row(item_id: str, score_a, score_b, preference: str, book: str = "Book") -> dict:
@@ -60,6 +60,17 @@ def test_empty_preference_falls_back_to_scores():
 
     assert result["wins_a"] == 1
     assert result["wins_b"] == 0
+
+
+def test_sheet_metadata_is_merged_into_judgments():
+    rows = [{"id": "1", "score_a": 4, "score_b": 3, "preference": "a"}]
+    sheet = [{"id": "1", "book": "Empire of Silence", "category": "dialogue"}]
+
+    merged = _merge_metadata(rows, sheet)
+
+    assert merged[0]["book"] == "Empire of Silence"
+    assert merged[0]["category"] == "dialogue"
+    assert merged[0]["preference"] == "a"
 
 
 def test_bootstrap_by_book_reports_cluster_count():
