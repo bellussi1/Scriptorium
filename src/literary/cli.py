@@ -452,6 +452,7 @@ def cmd_queue_approve(args: argparse.Namespace) -> int:
     try:
         store.set_job_state(args.job_id, "completed", args.message or "human review approved")
         store.set_book_state(args.book_id, "completed", args.message or "human review approved")
+        store.mark_reviewed(args.book_id, args.message or "human review approved")
         store.add_event(
             args.message or "human review approved",
             book_id=args.book_id,
