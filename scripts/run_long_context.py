@@ -30,7 +30,12 @@ sys.path.insert(0, str(ROOT))
 from benchmark.literary.adapters import MODELS, build_prompt, generate_ollama  # noqa: E402
 from benchmark.literary.metrics import chrf  # noqa: E402
 from src.core.chunking.token_chunker import TokenChunker  # noqa: E402
-from src.literary.resources import assemble_style, compile_for_book, load_tree  # noqa: E402
+from src.literary.resources import (  # noqa: E402
+    _target_groups,
+    assemble_style,
+    compile_for_book,
+    load_tree,
+)
 
 DEFAULT_CORPUS = ROOT / "data" / "benchmark" / "literary" / "long_chapters_farseer.jsonl"
 
@@ -43,20 +48,27 @@ def _read_jsonl(path: Path) -> List[Dict[str, Any]]:
     ]
 
 
-def _resources(book_slug: str) -> tuple[Dict[str, str], str]:
+def _resources(
+    book_slug: str,
+    author: str = "robin-hobb",
+    universe: str = "realm-of-the-elderlings",
+    subseries: str = "farseer",
+    book_order: float | None = None,
+) -> tuple[Dict[str, str], str]:
     tree = load_tree(str(ROOT / "literary-resources"))
     compiled = compile_for_book(
         tree,
-        "robin-hobb",
-        "realm-of-the-elderlings",
-        "farseer",
+        author,
+        universe,
+        subseries,
         book_slug,
+        book_order=book_order,
     )
     glossary: Dict[str, str] = {}
     for term in compiled.glossary.terms:
-        target = term.effective_target()
-        for form in term.source_forms():
-            glossary[form] = target
+        for target, forms in _target_groups(term):
+            for form in forms:
+                glossary[form] = target
     style = assemble_style(compiled.style).get("translation", "") if compiled.style else ""
     return glossary, style
 
@@ -77,6 +89,10 @@ def main() -> int:
     parser.add_argument("--out-root", type=Path, default=ROOT / "data" / "benchmark" / "long-context")
     parser.add_argument("--max-tokens", type=int, default=450)
     parser.add_argument("--limit", type=int, default=0)
+    parser.add_argument("--resource-author", default="robin-hobb")
+    parser.add_argument("--resource-universe", default="realm-of-the-elderlings")
+    parser.add_argument("--resource-subseries", default="farseer")
+    parser.add_argument("--resource-book-order", type=float)
     parser.add_argument("--dry-run", action="store_true")
     args = parser.parse_args()
 
@@ -88,7 +104,13 @@ def main() -> int:
     summaries: Dict[str, Any] = {}
 
     for chapter in chapters:
-        glossary, style = _resources(chapter["book_slug"])
+        glossary, style = _resources(
+            chapter["book_slug"],
+            args.resource_author,
+            args.resource_universe,
+            args.resource_subseries,
+            args.resource_book_order,
+        )
         chunks = chunker.chunk_text(chapter["text"])
         print(
             f"{chapter['id']}: {len(chunks)} chunks, "

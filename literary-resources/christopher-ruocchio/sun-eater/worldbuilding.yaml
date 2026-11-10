@@ -170,7 +170,7 @@ terms:
     policy: keep
     source_reference: "Source text (Howling Dark); place name kept"
     confidence: provisional
-    first_appearance: howling-dark
+    first_appearance: empire-of-silence
     approved: false
   - source: Pharos
     target: Pharos
@@ -186,7 +186,7 @@ terms:
     policy: keep
     source_reference: "Source text (Howling Dark); place name kept"
     confidence: provisional
-    first_appearance: howling-dark
+    first_appearance: empire-of-silence
     approved: false
   - source: Meidua
     target: Meidua
@@ -195,7 +195,7 @@ terms:
     notes: "Meidua Red Company is the narrator's old unit; keep the place name."
     source_reference: "Source text (Howling Dark); place name kept"
     confidence: provisional
-    first_appearance: howling-dark
+    first_appearance: empire-of-silence
     approved: false
   - source: Red Company
     target: Companhia Vermelha
@@ -220,7 +220,7 @@ terms:
     forbidden: [extrassolariano]
     source_reference: "Source text (Howling Dark); editorial rendering"
     confidence: provisional
-    first_appearance: howling-dark
+    first_appearance: empire-of-silence
     approved: false
   - source: The Painted Man
     target: O Homem Pintado
@@ -264,13 +264,13 @@ terms:
     first_appearance: kingdoms-of-death
     approved: false
   - source: Forum
-    target: Forum
+    target: Fórum
     category: location
-    policy: keep
-    notes: "Gas giant and site of the Eternal City; keep the name."
-    source_reference: "Approved PT-BR translation, Howling Dark (2026)"
-    confidence: reviewed
-    first_appearance: howling-dark
+    policy: translate
+    notes: "Gas giant and site of the Eternal City; the official PT edition accents the name."
+    source_reference: "Official PT-BR edition, Calibre 436"
+    confidence: confirmed
+    first_appearance: empire-of-silence
     approved: true
   - source: Gododdin
     target: Gododdin
@@ -278,7 +278,7 @@ terms:
     policy: keep
     source_reference: "Approved PT-BR translation, Howling Dark (2026)"
     confidence: reviewed
-    first_appearance: howling-dark
+    first_appearance: empire-of-silence
     approved: true
   - source: Jadd
     target: Jadd
@@ -287,7 +287,7 @@ terms:
     notes: "The Jaddian Principalities; keep the place name, Jaddian becomes jaddiano."
     source_reference: "Approved PT-BR translation, Howling Dark (2026)"
     confidence: reviewed
-    first_appearance: howling-dark
+    first_appearance: empire-of-silence
     approved: true
   - source: Dharan-Tun
     target: Dharan-Tun
@@ -299,12 +299,15 @@ terms:
     first_appearance: demon-in-white
     approved: false
   - source: Pale
-    target: Pale
-    category: location
-    policy: keep
-    source_reference: "Approved PT-BR translation, Howling Dark (2026)"
-    confidence: reviewed
-    first_appearance: howling-dark
+    target: Pálido
+    category: other
+    policy: translate
+    notes: >-
+      Collective term for the Cielcin, not a place. The official PT edition uses
+      "os Pálidos" (capitalized) in running text. Do not keep the English word.
+    source_reference: "Official PT-BR edition, Calibre 436"
+    confidence: confirmed
+    first_appearance: empire-of-silence
     approved: true
   - source: Eue
     target: Eue
@@ -328,7 +331,7 @@ terms:
     policy: keep
     source_reference: "Source text (Kingdoms of Death); name kept"
     confidence: provisional
-    first_appearance: kingdoms-of-death
+    first_appearance: empire-of-silence
     approved: false
   - source: Judecca
     target: Judecca
@@ -337,7 +340,7 @@ terms:
     notes: "Irchtani home world; keep the name."
     source_reference: "Source text (Ashes of Man); name kept"
     confidence: provisional
-    first_appearance: ashes-of-man
+    first_appearance: empire-of-silence
     approved: false
   - source: Patmos
     target: Patmos
@@ -356,7 +359,7 @@ terms:
       for the anaphoric "Imperium" only when the source uses it that way.
     source_reference: "Source text (Howling Dark); editorial rendering"
     confidence: provisional
-    first_appearance: howling-dark
+    first_appearance: empire-of-silence
     approved: false
   - source: Watchers
     target: Vigilantes
@@ -378,17 +381,17 @@ terms:
     notes: "Bird-like xenobite species; lowercase in running text like cielcin."
     source_reference: "Source text (Demon in White); editorial rendering"
     confidence: provisional
-    first_appearance: howling-dark
+    first_appearance: empire-of-silence
     approved: false
   - source: Quiet
-    target: Quiet
+    target: Quieto
     category: concept
-    policy: keep
+    policy: translate
     notes: >-
-      The cosmic phenomenon; keep the English term until an official PT-BR
-      rendering is confirmed. Do not reduce it to the ordinary noun silêncio or
-      confuse it with the book title Império do Silêncio.
-    source_reference: "Source text (Howling Dark); editorial decision"
-    confidence: provisional
-    first_appearance: howling-dark
-    approved: false
+      The cosmic phenomenon and the people who serve it. The official PT edition
+      uses "os Quietos" (capitalized). Do not keep the English word and do not
+      reduce it to the ordinary noun silêncio or the book title Império do Silêncio.
+    source_reference: "Official PT-BR edition, Calibre 436"
+    confidence: confirmed
+    first_appearance: empire-of-silence
+    approved: true

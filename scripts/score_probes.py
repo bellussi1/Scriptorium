@@ -60,6 +60,24 @@ def _name_present(name: str, output: str, pool: Sequence[str]) -> bool:
     return False
 
 
+def _term_present(haystack: str, needle: str, strict: bool = True) -> bool:
+    """Whole-word term match with common Portuguese plural/gender suffixes.
+
+    The loose mode is the old substring check. It counts "Jadd" inside
+    "jaddiano", so the strict mode is the default for new benchmark runs.
+    """
+    if not needle:
+        return False
+    if not strict:
+        return _contains(haystack, needle)
+    hay = _normalize(haystack)
+    target = _normalize(needle).strip()
+    if not target:
+        return False
+    pattern = r"(?<!\w)" + re.escape(target) + r"(?:s|es|a|as|o|os)?(?!\w)"
+    return re.search(pattern, hay) is not None
+
+
 def _read_jsonl(paths: Sequence[Path]) -> List[Dict[str, Any]]:
     rows = []
     for path in paths:
@@ -106,6 +124,7 @@ def _load_predictions(
 def score(
     probes: Sequence[Dict[str, Any]],
     predictions: Sequence[Dict[str, Any]],
+    strict_terms: bool = True,
 ) -> Dict[str, Any]:
     prediction_by_id = {str(row.get("id")): row for row in predictions if row.get("id")}
     per_probe = []
@@ -130,7 +149,7 @@ def score(
             present = (
                 _name_present(target, output, pool)
                 if is_character
-                else _contains(output, target)
+                else _term_present(output, target, strict_terms)
             )
             if target and present:
                 term_hits += 1
@@ -240,6 +259,11 @@ def main() -> int:
     parser.add_argument("--predictions", nargs="*", type=Path, default=[])
     parser.add_argument("--out", type=Path)
     parser.add_argument("--detail", type=Path)
+    parser.add_argument(
+        "--loose-terms",
+        action="store_true",
+        help="Use the old substring term check instead of whole-word matching.",
+    )
     args = parser.parse_args()
 
     probes = _read_jsonl([Path(path) for path in args.probes])
@@ -248,7 +272,7 @@ def main() -> int:
         model=args.model,
         predictions=[Path(path) for path in args.predictions],
     )
-    result, per_probe = score(probes, predictions)
+    result, per_probe = score(probes, predictions, strict_terms=not args.loose_terms)
     text = json.dumps(result, ensure_ascii=False, indent=2)
     if args.out:
         args.out.parent.mkdir(parents=True, exist_ok=True)

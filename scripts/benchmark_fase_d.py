@@ -25,7 +25,12 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 from benchmark.literary import runner  # noqa: E402
-from src.literary.resources import assemble_style, compile_for_book, load_tree  # noqa: E402
+from src.literary.resources import (  # noqa: E402
+    _target_groups,
+    assemble_style,
+    compile_for_book,
+    load_tree,
+)
 
 DEFAULT_MODELS = ["hy-mt2-7b", "hy-mt2-7b-q6", "index-translate-9b", "qwen3-8b"]
 
@@ -48,9 +53,9 @@ def _resources(
     )
     glossary: Dict[str, str] = {}
     for term in compiled.glossary.terms:
-        target = term.effective_target()
-        for form in term.source_forms():
-            glossary[form] = target
+        for target, forms in _target_groups(term):
+            for form in forms:
+                glossary[form] = target
     style = assemble_style(compiled.style).get("translation", "") if compiled.style else ""
     return glossary, style
 

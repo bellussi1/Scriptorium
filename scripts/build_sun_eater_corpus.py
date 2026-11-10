@@ -222,6 +222,8 @@ def build_probes(candidates: Sequence[base.Candidate], selected: Sequence[base.C
             >= 0.6
         ]
         names = base._round_robin(name_pool, 25)
+        name_texts = {item.text for item in names}
+        term_pool = [item for item in term_pool if item.text not in name_texts]
         terms = base._round_robin(term_pool, 25)
     finally:
         base.BOOKS = original_books

@@ -46,7 +46,7 @@ terms:
     notes: "Cielcin ruler title; translate as the Portuguese historical title."
     source_reference: "Source text (Howling Dark); editorial rendering"
     confidence: provisional
-    first_appearance: howling-dark
+    first_appearance: empire-of-silence
     approved: false
   - source: Lord Marlowe
     target: Lorde Marlowe
@@ -57,7 +57,7 @@ terms:
     notes: "Title + surname; do not treat it as a name variant of Hadrian Marlowe."
     source_reference: "Approved PT-BR translation, Howling Dark (2026)"
     confidence: reviewed
-    first_appearance: howling-dark
+    first_appearance: empire-of-silence
     approved: true
   - source: Lord Commandant
     target: Lorde Comandante
@@ -73,7 +73,7 @@ terms:
     policy: translate
     source_reference: "Source text (Howling Dark); editorial rendering"
     confidence: provisional
-    first_appearance: howling-dark
+    first_appearance: empire-of-silence
     approved: false
   - source: Commodore
     target: Comodoro
@@ -89,7 +89,7 @@ terms:
     policy: translate
     source_reference: "Source text (Howling Dark); editorial rendering"
     confidence: provisional
-    first_appearance: howling-dark
+    first_appearance: empire-of-silence
     approved: false
   - source: Emperor
     target: Imperador
@@ -97,5 +97,5 @@ terms:
     policy: translate
     source_reference: "Source text (Howling Dark); editorial rendering"
     confidence: provisional
-    first_appearance: howling-dark
+    first_appearance: empire-of-silence
     approved: false

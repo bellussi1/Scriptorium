@@ -33,7 +33,7 @@ terms:
       agreement and forms of address.
     source_reference: "Source text (Howling Dark); name kept"
     confidence: provisional
-    first_appearance: howling-dark
+    first_appearance: empire-of-silence
     approved: false
   - source: Switch
     target: Switch
@@ -45,7 +45,7 @@ terms:
       a common noun. Gender is recorded for agreement.
     source_reference: "Source text (Howling Dark); name kept"
     confidence: provisional
-    first_appearance: howling-dark
+    first_appearance: empire-of-silence
     approved: false
   - source: Ghen
     target: Ghen
@@ -53,7 +53,7 @@ terms:
     policy: keep
     source_reference: "Source text (Howling Dark); name kept"
     confidence: provisional
-    first_appearance: howling-dark
+    first_appearance: empire-of-silence
     approved: false
   - source: Samir
     target: Samir
@@ -79,7 +79,7 @@ terms:
     alias_targets: {Bassander: Bassander}
     source_reference: "Source text (Howling Dark); name kept"
     confidence: provisional
-    first_appearance: howling-dark
+    first_appearance: empire-of-silence
     approved: false
   - source: Jinan Azhar
     target: Jinan Azhar
@@ -89,7 +89,7 @@ terms:
     alias_targets: {Jinan: Jinan}
     source_reference: "Source text (Howling Dark); name kept"
     confidence: provisional
-    first_appearance: howling-dark
+    first_appearance: empire-of-silence
     approved: false
   - source: Marius Whent
     target: Marius Whent
@@ -117,7 +117,7 @@ terms:
     policy: keep
     source_reference: "Source text (Howling Dark); name kept"
     confidence: provisional
-    first_appearance: howling-dark
+    first_appearance: empire-of-silence
     approved: false
   - source: Lorian Aristedes
     target: Lorian Aristedes
@@ -148,7 +148,7 @@ terms:
     gender: male
     source_reference: "Approved PT-BR translation, Howling Dark (2026)"
     confidence: reviewed
-    first_appearance: howling-dark
+    first_appearance: empire-of-silence
     approved: true
   - source: Alexander
     target: Alexander
@@ -174,7 +174,7 @@ terms:
     first_appearance: howling-dark
     approved: true
   - source: Gibson of Syracuse
-    target: Gibson of Syracuse
+    target: Gibson de Siracusa
     category: character
     policy: keep
     aliases: [Gibson]
@@ -182,7 +182,7 @@ terms:
     gender: male
     source_reference: "Approved PT-BR translation, Howling Dark (2026)"
     confidence: reviewed
-    first_appearance: howling-dark
+    first_appearance: empire-of-silence
     approved: true
   - source: Kharn Sagara
     target: Kharn Sagara
@@ -193,7 +193,7 @@ terms:
     gender: male
     source_reference: "Approved PT-BR translation, Howling Dark (2026)"
     confidence: reviewed
-    first_appearance: howling-dark
+    first_appearance: empire-of-silence
     approved: true
   - source: Olorin Milta
     target: Olorin Milta
@@ -204,7 +204,7 @@ terms:
     gender: male
     source_reference: "Approved PT-BR translation, Howling Dark (2026)"
     confidence: reviewed
-    first_appearance: howling-dark
+    first_appearance: empire-of-silence
     approved: true
   - source: William XXIII
     target: William XXIII
@@ -215,7 +215,7 @@ terms:
     gender: male
     source_reference: "Approved PT-BR translation, Howling Dark (2026)"
     confidence: reviewed
-    first_appearance: howling-dark
+    first_appearance: empire-of-silence
     approved: true
   - source: Otavia Corvo
     target: Otavia Corvo
@@ -238,15 +238,18 @@ terms:
     first_appearance: kingdoms-of-death
     approved: false
   - source: Siran of Emesh
-    target: Siran of Emesh
+    target: Siran
     category: character
     policy: keep
     aliases: [Siran]
     alias_targets: {Siran: Siran}
     gender: female
-    source_reference: "Approved PT-BR translation, Howling Dark (2026)"
-    confidence: reviewed
-    first_appearance: howling-dark
+    notes: >-
+      The official PT edition uses the short form Siran. The full epithet does
+      not occur in book 1; do not carry the English "of Emesh" into the prose.
+    source_reference: "Official PT-BR edition, Calibre 436"
+    confidence: confirmed
+    first_appearance: empire-of-silence
     approved: true
   - source: Cassandra
     target: Cassandra
