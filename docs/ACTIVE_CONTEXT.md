@@ -9,8 +9,9 @@ before acting on anything below.
 
 ## Repository
 
-- Branch `main`; the local benchmark report and adapters are committed in
-  `ae75dc5`; the OpenCode skills/plugin/ledger are in `d19b42f`.
+- Branch `main`; the local benchmark report and adapters are committed through
+  `e447991` (earlier round `ae75dc5`); the OpenCode skills/plugin/ledger are in
+  `d19b42f`.
 - Working tree keeps the user's untracked `AGENTS.md`, `.taste-skill/` and
   `Custom_Instructions/sun-eater-2.yaml`.
 - Nothing has been pushed.
