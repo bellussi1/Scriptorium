@@ -98,7 +98,11 @@ run waits for the GPU to be idle.
 - `scripts/make_pairwise_sheet.py` — builds a blind A/B sheet from two model
   runs and stores the answer key separately.
 - `scripts/analyze_pairwise.py` — win rate, mean score difference, paired
-  bootstrap 95% CI and exact sign test from the filled sheet.
+  bootstrap 95% CI and exact sign test from the filled sheet. The sheet
+  randomizes which model is column A per excerpt, so pass `--key` with the
+  generated key and `--reference-model` to normalize every row to one model;
+  without that, `wins_a` mixes both models. The report also includes a
+  book-clustered bootstrap because excerpts from one book are correlated.
 - `scripts/benchmark_fase_d.py` remains the runner for short excerpts. Use the
   new dev/test files with `--corpus`.
 
