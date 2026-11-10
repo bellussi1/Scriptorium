@@ -116,11 +116,12 @@ terms:
     category: character
     policy: keep
     aliases: [Pallino of Trieste]
-    alias_targets: {Pallino of Trieste: "Pallino de Trieste"}
-    source_reference: "Source text (Howling Dark); name kept"
-    confidence: provisional
+    alias_targets: {Pallino of Trieste: Pallino}
+    notes: "The official PT edition uses the short form Pallino."
+    source_reference: "Official PT-BR edition, Calibre 436"
+    confidence: reviewed
     first_appearance: empire-of-silence
-    approved: false
+    approved: true
   - source: Lorian Aristedes
     target: Lorian Aristedes
     category: character
@@ -332,10 +333,11 @@ terms:
     policy: keep
     notes: >-
       Cielcin baetan of Clan Otiolo; the source uses "it" for Cielcin persons.
-      Do not expand the short form in the prose.
-    source_reference: "Source text (Howling Dark); name kept; Nov Belgaer character index"
+      Do not expand the short form in the prose. The official PT edition
+      already uses Tanaran in book 1.
+    source_reference: "Official PT-BR edition, Calibre 436; Nov Belgaer character index"
     confidence: reviewed
-    first_appearance: howling-dark
+    first_appearance: empire-of-silence
     approved: true
   - source: Nobuta
     target: Nobuta
@@ -450,11 +452,12 @@ terms:
     alias_targets: {Uvanari: Uvanari}
     notes: >-
       Cielcin of Clan Otiolo; the source uses the short form Uvanari. The
-      source uses "it" for Cielcin persons; do not assign a gender.
-    source_reference: "Source text (Howling Dark); name kept; Nov Belgaer character index"
-    confidence: provisional
-    first_appearance: howling-dark
-    approved: false
+      source uses "it" for Cielcin persons; do not assign a gender. The
+      official PT edition already uses Uvanari in book 1.
+    source_reference: "Official PT-BR edition, Calibre 436; Nov Belgaer character index"
+    confidence: reviewed
+    first_appearance: empire-of-silence
+    approved: true
   - source: Naia
     target: Naia
     category: character
@@ -470,11 +473,11 @@ terms:
     policy: keep
     aliases: [Elara]
     alias_targets: {Elara: Elara}
-    notes: "Meidua Red Company; keep the epithet as Elara de Emesh."
-    source_reference: "Source text (Howling Dark); name kept; Nov Belgaer character index"
-    confidence: provisional
-    first_appearance: howling-dark
-    approved: false
+    notes: "Meidua Red Company; keep the epithet as Elara de Emesh. The official PT edition already uses Elara in book 1."
+    source_reference: "Official PT-BR edition, Calibre 436; Nov Belgaer character index"
+    confidence: reviewed
+    first_appearance: empire-of-silence
+    approved: true
   - source: Oalicomn
     target: oalicomn
     category: other
@@ -484,3 +487,149 @@ terms:
     confidence: provisional
     first_appearance: howling-dark
     approved: false
+  - source: Crispin
+    target: Crispin
+    category: character
+    policy: keep
+    aliases: [Crispin Marlowe]
+    alias_targets: {Crispin Marlowe: Crispin Marlowe}
+    notes: "The official PT edition uses Crispin."
+    source_reference: "Official PT-BR edition, Calibre 436"
+    confidence: reviewed
+    first_appearance: empire-of-silence
+    approved: true
+  - source: Gilliam Vas
+    target: Gilliam Vas
+    category: character
+    policy: keep
+    aliases: [Gilliam]
+    alias_targets: {Gilliam: Gilliam}
+    notes: "The official PT edition uses Gilliam Vas and the short form Gilliam."
+    source_reference: "Official PT-BR edition, Calibre 436"
+    confidence: reviewed
+    first_appearance: empire-of-silence
+    approved: true
+  - source: Dorian Mataro
+    target: Dorian Mataro
+    category: character
+    policy: keep
+    aliases: [Dorian]
+    alias_targets: {Dorian: Dorian}
+    notes: "The official PT edition uses Dorian Mataro and the short form Dorian."
+    source_reference: "Official PT-BR edition, Calibre 436"
+    confidence: reviewed
+    first_appearance: empire-of-silence
+    approved: true
+  - source: Demetri Arello
+    target: Demetri Arello
+    category: character
+    policy: keep
+    aliases: [Demetri]
+    alias_targets: {Demetri: Demetri}
+    notes: "The official PT edition uses Demetri Arello and the short form Demetri."
+    source_reference: "Official PT-BR edition, Calibre 436"
+    confidence: reviewed
+    first_appearance: empire-of-silence
+    approved: true
+  - source: Elomas
+    target: Elomas
+    category: character
+    policy: keep
+    aliases: [Sir Elomas]
+    alias_targets: {Sir Elomas: "Sir Elomas"}
+    notes: "The official PT edition keeps Sir Elomas."
+    source_reference: "Official PT-BR edition, Calibre 436"
+    confidence: reviewed
+    first_appearance: empire-of-silence
+    approved: true
+  - source: Kyra
+    target: Kyra
+    category: character
+    policy: keep
+    notes: "The official PT edition keeps Kyra."
+    source_reference: "Official PT-BR edition, Calibre 436"
+    confidence: reviewed
+    first_appearance: empire-of-silence
+    approved: true
+  - source: Simeon
+    target: Simeon
+    category: character
+    policy: keep
+    aliases: [Simeon the Red]
+    alias_targets: {Simeon the Red: "Simeon, o Vermelho"}
+    notes: "The official PT edition uses Simeon, o Vermelho."
+    source_reference: "Official PT-BR edition, Calibre 436"
+    confidence: reviewed
+    first_appearance: empire-of-silence
+    approved: true
+  - source: Roban
+    target: Roban
+    category: character
+    policy: keep
+    aliases: [Sir Roban]
+    alias_targets: {Sir Roban: "Sir Roban"}
+    notes: "The official PT edition keeps Sir Roban."
+    source_reference: "Official PT-BR edition, Calibre 436"
+    confidence: reviewed
+    first_appearance: empire-of-silence
+    approved: true
+  - source: Ligeia Vas
+    target: Ligeia Vas
+    category: character
+    policy: keep
+    aliases: [Ligeia]
+    alias_targets: {Ligeia: Ligeia}
+    notes: "The official PT edition uses Ligeia Vas."
+    source_reference: "Official PT-BR edition, Calibre 436"
+    confidence: reviewed
+    first_appearance: empire-of-silence
+    approved: true
+  - source: Gila
+    target: Gila
+    category: character
+    policy: keep
+    notes: "Name kept; role not verified against the source appendix."
+    source_reference: "Official PT-BR edition, Calibre 436"
+    confidence: provisional
+    first_appearance: empire-of-silence
+    approved: false
+  - source: Alistair
+    target: Alistair
+    category: character
+    policy: keep
+    aliases: [Lord Alistair]
+    alias_targets: {Lord Alistair: "Lorde Alistair"}
+    notes: "The official PT edition keeps Alistair."
+    source_reference: "Official PT-BR edition, Calibre 436"
+    confidence: reviewed
+    first_appearance: empire-of-silence
+    approved: true
+  - source: Kiri
+    target: Kiri
+    category: character
+    policy: keep
+    notes: "The official PT edition keeps Kiri."
+    source_reference: "Official PT-BR edition, Calibre 436"
+    confidence: reviewed
+    first_appearance: empire-of-silence
+    approved: true
+  - source: Felix
+    target: Felix
+    category: character
+    policy: keep
+    aliases: [Sir Felix]
+    alias_targets: {Sir Felix: "Sir Felix"}
+    notes: "The official PT edition keeps Sir Felix."
+    source_reference: "Official PT-BR edition, Calibre 436"
+    confidence: reviewed
+    first_appearance: empire-of-silence
+    approved: true
+  - source: Cat
+    target: Cat
+    category: character
+    policy: keep
+    notes: "Hadrian's friend on Emesh; the official PT edition keeps Cat."
+    source_reference: "Official PT-BR edition, Calibre 436"
+    confidence: reviewed
+    first_appearance: empire-of-silence
+    approved: true

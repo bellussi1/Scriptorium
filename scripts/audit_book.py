@@ -216,14 +216,10 @@ def _term_audit(
         targets = [term.target]
         alias_targets = getattr(term, "alias_targets", {}) or {}
         targets.extend(alias_targets.values())
-        translated = [
-            target
-            for target in targets
-            if target and target.casefold() != term.source.casefold()
-        ]
-        if translated:
+        targets = [target for target in targets if target]
+        if targets:
             eligible += 1
-            if any(target_present(target, target_text) for target in translated):
+            if any(target_present(target, target_text) for target in targets):
                 hits += 1
             else:
                 missing.append(
@@ -234,7 +230,13 @@ def _term_audit(
                     }
                 )
         for forbidden in getattr(term, "forbidden", []) or []:
-            count = target_cf.count(str(forbidden).casefold())
+            count = len(
+                re.findall(
+                    rf"\b{re.escape(str(forbidden))}\b",
+                    target_text,
+                    flags=re.I,
+                )
+            )
             if count:
                 forbidden_hits.append({"source": term.source, "forbidden": forbidden, "count": count})
     coverage = (hits / eligible) if eligible else 1.0

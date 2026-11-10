@@ -270,11 +270,11 @@ terms:
     target: Calagah
     category: location
     policy: keep
-    notes: "Name kept; role not verified against the source appendix."
-    source_reference: "Source text (Howling Dark); name kept"
-    confidence: provisional
-    first_appearance: howling-dark
-    approved: false
+    notes: "The official PT edition already uses Calagah in book 1."
+    source_reference: "Official PT-BR edition, Calibre 436"
+    confidence: reviewed
+    first_appearance: empire-of-silence
+    approved: true
   - source: Coritani
     target: coritani
     category: organization

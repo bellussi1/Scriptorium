@@ -20,9 +20,10 @@ before acting on anything below.
 
 - Queue agent: online, fresh heartbeat, **runner active**.
 - **Howling Dark** is translating with Index-Translate 9B, job 19,
-  `cli_c6f4be29`, **1/1074 chunks** at 22:12 UTC. Started 22:11:59.
-- One pass, refinement disabled (`--refine-limit 0`). ETA roughly 2.5-3.5 h,
-  but this is the first Index book at production chunk size; measure it.
+  `cli_c6f4be29`, **200/1074 chunks** at 22:50 UTC. Started 22:11:59;
+  ~5.3 chunks/min, ETA roughly 2.8 h.
+- One pass, refinement disabled (`--refine-limit 0`). This is the first Index
+  book at production chunk size; use the measured rate for the next books.
 - Main app on `:5000`, preview on `:5001`. The app container was restarted at
   22:11 UTC to clear the `jobs.db` disk I/O error.
 
@@ -104,9 +105,10 @@ Expert report: `docs/project/reviews/sun-eater-model-selection-2026-11-10.md`.
   fidelity/naturalness >= 3.5 and at most one meaning error.
 - Caps: **US$ 0.05 per book**, **US$ 0.50 total**; model `claude-haiku-5-5`
   with thinking disabled. Audit rows use `stage: auto-audit` in the ledger.
-- Calibration on the archived Hy-MT2 Howling Dark: audit failed as expected
-  (coverage 0.8966 < 0.90, two forbidden renderings, six cloud meaning errors;
-  cost US$ 0.0008). The new Index output is audited at the gate.
+- Calibration on the archived Hy-MT2 Howling Dark: coverage 0.973 after the
+  word-boundary fix, forbidden `Chantry`/`extrassolar`, six cloud meaning
+  errors; cost US$ 0.0008. It fails on the forbidden terms as expected. The new
+  Index output is audited at the gate.
 - Reports: `data/audits/<book>-<timestamp>/audit.md`; supervisor status:
   `data/literary_queue.auto.json`.
 
@@ -123,13 +125,18 @@ Expert report: `docs/project/reviews/sun-eater-model-selection-2026-11-10.md`.
 - English sources: the Farseer trilogy is in Calibre (336, 329, 338). The
   English *Empire of Silence* path still needs confirmation; the official PT
   and the 84 aligned benchmark excerpts are the current Sun Eater reference.
-- Howling Dark glossary expanded from 62 to **99 terms / 147 prompt forms**
-  using the official book 1, the Nov Belgaer lexicon/character index and the
-  source: Raine Smythe, Aranata Otiolo, Tanaran, Nobuta, Ilex, Yume, Suzuha,
-  Tor Varro, Calvert, Greenlaw, Brevon, Cento, Jari, Rustam, Uvanari, Naia,
-  Elara, plus aeta/baetan/galstani/tavrosi/mandari/normando/Exaltados/
-  Imortal/Tribuno/Hauptmann/March Station/Enigma of Hours. `resources
-  validate` passes.
+- Howling Dark glossary is now **117 terms / 177 prompt forms**. The official
+  book 1 audit (`Império do Silêncio`, Calibre 436) reaches **70 terms / 113
+  forms, coverage 1.0**. Corrections: `Extrasolarian` -> `extrassolariano`
+  (the official form; `extrassolar` is forbidden), `Pallino` keeps the short
+  form, `Tanaran`/`Uvanari`/`Calagah` first appear in book 1. New official
+  terms: Crispin, Gilliam Vas, Dorian Mataro, Demetri Arello, Elomas, Kyra,
+  Simeon (o Vermelho), Roban, Ligeia Vas, Gila, Alistair, Kiri, Felix, Cat,
+  Umandh, Casa Mataro, Teukros and Vesperad. The Nov Belgaer additions remain
+  for Howling Dark (Raine Smythe, Aranata Otiolo, Nobuta, Ilex, Yume, Suzuha,
+  Tor Varro, Calvert, Greenlaw, Brevon, Cento, Jari, Rustam, Naia, plus
+  aeta/baetan/galstani/tavrosi/mandari/normando/Exaltados/Imortal/Tribuno/
+  Hauptmann/March Station/Enigma of Hours). `resources validate` passes.
 - The production style block is the existing 2,228-char translation section.
   Review it against the official book 1 register after the Howling Dark pilot;
   change it only for a systematic gap, not for isolated wording.

@@ -212,16 +212,19 @@ terms:
     first_appearance: howling-dark
     approved: false
   - source: Extrasolarian
-    target: extrassolar
+    target: extrassolariano
     category: other
     policy: translate
     aliases: [Extrasolarians]
-    alias_targets: {Extrasolarians: extrassolares}
-    forbidden: [extrassolariano]
-    source_reference: "Source text (Howling Dark); editorial rendering"
-    confidence: provisional
+    alias_targets: {Extrasolarians: extrassolarianos}
+    forbidden: [extrassolar]
+    notes: >-
+      The official Brazilian edition uses extrassolariano/extrassolarianos.
+      Do not shorten it to extrassolar.
+    source_reference: "Official PT-BR edition, Calibre 436"
+    confidence: reviewed
     first_appearance: empire-of-silence
-    approved: false
+    approved: true
   - source: The Painted Man
     target: O Homem Pintado
     category: title
@@ -393,5 +396,45 @@ terms:
       reduce it to the ordinary noun silêncio or the book title Império do Silêncio.
     source_reference: "Official PT-BR edition, Calibre 436"
     confidence: confirmed
+    first_appearance: empire-of-silence
+    approved: true
+  - source: Umandh
+    target: umandh
+    category: other
+    policy: transliterate
+    aliases: [Umandhs]
+    alias_targets: {Umandhs: umandhs}
+    notes: "Native species of Emesh; lowercase in running text like cielcin."
+    source_reference: "Official PT-BR edition, Calibre 436"
+    confidence: reviewed
+    first_appearance: empire-of-silence
+    approved: true
+  - source: House Mataro
+    target: Casa Mataro
+    category: organization
+    policy: translate
+    aliases: [Mataro]
+    alias_targets: {Mataro: Mataro}
+    notes: "The official PT edition uses Casa Mataro; the surname stays Mataro."
+    source_reference: "Official PT-BR edition, Calibre 436"
+    confidence: reviewed
+    first_appearance: empire-of-silence
+    approved: true
+  - source: Teukros
+    target: Teukros
+    category: location
+    policy: keep
+    notes: "Athenaeum/place; the official PT edition keeps Teukros."
+    source_reference: "Official PT-BR edition, Calibre 436"
+    confidence: reviewed
+    first_appearance: empire-of-silence
+    approved: true
+  - source: Vesperad
+    target: Vesperad
+    category: location
+    policy: keep
+    notes: "School/place; the official PT edition keeps Vesperad."
+    source_reference: "Official PT-BR edition, Calibre 436"
+    confidence: reviewed
     first_appearance: empire-of-silence
     approved: true
