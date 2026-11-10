@@ -19,7 +19,7 @@ class ModelSpec:
     label: str
     provider: str  # ollama | openai-compatible
     model: str
-    prompt_style: str  # translategemma | hy_mt2 | index_translate | generic_literary
+    prompt_style: str  # translategemma | hy_mt2 | index_translate | colon_translate | generic_literary
     context_window: int
     supports_glossary: bool = False
     native_prompt: bool = True
@@ -126,6 +126,26 @@ MODELS: Dict[str, ModelSpec] = {
         supports_glossary=True,
         think=False,
         notes="Apache-2.0; 150 languages; greedy decoding, instTrans constraints, thinking disabled; 8K context fits the 8 GB card without the 16K CPU offload.",
+    ),
+    "eurollm-9b": ModelSpec(
+        key="eurollm-9b",
+        label="EuroLLM 9B Instruct (Q4_K_M)",
+        provider="ollama",
+        model="hf.co/bartowski/EuroLLM-9B-Instruct-GGUF:Q4_K_M",
+        prompt_style="colon_translate",
+        context_window=4096,
+        supports_glossary=True,
+        notes="Community GGUF; ChatML template; 4K context; colon-style translation prompt from the model card (unverified); expect pt-PT bias.",
+    ),
+    "salamandrata-7b": ModelSpec(
+        key="salamandrata-7b",
+        label="SalamandraTA 7B Instruct (Q4_K_M)",
+        provider="ollama",
+        model="hf.co/BSC-LT/salamandraTA-7B-instruct-GGUF:Q4_K_M",
+        prompt_style="colon_translate",
+        context_window=8192,
+        supports_glossary=True,
+        notes="BSC-LT GGUF; colon-style translation prompt from the model card (unverified); the generic system prompt made it echo the instructions.",
     ),
     "deepseek-flash": ModelSpec(
         key="deepseek-flash",
@@ -252,6 +272,19 @@ def build_prompt(
                 "Output the translation directly, without any explanation:\n\n"
                 + text
             )
+        return [{"role": "user", "content": content}]
+
+    if spec.prompt_style == "colon_translate":
+        # "Translate ... from X into Y.\nX: text\nY:" form used by the EuroLLM and
+        # SalamandraTA model cards. Terminology is prepended as plain lines.
+        header = ""
+        if glossary:
+            header = "Mandatory terminology: " + _term_pairs(glossary) + "\n\n"
+        content = (
+            header
+            + "Translate the following text from English into Brazilian Portuguese.\n"
+            + f"English: {text}\nPortuguese:"
+        )
         return [{"role": "user", "content": content}]
 
     system = LITERARY_SYSTEM

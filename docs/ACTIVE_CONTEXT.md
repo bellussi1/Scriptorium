@@ -68,6 +68,9 @@ Expert report: `docs/project/reviews/sun-eater-model-selection-2026-11-10.md`.
   rate 65.5%, CI 52.7–78.2%). Index stays the local default; EuroLLM is the
   only close challenger and it loses on dialogue (1–7). Test split not judged.
   Files: `data/benchmark/sun-eater-dev-local-index-vs-{eurollm-9b,qwen3-8b}/`.
+- Human spot-check (owner, 15 blind Index-vs-EuroLLM pairs): 14/15 agree with
+  the judge; owner picked Index 9, EuroLLM 6. Only pair 15 differs. Supports
+  the Index-over-EuroLLM result.
 - `benchmark/literary/adapters.py` (uncommitted) registers `eurollm-9b` and
   `salamandrata-7b` with a new `colon_translate` prompt style. The generic system
   prompt made Salamandra echo the instructions (chrF 0.34). The new format is
