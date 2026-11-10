@@ -93,6 +93,23 @@ Expert report: `docs/project/reviews/sun-eater-model-selection-2026-11-10.md`.
 - Realm of the Elderlings was not run locally; Index remains its default from
   the Farseer round.
 
+## 24/7 auto gate (owner-authorized 2026-11-10)
+
+- `scripts/auto_queue.py` (pid 40576) waits for Howling Dark. At the gate it
+  runs `scripts/audit_book.py`; on a full pass it approves, exports Kindle and
+  starts the next pending book. Any failure stops and leaves `needs_review`.
+- Gates: queue validation/EPUBCheck; glossary coverage >= 0.90 and zero
+  forbidden renderings; pt-PT <= 50 per 100k; English leakage <= 0.01;
+  repetition <= 0.05; length ratio 0.80-1.20; Haiku sample audit with
+  fidelity/naturalness >= 3.5 and at most one meaning error.
+- Caps: **US$ 0.05 per book**, **US$ 0.50 total**; model `claude-haiku-5-5`
+  with thinking disabled. Audit rows use `stage: auto-audit` in the ledger.
+- Calibration on the archived Hy-MT2 Howling Dark: audit failed as expected
+  (coverage 0.8966 < 0.90, two forbidden renderings, six cloud meaning errors;
+  cost US$ 0.0008). The new Index output is audited at the gate.
+- Reports: `data/audits/<book>-<timestamp>/audit.md`; supervisor status:
+  `data/literary_queue.auto.json`.
+
 ## Sun Eater and Realm resources (2026-11-10)
 
 - Official Sun Eater reference: *Império do Silêncio* (Calibre 436), the only
@@ -103,6 +120,9 @@ Expert report: `docs/project/reviews/sun-eater-model-selection-2026-11-10.md`.
   Assassino* (Calibre 94), *O Assassino do Rei* (92) and *A Fúria do
   Assassino* (71). Later Realm books have no official PT-BR edition; use the
   trilogy for terms/style, not alignment.
+- English sources: the Farseer trilogy is in Calibre (336, 329, 338). The
+  English *Empire of Silence* path still needs confirmation; the official PT
+  and the 84 aligned benchmark excerpts are the current Sun Eater reference.
 - Howling Dark glossary expanded from 62 to **99 terms / 147 prompt forms**
   using the official book 1, the Nov Belgaer lexicon/character index and the
   source: Raine Smythe, Aranata Otiolo, Tanaran, Nobuta, Ilex, Yume, Suzuha,

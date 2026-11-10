@@ -101,6 +101,39 @@ python -m src.literary.cli queue export-kindle
 `queue approve` records `reviewed_at`; without it, Kindle export skips the book
 as "not reviewed".
 
+## Automated 24/7 gate (owner-authorized 2026-11-10)
+
+The owner explicitly authorized replacing the human review with an automated
+audit **only when every gate passes**. Any failure stops the queue and leaves
+the book in `needs_review`.
+
+- `scripts/auto_queue.py` waits for a book to finish, runs
+  `scripts/audit_book.py`, approves on a pass, exports Kindle and starts the
+  next pending book. It stops on a failed audit, a failed queue run or a budget
+  breach.
+- The audit uses the queue report's validation/EPUBCheck result and adds:
+  glossary target coverage (>= 0.90), zero forbidden renderings, pt-PT markers
+  (<= 50 per 100k), English leakage (<= 0.01), repetition (<= 0.05), length
+  ratio (0.80-1.20), and a blind Haiku review of up to five aligned samples
+  (fidelity/naturalness >= 3.5, at most one meaning error).
+- Cloud audit cap: **US$ 0.05 per book**, **US$ 0.50 total**, model
+  `claude-haiku-5-5` with thinking disabled. The audit writes its cost to
+  `data/cost_ledger.jsonl` with `stage: auto-audit`.
+- Reports: `data/audits/<book>-<timestamp>/audit.json`, `audit.md`,
+  `samples.jsonl`. Supervisor status: `data/literary_queue.auto.json`.
+
+Commands:
+
+```bash
+python scripts/audit_book.py --book-id <id> --job-id <id> \
+  --report data/queue-runs/<slug>.report.json --max-cloud-usd 0.05
+python scripts/auto_queue.py --max-books 0 --max-cloud-usd 0.05
+```
+
+Do not loosen a threshold or auto-approve a failed audit without the owner's
+explicit approval. The automated gate is a pass-only shortcut, not a license to
+skip a failure.
+
 ## EPUB gates
 
 A book is not done when the translation process exits. It is done when:
