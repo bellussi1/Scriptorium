@@ -291,6 +291,8 @@ def create_config_blueprint(server_session_id=None):
             return _get_mistral_models(api_key)
         elif provider == 'deepseek':
             return _get_deepseek_models(api_key)
+        elif provider == 'litellm':
+            return _get_litellm_models(api_key)
         elif provider == 'poe':
             return _get_poe_models(api_key)
         elif provider == 'nim':
@@ -346,6 +348,7 @@ def create_config_blueprint(server_session_id=None):
             "deepseek_api_key": deepseek_mask,
             "poe_api_key": poe_mask,
             "nim_api_key": nim_mask,
+            "litellm_model": _config.LITELLM_MODEL,
             "gemini_api_key_count": gemini_count,
             "openai_api_key_count": openai_count,
             "openrouter_api_key_count": openrouter_count,
@@ -540,6 +543,31 @@ def create_config_blueprint(server_session_id=None):
             display_name="Poe",
             api_key_missing_message="Poe API key is required. Get your key at https://poe.com/api_key",
         )
+
+    def _get_litellm_models(provided_api_key=None):
+        """Return the curated LiteLLM model list.
+
+        LiteLLM routes through native provider credentials, so there is no
+        single LiteLLM API key to validate here. The list is intentionally
+        small: the models this installation has credentials for.
+        """
+        models = [
+            "anthropic/claude-haiku-5-5",
+            "anthropic/claude-sonnet-5-5",
+            "anthropic/claude-opus-5-5",
+            "openai/gpt-4.1-mini",
+            "gemini/gemini-3.8-flash",
+        ]
+        default = _config.LITELLM_MODEL or models[0]
+        if default not in models:
+            models.insert(0, default)
+        return jsonify({
+            "models": models,
+            "model_names": models,
+            "default": default,
+            "status": "litellm_ready",
+            "count": len(models),
+        })
 
     def _get_nim_models(provided_api_key=None):
         """Get available models from NVIDIA NIM API"""
@@ -1014,6 +1042,7 @@ def create_config_blueprint(server_session_id=None):
             'POE_MODEL',
             'NIM_API_KEY',
             'NIM_MODEL',
+            'LITELLM_MODEL',
             'DEFAULT_MODEL',
             'LLM_PROVIDER',
             'OLLAMA_API_ENDPOINT',

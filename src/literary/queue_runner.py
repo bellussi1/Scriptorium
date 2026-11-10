@@ -28,6 +28,16 @@ from .queue_control import (
     pause_now_requested,
     set_pause,
 )
+
+# The queue runner is launched from the host. `src.config` is not imported on
+# this path, so load the repo .env explicitly: QUEUE_ALLOW_CLOUD and the cloud
+# credentials must be visible before the provider gate and translate.py call.
+try:
+    from dotenv import load_dotenv
+
+    load_dotenv(Path(__file__).resolve().parents[2] / ".env")
+except Exception:
+    pass
 from .reading_repair import repair_reading_epub
 from .repair import repair_doc_roles_in_epub, repair_dropcaps_in_epub
 from .resources import (
@@ -55,7 +65,12 @@ MODEL_ALIASES = {
     "hy-mt2-7b-q4": "hf.co/tencent/Hy-MT2-7B-GGUF:Q4_K_M",
     "hy-mt2-7b-q6": "hf.co/tencent/Hy-MT2-7B-GGUF:Q6_K",
 }
-CLOUD_PROVIDERS = {"gemini", "openai", "deepseek", "openrouter", "mistral", "poe", "nim"}
+CLOUD_PROVIDERS = {"gemini", "openai", "deepseek", "openrouter", "mistral", "poe", "nim", "litellm"}
+
+
+def cloud_providers_allowed() -> bool:
+    """True when the queue is explicitly allowed to spend cloud API credit."""
+    return os.getenv("QUEUE_ALLOW_CLOUD", "false").strip().lower() == "true"
 
 
 def _log_path(title: str) -> Path:
@@ -541,9 +556,9 @@ def run_queue_book(
     provider = (book.provider or "ollama").strip().lower()
     if not model:
         raise ValueError(f"book {book.id} has no model")
-    if provider in CLOUD_PROVIDERS:
+    if provider in CLOUD_PROVIDERS and not cloud_providers_allowed():
         raise ValueError(
-            f"book {book.id} uses cloud provider {provider}; set a local model first"
+            f"book {book.id} uses cloud provider {provider}; set QUEUE_ALLOW_CLOUD=true to allow it"
         )
 
     plan = build_run_plan(book, resources_root=resources_root)
@@ -759,6 +774,9 @@ def run_queue_book(
     log(book.title, f"EPUBCheck {epubcheck}")
 
     refine_report = None
+    if refine and provider in CLOUD_PROVIDERS:
+        log(book.title, f"cloud provider {provider}: skipping Ollama-only refinement")
+        refine = False
     if refine:
         refine_report = _refine(
             host_source(book),

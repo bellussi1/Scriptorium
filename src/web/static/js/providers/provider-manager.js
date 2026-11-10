@@ -436,6 +436,17 @@ export const ProviderManager = {
             if (poeSettings) poeSettings.style.display = 'none';
             if (nimSettings) nimSettings.style.display = 'block';
             if (loadModels) this.loadNimModels();
+        } else if (provider === 'litellm') {
+            DomHelpers.hide('ollamaSettings');
+            if (geminiSettings) geminiSettings.style.display = 'none';
+            if (openaiApiKeyGroup) openaiApiKeyGroup.style.display = 'none';
+            if (openaiEndpointRow) openaiEndpointRow.style.display = 'none';
+            if (openrouterSettings) openrouterSettings.style.display = 'none';
+            if (mistralSettings) mistralSettings.style.display = 'none';
+            if (deepseekSettings) deepseekSettings.style.display = 'none';
+            if (poeSettings) poeSettings.style.display = 'none';
+            if (nimSettings) nimSettings.style.display = 'none';
+            if (loadModels) this.loadLiteLLMModels();
         }
 
         // Parallel translation is only useful for cloud providers; a single
@@ -470,6 +481,8 @@ export const ProviderManager = {
             this.loadDeepSeekModels();
         } else if (provider === 'nim') {
             this.loadNimModels();
+        } else if (provider === 'litellm') {
+            this.loadLiteLLMModels();
         }
     },
 
@@ -925,6 +938,58 @@ export const ProviderManager = {
 
             StateManager.setState('models.availableModels', DEEPSEEK_FALLBACK_MODELS.map(m => m.value));
             StatusManager.setConnected('deepseek', DEEPSEEK_FALLBACK_MODELS.length);
+        }
+    },
+
+    /**
+     * Load LiteLLM models (Anthropic/OpenAI/Gemini through native env keys).
+     */
+    async loadLiteLLMModels() {
+        const modelSelect = DomHelpers.getElement('model');
+        if (!modelSelect) return;
+
+        setPlaceholderOption(modelSelect, 'settings:search_models_loading');
+        StatusManager.setChecking();
+
+        const fallback = [
+            'anthropic/claude-haiku-5-5',
+            'anthropic/claude-sonnet-5-5',
+            'anthropic/claude-opus-5-5',
+        ];
+
+        try {
+            const data = await ApiClient.getModels('litellm');
+            const models = data.models || [];
+            if (models.length > 0) {
+                MessageLogger.showMessage('', '');
+                const formatted = models.map((m) => {
+                    const value = typeof m === 'string' ? m : (m.value ?? m.id ?? '');
+                    const label = typeof m === 'string' ? m : (m.label ?? m.name ?? value);
+                    return { value, label };
+                });
+                populateModelSelect(formatted, data.default, 'litellm');
+                StateManager.setState('models.availableModels', formatted.map((m) => m.value));
+                StatusManager.setConnected('litellm', models.length);
+                SettingsManager.applyPendingModelSelection();
+                ModelDetector.checkAndShowRecommendation();
+            } else {
+                populateModelSelect(
+                    fallback.map((m) => ({ value: m, label: m })),
+                    'anthropic/claude-haiku-5-5',
+                    'litellm'
+                );
+                StateManager.setState('models.availableModels', fallback);
+                StatusManager.setConnected('litellm', fallback.length);
+            }
+        } catch (error) {
+            MessageLogger.showMessage(t('settings:no_models_warning', { message: error.message }), 'warning');
+            populateModelSelect(
+                fallback.map((m) => ({ value: m, label: m })),
+                'anthropic/claude-haiku-5-5',
+                'litellm'
+            );
+            StateManager.setState('models.availableModels', fallback);
+            StatusManager.setConnected('litellm', fallback.length);
         }
     },
 

@@ -16,10 +16,10 @@ const LIBRARY_URL = '/api/literary/library';
 const ADD_URL = '/api/literary/queue/books';
 const CONTROL_URL = '/api/literary/queue/control';
 const RUN_URL = '/api/literary/queue/run';
-const MODELS_URL = '/api/models?provider=ollama';
+const MODELS_URL = '/api/models?provider=';
 const REFRESH_MS = 10000;
-// The queue is local-only by design; cloud providers are intentionally hidden.
-const PROVIDERS = ['ollama'];
+// The queue supports local and cloud providers when QUEUE_ALLOW_CLOUD=true.
+const PROVIDERS = ['ollama', 'gemini', 'deepseek', 'openrouter', 'mistral', 'poe', 'nim', 'litellm'];
 const RUNNING_STATES = new Set(['preparing', 'translating', 'reviewing', 'validating']);
 const RETRY_STATES = new Set(['failed', 'needs_review', 'paused']);
 
@@ -41,6 +41,7 @@ let lastBooks = [];
 let availableModels = [];
 let editingBookId = null;
 let modelsLoaded = false;
+let modelsProvider = 'ollama';
 let modelsLoading = false;
 let actionInFlight = false;
 let lastSnapshot = { books: [], summary: {}, events: [] };
@@ -935,26 +936,34 @@ function openModelModal(bookId) {
     const modelInput = byId('queueModelInput');
     if (modelInput) modelInput.value = book.model || '';
     const providerInput = byId('queueProviderInput');
-    if (providerInput) providerInput.value = 'ollama';
+    if (providerInput) providerInput.value = book.provider || 'ollama';
     clearModelError();
     const modal = byId('queueModelModal');
     if (modal) modal.classList.remove('hidden');
     if (modelInput) modelInput.focus();
-    loadModelOptions();
+    loadModelOptions(providerInput?.value || 'ollama', true);
 }
 
-async function loadModelOptions() {
+async function loadModelOptions(provider = 'ollama', force = false) {
     const providers = byId('queueProviderOptions');
     if (providers && !providers.dataset.ready) {
         providers.innerHTML = PROVIDERS
-            .map((provider) => `<option value="${escapeHtml(provider)}"></option>`)
+            .map((item) => `<option value="${escapeHtml(item)}"></option>`)
             .join('');
         providers.dataset.ready = '1';
     }
-    if (modelsLoaded || modelsLoading) return;
+    const providerInput = byId('queueProviderInput');
+    if (providerInput && !providerInput.dataset.modelBound) {
+        providerInput.addEventListener('change', () => {
+            loadModelOptions(providerInput.value.trim() || 'ollama', true);
+        });
+        providerInput.dataset.modelBound = '1';
+    }
+    if (modelsLoading) return;
+    if (!force && modelsLoaded && provider === modelsProvider) return;
     modelsLoading = true;
     try {
-        const response = await fetch(MODELS_URL, {
+        const response = await fetch(`${MODELS_URL}${encodeURIComponent(provider)}`, {
             headers: apiHeaders(),
             cache: 'no-store',
         });
@@ -971,6 +980,7 @@ async function loadModelOptions() {
         list.innerHTML = availableModels
             .map((name) => `<option value="${escapeHtml(name)}"></option>`)
             .join('');
+        modelsProvider = provider;
         modelsLoaded = true;
         refreshModelSelects();
     } catch (error) {
@@ -1003,10 +1013,6 @@ async function saveModel() {
         showModelError(t('queue:model_required'));
         return;
     }
-    if (provider !== 'ollama') {
-        showModelError(t('queue:local_only_error'));
-        return;
-    }
 
     const button = byId('queueModelSave');
     if (button) button.disabled = true;
@@ -1030,8 +1036,8 @@ async function changeBookModel(bookId, model) {
         setActionStatus(t('queue:model_required'), true);
         return;
     }
-    // The queue is local-only; never carry a cloud provider from an older row.
-    const provider = 'ollama';
+    // Preserve the book's provider when changing its model.
+    const provider = book.provider || 'ollama';
     const select = document.querySelector(`[data-model-book-id="${bookId}"]`);
     if (select) select.disabled = true;
     try {

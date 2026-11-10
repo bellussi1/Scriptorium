@@ -31,10 +31,11 @@ export const PROVIDER_META = {
     openai: { name: 'OpenAI', description: 'Compatible' },
     openrouter: { name: 'OpenRouter', description: '200+ models' },
     nim: { name: 'NVIDIA NIM', description: 'Cloud API' },
+    litellm: { name: 'LiteLLM', description: 'Claude, 100+ providers' },
 };
 
 // Canonical A-Z order used everywhere a provider dropdown is built.
-export const PROVIDER_ORDER = ['deepseek', 'gemini', 'mistral', 'nim', 'ollama', 'openai', 'openrouter', 'poe'];
+export const PROVIDER_ORDER = ['deepseek', 'gemini', 'litellm', 'mistral', 'nim', 'ollama', 'openai', 'openrouter', 'poe'];
 
 /**
  * Replace the dropdown content with a single placeholder option whose text
@@ -148,6 +149,17 @@ export function populateModelSelectInto(selectEl, models, defaultModel = null, p
             opt.value = value;
             opt.textContent = label;
             if (m.context_length) opt.title = `Context: ${m.context_length} tokens`;
+            if (value === defaultModel) { opt.selected = true; defaultFound = true; }
+            selectEl.appendChild(opt);
+        });
+    } else if (provider === 'litellm') {
+        list.forEach((m) => {
+            // LiteLLM's /api/models returns plain provider-prefixed strings.
+            const value = typeof m === 'string' ? m : (m.value ?? m.id ?? '');
+            const label = typeof m === 'string' ? m : (m.label ?? m.name ?? value);
+            const opt = document.createElement('option');
+            opt.value = value;
+            opt.textContent = label;
             if (value === defaultModel) { opt.selected = true; defaultFound = true; }
             selectEl.appendChild(opt);
         });

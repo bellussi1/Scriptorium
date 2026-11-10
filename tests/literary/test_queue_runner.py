@@ -153,3 +153,33 @@ def test_is_sun_eater_detects_author_and_series():
 
     assert _is_sun_eater(Book())
     assert not _is_sun_eater(Other())
+
+def test_cloud_providers_require_explicit_opt_in(monkeypatch):
+    monkeypatch.delenv("QUEUE_ALLOW_CLOUD", raising=False)
+    assert queue_runner.cloud_providers_allowed() is False
+    monkeypatch.setenv("QUEUE_ALLOW_CLOUD", "true")
+    assert queue_runner.cloud_providers_allowed() is True
+    monkeypatch.setenv("QUEUE_ALLOW_CLOUD", "false")
+    assert queue_runner.cloud_providers_allowed() is False
+
+
+def test_translation_command_passes_cloud_provider_and_model():
+    book = SimpleNamespace(
+        source_path="/library/Author/Book (42)/Book.epub",
+        calibre_id=42,
+        id=42,
+    )
+    assets = {
+        "glossary_container": "/app/data/glossary.json",
+        "style_container": "/app/data/style.md",
+    }
+    command = queue_runner._translation_command(
+        book,
+        "gemini-3.8-flash",
+        "gemini",
+        assets,
+        "Book (pt-BR).epub",
+    )
+    assert command[command.index("--provider") + 1] == "gemini"
+    assert command[command.index("-m") + 1] == "gemini-3.8-flash"
+

@@ -646,6 +646,8 @@ export const SettingsManager = {
                     envSettings['POE_MODEL'] = model;
                 } else if (provider === 'nim') {
                     envSettings['NIM_MODEL'] = model;
+                } else if (provider === 'litellm') {
+                    envSettings['LITELLM_MODEL'] = model;
                 } else {
                     // Ollama and OpenAI use DEFAULT_MODEL
                     envSettings['DEFAULT_MODEL'] = model;
