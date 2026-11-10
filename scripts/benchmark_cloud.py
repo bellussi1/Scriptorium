@@ -132,65 +132,82 @@ async def run(args: argparse.Namespace) -> int:
         spec = MODELS[key]
         pricing = get_pricing(spec["pricing_provider"], spec["pricing_model"])
         provider = create_llm_provider(spec["provider"], model=spec["model"])
-        rows: List[Dict[str, Any]] = []
-        for index, excerpt in enumerate(corpus, 1):
-            started = time.time()
-            error = ""
-            content = ""
-            response = None
-            try:
-                response = await provider.generate(
-                    excerpt.text,
-                    system_prompt=system_prompt,
-                    timeout=args.timeout,
+        semaphore = asyncio.Semaphore(max(1, args.concurrency))
+
+        async def process(index: int, excerpt: Any) -> tuple[int, Dict[str, Any]]:
+            async with semaphore:
+                started = time.time()
+                error = ""
+                content = ""
+                response = None
+                try:
+                    response = await provider.generate(
+                        excerpt.text,
+                        system_prompt=system_prompt,
+                        timeout=args.timeout,
+                    )
+                    content = (response.content or "").strip() if response else ""
+                    if not content:
+                        error = "empty response"
+                except Exception as exc:
+                    error = str(exc)
+                latency = round(time.time() - started, 3)
+                prompt_tokens = int(getattr(response, "prompt_tokens", 0) or 0)
+                output_tokens = int(getattr(response, "completion_tokens", 0) or 0)
+                cost = (
+                    prompt_tokens * pricing.input_price() / 1_000_000
+                    + output_tokens * pricing.output_price() / 1_000_000
                 )
-                content = (response.content or "").strip() if response else ""
-                if not content:
-                    error = "empty response"
-            except Exception as exc:
-                error = str(exc)
-            latency = round(time.time() - started, 3)
-            prompt_tokens = int(getattr(response, "prompt_tokens", 0) or 0)
-            output_tokens = int(getattr(response, "completion_tokens", 0) or 0)
-            cost = (
-                prompt_tokens * pricing.input_price() / 1_000_000
-                + output_tokens * pricing.output_price() / 1_000_000
-            )
-            metrics = score_output(
-                excerpt.text,
-                content,
-                reference=excerpt.reference_pt,
-                glossary=glossary,
-            )
-            row = {
-                "id": excerpt.id,
-                "book": excerpt.book,
-                "author": excerpt.author,
-                "category": excerpt.category,
-                "model": key,
-                "model_label": spec["label"],
-                "provider": spec["provider"],
-                "provider_model": spec["model"],
-                "generation": {
-                    "text": content,
-                    "latency_s": latency,
-                    "prompt_tokens": prompt_tokens,
-                    "output_tokens": output_tokens,
-                    "cost_usd": round(cost, 8),
-                    "error": error,
-                    "finish_reason": getattr(response, "finish_reason", None) if response else None,
-                },
-                "metrics": metrics,
-                "source_chars": len(excerpt.text),
-            }
+                metrics = score_output(
+                    excerpt.text,
+                    content,
+                    reference=excerpt.reference_pt,
+                    glossary=glossary,
+                )
+                row = {
+                    "_index": index,
+                    "id": excerpt.id,
+                    "book": excerpt.book,
+                    "author": excerpt.author,
+                    "category": excerpt.category,
+                    "model": key,
+                    "model_label": spec["label"],
+                    "provider": spec["provider"],
+                    "provider_model": spec["model"],
+                    "generation": {
+                        "text": content,
+                        "latency_s": latency,
+                        "prompt_tokens": prompt_tokens,
+                        "output_tokens": output_tokens,
+                        "cost_usd": round(cost, 8),
+                        "error": error,
+                        "finish_reason": getattr(response, "finish_reason", None) if response else None,
+                    },
+                    "metrics": metrics,
+                    "source_chars": len(excerpt.text),
+                }
+                return index, row
+
+        tasks = [
+            asyncio.create_task(process(index, excerpt))
+            for index, excerpt in enumerate(corpus, 1)
+        ]
+        rows: List[Dict[str, Any]] = []
+        for completed in asyncio.as_completed(tasks):
+            index, row = await completed
             rows.append(row)
-            summary["results"].append(row)
             print(
-                f"{key} {index:02d}/{len(corpus)} {excerpt.category:14s} "
-                f"chrF={metrics.get('chrf'):.4f} lat={latency:.1f}s "
-                f"cost=${cost:.5f} err={bool(error)}",
+                f"{key} {index:02d}/{len(corpus)} {row['category']:14s} "
+                f"chrF={row['metrics'].get('chrf'):.4f} "
+                f"lat={row['generation']['latency_s']:.1f}s "
+                f"cost=${row['generation']['cost_usd']:.5f} "
+                f"err={bool(row['generation']['error'])}",
                 flush=True,
             )
+        rows.sort(key=lambda item: item["_index"])
+        for row in rows:
+            row.pop("_index", None)
+        summary["results"].extend(rows)
         with (out_dir / f"{key}.jsonl").open("w", encoding="utf-8") as handle:
             for row in rows:
                 handle.write(json.dumps(row, ensure_ascii=False) + "\n")
@@ -211,6 +228,7 @@ def main() -> int:
     parser.add_argument("--models", nargs="+", default=list(MODELS))
     parser.add_argument("--limit", type=int, default=0)
     parser.add_argument("--timeout", type=int, default=300)
+    parser.add_argument("--concurrency", type=int, default=4)
     parser.add_argument("--out-root", default="data/benchmark/cloud")
     return asyncio.run(run(parser.parse_args()))
 
