@@ -75,8 +75,8 @@ terms:
     target: Bassander Lin
     category: character
     policy: keep
-    aliases: [Bassander]
-    alias_targets: {Bassander: Bassander}
+    aliases: [Bassander, Lin]
+    alias_targets: {Bassander: Bassander, Lin: Lin}
     source_reference: "Source text (Howling Dark); name kept"
     confidence: provisional
     first_appearance: empire-of-silence
@@ -115,6 +115,8 @@ terms:
     target: Pallino
     category: character
     policy: keep
+    aliases: [Pallino of Trieste]
+    alias_targets: {Pallino of Trieste: "Pallino de Trieste"}
     source_reference: "Source text (Howling Dark); name kept"
     confidence: provisional
     first_appearance: empire-of-silence
@@ -188,8 +190,8 @@ terms:
     target: Kharn Sagara
     category: character
     policy: keep
-    aliases: [Sagara]
-    alias_targets: {Sagara: Sagara}
+    aliases: [Kharn, Sagara]
+    alias_targets: {Kharn: Kharn, Sagara: Sagara}
     gender: male
     source_reference: "Approved PT-BR translation, Howling Dark (2026)"
     confidence: reviewed
@@ -221,8 +223,8 @@ terms:
     target: Otavia Corvo
     category: character
     policy: keep
-    aliases: [Corvo]
-    alias_targets: {Corvo: Corvo}
+    aliases: [Otavia, Corvo]
+    alias_targets: {Otavia: Otavia, Corvo: Corvo}
     gender: female
     source_reference: "Approved PT-BR translation, Howling Dark (2026)"
     confidence: reviewed
@@ -295,4 +297,190 @@ terms:
     source_reference: "Source text (Disquiet Gods); name kept"
     confidence: provisional
     first_appearance: disquiet-gods
+    approved: false
+  - source: Raine Smythe
+    target: Raine Smythe
+    category: character
+    policy: keep
+    aliases: [Raine, Smythe]
+    alias_targets: {Raine: Raine, Smythe: Smythe}
+    gender: female
+    notes: >-
+      Tribune and Dame Raine Smythe; name kept. The source also uses the short
+      forms Raine and Smythe. Role checked against the Nov Belgaer character
+      index.
+    source_reference: "Source text (Howling Dark); name kept; Nov Belgaer character index"
+    confidence: reviewed
+    first_appearance: howling-dark
+    approved: true
+  - source: Aranata Otiolo
+    target: Aranata Otiolo
+    category: character
+    policy: keep
+    aliases: [Aranata, Prince Aranata]
+    alias_targets: {Aranata: Aranata, Prince Aranata: "Príncipe Aranata"}
+    notes: >-
+      Cielcin aeta of Clan Otiolo. The source uses "it" for Cielcin persons;
+      do not force a gendered pronoun. Prince Aranata is a title plus name.
+    source_reference: "Source text (Howling Dark); name kept; Nov Belgaer character index"
+    confidence: reviewed
+    first_appearance: howling-dark
+    approved: true
+  - source: Tanaran
+    target: Tanaran
+    category: character
+    policy: keep
+    notes: >-
+      Cielcin baetan of Clan Otiolo; the source uses "it" for Cielcin persons.
+      Do not expand the short form in the prose.
+    source_reference: "Source text (Howling Dark); name kept; Nov Belgaer character index"
+    confidence: reviewed
+    first_appearance: howling-dark
+    approved: true
+  - source: Nobuta
+    target: Nobuta
+    category: character
+    policy: keep
+    notes: >-
+      Aranata's child; the source uses "it" for Cielcin persons. Do not assign
+      a gender in Portuguese.
+    source_reference: "Source text (Howling Dark); name kept; Nov Belgaer character index"
+    confidence: reviewed
+    first_appearance: howling-dark
+    approved: true
+  - source: Ilex
+    target: Ilex
+    category: character
+    policy: keep
+    notes: "Meidua Red Company; name kept."
+    source_reference: "Source text (Howling Dark); name kept; Nov Belgaer character index"
+    confidence: provisional
+    first_appearance: howling-dark
+    approved: false
+  - source: Yume
+    target: Yume
+    category: character
+    policy: keep
+    notes: "Red Company; name kept."
+    source_reference: "Source text (Howling Dark); name kept; Nov Belgaer character index"
+    confidence: provisional
+    first_appearance: howling-dark
+    approved: false
+  - source: Suzuha
+    target: Suzuha
+    category: character
+    policy: keep
+    notes: "Red Company; name kept."
+    source_reference: "Source text (Howling Dark); name kept; Nov Belgaer character index"
+    confidence: provisional
+    first_appearance: howling-dark
+    approved: false
+  - source: Tor Varro
+    target: Tor Varro
+    category: character
+    policy: keep
+    aliases: [Varro]
+    alias_targets: {Varro: Varro}
+    notes: "Legion officer; name kept."
+    source_reference: "Source text (Howling Dark); name kept; Nov Belgaer character index"
+    confidence: provisional
+    first_appearance: howling-dark
+    approved: false
+  - source: Calvert
+    target: Calvert
+    category: character
+    policy: keep
+    notes: "Vorgossos; name kept."
+    source_reference: "Source text (Howling Dark); name kept; Nov Belgaer character index"
+    confidence: provisional
+    first_appearance: howling-dark
+    approved: false
+  - source: Greenlaw
+    target: Greenlaw
+    category: character
+    policy: keep
+    notes: "Name kept; role not verified against the source appendix."
+    source_reference: "Source text (Howling Dark); name kept"
+    confidence: provisional
+    first_appearance: howling-dark
+    approved: false
+  - source: Antonius Brevon
+    target: Antonius Brevon
+    category: character
+    policy: keep
+    aliases: [Brevon]
+    alias_targets: {Brevon: Brevon}
+    notes: "March Station; name kept."
+    source_reference: "Source text (Howling Dark); name kept; Nov Belgaer character index"
+    confidence: provisional
+    first_appearance: howling-dark
+    approved: false
+  - source: Cento
+    target: Cento
+    category: character
+    policy: keep
+    notes: "Name kept; role not verified against the source appendix."
+    source_reference: "Source text (Howling Dark); name kept"
+    confidence: provisional
+    first_appearance: howling-dark
+    approved: false
+  - source: Jari
+    target: Jari
+    category: character
+    policy: keep
+    notes: "The Enigma of Hours; name kept."
+    source_reference: "Source text (Howling Dark); name kept; Nov Belgaer character index"
+    confidence: provisional
+    first_appearance: howling-dark
+    approved: false
+  - source: Rustam
+    target: Rustam
+    category: character
+    policy: keep
+    notes: "Name kept; role not verified against the source appendix."
+    source_reference: "Source text (Howling Dark); name kept"
+    confidence: provisional
+    first_appearance: howling-dark
+    approved: false
+  - source: Itana Uvanari Ayatomn
+    target: Itana Uvanari Ayatomn
+    category: character
+    policy: keep
+    aliases: [Uvanari]
+    alias_targets: {Uvanari: Uvanari}
+    notes: >-
+      Cielcin of Clan Otiolo; the source uses the short form Uvanari. The
+      source uses "it" for Cielcin persons; do not assign a gender.
+    source_reference: "Source text (Howling Dark); name kept; Nov Belgaer character index"
+    confidence: provisional
+    first_appearance: howling-dark
+    approved: false
+  - source: Naia
+    target: Naia
+    category: character
+    policy: keep
+    notes: "Name kept; role not verified against the source appendix."
+    source_reference: "Source text (Howling Dark); name kept"
+    confidence: provisional
+    first_appearance: howling-dark
+    approved: false
+  - source: Elara of Emesh
+    target: Elara de Emesh
+    category: character
+    policy: keep
+    aliases: [Elara]
+    alias_targets: {Elara: Elara}
+    notes: "Meidua Red Company; keep the epithet as Elara de Emesh."
+    source_reference: "Source text (Howling Dark); name kept; Nov Belgaer character index"
+    confidence: provisional
+    first_appearance: howling-dark
+    approved: false
+  - source: Oalicomn
+    target: oalicomn
+    category: other
+    policy: transliterate
+    notes: "Cielcin term; lowercase in running text like cielcin. Role not verified."
+    source_reference: "Source text (Howling Dark); editorial rendering"
+    confidence: provisional
+    first_appearance: howling-dark
     approved: false

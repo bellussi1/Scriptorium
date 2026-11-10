@@ -99,3 +99,188 @@ terms:
     confidence: provisional
     first_appearance: empire-of-silence
     approved: false
+  - source: Tribune
+    target: Tribuno
+    category: title
+    policy: translate
+    notes: "Legion rank; translate as the Portuguese historical title."
+    source_reference: "Source text (Howling Dark); editorial rendering"
+    confidence: provisional
+    first_appearance: howling-dark
+    approved: false
+  - source: Hauptmann
+    target: Hauptmann
+    category: title
+    policy: keep
+    notes: >-
+      German-derived rank used by the source; keep the foreign rank instead of
+      flattening it to Capitão. Do not translate it as a common noun.
+    source_reference: "Source text (Howling Dark); rank kept"
+    confidence: provisional
+    first_appearance: howling-dark
+    approved: false
+  - source: Aeta
+    target: aeta
+    category: other
+    policy: transliterate
+    aliases: [Aetas]
+    alias_targets: {Aetas: aetas}
+    notes: >-
+      Cielcin prince-chieftain. Lowercase in running text like cielcin; the
+      capitalized form is only for a title at the start of a sentence.
+    source_reference: "Source text (Howling Dark); Nov Belgaer lexicon"
+    confidence: provisional
+    first_appearance: howling-dark
+    approved: false
+  - source: Baetan
+    target: baetan
+    category: other
+    policy: transliterate
+    aliases: [Baetans]
+    alias_targets: {Baetans: baetans}
+    notes: "Cielcin priest-historian; lowercase in running text like cielcin."
+    source_reference: "Source text (Howling Dark); Nov Belgaer lexicon"
+    confidence: provisional
+    first_appearance: howling-dark
+    approved: false
+  - source: Galstani
+    target: galstani
+    category: other
+    policy: transliterate
+    notes: "Galactic Standard, the common Imperial language; lowercase in running text."
+    source_reference: "Source text (Howling Dark); Nov Belgaer lexicon"
+    confidence: provisional
+    first_appearance: howling-dark
+    approved: false
+  - source: Tavrosi
+    target: tavrosi
+    category: organization
+    policy: transliterate
+    notes: "Tavrosi people and polity; lowercase as a demonym/adjective."
+    source_reference: "Source text (Howling Dark); Nov Belgaer lexicon"
+    confidence: provisional
+    first_appearance: howling-dark
+    approved: false
+  - source: Mandari
+    target: mandari
+    category: organization
+    policy: transliterate
+    notes: "Mandari trading corporations and ethnic group; lowercase in running text."
+    source_reference: "Source text (Howling Dark); Nov Belgaer lexicon"
+    confidence: provisional
+    first_appearance: howling-dark
+    approved: false
+  - source: Norman
+    target: normando
+    category: other
+    policy: translate
+    aliases: [Normans]
+    alias_targets: {Normans: normandos}
+    notes: >-
+      Demonym for the Norman Expanse and its Freeholders; lowercase. Do not
+      confuse it with a personal name.
+    source_reference: "Source text (Howling Dark); Nov Belgaer lexicon"
+    confidence: provisional
+    first_appearance: howling-dark
+    approved: false
+  - source: The Exalted
+    target: Os Exaltados
+    category: organization
+    policy: translate
+    notes: "Extrasolarian faction of extreme cybernetic augmentation."
+    source_reference: "Source text (Howling Dark); Nov Belgaer lexicon"
+    confidence: provisional
+    first_appearance: howling-dark
+    approved: false
+  - source: The Undying
+    target: O Imortal
+    category: title
+    policy: translate
+    notes: >-
+      Kharn Sagara's epithet. Translate the descriptive title; do not keep the
+      English word and do not use it as a name variant of Kharn.
+    source_reference: "Source text (Howling Dark); editorial rendering"
+    confidence: provisional
+    first_appearance: howling-dark
+    approved: false
+  - source: Brethren
+    target: Irmãos
+    category: organization
+    policy: translate
+    notes: "Collective name; translate as Irmãos. Role not verified against the appendix."
+    source_reference: "Source text (Howling Dark); editorial rendering"
+    confidence: provisional
+    first_appearance: howling-dark
+    approved: false
+  - source: Colosso
+    target: Colosso
+    category: concept
+    policy: keep
+    notes: "The gladiatorial games; keep the proper noun."
+    source_reference: "Source text (Howling Dark); Nov Belgaer lexicon"
+    confidence: provisional
+    first_appearance: empire-of-silence
+    approved: false
+  - source: March Station
+    target: Estação March
+    category: location
+    policy: translate
+    notes: "Station on Vorgossos; translate the common noun and keep the name."
+    source_reference: "Source text (Howling Dark); Nov Belgaer character index"
+    confidence: provisional
+    first_appearance: howling-dark
+    approved: false
+  - source: Enigma of Hours
+    target: Enigma das Horas
+    category: item
+    policy: translate
+    notes: "Ship/station name; translate the descriptive name."
+    source_reference: "Source text (Howling Dark); Nov Belgaer character index"
+    confidence: provisional
+    first_appearance: howling-dark
+    approved: false
+  - source: Crossflane
+    target: Crossflane
+    category: location
+    policy: keep
+    notes: "Name kept; role not verified against the source appendix."
+    source_reference: "Source text (Howling Dark); name kept"
+    confidence: provisional
+    first_appearance: howling-dark
+    approved: false
+  - source: Balmung
+    target: Balmung
+    category: item
+    policy: keep
+    notes: "Name kept; role not verified against the source appendix."
+    source_reference: "Source text (Howling Dark); name kept"
+    confidence: provisional
+    first_appearance: howling-dark
+    approved: false
+  - source: Schiavona
+    target: Schiavona
+    category: item
+    policy: keep
+    notes: "Name kept; role not verified against the source appendix."
+    source_reference: "Source text (Howling Dark); name kept"
+    confidence: provisional
+    first_appearance: howling-dark
+    approved: false
+  - source: Calagah
+    target: Calagah
+    category: location
+    policy: keep
+    notes: "Name kept; role not verified against the source appendix."
+    source_reference: "Source text (Howling Dark); name kept"
+    confidence: provisional
+    first_appearance: howling-dark
+    approved: false
+  - source: Coritani
+    target: coritani
+    category: organization
+    policy: transliterate
+    notes: "People/faction name; lowercase in running text. Role not verified."
+    source_reference: "Source text (Howling Dark); editorial rendering"
+    confidence: provisional
+    first_appearance: howling-dark
+    approved: false

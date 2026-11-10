@@ -41,8 +41,10 @@ def test_simple_term_aliases_and_targets():
 
 def test_sun_eater_resources_include_confirmed_characters_and_terms():
     terms = load_sun_terms()
-    assert len(terms) == 75
-    assert sum(1 for term in terms if term.category == "character") == 24
+    # The universe glossary grows as later books are prepared; the exact count
+    # is not a contract. The confirmed core terms below are.
+    assert len(terms) >= 75
+    assert sum(1 for term in terms if term.category == "character") >= 24
     by_source = {term.source: term for term in terms}
     assert by_source["Hadrian Marlowe"].target == "Hadrian Marlowe"
     assert by_source["Cielcin"].target == "cielcin"

@@ -19,27 +19,29 @@ before acting on anything below.
 ## Runtime
 
 - Queue agent: online, fresh heartbeat, **runner active**.
-- **Demon in White** is translating with Gemini 3.8 Flash, job 17,
-  `cli_7182b270`, **283/1184 chunks** in the translation log at 19:11 UTC (the
-  queue DB still reports 208 because the sync lags chapter boundaries).
-- Rate: about 1.43 chunks/min since 15:54 UTC; total ETA about 13.8 h, roughly
-  10.5 h remaining. This is an extrapolation, not a guarantee.
-- Main app on `:5000`, preview on `:5001`.
+- **Howling Dark** is translating with Index-Translate 9B, job 19,
+  `cli_c6f4be29`, **1/1074 chunks** at 22:12 UTC. Started 22:11:59.
+- One pass, refinement disabled (`--refine-limit 0`). ETA roughly 2.5-3.5 h,
+  but this is the first Index book at production chunk size; measure it.
+- Main app on `:5000`, preview on `:5001`. The app container was restarted at
+  22:11 UTC to clear the `jobs.db` disk I/O error.
 
 ## Translation state
 
-- **Demon in White**: provider `gemini`, model `gemini-3.8-flash`, status
-  `translating`, job 17. The previous Haiku attempt stopped at 137/1184; its
-  checkpoint was discarded to avoid mixing models. Job 16 failed with
-  `output EPUB was not created`; job 17 is the current run.
-- No other book will start until this one stops at the review gate.
-- DeepSeek balance: **US$ 1.38** (untouched). Claude balance: **US$ 2.47**.
-  Gemini: **R$ 30 credit + R$ 61 monthly GCP** (R$ 91 total).
-- Ledger: Gemini **US$ 1.32** historical (US$ 0.275 benchmarks + US$ 1.044
-  queue partial at 283/1184, estimated); Claude **US$ 0.57** historical
-  (US$ 0.38 dev judge + US$ 0.08 test judge, both estimated, plus US$ 0.105
-  Haiku partial). `scripts/lit_queue_cost.py` upserts the running job estimate
-  and reads the queue log when the DB progress lags.
+- **Sun Eater books 2-7 are now `ollama` / Index-Translate 9B**, one book at a
+  time. Howling Dark is first. Its old Hy-MT2 output is archived at
+  `translated_files/archive/howling-dark-hy-mt2-2026-11-10/`.
+- The Demon in White, Ashes of Man and Disquiet Gods partials were discarded;
+  their checkpoint uploads were removed. Kingdoms of Death and Shadows Upon
+  Time are pending on Index. The old Gemini partial is gone; no model mixing.
+- The queue order is Howling Dark (priority 999999), Demon in White, Kingdoms
+  of Death, Ashes of Man, Disquiet Gods, Shadows Upon Time.
+- Balances: DeepSeek **US$ 1.38** (available); Anthropic **US$ 1.54**
+  (available); Gemini **R$ 0** available (historical cap R$ 91, ledger
+  US$ 1.32 historical). Sun Eater is local-only; no cloud spend.
+- Ledger: Gemini **US$ 1.32** historical; Claude **US$ 0.57** historical.
+  `scripts/lit_queue_cost.py` upserts the running job estimate and reads the
+  queue log when the DB progress lags.
 - One book at a time, one chunk at a time, `mode=next` only.
 
 ## Benchmark position
@@ -91,6 +93,27 @@ Expert report: `docs/project/reviews/sun-eater-model-selection-2026-11-10.md`.
 - Realm of the Elderlings was not run locally; Index remains its default from
   the Farseer round.
 
+## Sun Eater and Realm resources (2026-11-10)
+
+- Official Sun Eater reference: *Império do Silêncio* (Calibre 436), the only
+  official PT-BR book; Editora Aleph is publishing the series in Brazil as
+  *O Devorador do Sol* starting in 2026. For books 2-7, compare terms, names
+  and register, not paragraph alignment.
+- Official Realm reference: the Farseer trilogy in PT-BR — *O Aprendiz de
+  Assassino* (Calibre 94), *O Assassino do Rei* (92) and *A Fúria do
+  Assassino* (71). Later Realm books have no official PT-BR edition; use the
+  trilogy for terms/style, not alignment.
+- Howling Dark glossary expanded from 62 to **99 terms / 147 prompt forms**
+  using the official book 1, the Nov Belgaer lexicon/character index and the
+  source: Raine Smythe, Aranata Otiolo, Tanaran, Nobuta, Ilex, Yume, Suzuha,
+  Tor Varro, Calvert, Greenlaw, Brevon, Cento, Jari, Rustam, Uvanari, Naia,
+  Elara, plus aeta/baetan/galstani/tavrosi/mandari/normando/Exaltados/
+  Imortal/Tribuno/Hauptmann/March Station/Enigma of Hours. `resources
+  validate` passes.
+- The production style block is the existing 2,228-char translation section.
+  Review it against the official book 1 register after the Howling Dark pilot;
+  change it only for a systematic gap, not for isolated wording.
+
 ## Tooling (OpenCode)
 
 - `opencode.json` disables the global `cloudflare-api` MCP for this project
@@ -115,19 +138,29 @@ Expert report: `docs/project/reviews/sun-eater-model-selection-2026-11-10.md`.
 
 ## Decision
 
-**Sun Eater primary: Gemini 3.8 Flash.** The R$ 91 budget covers roughly the
-next three books (Demon in White ~US$ 4.4, Kingdoms of Death ~US$ 3.1, Ashes of
-Man ~US$ 3.1). Haiku 5.5 is the cheaper cloud fallback for the last two books;
-Index 9B is the free local fallback. Realm of the Elderlings stays on Index.
+**Current production policy: local Index-Translate 9B for Sun Eater and Realm.**
+The GCP credit is exhausted and the user chose the local path; Gemini remains
+the quality reference, not the active model. Haiku is the paid fallback only if
+cloud is explicitly funded again. Malazan and the other series wait for their
+own resource pass.
 
 ## Next decision
 
-*Demon in White* is already running with Gemini under the R$ 91 cap. Monitor it
-to the review gate; do not start another book until it stops. After the gate,
-review the EPUB (EPUBCheck and TOC), approve, and then decide whether
-*Kingdoms of Death* follows on Gemini.
+Howling Dark is running on Index. When it stops at the review gate:
 
-Local benchmark: the native EuroLLM prompt and the 28-pair test split are done;
-the provisional Index decision stands. Optional fair check: rerun EuroLLM with
-the 2,228-character style block before treating the local gap as final.
-Dalibre: restart OpenCode so the MCP reconnects with `DALIBRE_TOKEN`.
+1. Run EPUBCheck and inspect the TOC/OPF.
+2. Check term/name compliance, pt-PT forms, English leakage, repetition and
+   length ratio; compare sample chapters with the official *Império do Silêncio*
+   for terminology and register (not paragraph alignment).
+3. Approve and export to Kindle, then start Demon in White. Continue in series
+   order through Kingdoms of Death, Ashes of Man, Disquiet Gods and Shadows
+   Upon Time.
+4. After Sun Eater, do Realm: redo Ship of Magic and Fool's Errand with Index,
+   then The Mad Ship, Ship of Destiny, The Golden Fool, Fool's Fate and the
+   Fitz and the Fool trilogy. Use the official Farseer trilogy as the
+   term/style reference.
+5. Malazan only after a glossary/character/style build; it currently has zero
+   terms.
+
+Do not mix providers mid-book; the review gate and one-book-at-a-time rule
+stay. Dalibre: restart OpenCode so the MCP reconnects with `DALIBRE_TOKEN`.
