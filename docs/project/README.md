@@ -1,11 +1,16 @@
 # Literary translation project — diagnosis, architecture and proof of concept
 
-Status: **Phases 1–3 complete. Phase 4 benchmark in progress; Phase 5 editorial
-resources and Calibre metadata applied; Phase 6 pilot done on a public-domain
-fixture and on one real chapter (*Howling Dark* Chapter 1).** The installed
-generalists plus Hy-MT2-7B and Index-Translate-9B were tested locally on
-2026-11-07. No paid cloud call was made and no full book was translated. No
-model passes the production gate without editorial review.
+Status: [`../ACTIVE_CONTEXT.md`](../ACTIVE_CONTEXT.md) holds the live state —
+branch, runtime, queue and the next decision. This directory is the project
+dossier (diagnosis, architecture, benchmarks, decisions); it is not rewritten
+every session.
+
+As of 2026-11-10: phases 1–6 are complete, the Fase D benchmark is finished with
+Index-Translate 9B ahead locally, and the Sun Eater model decision selects Gemini
+3.8 Flash, with Claude Haiku 5.5 as the cheaper cloud fallback and Index as the
+free local fallback. Three books went end to end (Ship of Magic, Howling Dark,
+Fool's Errand). Every translation still passes the review gate; no model is
+approved for unattended production.
 
 Environment: Ollama is tuned for the 8 GB card; the Lote A/B/C cleanup is
 applied (C: ~301 GB free, active container preserved). Docker VHDX compaction
