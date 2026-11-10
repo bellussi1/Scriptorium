@@ -135,7 +135,17 @@ MODELS: Dict[str, ModelSpec] = {
         prompt_style="colon_translate",
         context_window=4096,
         supports_glossary=True,
-        notes="Community GGUF; ChatML template; 4K context; colon-style translation prompt from the model card (unverified); expect pt-PT bias.",
+        notes="Community GGUF; ChatML template; 4K context; controlled colon-style prompt. The official model-card template is verified separately as eurollm-9b-native.",
+    ),
+    "eurollm-9b-native": ModelSpec(
+        key="eurollm-9b-native",
+        label="EuroLLM 9B Instruct (native prompt)",
+        provider="ollama",
+        model="hf.co/bartowski/EuroLLM-9B-Instruct-GGUF:Q4_K_M",
+        prompt_style="eurollm_native",
+        context_window=4096,
+        supports_glossary=True,
+        notes="Official model-card template ('Translate the following English source text to ...'); glossary prepended; target variant made explicit for this project.",
     ),
     "salamandrata-7b": ModelSpec(
         key="salamandrata-7b",
@@ -284,6 +294,22 @@ def build_prompt(
             header
             + "Translate the following text from English into Brazilian Portuguese.\n"
             + f"English: {text}\nPortuguese:"
+        )
+        return [{"role": "user", "content": content}]
+
+    if spec.prompt_style == "eurollm_native":
+        # Official EuroLLM model-card template:
+        # "Translate the following English source text to Portuguese:
+        #  English: <text> \nPortuguese:".
+        # The project makes the target variant explicit and keeps the controlled
+        # glossary prepended so the comparison still measures terminology.
+        header = ""
+        if glossary:
+            header = "Mandatory terminology: " + _term_pairs(glossary) + "\n\n"
+        content = (
+            header
+            + "Translate the following English source text to Brazilian Portuguese:\n"
+            + f"English: {text} \nPortuguese:"
         )
         return [{"role": "user", "content": content}]
 
