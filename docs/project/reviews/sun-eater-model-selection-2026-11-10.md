@@ -74,7 +74,9 @@ runner now uses the same alias-target groups as the production prompt path.
 
 1. **Dev, 56 excerpts.** Local Index-Translate 9B and Hy-MT2 7B Q4_K_M with
    the corrected book-one resources. Cloud DeepSeek V4.1 Flash and Claude
-   Haiku 5.5 with the same prompt. Temperature 0.
+   Haiku 5.5 with the same prompt. Temperature 0. The old-glossary v1 run was
+   repeated twice with identical chrF at four decimals; the corrected v2 run
+   used one repeat because the sampler is deterministic.
 2. **Probes, 50 excerpts.** Per-occurrence term compliance, name compliance
    and name swaps. Term matching is whole-word with common Portuguese
    inflection suffixes; the old substring mode remains available with
@@ -122,6 +124,11 @@ Index is also 3.1× faster than DeepSeek. Q4 remains the local fallback and is
 behind Index by 0.0206 chrF and 0.0199 name recall. chrF is not the only
 signal: the blind A/B below favors Haiku despite Index's chrF lead.
 
+The paired comparison (`scripts/compare_cloud_runs.py`) agrees with the means:
+on the 56 dev rows, DeepSeek beats Index 23–33 and Haiku beats Index 16–40.
+Against Q4, DeepSeek wins 37–19 and Haiku wins 32–24. So Index is the best
+reference-similarity model on both the mean and the row-level count.
+
 ### Probes, 50 excerpts
 
 | Model | Term compliance | Name compliance | Name swaps | Probes with a miss |
@@ -153,8 +160,10 @@ One blind judge (the repository agent), key-normalized to Index:
   agrees: Index repeatedly slips into `tu/despertaste`, `quilómetros`,
   `fazer-vos`, `se tinha deslocado`, and gender errors such as `o inquisidor`
   for a female inquisitor. Haiku makes fewer of these errors.
-- Caveat: one AI judge, not a professional human reviewer. A Claude-family
-  judge was deliberately not used because Haiku is a contestant.
+- Caveat: one AI judge, not a professional human reviewer. The planned
+  Claude A/B judge was not used: Haiku is a contestant, and the remaining
+  Claude balance is reserved under the no-card-charge budget constraint. The
+  judge is the repository agent.
 
 Held-out A/B on the 28 test pairs, same judge and key normalization:
 
