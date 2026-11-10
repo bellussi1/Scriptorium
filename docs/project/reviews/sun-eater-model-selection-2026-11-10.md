@@ -258,6 +258,18 @@ the Ollama refinement step, so the manual review is the quality gate. Strip
 markdown heading markers from the draft before EPUB assembly; Haiku added two
 `#` headings in the long chapter.
 
+Applied on 2026-11-10: book 8 uses `litellm` /
+`anthropic/claude-haiku-5-5`, and the first queue run started at 03:51 UTC.
+The first attempt exposed that `translate.py` still used the legacy
+`create_llm_client` factory, which returned `None` for `litellm`; commit
+`f78235f` adds the branch. The rerun reached the first chapter and is
+translating normally.
+
+The old *Fool's Errand* review is also closed: its OPF was repaired
+(EPUB2 metadata, duplicate cover, unique identifier), the TOC labels were
+restored to `Capítulo I…XXIX`, and EPUBCheck is 0/0/0. It is exported to the
+Kindle folder as `Robin Hobb/The Tawny Man Trilogy/01 - Fool's Errand (pt-BR).epub`.
+
 ### Caveats
 
 - One blind AI judge, not a professional human reviewer. The judge is the
