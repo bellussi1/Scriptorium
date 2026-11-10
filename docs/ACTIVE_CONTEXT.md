@@ -9,8 +9,8 @@ before acting on anything below.
 
 ## Repository
 
-- Branch `main`; the Sun Eater benchmark work is committed through
-  `3430765` and the follow-up Gemini/judge commits.
+- Branch `main`; the Sun Eater benchmark work is committed through `4e2f7df`
+  (Gemini decision, Claude judge runner, project README and this file).
 - Working tree has two untracked user items: `.taste-skill/` and
   `Custom_Instructions/sun-eater-2.yaml`.
 - Nothing has been pushed.
