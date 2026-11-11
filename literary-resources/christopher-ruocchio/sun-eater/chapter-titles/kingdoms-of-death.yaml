@@ -1,0 +1,64 @@
+# Chapter titles for "Kingdoms of Death" (The Sun Eater 4), English -> pt-BR.
+#
+# Used by src/literary/chapter_titles.py to localise the table of contents and
+# the <title> element of each chapter. The `en` value must equal the English
+# title in the source EPUB (typographic apostrophes are compared as ASCII).
+# The reader-facing label is built as "Capítulo N: <pt>".
+#
+# These are editorial choices made without an official edition: review them
+# before publishing. Proper names are kept as in the glossary.
+book: Kingdoms of Death
+series: The Sun Eater
+series_index: 4
+chapters:
+  - {number: 1, en: "Twilight", pt: "Crepúsculo"}
+  - {number: 2, en: "Truth", pt: "Verdade"}
+  - {number: 3, en: "The Red and the Black", pt: "O Vermelho e o Negro"}
+  - {number: 4, en: "Nessus", pt: "Nessus"}
+  - {number: 5, en: "The Sun Descending", pt: "O Sol Descendente"}
+  - {number: 6, en: "Old Scars", pt: "Velhas Cicatrizes"}
+  - {number: 7, en: "The King’s Demon", pt: "O Demônio do Rei"}
+  - {number: 8, en: "Shattered Glass", pt: "Vidro Estilhaçado"}
+  - {number: 9, en: "Kings and Pawns", pt: "Reis e Peões"}
+  - {number: 10, en: "Paradise", pt: "Paraíso"}
+  - {number: 11, en: "The Grand Conclave", pt: "O Grande Conclave"}
+  - {number: 12, en: "Commonwealth", pt: "Comunidade"}
+  - {number: 13, en: "Still the Orchestra Plays", pt: "A Orquestra Segue Tocando"}
+  - {number: 14, en: "Ghost of the Machine", pt: "O Fantasma da Máquina"}
+  - {number: 15, en: "By Fire", pt: "Pelo Fogo"}
+  - {number: 16, en: "Vultures", pt: "Abutres"}
+  - {number: 17, en: "The Adorator", pt: "O Adorador"}
+  - {number: 18, en: "Up Acheron", pt: "Subindo o Acheron"}
+  - {number: 19, en: "The Turn of the Screw", pt: "A Volta do Parafuso"}
+  - {number: 20, en: "The Amazon", pt: "A Amazona"}
+  - {number: 21, en: "Heroes End", pt: "O Fim dos Heróis"}
+  - {number: 22, en: "There in the Silence", pt: "Ali, no Silêncio"}
+  - {number: 23, en: "Who Holds the Strings", pt: "Quem Puxa os Fios"}
+  - {number: 24, en: "The Sorcerer", pt: "O Feiticeiro"}
+  - {number: 25, en: "Rebirth", pt: "Renascimento"}
+  - {number: 26, en: "The Cave", pt: "A Caverna"}
+  - {number: 27, en: "The White Hand", pt: "A Mão Branca"}
+  - {number: 28, en: "Hadrian Bound", pt: "Hadrian Acorrentado"}
+  - {number: 29, en: "Marking Time", pt: "Marcando Passo"}
+  - {number: 30, en: "The Truth and the Lie", pt: "A Verdade e a Mentira"}
+  - {number: 31, en: "Piece of Mind", pt: "Paz de Espírito"}
+  - {number: 32, en: "Wandering and Release", pt: "Errância e Libertação"}
+  - {number: 33, en: "Living the Lie", pt: "Vivendo a Mentira"}
+  - {number: 34, en: "The Descent", pt: "A Descida"}
+  - {number: 35, en: "The Broken Circle", pt: "O Círculo Partido"}
+  - {number: 36, en: "The Suppliants", pt: "Os Suplicantes"}
+  - {number: 37, en: "The Dreamer", pt: "O Sonhador"}
+  - {number: 38, en: "Prelude to Madness", pt: "Prelúdio da Loucura"}
+  - {number: 39, en: "Aetavanni", pt: "Aetavanni"}
+  - {number: 40, en: "What Green Altar", pt: "Que Altar Verde"}
+  - {number: 41, en: "The Black Feast", pt: "O Banquete Negro"}
+  - {number: 42, en: "Sacrifice", pt: "Sacrifício"}
+  - {number: 43, en: "The Son of Fortitude", pt: "O Filho da Fortaleza"}
+  - {number: 44, en: "Flight of the Ascalon", pt: "O Voo do Ascalon"}
+  - {number: 45, en: "A Man Must Belong", pt: "Um Homem Precisa Pertencer"}
+  - {number: 46, en: "To Colchis", pt: "Rumo a Colchis"}
+  - {number: 47, en: "The Long Dark", pt: "A Longa Escuridão"}
+  - {number: 48, en: "The Far Shore", pt: "A Margem Distante"}
+  - {number: 49, en: "The Isle of the Dead", pt: "A Ilha dos Mortos"}
+  - {number: 50, en: "Memory and History", pt: "Memória e História"}
+  - {number: 51, en: "The Glory of the World", pt: "A Glória do Mundo"}
