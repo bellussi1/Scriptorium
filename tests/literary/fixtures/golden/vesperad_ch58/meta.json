@@ -1,0 +1,20 @@
+{
+  "id": "vesperad-truncated-ch58",
+  "book": "Demon in White",
+  "chapter": 58,
+  "file": "OEBPS/xhtml/64_Chapter_58_Island_in_.xhtml",
+  "rule": "truncated_term",
+  "expected": "VESPERAD",
+  "broken": "VESPER",
+  "fixed": "VESPERAD",
+  "terms": [
+    {
+      "source": "Vesperad",
+      "target": "Vesperad",
+      "forbidden": [],
+      "aliases": [],
+      "policy": "keep",
+      "confidence": "reviewed"
+    }
+  ]
+}

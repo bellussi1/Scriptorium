@@ -19,6 +19,7 @@ from __future__ import annotations
 import html
 import re
 import zipfile
+from collections import Counter
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Sequence
@@ -101,6 +102,10 @@ _SCRIPT_STYLE_RE = re.compile(r"<(script|style)\b.*?</\1>", re.DOTALL | re.IGNOR
 _ANY_TAG_RE = re.compile(r"<[^>]+>")
 _WORD_RE = re.compile(r"[^\W\d_]+(?:['\u2019\-][^\W\d_]+)*", re.UNICODE)
 _CAPS_RE = re.compile(r"\b[A-ZÁÉÍÓÚÂÊÔÃÕÇÜ]{3,}\b")
+_OPENER_SPAN_RE = re.compile(
+    r'<span[^>]*class="[^"]*(?:CO|dropcap)[^"]*"[^>]*>(.*?)</span>',
+    re.DOTALL | re.IGNORECASE,
+)
 _CAPS_EN = {
     "THE", "AND", "OF", "TO", "IN", "THAT", "HE", "SHE", "IT", "WAS", "WERE",
     "WITH", "FOR", "ON", "AT", "BUT", "HIS", "HER", "THEY", "HAD", "YOU", "NOT",
@@ -232,6 +237,24 @@ def scan_book(
     target_files = extract_files(target_epub)
     views = [view for view in (_term_view(term) for term in terms) if view]
 
+    normal_counts: Counter = Counter()
+    for content in target_files.values():
+        for word in _words(content["text"]):
+            if not word.isupper():
+                normal_counts[word.casefold()] += 1
+
+    target_map: Dict[str, str] = {}
+    for view in views:
+        target = view["target"].strip()
+        if target and " " not in target and len(target) >= 4 and target[0].isupper():
+            target_map[target.casefold()] = target
+    term_forms = {
+        form.casefold()
+        for view in views
+        for form in view["forms"] + view["aliases"]
+        if form
+    }
+
     caps_source_map: Dict[str, str] = {}
     for view in views:
         if not view["target"]:
@@ -248,6 +271,7 @@ def scan_book(
     length_offenders: List[Dict[str, Any]] = []
     dropcap_all: List[Dict[str, Any]] = []
     caps_all: List[Dict[str, Any]] = []
+    truncated_all: List[Dict[str, Any]] = []
 
     total_words = 0
     total_pt = 0
@@ -353,6 +377,26 @@ def scan_book(
         for token in untranslated:
             caps_all.append({"file": name, "token": token, "kind": "untranslated"})
 
+        truncated: List[Dict[str, Any]] = []
+        seen_truncated = set()
+        for match in _OPENER_SPAN_RE.finditer(content["raw"]):
+            inner = html.unescape(_ANY_TAG_RE.sub(" ", match.group(1)))
+            for token in _words(inner):
+                low = token.casefold()
+                if len(low) < 4 or low in target_map or low in term_forms:
+                    continue
+                if normal_counts.get(low, 0):
+                    continue
+                for target_low, target in target_map.items():
+                    if target_low.startswith(low) and len(target_low) - len(low) >= 2:
+                        key = (token, target_low)
+                        if key not in seen_truncated:
+                            seen_truncated.add(key)
+                            hit = {"file": name, "token": token, "expected": target}
+                            truncated.append(hit)
+                            truncated_all.append(hit)
+                        break
+
         if forbidden_hits:
             flags.append(f"{len(forbidden_hits)} forbidden rendering(s)")
         if (
@@ -420,6 +464,11 @@ def scan_book(
             flags.append(
                 "untranslated all-caps term(s): " + ", ".join(untranslated)
             )
+        if truncated:
+            flags.append(
+                "truncated term(s): "
+                + ", ".join(f"{hit['token']} -> {hit['expected']}" for hit in truncated)
+            )
 
         pt_offenders.append(
             {
@@ -472,6 +521,7 @@ def scan_book(
                     "english": caps_foreign,
                     "untranslated": untranslated,
                 },
+                "truncated": truncated,
                 "flags": flags,
                 "warnings": file_warnings,
             }
@@ -603,6 +653,15 @@ def scan_book(
             "all-caps English token(s): "
             + ", ".join(sorted({item["token"] for item in caps_foreign_all}))
         )
+    if truncated_all:
+        reasons.append(
+            "truncated term(s): "
+            + ", ".join(
+                sorted(
+                    {f"{hit['token']} -> {hit['expected']}" for hit in truncated_all}
+                )
+            )
+        )
     if missing_targets:
         reasons.append(
             f"{len(missing_targets)} source file(s) without a target counterpart"
@@ -632,6 +691,7 @@ def scan_book(
             "length_ratio": global_ratio,
             "dropcap_issues": len(dropcap_all),
             "caps_hits": len(caps_all),
+            "truncated_terms": len(truncated_all),
             "missing_targets": len(missing_targets),
         },
         "gate": {
@@ -685,6 +745,7 @@ def scan_book(
             )[:10],
             "dropcap": dropcap_all[:10],
             "caps": caps_all[:10],
+            "truncated": truncated_all[:10],
             "missing_targets": missing_targets[:10],
         },
         "files": files,

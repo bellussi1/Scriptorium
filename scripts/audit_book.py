@@ -1063,7 +1063,7 @@ def main() -> int:
             f"- Glossary file pairs: {totals['glossary_hits']}/{totals['glossary_pairs']} ({totals['glossary_coverage']})",
             f"- pt-PT: {totals['pt_pt']} total, {totals['pt_pt_blocking']} blocking ({totals['pt_pt_blocking_per_100k']} per 100k)",
             f"- English leakage: {totals['english_leakage']}; repetition: {totals['repetition_ratio']}; length ratio: {totals['length_ratio']}",
-            f"- Dropcap issues: {totals['dropcap_issues']}; all-caps hits: {totals['caps_hits']}; missing targets: {totals['missing_targets']}",
+            f"- Dropcap issues: {totals['dropcap_issues']}; all-caps hits: {totals['caps_hits']}; truncated terms: {totals['truncated_terms']}; missing targets: {totals['missing_targets']}",
         ]
     )
     for title, key, formatter in [
@@ -1074,6 +1074,7 @@ def main() -> int:
         ("Length-ratio offenders", "length_ratio", lambda item: f"{item['file']}: {item['ratio']}"),
         ("Dropcap offenders", "dropcap", lambda item: f"{item['file']}: {item['message']}"),
         ("All-caps offenders", "caps", lambda item: f"{item['file']}: {item['token']} ({item['kind']})"),
+        ("Truncated-term offenders", "truncated", lambda item: f"{item['file']}: {item['token']} -> {item['expected']}"),
     ]:
         entries = offenders.get(key) or []
         if not entries:

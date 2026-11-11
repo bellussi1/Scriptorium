@@ -1,0 +1,20 @@
+{
+  "id": "vesperad-keep-ch41",
+  "book": "Demon in White",
+  "chapter": 41,
+  "file": "OEBPS/xhtml/47_Chapter_41_The_Good_S.xhtml",
+  "rule": "forbidden_rendering",
+  "expected": "Vesperad",
+  "broken": "Véspera",
+  "fixed": "Vesperad",
+  "terms": [
+    {
+      "source": "Vesperad",
+      "target": "Vesperad",
+      "forbidden": ["Véspera", "Vesper"],
+      "aliases": [],
+      "policy": "keep",
+      "confidence": "reviewed"
+    }
+  ]
+}

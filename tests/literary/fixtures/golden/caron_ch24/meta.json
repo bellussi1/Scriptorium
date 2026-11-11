@@ -1,0 +1,20 @@
+{
+  "id": "caron-ch24",
+  "book": "Howling Dark",
+  "chapter": 24,
+  "file": "OEBPS/xhtml/31_Chapter_24_The_Enigma.xhtml",
+  "rule": "truncated_term",
+  "expected": "TÍNHAMOS NOSSO CARONTE",
+  "broken": "TIVAMOS NOSSO CARON",
+  "fixed": "TÍNHAMOS NOSSO CARONTE",
+  "terms": [
+    {
+      "source": "Charon",
+      "target": "Caronte",
+      "forbidden": [],
+      "aliases": [],
+      "policy": "translate",
+      "confidence": "confirmed"
+    }
+  ]
+}

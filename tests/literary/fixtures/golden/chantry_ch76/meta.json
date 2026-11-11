@@ -1,0 +1,20 @@
+{
+  "id": "chantry-ch76",
+  "book": "Howling Dark",
+  "chapter": 76,
+  "file": "OEBPS/xhtml/83_Chapter_76_The_Three_.xhtml",
+  "rule": "forbidden_rendering",
+  "expected": "CHANTRIA",
+  "broken": "CHANTRY",
+  "fixed": "CHANTRIA",
+  "terms": [
+    {
+      "source": "Chantry",
+      "target": "Chantria",
+      "forbidden": ["Chantry"],
+      "aliases": [],
+      "policy": "translate",
+      "confidence": "confirmed"
+    }
+  ]
+}
