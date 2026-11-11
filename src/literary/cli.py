@@ -25,6 +25,7 @@ from .epub import read_epub, update_opf_metadata, validate_epub_structure
 from .models import BookRecord, Severity
 from .queue import QueueStore
 from .queue_control import honor_pause, pause_requested, set_pause, set_pause_now
+from .status import build_queue_status, format_queue_status
 from .refine_runner import (
     find_flagged_segments,
     generate_ollama,
@@ -192,6 +193,15 @@ def cmd_queue_next(args: argparse.Namespace) -> int:
     book = store.next_pending()
     _print_json(book.to_dict() if book else {"book": None})
     store.close()
+    return 0
+
+
+def cmd_queue_status(args: argparse.Namespace) -> int:
+    status = build_queue_status(args.db, stale_after_s=args.stale_after)
+    if args.json:
+        _print_json(status)
+    else:
+        print(format_queue_status(status))
     return 0
 
 
@@ -1071,6 +1081,15 @@ def build_parser() -> argparse.ArgumentParser:
     sync_parser.add_argument("--db", default="data/literary_queue.db")
     sync_parser.add_argument("--checkpoint-db", default="data/jobs.mirror.db")
     sync_parser.set_defaults(func=cmd_queue_sync)
+
+    queue_status_parser = queue_sub.add_parser(
+        "status",
+        help="Read-only queue status from literary_queue.db (versioned JSON)",
+    )
+    queue_status_parser.add_argument("--db", default="data/literary_queue.db")
+    queue_status_parser.add_argument("--json", action="store_true")
+    queue_status_parser.add_argument("--stale-after", type=float, default=120.0)
+    queue_status_parser.set_defaults(func=cmd_queue_status)
 
     status_parser = queue_sub.add_parser(
         "checkpoint-status",
