@@ -155,61 +155,6 @@
     margin-top: 2px;
 }
 
-.queue-status {
-    display: inline-block;
-    padding: 2px 8px;
-    border-radius: 999px;
-    font-size: 0.7rem;
-    font-weight: 600;
-    white-space: nowrap;
-}
-
-.queue-status-translating,
-.queue-status-preparing {
-    background: var(--info-light-bg);
-    color: var(--info-light);
-}
-
-.queue-status-pending {
-    background: var(--background-light);
-    color: var(--text-muted-light);
-    border: 1px solid var(--border-light);
-}
-
-.queue-status-completed {
-    background: var(--success-light-bg);
-    color: var(--success-light);
-}
-
-.queue-status-failed {
-    background: var(--danger-light-bg);
-    color: var(--danger-light-text);
-}
-
-.queue-status-needs_review,
-.queue-status-paused,
-.queue-status-validating,
-.queue-status-reviewing {
-    background: var(--warning-light-bg);
-    color: var(--warning-light-text);
-}
-
-.queue-progress {
-    width: 100%;
-    max-width: 180px;
-    height: 6px;
-    background: var(--border-light);
-    border-radius: 999px;
-    overflow: hidden;
-}
-
-.queue-progress > span {
-    display: block;
-    height: 100%;
-    background: var(--primary-light);
-    border-radius: 999px;
-}
-
 .queue-progress-text {
     display: block;
     margin-top: 3px;
@@ -354,7 +299,7 @@
 
 .queue-library-select option:checked {
     background: var(--primary-light);
-    color: #ffffff;
+    color: var(--paper);
 }
 
 .queue-library-actions {
@@ -472,44 +417,394 @@
 
 .queue-download-btn:hover:not(:disabled) {
     background: var(--primary-light);
-    color: #ffffff;
+    color: var(--paper);
 }
 
-/* --- Queue 2.0: now panel, filters, quality drawer ----------------------- */
+/* ============================================================
+   Queue design system (soft UI / neumorphism, AA-checked)
 
-.queue-now {
-    margin-bottom: 16px;
-    padding: 14px 16px;
-    border: 1px solid var(--border-light);
-    border-radius: 12px;
-    background: var(--background-light);
+   One token set, then one definition per component. The now panel
+   (Queue tab) and the Translate hero are built from the same parts.
+   Light and dark have their own palettes; no colour literals below
+   the token block. Text needs 4.5:1 on its surface; controls, their
+   boundaries and icons need 3:1. Shadows never carry a state alone:
+   hover moves the shadow, pressed/selected insets it, and focus draws
+   an outline.
+   ============================================================ */
+
+:root {
+    --q-surface: #eef2f0;
+    --q-surface-inset: #e1e7e4;
+    --q-shadow-dark: #c3ccc7;
+    --q-shadow-light: #ffffff;
+    --q-scrim: rgba(12, 16, 15, 0.45);
+    --q-ink: #13191a;
+    --q-ink-muted: #46524e;
+    --q-border: #6f7b77;
+    --q-accent: #0d5a51;
+    --q-accent-ink: #0d5a51;
+    --q-on-accent: #ffffff;
+    --q-focus: #0d5a51;
+    --q-danger-ink: #8a2a20;
+
+    --q-tone-info-fg: #0b4f47;
+    --q-tone-info-bg: #d3e9e4;
+    --q-tone-success-fg: #1f5a3d;
+    --q-tone-success-bg: #d6ebdf;
+    --q-tone-warning-fg: #6a4109;
+    --q-tone-warning-bg: #f2e4c8;
+    --q-tone-danger-fg: #862a20;
+    --q-tone-danger-bg: #f4d9d4;
+    --q-tone-neutral-fg: #3c4743;
+    --q-tone-neutral-bg: #dfe6e2;
+
+    --q-shadow-raised: 6px 6px 14px var(--q-shadow-dark), -6px -6px 14px var(--q-shadow-light);
+    --q-shadow-raised-hover: 9px 9px 20px var(--q-shadow-dark), -9px -9px 20px var(--q-shadow-light);
+    --q-shadow-inset: inset 4px 4px 8px var(--q-shadow-dark), inset -4px -4px 8px var(--q-shadow-light);
+
+    --q-radius-card: 20px;
+    --q-radius-control: 12px;
+    --q-radius-inset: 12px;
+    --q-radius-pill: 999px;
+
+    --q-space-1: 4px;
+    --q-space-2: 8px;
+    --q-space-3: 12px;
+    --q-space-4: 16px;
+    --q-space-5: 24px;
+
+    --q-font-ui: var(--font-ui, system-ui, sans-serif);
+    --q-font-display: var(--font-display, Georgia, serif);
+    --q-font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    --q-text-xs: 0.75rem;
+    --q-text-sm: 0.8125rem;
+    --q-text-md: 0.875rem;
+    --q-text-title: clamp(1.4rem, 2.6vw, 2rem);
+    --q-text-figure: clamp(2.4rem, 4.5vw, 3.4rem);
+    --q-motion: 150ms;
 }
 
-.queue-now-empty {
-    color: var(--text-muted-light);
-    font-size: 0.88rem;
+html.dark {
+    --q-surface: #1b2220;
+    --q-surface-inset: #131917;
+    --q-shadow-dark: #0a0d0c;
+    --q-shadow-light: #2a3430;
+    --q-scrim: rgba(0, 0, 0, 0.6);
+    --q-ink: #e8eeeb;
+    --q-ink-muted: #b3beb8;
+    --q-border: #66736e;
+    --q-accent: #7fc3b8;
+    --q-accent-ink: #8fd3c8;
+    --q-on-accent: #0c1412;
+    --q-focus: #9adbd0;
+    --q-danger-ink: #efb0a5;
+
+    --q-tone-info-fg: #9ad9cf;
+    --q-tone-info-bg: #18302c;
+    --q-tone-success-fg: #a6dbbd;
+    --q-tone-success-bg: #1a2f25;
+    --q-tone-warning-fg: #efc98f;
+    --q-tone-warning-bg: #302615;
+    --q-tone-danger-fg: #f2b8ad;
+    --q-tone-danger-bg: #36221e;
+    --q-tone-neutral-fg: #cbd5d0;
+    --q-tone-neutral-bg: #252e2b;
 }
 
-.queue-now-head {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 10px;
-    margin-bottom: 8px;
+/* Raised card: the now panel and the Translate hero. */
+.queue-now,
+.translate-hero {
+    margin: 0 0 var(--q-space-5);
 }
 
-.queue-now-eyebrow {
-    color: var(--primary-light);
-    font-size: 0.7rem;
+.queue-card {
+    padding: var(--q-space-5);
+    border-radius: var(--q-radius-card);
+    background: var(--q-surface);
+    box-shadow: var(--q-shadow-raised);
+    color: var(--q-ink);
+    font-family: var(--q-font-ui);
+    font-variant-numeric: tabular-nums;
+}
+
+.queue-eyebrow {
+    margin: 0 0 var(--q-space-1);
+    color: var(--q-accent-ink);
+    font-size: var(--q-text-xs);
     font-weight: 700;
     letter-spacing: 0.08em;
     text-transform: uppercase;
 }
 
+.queue-title {
+    margin: 0;
+    color: var(--q-ink);
+    font-family: var(--q-font-display);
+    font-size: var(--q-text-title);
+    font-weight: 600;
+    line-height: 1.15;
+    overflow-wrap: anywhere;
+}
+
+.queue-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--q-space-1) var(--q-space-2);
+    margin: var(--q-space-2) 0 var(--q-space-3);
+    color: var(--q-ink-muted);
+    font-size: var(--q-text-sm);
+}
+
+.queue-meta code {
+    font-family: var(--q-font-mono);
+    font-size: var(--q-text-xs);
+}
+
+/* Status badge. Tone comes from the state class; .queue-badge reuses it for
+   health chips. Tone pairs are foreground on tinted background, both AA. */
+.queue-status,
+.queue-badge {
+    --q-tone-fg: var(--q-tone-neutral-fg);
+    --q-tone-bg: var(--q-tone-neutral-bg);
+    display: inline-flex;
+    align-items: center;
+    gap: var(--q-space-2);
+    min-height: 24px;
+    padding: 2px var(--q-space-3);
+    border-radius: var(--q-radius-pill);
+    background: var(--q-tone-bg);
+    color: var(--q-tone-fg);
+    font-family: var(--q-font-ui);
+    font-size: var(--q-text-xs);
+    font-weight: 600;
+    line-height: 1.2;
+    white-space: nowrap;
+}
+
+.queue-status::before,
+.queue-badge::before {
+    content: "";
+    flex: 0 0 6px;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+}
+
+.queue-badge.is-info,
+.queue-status-translating,
+.queue-status-preparing {
+    --q-tone-fg: var(--q-tone-info-fg);
+    --q-tone-bg: var(--q-tone-info-bg);
+}
+
+.queue-badge.is-success,
+.queue-status-completed {
+    --q-tone-fg: var(--q-tone-success-fg);
+    --q-tone-bg: var(--q-tone-success-bg);
+}
+
+.queue-badge.is-warning,
+.queue-status-needs_review,
+.queue-status-paused,
+.queue-status-validating,
+.queue-status-reviewing {
+    --q-tone-fg: var(--q-tone-warning-fg);
+    --q-tone-bg: var(--q-tone-warning-bg);
+}
+
+.queue-badge.is-danger,
+.queue-status-failed {
+    --q-tone-fg: var(--q-tone-danger-fg);
+    --q-tone-bg: var(--q-tone-danger-bg);
+}
+
+.queue-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--q-space-2);
+    margin-top: var(--q-space-4);
+}
+
+/* Progress bar: an inset track with an accent fill. */
+.queue-progress {
+    position: relative;
+    width: 100%;
+    height: 10px;
+    overflow: hidden;
+    border-radius: var(--q-radius-pill);
+    background: var(--q-surface-inset);
+    box-shadow: var(--q-shadow-inset);
+}
+
+.queue-progress__fill {
+    display: block;
+    height: 100%;
+    border-radius: inherit;
+    background: var(--q-accent);
+    transition: width 600ms ease;
+}
+
+.queue-progress--compact {
+    height: 6px;
+    max-width: 180px;
+}
+
+.queue-progress--lg {
+    height: 14px;
+}
+
+.queue-progress-line {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--q-space-3);
+    margin-top: var(--q-space-2);
+    color: var(--q-ink-muted);
+    font-size: var(--q-text-sm);
+}
+
+/* Inset panel: logs and other read-only text wells. */
+.queue-inset {
+    margin: 0;
+    padding: var(--q-space-3);
+    border-radius: var(--q-radius-inset);
+    background: var(--q-surface-inset);
+    box-shadow: var(--q-shadow-inset);
+    color: var(--q-ink);
+}
+
+.queue-log {
+    display: flex;
+    align-items: baseline;
+    gap: var(--q-space-2);
+    min-width: 0;
+    margin-top: var(--q-space-3);
+    padding: var(--q-space-2) var(--q-space-3);
+    border-radius: var(--q-radius-inset);
+    background: var(--q-surface-inset);
+    box-shadow: var(--q-shadow-inset);
+    font-size: var(--q-text-xs);
+}
+
+.queue-log__label {
+    flex: 0 0 auto;
+    color: var(--q-ink-muted);
+    font-weight: 600;
+}
+
+.queue-log__value {
+    display: -webkit-box;
+    min-width: 0;
+    overflow: hidden;
+    color: var(--q-ink);
+    font-family: var(--q-font-mono);
+    font-size: var(--q-text-xs);
+    line-height: 1.4;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow-wrap: anywhere;
+}
+
+/* Callout: stall, error and integrity messages. Text only, tinted surface. */
+.queue-callout {
+    --q-callout-fg: var(--q-tone-neutral-fg);
+    --q-callout-bg: var(--q-tone-neutral-bg);
+    margin: var(--q-space-3) 0 0;
+    padding: var(--q-space-2) var(--q-space-3);
+    border-radius: var(--q-radius-control);
+    background: var(--q-callout-bg);
+    color: var(--q-callout-fg);
+    font-size: var(--q-text-sm);
+    line-height: 1.45;
+    overflow-wrap: anywhere;
+}
+
+.queue-callout--warning {
+    --q-callout-fg: var(--q-tone-warning-fg);
+    --q-callout-bg: var(--q-tone-warning-bg);
+}
+
+.queue-callout--danger {
+    --q-callout-fg: var(--q-tone-danger-fg);
+    --q-callout-bg: var(--q-tone-danger-bg);
+}
+
+/* Buttons. Raised by default, inset while pressed or selected. */
+.queue-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--q-space-2);
+    min-height: 40px;
+    margin: 0;
+    padding: 0 var(--q-space-4);
+    border: 1px solid var(--q-border);
+    border-radius: var(--q-radius-control);
+    background: var(--q-surface);
+    box-shadow: var(--q-shadow-raised);
+    color: var(--q-ink);
+    font-family: var(--q-font-ui);
+    font-size: var(--q-text-md);
+    font-weight: 600;
+    line-height: 1.2;
+    white-space: nowrap;
+    cursor: pointer;
+    transition:
+        box-shadow var(--q-motion) ease,
+        border-color var(--q-motion) ease;
+}
+
+.queue-btn .material-symbols-outlined {
+    font-size: 18px;
+}
+
+.queue-btn:hover:not(:disabled) {
+    border-color: var(--q-ink-muted);
+    box-shadow: var(--q-shadow-raised-hover);
+}
+
+.queue-btn:active:not(:disabled),
+.queue-btn.is-pressed {
+    box-shadow: var(--q-shadow-inset);
+}
+
+.queue-btn:focus-visible,
+.queue-disclosure > summary:focus-visible {
+    outline: 2px solid var(--q-focus);
+    outline-offset: 3px;
+}
+
+.queue-btn:disabled {
+    box-shadow: none;
+    color: var(--q-ink-muted);
+    cursor: not-allowed;
+}
+
+.queue-btn--primary {
+    border-color: var(--q-accent);
+    background: var(--q-accent);
+    color: var(--q-on-accent);
+}
+
+.queue-btn--danger {
+    border-color: var(--q-danger-ink);
+    color: var(--q-danger-ink);
+}
+
+/* Now panel layout (Queue tab). */
+.queue-now-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--q-space-3);
+    margin-bottom: var(--q-space-3);
+}
+
 .queue-now-body {
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;
-    gap: 16px;
+    gap: var(--q-space-4);
     align-items: start;
 }
 
@@ -517,81 +812,197 @@
     min-width: 0;
 }
 
-.queue-now-title {
-    font-size: 1.05rem;
-    font-weight: 700;
-    color: var(--text-dark);
-}
-
-.queue-now-meta {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    flex-wrap: wrap;
-    margin: 4px 0 10px;
-    color: var(--text-muted-light);
-    font-size: 0.78rem;
-}
-
-.queue-now-meta code {
-    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-    font-size: 0.72rem;
-}
-
-.queue-now-progress {
-    max-width: 100%;
-}
-
-.queue-now-progress-line {
-    display: flex;
-    justify-content: space-between;
-    gap: 10px;
-    margin-top: 5px;
-    color: var(--text-muted-light);
-    font-size: 0.74rem;
-    font-variant-numeric: tabular-nums;
-}
-
-.queue-now-log {
-    display: flex;
-    gap: 6px;
-    align-items: baseline;
-    margin-top: 8px;
-    min-width: 0;
-    font-size: 0.74rem;
-}
-
-.queue-now-log code {
-    display: block;
-    max-height: 3.9em;
-    overflow: hidden;
-    overflow-wrap: anywhere;
-    white-space: normal;
-    line-height: 1.35;
-    color: var(--text-dark);
-    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-    font-size: 0.72rem;
-}
-
-.queue-now-error-line {
-    margin-top: 6px;
-    font-size: 0.74rem;
-}
-
-.queue-now-error {
-    color: var(--danger-light-text);
-}
-
 .queue-now-actions {
     display: flex;
     flex-direction: column;
-    gap: 8px;
-    min-width: 150px;
+    gap: var(--q-space-2);
+    min-width: 176px;
 }
 
-.queue-now-btn {
-    justify-content: flex-start;
+.queue-now-empty {
+    margin: 0;
+    color: var(--q-ink-muted);
+    font-size: var(--q-text-md);
+}
+
+/* Translate hero layout. */
+.translate-hero__top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: var(--q-space-5);
+}
+
+.translate-hero__identity {
+    min-width: 0;
+}
+
+.translate-hero__readout {
+    display: flex;
+    flex: 0 0 auto;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: var(--q-space-2);
+}
+
+.translate-hero__percent {
+    color: var(--q-ink);
+    font-family: var(--q-font-display);
+    font-size: var(--q-text-figure);
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    line-height: 0.9;
+    font-variant-numeric: tabular-nums;
+}
+
+.translate-hero__percent > span {
+    margin-left: 2px;
+    color: var(--q-ink-muted);
+    font-size: 0.38em;
+    letter-spacing: 0;
+}
+
+.translate-hero .queue-progress {
+    margin-top: var(--q-space-5);
+}
+
+.queue-metrics {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: var(--q-space-3);
+    margin-top: var(--q-space-5);
+}
+
+.queue-metric {
+    min-width: 0;
+    padding: var(--q-space-3) var(--q-space-4);
+    border-radius: var(--q-radius-inset);
+    background: var(--q-surface-inset);
+    box-shadow: var(--q-shadow-inset);
+}
+
+.queue-metric__label {
+    display: block;
+    color: var(--q-ink-muted);
+    font-size: var(--q-text-xs);
+    font-weight: 600;
+}
+
+.queue-metric__value {
+    display: block;
+    margin-top: var(--q-space-1);
+    overflow: hidden;
+    color: var(--q-ink);
+    font-size: 1.05rem;
+    font-weight: 700;
+    text-overflow: ellipsis;
     white-space: nowrap;
+}
+
+.queue-metric__total {
+    color: var(--q-ink-muted);
+    font-weight: 500;
+}
+
+.translate-hero__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--q-space-2);
+    margin-top: var(--q-space-4);
+}
+
+/* Activity log disclosure, shared by the hero. */
+.queue-disclosure {
+    margin-top: var(--q-space-4);
+}
+
+.queue-disclosure > summary {
+    display: list-item;
+    min-height: 32px;
+    list-style-position: inside;
+    padding: 0 var(--q-space-2);
+    border-radius: var(--q-radius-control);
+    color: var(--q-ink-muted);
+    font-size: var(--q-text-sm);
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.queue-disclosure[open] > summary {
+    color: var(--q-ink);
+}
+
+.queue-disclosure > .queue-quality-log {
+    margin-top: var(--q-space-2);
+}
+
+@media (max-width: 900px) {
+    .queue-metrics {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 760px) {
+    .queue-now-body {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .queue-now-actions {
+        flex-direction: row;
+        flex-wrap: wrap;
+        min-width: 0;
+    }
+
+    .queue-now-actions .queue-btn {
+        flex: 1 1 auto;
+    }
+}
+
+@media (max-width: 640px) {
+    .queue-progress--compact {
+        max-width: 110px;
+    }
+
+    /* Wrapped meta lines would end in a dangling separator; the gap carries the rhythm. */
+    .queue-meta__sep {
+        display: none;
+    }
+
+    .queue-card {
+        padding: var(--q-space-4);
+        border-radius: 16px;
+    }
+
+    .translate-hero__top {
+        flex-direction: column;
+        gap: var(--q-space-3);
+    }
+
+    .translate-hero__readout {
+        flex-direction: row;
+        align-items: baseline;
+        justify-content: space-between;
+        width: 100%;
+    }
+
+    .translate-hero__percent {
+        font-size: 2.4rem;
+    }
+
+    .translate-hero__actions {
+        flex-direction: column;
+    }
+
+    .translate-hero__actions .queue-btn {
+        width: 100%;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .queue-btn,
+    .queue-progress__fill {
+        transition: none;
+    }
 }
 
 .queue-filters {
@@ -629,7 +1040,7 @@
 .queue-chip.active {
     border-color: var(--primary-light);
     background: var(--primary-light);
-    color: #ffffff;
+    color: var(--paper);
 }
 
 .queue-filter-select,
@@ -668,7 +1079,7 @@
     padding: 1px 6px;
     border-radius: 999px;
     background: var(--primary-light);
-    color: #ffffff;
+    color: var(--paper);
     font-size: 0.62rem;
     font-weight: 700;
     letter-spacing: 0.04em;
@@ -710,7 +1121,7 @@
     z-index: 1200;
     display: flex;
     justify-content: flex-end;
-    background: rgba(0, 0, 0, 0.45);
+    background: var(--q-scrim);
 }
 
 .queue-drawer {
@@ -719,7 +1130,7 @@
     overflow-y: auto;
     background: var(--background-light);
     border-left: 1px solid var(--border-light);
-    box-shadow: -18px 0 45px rgba(0, 0, 0, 0.22);
+    box-shadow: -18px 0 45px var(--q-scrim);
 }
 
 .queue-drawer .modal-header {
@@ -847,17 +1258,12 @@
     font-weight: 600;
 }
 
+/* Layout only: the inset look comes from .queue-inset. */
 .queue-quality-log {
     max-height: 240px;
     overflow: auto;
-    margin: 0;
-    padding: 10px;
-    border: 1px solid var(--border-light);
-    border-radius: 8px;
-    background: var(--background-light);
-    color: var(--text-dark);
-    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-    font-size: 0.7rem;
+    font-family: var(--q-font-mono);
+    font-size: var(--q-text-xs);
     line-height: 1.45;
     white-space: pre-wrap;
     overflow-wrap: anywhere;
@@ -871,15 +1277,6 @@
 }
 
 @media (max-width: 760px) {
-    .queue-now-body {
-        grid-template-columns: 1fr;
-    }
-
-    .queue-now-actions {
-        flex-direction: row;
-        flex-wrap: wrap;
-    }
-
     .queue-drawer {
         width: 100%;
     }
@@ -905,387 +1302,5 @@
 @media (max-width: 1100px) {
     .queue-updated-col {
         display: none;
-    }
-}
-
-.translate-queue-log {
-    margin-top: 10px;
-    padding-top: 8px;
-    border-top: 1px solid var(--border-light);
-}
-
-.translate-queue-log summary {
-    cursor: pointer;
-    color: var(--text-muted-light);
-    font-size: 0.78rem;
-    font-weight: 600;
-    list-style-position: inside;
-}
-
-.translate-queue-log .queue-quality-log {
-    margin: 8px 0 0;
-}
-
-/* ========================================
-   Translate tab: active translation hero
-   ======================================== */
-
-.translate-hero {
-    margin: 0 0 20px;
-    padding: 24px;
-    border: 1px solid var(--border-light);
-    border-radius: 1.5rem;
-    background: var(--background-light);
-    box-shadow: 5px 5px 10px var(--shadow-dark), -5px -5px 10px var(--shadow-light);
-}
-
-.translate-hero__top {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 24px;
-}
-
-.translate-hero__identity {
-    min-width: 0;
-}
-
-.translate-hero__eyebrow {
-    margin: 0 0 6px;
-    color: var(--primary-light);
-    font-size: 0.7rem;
-    font-weight: 700;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-}
-
-.translate-hero__title {
-    margin: 0;
-    color: var(--text-dark);
-    font-family: var(--font-display);
-    font-size: clamp(1.6rem, 3vw, 2.2rem);
-    font-weight: 700;
-    line-height: 1.15;
-}
-
-.translate-hero__meta {
-    display: flex;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 8px;
-    margin: 8px 0 0;
-    color: var(--text-muted-light);
-    font-size: 0.85rem;
-}
-
-.translate-hero__meta code {
-    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-    font-size: 0.76rem;
-}
-
-.translate-hero__dot {
-    opacity: 0.5;
-}
-
-.translate-hero__readout {
-    display: flex;
-    flex: 0 0 auto;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 8px;
-}
-
-.translate-hero__percent {
-    color: var(--text-dark);
-    font-family: var(--font-display);
-    font-size: clamp(2.6rem, 5vw, 4rem);
-    font-weight: 700;
-    letter-spacing: -0.04em;
-    line-height: 0.9;
-    font-variant-numeric: tabular-nums;
-}
-
-.translate-hero__percent > span {
-    margin-left: 2px;
-    color: var(--text-muted-light);
-    font-size: 0.38em;
-    letter-spacing: 0;
-}
-
-.translate-hero__progress {
-    position: relative;
-    height: 22px;
-    margin-top: 22px;
-    overflow: hidden;
-    border-radius: 999px;
-    background: var(--border-light);
-    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.14);
-}
-
-.translate-hero__progress-fill {
-    position: relative;
-    height: 100%;
-    border-radius: inherit;
-    background: linear-gradient(90deg, var(--primary-light), #5a8ee8);
-    transition: width 0.8s cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-.translate-hero.is-active .translate-hero__progress-fill::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(
-        100deg,
-        transparent 20%,
-        rgba(255, 255, 255, 0.35) 50%,
-        transparent 80%
-    );
-    transform: translateX(-100%);
-    animation: translate-hero-sheen 2.8s ease-in-out infinite;
-}
-
-@keyframes translate-hero-sheen {
-    0% { transform: translateX(-100%); }
-    60%, 100% { transform: translateX(100%); }
-}
-
-.translate-hero__stats {
-    display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    margin-top: 20px;
-    border-top: 1px solid var(--border-light);
-}
-
-.translate-hero__stat {
-    min-width: 0;
-    padding: 14px 18px 0;
-    border-left: 1px solid var(--border-light);
-}
-
-.translate-hero__stat:first-child {
-    padding-left: 0;
-    border-left: 0;
-}
-
-.translate-hero__stat-label {
-    display: block;
-    color: var(--text-muted-light);
-    font-size: 0.68rem;
-    font-weight: 700;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-}
-
-.translate-hero__stat-value {
-    display: block;
-    margin-top: 4px;
-    overflow: hidden;
-    color: var(--text-dark);
-    font-size: 1.05rem;
-    font-weight: 700;
-    font-variant-numeric: tabular-nums;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-.translate-hero__stat-total {
-    color: var(--text-muted-light);
-    font-weight: 500;
-}
-
-.translate-hero__health {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    margin-top: 14px;
-}
-
-.translate-hero__health-item {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 4px 9px;
-    border: 1px solid var(--border-light);
-    border-radius: 999px;
-    color: var(--text-muted-light);
-    font-size: 0.72rem;
-    font-variant-numeric: tabular-nums;
-}
-
-.translate-hero__health-dot {
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: currentColor;
-}
-
-.translate-hero__health-item.is-ok {
-    color: var(--success-light);
-}
-
-.translate-hero__health-item.is-bad {
-    color: var(--danger-light-text);
-}
-
-.translate-hero__health-item.is-warn {
-    color: var(--warning-light-text);
-}
-
-.translate-hero__stall,
-.translate-hero__error {
-    margin: 14px 0 0;
-    padding: 10px 12px;
-    border-radius: 10px;
-    font-size: 0.82rem;
-}
-
-.translate-hero__stall {
-    background: var(--warning-light-bg);
-    color: var(--warning-light-text);
-}
-
-.translate-hero__error {
-    background: var(--danger-light-bg);
-    color: var(--danger-light-text);
-}
-
-.translate-hero__log {
-    display: flex;
-    align-items: baseline;
-    gap: 10px;
-    min-width: 0;
-    margin-top: 16px;
-    padding-top: 12px;
-    border-top: 1px solid var(--border-light);
-}
-
-.translate-hero__log-label {
-    flex: 0 0 auto;
-    color: var(--text-muted-light);
-    font-size: 0.72rem;
-    font-weight: 700;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-}
-
-.translate-hero__log code {
-    min-width: 0;
-    overflow: hidden;
-    color: var(--text-dark);
-    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-    font-size: 0.78rem;
-    line-height: 1.4;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-.translate-hero__actions {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    margin-top: 16px;
-}
-
-.translate-hero__btn {
-    justify-content: flex-start;
-    white-space: nowrap;
-}
-
-.translate-hero .translate-queue-log {
-    margin-top: 16px;
-}
-
-@media (prefers-reduced-motion: reduce) {
-    .translate-hero.is-active .translate-hero__progress-fill::after {
-        animation: none;
-    }
-
-    .translate-hero__progress-fill {
-        transition: none;
-    }
-}
-
-@media (max-width: 900px) {
-    .translate-hero {
-        padding: 20px;
-    }
-
-    .translate-hero__stats {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-
-    .translate-hero__stat:nth-child(3) {
-        padding-left: 0;
-        border-left: 0;
-    }
-
-    .translate-hero__stat:nth-child(n + 3) {
-        margin-top: 14px;
-        padding-top: 14px;
-        border-top: 1px solid var(--border-light);
-    }
-}
-
-@media (max-width: 640px) {
-    .translate-hero {
-        padding: 16px;
-        border-radius: 1.25rem;
-    }
-
-    .translate-hero__top {
-        flex-direction: column;
-        gap: 14px;
-    }
-
-    .translate-hero__readout {
-        flex-direction: row;
-        align-items: baseline;
-        justify-content: space-between;
-        width: 100%;
-    }
-
-    .translate-hero__percent {
-        font-size: 2.6rem;
-    }
-
-    .translate-hero__progress {
-        height: 18px;
-        margin-top: 16px;
-    }
-
-    .translate-hero__stat {
-        padding: 12px 12px 0;
-    }
-
-    .translate-hero__stat:nth-child(odd) {
-        padding-left: 0;
-        border-left: 0;
-    }
-
-    .translate-hero__stat:nth-child(even) {
-        border-left: 1px solid var(--border-light);
-    }
-
-    .translate-hero__stats {
-        margin-top: 16px;
-    }
-
-    .translate-hero__log {
-        flex-direction: column;
-        gap: 4px;
-    }
-
-    .translate-hero__log code {
-        overflow-wrap: anywhere;
-        white-space: normal;
-    }
-
-    .translate-hero__actions {
-        flex-direction: column;
-    }
-
-    .translate-hero__btn {
-        width: 100%;
-        justify-content: center;
     }
 }

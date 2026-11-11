@@ -45,6 +45,7 @@ let modelsProvider = 'ollama';
 let modelsLoading = false;
 let actionInFlight = false;
 let lastSnapshot = { books: [], summary: {}, events: [] };
+let lastRaw = null;
 let activeFilter = 'all';
 let activeSeries = '';
 let searchTerm = '';
@@ -222,7 +223,7 @@ function statusLabel(book) {
 
 function modelLabel(book) {
     const model = String(book.model || '');
-    if (!model) return '—';
+    if (!model) return t('queue:now_value_unknown');
     return model.split('/').pop();
 }
 
@@ -273,8 +274,8 @@ function progressCell(book) {
     const pct = Math.max(0, Math.min(100, Math.round((current / total) * 100)));
     const chunks = t('queue:chunks', { current, total });
     return `
-        <div class="queue-progress" title="${escapeHtml(chunks)}">
-            <span style="width: ${pct}%"></span>
+        <div class="queue-progress queue-progress--compact" title="${escapeHtml(chunks)}" aria-hidden="true">
+            <span class="queue-progress__fill" style="width: ${pct}%"></span>
         </div>
         <span class="queue-progress-text">${current}/${total} · ${pct}%</span>
     `;
@@ -362,7 +363,7 @@ function ensureTranslateContainer() {
     // The hero is not a live region; the progressbar exposes its own state and
     // an aria-live wrapper here would announce every 10 s refresh.
     container.removeAttribute('aria-live');
-    container.className = 'translate-hero hidden';
+    container.className = 'queue-card translate-hero hidden';
     if (tab.firstElementChild !== container) tab.prepend(container);
     return container;
 }
@@ -376,6 +377,132 @@ function ensureGlobalQualityDrawer() {
     }
 }
 
+// The now panel (Queue tab) and the Translate hero are built from the same
+// helpers below, so state, labels, progress and actions cannot drift apart.
+// Only the layout differs: the hero adds stats, health and the activity log,
+// and the queue panel adds Remove.
+
+function stallInfo(book, isActive) {
+    const samples = progressSamples(book);
+    const lastSample = samples[samples.length - 1];
+    const sampleIdleMs = lastSample ? Date.now() - lastSample.t : 0;
+    const apiLast = book.last_checkpoint_at ? Date.parse(book.last_checkpoint_at) : NaN;
+    const apiIdleMs = Number.isFinite(apiLast) ? Date.now() - apiLast : 0;
+    const apiAgeMs = Number(book.last_checkpoint_age_seconds) > 0
+        ? Number(book.last_checkpoint_age_seconds) * 1000
+        : apiIdleMs;
+    const processDead = book.process_alive === false;
+    const stalled = isActive && (
+        Boolean(book.stalled)
+        || processDead
+        || apiAgeMs > 5 * 60 * 1000
+        || sampleIdleMs > 5 * 60 * 1000
+    );
+    return { stalled, stallMs: apiAgeMs > 0 ? apiAgeMs : sampleIdleMs };
+}
+
+function nowStatusBadge(state, label) {
+    return `<span class="queue-status queue-status-${escapeHtml(state)}">${escapeHtml(label)}</span>`;
+}
+
+function healthBadge(tone, text) {
+    const modifier = tone ? ` is-${tone}` : '';
+    return `<span class="queue-badge${modifier}">${escapeHtml(text)}</span>`;
+}
+
+// `series` arrives already escaped: it carries the series index.
+function nowMeta(book, series) {
+    const parts = [];
+    if (series) parts.push(`<span>${series}</span>`);
+    parts.push(`<span>${escapeHtml(modelLabel(book))}</span>`);
+    if (book.translation_id) parts.push(`<code>${escapeHtml(book.translation_id)}</code>`);
+    const separator = '<span class="queue-meta__sep" aria-hidden="true">·</span>';
+    return `<div class="queue-meta">${parts.join(separator)}</div>`;
+}
+
+function nowProgressBar(pct, size = '') {
+    const modifier = size === 'lg' ? ' queue-progress--lg' : '';
+    return `
+        <div class="queue-progress${modifier}" role="progressbar"
+             aria-valuemin="0" aria-valuemax="100" aria-valuenow="${pct}"
+             aria-label="${escapeHtml(t('queue:now_progress_aria'))}">
+            <span class="queue-progress__fill" style="width: ${pct}%"></span>
+        </div>
+    `;
+}
+
+function nowLogRow(valueId) {
+    return `
+        <div class="queue-log">
+            <span class="queue-log__label">${escapeHtml(t('queue:now_last_log'))}</span>
+            <code class="queue-log__value" id="${valueId}">${escapeHtml(t('queue:now_log_loading'))}</code>
+        </div>
+    `;
+}
+
+function nowCallout(tone, message) {
+    return `<p class="queue-callout queue-callout--${tone}">${escapeHtml(message)}</p>`;
+}
+
+function nowButton(variant, icon, label, attrs, options = {}) {
+    const classes = ['queue-btn', `queue-btn--${variant}`];
+    if (options.pressed) classes.push('is-pressed');
+    if (options.extraClass) classes.push(options.extraClass);
+    const labelAttr = options.labelAttr ? ' data-now-pause-label' : '';
+    return `
+        <button type="button" class="${classes.join(' ')}" ${attrs}>
+            <span class="material-symbols-outlined" aria-hidden="true">${icon}</span>
+            <span${labelAttr}>${escapeHtml(label)}</span>
+        </button>
+    `;
+}
+
+// One order for both views: the primary action first, the destructive one last.
+function nowActions(book, state, isActive, placement) {
+    const id = Number(book.id);
+    const buttons = [];
+    if (state === 'needs_review') {
+        buttons.push(nowButton('primary', 'verified', t('queue:now_approve'), `data-now-approve="${id}"`));
+    }
+    if (RETRY_STATES.has(state)) {
+        const isPaused = state === 'paused';
+        buttons.push(nowButton(
+            'secondary',
+            isPaused ? 'play_arrow' : 'restart_alt',
+            t(isPaused ? 'queue:now_resume' : 'queue:now_retry'),
+            `data-now-retry="${id}"`,
+        ));
+    }
+    if (isActive) {
+        const pausing = Boolean(controlState.pause_now);
+        buttons.push(nowButton(
+            'secondary',
+            'pause_circle',
+            t(pausing ? 'queue:pause_cancel' : 'queue:pause_now'),
+            `data-now-pause="${id}"`,
+            { pressed: pausing, labelAttr: true, extraClass: 'queue-pause-now-btn' },
+        ));
+    }
+    // A failed or paused book can still have an old artifact on disk. Offering
+    // "Download EPUB" there would look like the failed run produced a book.
+    if (book.artifact && (state === 'completed' || state === 'needs_review')) {
+        buttons.push(nowButton(
+            'secondary',
+            'download',
+            t('queue:now_download'),
+            `data-now-download="${id}" data-now-download-name="${escapeHtml(book.artifact.filename || '')}"`,
+        ));
+    }
+    buttons.push(nowButton('secondary', 'article', t('queue:now_view_log'), `data-now-log="${id}"`));
+    if (placement === 'hero') {
+        buttons.push(nowButton('secondary', 'list_alt', t('queue:now_view_queue'), 'data-now-queue="1"'));
+    }
+    if (placement === 'now' && !isActive) {
+        buttons.push(nowButton('danger', 'playlist_remove', t('queue:remove'), `data-now-remove="${id}"`));
+    }
+    return buttons.join('');
+}
+
 function renderTranslateHero(container, book, ctx) {
     if (!container) return;
     const attention = ctx.state === 'needs_review'
@@ -387,188 +514,92 @@ function renderTranslateHero(container, book, ctx) {
         return;
     }
 
-    const samples = progressSamples(book);
-    const lastSample = samples[samples.length - 1];
-    const sampleIdleMs = lastSample ? Date.now() - lastSample.t : 0;
-    const apiLast = book.last_checkpoint_at ? Date.parse(book.last_checkpoint_at) : NaN;
-    const apiIdleMs = Number.isFinite(apiLast) ? Date.now() - apiLast : 0;
-    const apiAgeMs = Number(book.last_checkpoint_age_seconds) > 0
-        ? Number(book.last_checkpoint_age_seconds) * 1000
-        : apiIdleMs;
-    const processDead = book.process_alive === false;
-    const stalled = ctx.isActive && (
-        Boolean(book.stalled)
-        || processDead
-        || apiAgeMs > 5 * 60 * 1000
-        || sampleIdleMs > 5 * 60 * 1000
-    );
-    const stallMs = apiAgeMs > 0 ? apiAgeMs : sampleIdleMs;
+    const { stalled, stallMs } = ctx.stall;
     const rate = rollingRate(book) || averageRate(book);
     const rateLabel = formatRate(rate);
     // A failed or paused job has no live rate; the historical average would
     // imply progress that is not happening.
     const showRate = ctx.isActive || ctx.state === 'completed' || ctx.state === 'needs_review';
-    const currentLabel = formatNumber(ctx.current);
-    const totalLabel = formatNumber(ctx.total);
     const started = formatStarted(book.job_created_at);
     const etaLabel = book.eta_human || ctx.eta;
-    const errorLine = ctx.showError
-        ? `<p class="translate-hero__error">${escapeHtml(t('queue:now_error', { message: book.error }))}</p>`
-        : '';
-    const integrityError = book.db_integrity
-        && String(book.db_integrity).toLowerCase() !== 'ok'
-        ? `<p class="translate-hero__error">DB: ${escapeHtml(book.db_integrity)}</p>`
-        : '';
-    const stalledLine = stalled
-        ? `<p class="translate-hero__stall">${escapeHtml(t('queue:now_stalled', { time: formatDuration(stallMs / 1000) }))}</p>`
-        : '';
+    const stats = [
+        {
+            label: t('queue:now_chunks_label'),
+            value: `${escapeHtml(formatNumber(ctx.current))}<span class="queue-metric__total"> / ${escapeHtml(formatNumber(ctx.total))}</span>`,
+        },
+        {
+            label: t('queue:now_remaining_label'),
+            value: escapeHtml(etaLabel || t('queue:now_value_unknown')),
+        },
+        {
+            label: t('queue:now_rate_label'),
+            value: escapeHtml(showRate && rateLabel ? t('queue:now_rate_value', { rate: rateLabel }) : t('queue:now_value_unknown')),
+        },
+        {
+            label: t('queue:now_started_label'),
+            value: escapeHtml(started || t('queue:now_value_unknown')),
+        },
+    ];
+    const statsHtml = stats.map((stat) => `
+        <div class="queue-metric">
+            <span class="queue-metric__label">${escapeHtml(stat.label)}</span>
+            <strong class="queue-metric__value">${stat.value}</strong>
+        </div>
+    `).join('');
+
     const healthItems = [];
     if (book.process_alive !== undefined && book.process_alive !== null) {
-        healthItems.push(`
-            <span class="translate-hero__health-item ${book.process_alive ? 'is-ok' : 'is-bad'}">
-                <span class="translate-hero__health-dot" aria-hidden="true"></span>
-                ${escapeHtml(t(book.process_alive ? 'queue:now_health_alive' : 'queue:now_health_dead'))}
-            </span>
-        `);
+        healthItems.push(healthBadge(
+            book.process_alive ? 'success' : 'danger',
+            t(book.process_alive ? 'queue:now_health_alive' : 'queue:now_health_dead'),
+        ));
     }
     if (book.last_checkpoint_age_seconds !== undefined && book.last_checkpoint_age_seconds !== null) {
-        healthItems.push(`
-            <span class="translate-hero__health-item">
-                ${escapeHtml(t('queue:now_health_checkpoint'))}: ${escapeHtml(formatDuration(Number(book.last_checkpoint_age_seconds)))}
-            </span>
-        `);
+        healthItems.push(healthBadge(
+            '',
+            `${t('queue:now_health_checkpoint')}: ${formatDuration(Number(book.last_checkpoint_age_seconds))}`,
+        ));
     }
     if (book.db_integrity) {
         const dbOk = String(book.db_integrity).toLowerCase() === 'ok';
-        healthItems.push(`
-            <span class="translate-hero__health-item ${dbOk ? 'is-ok' : 'is-bad'}">
-                ${escapeHtml(t('queue:now_health_db'))}: ${escapeHtml(book.db_integrity)}
-            </span>
-        `);
+        healthItems.push(healthBadge(dbOk ? 'success' : 'danger', `${t('queue:now_health_db')}: ${book.db_integrity}`));
     }
     if (book.last_audit) {
         const auditOk = Boolean(book.last_audit.passed);
-        healthItems.push(`
-            <span class="translate-hero__health-item ${auditOk ? 'is-ok' : 'is-warn'}">
-                ${escapeHtml(t('queue:now_health_audit'))}: ${escapeHtml(t(auditOk ? 'queue:now_health_audit_ok' : 'queue:now_health_audit_flag'))}
-            </span>
-        `);
+        healthItems.push(healthBadge(
+            auditOk ? 'success' : 'warning',
+            `${t('queue:now_health_audit')}: ${t(auditOk ? 'queue:now_health_audit_ok' : 'queue:now_health_audit_flag')}`,
+        ));
     }
     const healthRow = healthItems.length
-        ? `<div class="translate-hero__health">${healthItems.join('')}</div>`
+        ? `<div class="queue-badges">${healthItems.join('')}</div>`
         : '';
-    const actions = [];
-
-    if (ctx.isActive) {
-        const pauseLabel = controlState.pause_now
-            ? t('queue:pause_cancel')
-            : t('queue:pause_now');
-        actions.push(`
-            <button type="button" class="btn btn-secondary translate-hero__btn queue-pause-now-btn"
-                    data-now-pause="${book.id}">
-                <span class="material-symbols-outlined" aria-hidden="true">pause_circle</span>
-                <span data-now-pause-label>${escapeHtml(pauseLabel)}</span>
-            </button>
-        `);
-    }
-    if (ctx.state === 'needs_review') {
-        actions.push(`
-            <button type="button" class="btn btn-primary translate-hero__btn" data-now-approve="${book.id}">
-                <span class="material-symbols-outlined" aria-hidden="true">verified</span>
-                ${escapeHtml(t('queue:now_approve'))}
-            </button>
-        `);
-    }
-    // A failed or paused book can still have an old artifact on disk. Offering
-    // "Download EPUB" there would look like the failed run produced a book.
-    const canDownload = book.artifact
-        && (ctx.state === 'completed' || ctx.state === 'needs_review');
-    if (canDownload) {
-        actions.push(`
-            <button type="button" class="btn btn-secondary translate-hero__btn"
-                    data-now-download="${book.id}"
-                    data-now-download-name="${escapeHtml(book.artifact.filename || '')}">
-                <span class="material-symbols-outlined" aria-hidden="true">download</span>
-                ${escapeHtml(t('queue:now_download'))}
-            </button>
-        `);
-    }
-    if (RETRY_STATES.has(ctx.state)) {
-        const isPaused = ctx.state === 'paused';
-        actions.push(`
-            <button type="button" class="btn btn-secondary translate-hero__btn" data-now-retry="${book.id}">
-                <span class="material-symbols-outlined" aria-hidden="true">${isPaused ? 'play_arrow' : 'restart_alt'}</span>
-                ${escapeHtml(t(isPaused ? 'queue:now_resume' : 'queue:now_retry'))}
-            </button>
-        `);
-    }
-    actions.push(`
-        <button type="button" class="btn btn-secondary translate-hero__btn" data-now-log="${book.id}">
-            <span class="material-symbols-outlined" aria-hidden="true">article</span>
-            ${escapeHtml(t('queue:now_view_log'))}
-        </button>
-        <button type="button" class="btn btn-secondary translate-hero__btn" data-now-queue="1">
-            <span class="material-symbols-outlined" aria-hidden="true">list_alt</span>
-            ${escapeHtml(t('queue:now_view_queue'))}
-        </button>
-    `);
 
     container.innerHTML = `
         <div class="translate-hero__top">
             <div class="translate-hero__identity">
-                <p class="translate-hero__eyebrow">${escapeHtml(nowEyebrow(book, ctx.isActive))}</p>
-                <h2 class="translate-hero__title">${escapeHtml(book.title)}</h2>
-                <p class="translate-hero__meta">
-                    ${ctx.series ? `<span>${ctx.series}</span>` : ''}
-                    ${ctx.series ? '<span class="translate-hero__dot" aria-hidden="true">·</span>' : ''}
-                    <span>${escapeHtml(modelLabel(book))}</span>
-                    ${book.translation_id ? `<span class="translate-hero__dot" aria-hidden="true">·</span><code>${escapeHtml(book.translation_id)}</code>` : ''}
-                </p>
+                <p class="queue-eyebrow">${escapeHtml(nowEyebrow(book, ctx.isActive))}</p>
+                <h2 class="queue-title">${escapeHtml(book.title)}</h2>
+                ${nowMeta(book, ctx.series)}
             </div>
             <div class="translate-hero__readout">
                 <span class="translate-hero__percent">${ctx.pct}<span>%</span></span>
-                <span class="queue-status queue-status-${escapeHtml(ctx.state)}">${escapeHtml(ctx.nowStatusLabel)}</span>
+                ${nowStatusBadge(ctx.state, ctx.nowStatusLabel)}
             </div>
         </div>
-        <div class="translate-hero__progress" role="progressbar"
-             aria-valuemin="0" aria-valuemax="100" aria-valuenow="${ctx.pct}"
-             aria-label="${escapeHtml(t('queue:now_progress_aria'))}">
-            <div class="translate-hero__progress-fill" style="width: ${ctx.pct}%"></div>
-        </div>
-        <div class="translate-hero__stats">
-            <div class="translate-hero__stat">
-                <span class="translate-hero__stat-label">${escapeHtml(t('queue:now_chunks_label'))}</span>
-                <strong class="translate-hero__stat-value">${currentLabel}<span class="translate-hero__stat-total"> / ${totalLabel}</span></strong>
-            </div>
-            <div class="translate-hero__stat">
-                <span class="translate-hero__stat-label">${escapeHtml(t('queue:now_remaining_label'))}</span>
-                <strong class="translate-hero__stat-value">${escapeHtml(etaLabel || t('queue:now_value_unknown'))}</strong>
-            </div>
-            <div class="translate-hero__stat">
-                <span class="translate-hero__stat-label">${escapeHtml(t('queue:now_rate_label'))}</span>
-                <strong class="translate-hero__stat-value">${escapeHtml(showRate && rateLabel ? t('queue:now_rate_value', { rate: rateLabel }) : t('queue:now_value_unknown'))}</strong>
-            </div>
-            <div class="translate-hero__stat">
-                <span class="translate-hero__stat-label">${escapeHtml(t('queue:now_started_label'))}</span>
-                <strong class="translate-hero__stat-value">${escapeHtml(started || t('queue:now_value_unknown'))}</strong>
-            </div>
-        </div>
+        ${nowProgressBar(ctx.pct, 'lg')}
+        <div class="queue-metrics">${statsHtml}</div>
         ${healthRow}
-        ${stalledLine}
-        ${errorLine}
-        ${integrityError}
-        <div class="translate-hero__log">
-            <span class="translate-hero__log-label">${escapeHtml(t('queue:now_last_log'))}</span>
-            <code id="translateQueueNowLogLine">—</code>
-        </div>
-        <div class="translate-hero__actions">${actions.join('')}</div>
-        <details class="translate-queue-log">
+        ${stalled ? nowCallout('warning', t('queue:now_stalled', { time: formatDuration(stallMs / 1000) })) : ''}
+        ${ctx.showError ? nowCallout('danger', t('queue:now_error', { message: book.error })) : ''}
+        ${ctx.hasLog ? nowLogRow('translateQueueNowLogLine') : ''}
+        <div class="translate-hero__actions">${nowActions(book, ctx.state, ctx.isActive, 'hero')}</div>
+        <details class="queue-disclosure">
             <summary>${escapeHtml(t('common:activity_log'))}</summary>
-            <pre id="translateQueueLog" class="queue-quality-log"></pre>
+            <pre id="translateQueueLog" class="queue-inset queue-quality-log"></pre>
         </details>
     `;
     container.classList.toggle('is-active', ctx.isActive);
-    container.classList.toggle('translate-hero--stalled', stalled);
     container.classList.remove('hidden');
 }
 
@@ -586,7 +617,7 @@ function renderNow(data) {
     const next = books.find((book) => statusKey(book) === 'pending');
     const book = active || review || retryable || next;
     if (!book) {
-        container.innerHTML = `<div class="queue-now-empty">${escapeHtml(t('queue:now_idle'))}</div>`;
+        container.innerHTML = `<p class="queue-now-empty">${escapeHtml(t('queue:now_idle'))}</p>`;
         container.classList.remove('hidden');
         if (translateContainer) {
             translateContainer.classList.add('hidden');
@@ -608,100 +639,32 @@ function renderNow(data) {
         ? `${escapeHtml(book.series)} #${escapeHtml(book.series_index ?? '')}`
         : '';
     const showError = (state === 'failed' || state === 'needs_review') && book.error;
+    const hasLog = isActive || RETRY_STATES.has(state);
+    const stall = stallInfo(book, isActive);
     const progress = total > 0
         ? `
-            <div class="queue-progress queue-now-progress"><span style="width: ${pct}%"></span></div>
-            <div class="queue-now-progress-line">
+            ${nowProgressBar(pct)}
+            <div class="queue-progress-line">
                 <span>${escapeHtml(t('queue:chunks', { current, total }))}</span>
                 <span>${escapeHtml(eta ? t('queue:now_eta', { time: eta }) : t('queue:now_unknown_eta'))}</span>
             </div>
         `
         : '';
-    const logLine = isActive
-        ? `
-            <div class="queue-now-log" id="queueNowLog">
-                <span class="queue-muted">${escapeHtml(t('queue:now_last_log'))}:</span>
-                <code id="queueNowLogLine">—</code>
-            </div>
-        `
-        : '';
-    const errorLine = showError
-        ? `<div class="queue-now-error-line"><span class="queue-now-error">${escapeHtml(t('queue:now_error', { message: book.error }))}</span></div>`
-        : '';
-    const buttons = [];
-    if (isActive) {
-        const pauseLabel = controlState.pause_now
-            ? t('queue:pause_cancel')
-            : t('queue:pause_now');
-        buttons.push(`
-            <button type="button" class="btn btn-secondary queue-now-btn queue-pause-now-btn"
-                    data-now-pause="${book.id}">
-                <span class="material-symbols-outlined" aria-hidden="true">pause_circle</span>
-                <span data-now-pause-label>${escapeHtml(pauseLabel)}</span>
-            </button>
-        `);
-    }
-    if (book.artifact && (state === 'completed' || state === 'needs_review')) {
-        buttons.push(`
-            <button type="button" class="btn btn-secondary queue-now-btn"
-                    data-now-download="${book.id}"
-                    data-now-download-name="${escapeHtml(book.artifact.filename || '')}">
-                <span class="material-symbols-outlined" aria-hidden="true">download</span>
-                ${escapeHtml(t('queue:now_download'))}
-            </button>
-        `);
-    }
-    buttons.push(`
-        <button type="button" class="btn btn-secondary queue-now-btn" data-now-log="${book.id}">
-            <span class="material-symbols-outlined" aria-hidden="true">article</span>
-            ${escapeHtml(t('queue:now_view_log'))}
-        </button>
-    `);
-    if (!isActive) {
-        buttons.push(`
-            <button type="button" class="btn btn-secondary queue-now-btn queue-remove-btn"
-                    data-now-remove="${book.id}">
-                <span class="material-symbols-outlined" aria-hidden="true">playlist_remove</span>
-                ${escapeHtml(t('queue:remove'))}
-            </button>
-        `);
-    }
-    if (state === 'needs_review') {
-        buttons.push(`
-            <button type="button" class="btn btn-primary queue-now-btn" data-now-approve="${book.id}">
-                <span class="material-symbols-outlined" aria-hidden="true">verified</span>
-                ${escapeHtml(t('queue:now_approve'))}
-            </button>
-        `);
-    }
-    if (RETRY_STATES.has(state)) {
-        const isPaused = state === 'paused';
-        const actionLabel = t(isPaused ? 'queue:now_resume' : 'queue:now_retry');
-        buttons.push(`
-            <button type="button" class="btn btn-secondary queue-now-btn" data-now-retry="${book.id}">
-                <span class="material-symbols-outlined" aria-hidden="true">${isPaused ? 'play_arrow' : 'restart_alt'}</span>
-                ${escapeHtml(actionLabel)}
-            </button>
-        `);
-    }
     container.innerHTML = `
         <div class="queue-now-head">
-            <span class="queue-now-eyebrow">${escapeHtml(nowEyebrow(book, isActive))}</span>
-            <span class="queue-status queue-status-${escapeHtml(state)}">${escapeHtml(nowStatusLabel)}</span>
+            <span class="queue-eyebrow">${escapeHtml(nowEyebrow(book, isActive))}</span>
+            ${nowStatusBadge(state, nowStatusLabel)}
         </div>
         <div class="queue-now-body">
             <div class="queue-now-main">
-                <div class="queue-now-title">${escapeHtml(book.title)}</div>
-                <div class="queue-now-meta">
-                    ${series ? `<span>${series}</span>` : ''}
-                    <span>${escapeHtml(modelLabel(book))}</span>
-                    ${book.translation_id ? `<code>${escapeHtml(book.translation_id)}</code>` : ''}
-                </div>
+                <h3 class="queue-title">${escapeHtml(book.title)}</h3>
+                ${nowMeta(book, series)}
                 ${progress}
-                ${logLine}
-                ${errorLine}
+                ${hasLog ? nowLogRow('queueNowLogLine') : ''}
+                ${stall.stalled ? nowCallout('warning', t('queue:now_stalled', { time: formatDuration(stall.stallMs / 1000) })) : ''}
+                ${showError ? nowCallout('danger', t('queue:now_error', { message: book.error })) : ''}
             </div>
-            <div class="queue-now-actions">${buttons.join('')}</div>
+            <div class="queue-now-actions">${nowActions(book, state, isActive, 'now')}</div>
         </div>
     `;
     container.classList.remove('hidden');
@@ -715,8 +678,10 @@ function renderNow(data) {
         eta,
         series,
         showError,
+        hasLog,
+        stall,
     });
-    if ((isActive || RETRY_STATES.has(state)) && book.id) loadNowLog(book.id);
+    if (hasLog && book.id) loadNowLog(book.id);
 }
 
 async function loadNowLog(bookId) {
@@ -1010,6 +975,7 @@ function renderFilters() {
 }
 
 function applySnapshot(data) {
+    lastRaw = data;
     lastSnapshot = {
         books: Array.isArray(data.books) ? data.books : [],
         summary: data.summary || {},
@@ -1075,6 +1041,9 @@ function renderControl() {
     const nowLabels = document.querySelectorAll('[data-now-pause-label]');
     nowLabels.forEach((label) => {
         label.textContent = t(controlState.pause_now ? 'queue:pause_cancel' : 'queue:pause_now');
+    });
+    document.querySelectorAll('.queue-pause-now-btn').forEach((button) => {
+        button.classList.toggle('is-pressed', Boolean(controlState.pause_now));
     });
     if (status) {
         status.classList.remove('is-error');
@@ -1553,7 +1522,7 @@ function renderQuality(payload) {
         </section>` : ''}
         <section class="queue-quality-section">
             <h5>${escapeHtml(t('queue:quality_log'))}</h5>
-            <pre class="queue-quality-log">${escapeHtml((log.lines || []).join('\n') || t('queue:log_empty'))}</pre>
+            <pre class="queue-inset queue-quality-log">${escapeHtml((log.lines || []).join('\n') || t('queue:log_empty'))}</pre>
         </section>
         <div class="queue-quality-actions">${actionButtonsHtml}</div>
     `;
@@ -1757,6 +1726,11 @@ function initialize() {
     if (pauseButton) pauseButton.addEventListener('click', togglePause);
     window.addEventListener('localeChanged', renderControl);
     window.addEventListener('localeChanged', () => renderRunnerStatus(lastSnapshot));
+    // Re-render from the last response so the table, filters and now panel switch
+    // language at once instead of waiting for the next 10 s refresh.
+    window.addEventListener('localeChanged', () => {
+        if (lastRaw) applySnapshot(lastRaw);
+    });
 
     const addButton = byId('queueAddBtn');
     if (addButton) addButton.addEventListener('click', addSelectedBooks);

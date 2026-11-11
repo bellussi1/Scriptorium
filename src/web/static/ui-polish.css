@@ -32,13 +32,10 @@ html.dark .form-control::placeholder {
 .header .status-indicator span,
 .gpu-status.gpu-available,
 .key-status.configured,
-.queue-status-completed,
 .file-artifact-badge.is-reader {
     color: var(--success-text-light);
 }
 
-.queue-status-translating,
-.queue-status-preparing,
 .file-artifact-badge.is-quality {
     color: var(--info-text-light);
 }
@@ -362,10 +359,6 @@ html.dark .btn-danger:hover {
     .queue-table .queue-position,
     .queue-table th:first-child {
         display: none;
-    }
-
-    .queue-table .queue-progress {
-        max-width: 110px;
     }
 
     .queue-table .queue-move-btn {

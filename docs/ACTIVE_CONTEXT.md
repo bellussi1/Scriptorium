@@ -11,6 +11,15 @@ before acting on anything below.
 
 Entries below this section are historical. Where they conflict, this section wins.
 
+- **Queue now panel redesign** (branch `claude/distracted-engelbart-9656ba`, not pushed, not merged).
+  The Queue tab's now panel and the Translate hero are built from one set of queue components and
+  `--q-*` tokens in `src/web/static/queue.css`, with separate light and dark palettes. Text is at
+  least 4.5:1 and controls at least 3:1 on their surface. The duplicate `.queue-now-*`, status and
+  progress rules in `literary-theme.css` and `ui-polish.css` were removed. English labels use Title
+  Case with no em dashes. Verified against a mock harness that serves the branch's static files,
+  not the Docker app: the running container still serves the old static files until its image is
+  rebuilt, which must wait until the Kingdoms of Death run ends.
+
 - **Kingdoms of Death** (book 11, job 24, translation `cli_bb4e0e4f`) is
   translating on Index-Translate 9B through `queue run --book-id 11
   --parallel 1`. It started 17:23 local, 862 chunks, and stops at
