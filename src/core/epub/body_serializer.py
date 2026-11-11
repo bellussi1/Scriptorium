@@ -6,9 +6,10 @@ in XHTML documents, enabling full-document translation instead of per-element pr
 """
 from lxml import etree
 from typing import Tuple, Optional
+import html
 import re
 
-from src.utils.unified_logger import info, LogType
+from src.utils.unified_logger import info, warning, LogType
 from .boilerplate_filter import strip_web_boilerplate
 from .exceptions import XmlParsingError, BodyExtractionError
 from .ruby_annotations import fold_ruby_annotations
@@ -145,13 +146,53 @@ def extract_body_html(
     return inner_html, body
 
 
-def replace_body_content(body_element: etree._Element, new_html: str) -> None:
+# A reconstruction that keeps less than this share of the translated text is
+# reported as a warning: a passage was most likely dropped by the parser.
+RECONSTRUCTION_COVERAGE_WARN = 0.99
+
+_TAG_RE = re.compile(r'<[^>]*>')
+_WHITESPACE_RE = re.compile(r'\s+')
+
+
+def _visible_length(text: str) -> int:
+    """Characters of text that are not whitespace."""
+    return len(_WHITESPACE_RE.sub('', text))
+
+
+def markup_text_coverage(source_markup: str, parsed: etree._Element) -> float:
+    """Share of the source markup's visible text that survived parsing.
+
+    The source is the translated markup as sent to the parser: its tags are
+    dropped and its entities decoded, so a character the parser threw away
+    (for example text lost to an undefined entity or a broken tag) lowers the
+    result. The parsed tree is measured the same way. A source without visible
+    text counts as fully covered.
+
+    Args:
+        source_markup: The markup handed to the parser.
+        parsed: The root element the parser built from it.
+
+    Returns:
+        A ratio in [0.0, 1.0].
+    """
+    source_length = _visible_length(html.unescape(_TAG_RE.sub('', source_markup)))
+    if source_length == 0:
+        return 1.0
+    kept_length = _visible_length(''.join(parsed.itertext()))
+    return min(1.0, kept_length / source_length)
+
+
+def replace_body_content(body_element: etree._Element, new_html: str) -> float:
     """
     Replace the content of <body> with new translated HTML.
 
     Args:
         body_element: The <body> element to modify
         new_html: New translated HTML content
+
+    Returns:
+        The text coverage of the reconstruction (see markup_text_coverage).
+        1.0 for an empty replacement.
 
     Raises:
         BodyExtractionError: if new_html is empty while the body still holds
@@ -210,6 +251,10 @@ def replace_body_content(body_element: etree._Element, new_html: str) -> None:
                     content_preview=new_html[:200]
                 )
 
+    # Measured before the children move out of the temporary wrapper.
+    coverage = markup_text_coverage(new_html, temp)
+    parse_warnings.append(f"text coverage {coverage:.1%}")
+
     # NOW clear the body (only after successful parsing)
     body_element.text = None
     for child in list(body_element):
@@ -225,3 +270,10 @@ def replace_body_content(body_element: etree._Element, new_html: str) -> None:
     # Single consolidated log message
     warnings_str = f" ({', '.join(parse_warnings)})" if parse_warnings else ""
     info(f"📄 Body reconstructed: {len(new_html)} chars → {child_count} elements [{parse_method}{warnings_str}]")
+    if coverage < RECONSTRUCTION_COVERAGE_WARN:
+        warning(
+            f"⚠️ Body reconstruction kept {coverage:.1%} of the translated text "
+            f"({parse_method}): a passage may be missing from this chunk. "
+            f"Check the chunk text in the log before approving the book."
+        )
+    return coverage
