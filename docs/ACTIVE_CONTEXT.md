@@ -549,3 +549,23 @@ stay. Dalibre: restart OpenCode so the MCP reconnects with `DALIBRE_TOKEN`.
 - Chapters 5, 7, 12, 11 and 22 use a manual `anchor` text. 11 and 22 could not be
   checked against the English line (the first English sentence is not in the
   translated body); verify those two headings by reading.
+
+## Kingdoms of Death chapter post-pass (2026-11-11)
+
+- `translated_files/Kingdoms of Death (pt-BR).refined.epub` (gitignored) now has
+  the 51 chapter titles from `kingdoms-of-death.yaml` in `<title>`, the TOC, the
+  NCX and the body title heading. The pipeline had its own pt-BR titles that
+  differed from the map in 31 chapters; the map wins. The map header calls these
+  editorial drafts, so review them before publishing. Also fixed: chapter 37's
+  body number read "CAPÍTULO 37O". Backup before the pass:
+  `Kingdoms of Death (pt-BR).refined.pre-chapters.epub`.
+- `relabel_epub` and `--relabel` accept `--titles` and take titles by chapter
+  number. Body title headings were changed with exact edits, not by the module.
+- Audit (`scripts/audit_book.py --no-cloud`) FAILS on a scratch copy of the
+  refined file: queue gate (no `chapters` rows for job 24, so no validation
+  record; the run log shows validation passed and EPUBCheck 0 errors), 11
+  blocking pt-PT hits, "Império do Silêncio" untranslated on the "Also by" page,
+  all-caps proper names flagged (likely a gate false positive), and glossary
+  coverage 0.8345. Not approved.
+- The audit reads `translated_files/<title> (pt-BR).epub`, not `.refined.epub`.
+  Audit a copy placed in an `--outputs` folder until this is fixed.
