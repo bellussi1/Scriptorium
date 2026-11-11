@@ -148,6 +148,17 @@ Approval record
   for it). Howling Dark was approved while its audit was blocked on two
   meaning notes that the manual read judged false positives.
 
+### Owner decision on the Imperium drift (2026-11-11)
+
+- The owner accepted the `Imperium` drift for Demon in White. The book keeps
+  "Império" from its compiled glossary snapshot; the freeze does not apply to it.
+- Post-pass applied afterwards (`src/literary/chapter_titles.py`): 87 chapter
+  titles, the Lexicon headword and the series metadata; EPUBCheck 0/0/0. Backup:
+  `translated_files/Demon in White (pt-BR).refined.pre-review.epub`.
+- The re-audit (`data/audits/review-20261111-demon-in-white-post/audit.md`) is
+  still FAIL for the chapter 22 coverage false positive. That item is open:
+  changing the matcher changes the gate for every book, so it needs the owner's go-ahead.
+
 ## 6. Checks run during this review
 
 - Test suite `pytest -q tests/unit tests/literary` on the merged tree: 2,411

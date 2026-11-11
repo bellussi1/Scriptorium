@@ -51,8 +51,8 @@ Entries below this section are historical. Where they conflict, this section win
   translation; it is not a reference. Queue order: Kingdoms (19), Ashes of
   Man (18), Disquiet Gods (17), Shadows Upon Time (16), **Lonesome Dove (15)**,
   The Mad Ship (13), then the rest of Realm.
-- **Owner decisions pending**: (1) accept the `Imperium` drift for Demon, or
-  re-translate the term; (2) treat the chapter 22 coverage as a matcher bug and
+- **Owner decisions**: (1) accepted 2026-11-11: the `Imperium` drift for Demon
+  stays and the book keeps "Império". Still pending: (2) treat the chapter 22 coverage as a matcher bug and
   fix it after Kingdoms is audited; (3) label the meaning-gate sample
   (`data/audits/adjudicator-calibration/sample.jsonl`); (4) confirm the
   "Scriptorium" name; (5) decide whether Imperium/Império may mix across the
