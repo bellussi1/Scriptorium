@@ -33,6 +33,13 @@ ALL_CHUNK_STATUSES = frozenset({
 # never be added to the rules"), applied at chunk level.
 UNFINISHED_CHUNK_STATUSES = frozenset({CHUNK_PENDING, CHUNK_UNTRANSLATED})
 
+# Why a chunk left the normal path (chunk checkpoint).
+#   "placeholder": the reply lost the inline placeholders; the first reply was aligned.
+#   "raw":         the reply had no translation block; the raw reply was aligned.
+#   "api":         no reply text at all (provider failure, or no usable reply).
+# The per-call causes of the chunk are kept next to the reason in `causes`.
+FALLBACK_REASONS = frozenset({'placeholder', 'raw', 'api'})
+
 
 def unfinished_chunk_indices(statuses: Optional[List[str]]) -> List[int]:
     """Return the ascending indices of chunks that still need translating.
@@ -163,6 +170,11 @@ class XHTMLTranslationState:
     # Technical Content Protection (always enabled)
     protect_technical: bool = True
 
+    # Fallback records (chunk checkpoint): {str(chunk_index): {"reason",
+    # "attempts", "causes"}} for every chunk whose status is CHUNK_TOKEN_ALIGNED
+    # or CHUNK_UNTRANSLATED. None on states written before this field existed.
+    chunk_fallbacks: Optional[Dict[str, Dict[str, Any]]] = None
+
     def to_dict(self) -> Dict[str, Any]:
         """
         Serialize state to JSON-compatible dictionary.
@@ -192,6 +204,7 @@ class XHTMLTranslationState:
             'original_chunks': self.original_chunks,
             'chunk_statuses': self.chunk_statuses,
             'protect_technical': self.protect_technical,
+            'chunk_fallbacks': self.chunk_fallbacks,
             'created_at': self.created_at,
             'updated_at': self.updated_at,
             'global_stats': self.global_stats,
@@ -234,6 +247,7 @@ class XHTMLTranslationState:
                 data['current_chunk_index'],
             ),
             protect_technical=data.get('protect_technical', True),
+            chunk_fallbacks=data.get('chunk_fallbacks'),
             created_at=data['created_at'],
             updated_at=data['updated_at'],
             global_stats=data.get('global_stats'),
@@ -305,6 +319,14 @@ class XHTMLTranslationState:
                 return False
             if 'text' not in chunk or 'local_tag_map' not in chunk or 'global_indices' not in chunk:
                 return False
+
+        # Fallback records: keys are chunk indices in range, reasons are known.
+        if self.chunk_fallbacks is not None:
+            for key, record in self.chunk_fallbacks.items():
+                if not str(key).isdigit() or int(key) >= len(self.chunks):
+                    return False
+                if not isinstance(record, dict) or record.get('reason') not in FALLBACK_REASONS:
+                    return False
 
         # Check chunk_statuses consistency (issue #261)
         if self.chunk_statuses is not None:

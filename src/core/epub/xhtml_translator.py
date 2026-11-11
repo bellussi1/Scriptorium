@@ -455,6 +455,10 @@ async def translate_chunk_with_fallback(
     # PHASE 1: Normal translation with retries
     # ==========================================================================
     translated = None
+    # Bookkeeping for the chunk's fallback record (chunk checkpoint).
+    llm_calls = 0
+    causes: List[str] = []
+    raw_used = False
 
     for attempt in range(max_retries):
         # Only log retry attempts (not the first attempt)
@@ -462,6 +466,8 @@ async def translate_chunk_with_fallback(
             log_callback("translation_attempt", f"🔄 Translation retry attempt {attempt + 1}/{max_retries}")
 
         # Send chunk as-is to LLM (already has local indices 0, 1, 2...)
+        call_info: Dict = {}
+        llm_calls += 1
         translated = await generate_translation_request(
             chunk_text,
             context_before="",
@@ -475,11 +481,17 @@ async def translate_chunk_with_fallback(
             has_placeholders=has_placeholders,
             context_manager=context_manager,
             placeholder_format=placeholder_format,
-            prompt_options=prompt_options
+            prompt_options=prompt_options,
+            attempt_info=call_info,
         )
+        raw_used = raw_used or bool(call_info.get("raw_used"))
 
         if translated is None:
-            _log_error(log_callback, "chunk_translation_failed", f"Attempt {attempt + 1}/{max_retries}: Translation returned None")
+            cause = call_info.get("cause", "unknown")
+            causes.append(cause)
+            _log_error(log_callback, "chunk_translation_failed",
+                       f"Attempt {attempt + 1}/{max_retries}: Translation returned None "
+                       f"({cause}: {call_info.get('detail') or 'no cause recorded'})")
             stats.retry_attempts += 1
             continue  # Try again
 
@@ -502,6 +514,7 @@ async def translate_chunk_with_fallback(
         else:
             # Track placeholder error
             stats.placeholder_errors += 1
+            causes.append("placeholder")
             stats.retry_attempts += 1
             # Continue to next retry attempt
 
@@ -546,6 +559,7 @@ async def translate_chunk_with_fallback(
                         log_callback("phase2_first_translation_success",
                             "✓ Phase 2 successful: aligned the first translation without re-translating")
                     stats.record_chunk_outcome(chunk_index, CHUNK_TOKEN_ALIGNED)
+                    stats.record_chunk_fallback(chunk_index, "placeholder", llm_calls, causes)
                     result = placeholder_mgr.restore_to_global(first_aligned, global_indices)
                     stats.record_processed()
                     return result
@@ -558,6 +572,8 @@ async def translate_chunk_with_fallback(
 
             # 2. Translate WITHOUT placeholders (guaranteed to work)
             # Note: generate_translation_request will show its own logs during translation
+            call_info = {}
+            llm_calls += 1
             translated_clean = await generate_translation_request(
                 clean_text,
                 context_before="",
@@ -571,10 +587,13 @@ async def translate_chunk_with_fallback(
                 has_placeholders=False,  # CRITICAL: no placeholder instructions
                 context_manager=context_manager,
                 placeholder_format=None,  # No placeholders in prompt
-                prompt_options=prompt_options
+                prompt_options=prompt_options,
+                attempt_info=call_info,
             )
+            raw_used = raw_used or bool(call_info.get("raw_used"))
 
             if translated_clean is None:
+                causes.append(call_info.get("cause", "unknown"))
                 raise Exception("LLM returned None for clean translation")
 
             # 4. Align and reinsert placeholders
@@ -593,10 +612,13 @@ async def translate_chunk_with_fallback(
 
                 # 6. Restore global indices and return
                 stats.record_chunk_outcome(chunk_index, CHUNK_TOKEN_ALIGNED)
+                stats.record_chunk_fallback(chunk_index, "raw" if raw_used else "placeholder",
+                                            llm_calls, causes)
                 result = placeholder_mgr.restore_to_global(result_with_placeholders, global_indices)
                 stats.record_processed()  # Mark chunk as fully processed
                 return result
             else:
+                causes.append("placeholder")
                 _log_error(log_callback, "phase2_validation_failed", "✗ Phase 2 validation failed")
 
         except Exception as e:
@@ -607,6 +629,9 @@ async def translate_chunk_with_fallback(
     # ==========================================================================
     stats.fallback_used += 1
     stats.record_chunk_outcome(chunk_index, CHUNK_UNTRANSLATED)
+    stats.record_chunk_fallback(chunk_index,
+                                "placeholder" if "placeholder" in causes else "api",
+                                llm_calls, causes)
 
     _log_error(log_callback, "fallback_untranslated",
         "✗ Phase 3: All translation attempts failed - returning original untranslated text")
@@ -740,6 +765,7 @@ async def _translate_all_chunks_with_checkpoint(
     translated_chunks: Optional[List[str]] = None,
     chunk_statuses: Optional[List[str]] = None,
     retry_token_aligned: bool = False,
+    chunk_fallbacks: Optional[Dict[int, Dict]] = None,
     global_tag_map: Optional[Dict[str, str]] = None,
     stats: Optional[TranslationMetrics] = None,
     prompt_options: Optional[Dict] = None,
@@ -852,6 +878,13 @@ async def _translate_all_chunks_with_checkpoint(
         elif statuses[slot_index] == CHUNK_PENDING:
             statuses[slot_index] = CHUNK_TRANSLATED
 
+    # Fallback records (chunk checkpoint): restored from the partial state and
+    # kept in step with the statuses. A chunk translated again drops its record.
+    fallbacks: Dict[int, Dict] = {
+        int(key): dict(record) for key, record in (chunk_fallbacks or {}).items()
+        if str(key).isdigit() and int(key) < len(chunks)
+    }
+
     def _next_pending_index():
         """First never-attempted chunk, or len(chunks) when there is none.
 
@@ -935,6 +968,10 @@ async def _translate_all_chunks_with_checkpoint(
             bilingual=bilingual,
             original_chunks=original_chunks,
             chunk_statuses=statuses,
+            chunk_fallbacks={
+                str(index): record for index, record in fallbacks.items()
+                if statuses[index] in (CHUNK_TOKEN_ALIGNED, CHUNK_UNTRANSLATED)
+            },
             protect_technical=True,
             created_at=datetime.now(timezone.utc).replace(tzinfo=None).isoformat() + 'Z',
             updated_at=datetime.now(timezone.utc).replace(tzinfo=None).isoformat() + 'Z',
@@ -1037,6 +1074,10 @@ async def _translate_all_chunks_with_checkpoint(
             else:
                 slots[i] = result
                 statuses[i] = outcome
+            if outcome == CHUNK_TRANSLATED:
+                fallbacks.pop(i, None)
+            elif i in stats.chunk_fallbacks:
+                fallbacks[i] = dict(stats.chunk_fallbacks[i])
             delivered += 1
             i_done = i
 
@@ -1990,6 +2031,7 @@ async def translate_xhtml_simplified(
         # though it sits below the resume pointer) and a chunk never attempted
         # (issue #261).
         chunk_statuses = resume_state.chunk_statuses
+        chunk_fallbacks = resume_state.chunk_fallbacks
         retry_indices = [index for index, status in enumerate(chunk_statuses or [])
                          if status == CHUNK_UNTRANSLATED]
         never_attempted = sum(1 for status in (chunk_statuses or [])
@@ -2072,6 +2114,7 @@ async def translate_xhtml_simplified(
         translated_chunks = []
         start_chunk_index = 0
         chunk_statuses = None  # fresh start: every chunk is pending
+        chunk_fallbacks = None
         stats = TranslationMetrics()
         stats.total_chunks = len(chunks)
         original_chunks = chunks.copy() if bilingual else None
@@ -2120,6 +2163,7 @@ async def translate_xhtml_simplified(
         start_chunk_index=start_chunk_index,
         translated_chunks=translated_chunks,
         chunk_statuses=chunk_statuses,
+        chunk_fallbacks=chunk_fallbacks,
         retry_token_aligned=retry_token_aligned,
         global_tag_map=global_tag_map,
         stats=stats,

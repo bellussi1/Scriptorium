@@ -165,7 +165,8 @@ class CheckpointManager:
         failed_chunks: Optional[int] = None,
         epub_accumulated_stats: Optional[Dict[str, Any]] = None,
         unfinished_units: Optional[Dict[str, List[int]]] = None,
-        degraded_units: Optional[Dict[str, List[int]]] = None
+        degraded_units: Optional[Dict[str, List[int]]] = None,
+        fallback_units: Optional[Dict[str, Dict[str, Any]]] = None,
     ) -> bool:
         """
         Save a checkpoint after translating a chunk.
@@ -217,6 +218,7 @@ class CheckpointManager:
             epub_accumulated_stats=epub_accumulated_stats,
             unfinished_units=unfinished_units,
             degraded_units=degraded_units,
+            fallback_units=fallback_units,
         )
 
         # Update translation context if provided. Context is not part of the
