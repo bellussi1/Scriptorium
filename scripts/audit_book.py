@@ -43,7 +43,7 @@ from src.literary.per_file_audit import PT_PT_PATTERNS, scan_book  # noqa: E402
 from src.literary.queue import QueueStore  # noqa: E402
 from src.literary.resources import compile_for_book, load_tree  # noqa: E402
 from src.literary.run_plan import build_run_plan  # noqa: E402
-from src.literary.validation import target_present  # noqa: E402
+from src.literary.validation import glossary_target_present  # noqa: E402
 
 LEDGER = ROOT / "data" / "cost_ledger.jsonl"
 AUDIT_ROOT = ROOT / "data" / "audits"
@@ -409,7 +409,7 @@ def _term_audit(
         targets = [target for target in targets if target]
         if targets:
             eligible += 1
-            if any(target_present(target, target_text) for target in targets):
+            if any(glossary_target_present(target, target_text) for target in targets):
                 hits += 1
             else:
                 missing.append(

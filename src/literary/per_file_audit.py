@@ -27,7 +27,7 @@ from typing import Any, Dict, List, Optional, Sequence
 from benchmark.literary.metrics import english_leakage
 from benchmark.literary.metrics import length_ratio as length_ratio_metric
 from benchmark.literary.metrics import repetition_ratio
-from src.literary.validation import _dropcap_html_issues, target_present
+from src.literary.validation import _dropcap_html_issues, glossary_target_present
 
 SCHEMA = "literary.per-file-audit"
 SCHEMA_VERSION = "1.0"
@@ -318,7 +318,7 @@ def scan_book(
                 ):
                     continue
                 glossary["eligible"] += 1
-                if target_present(view["target"], text):
+                if glossary_target_present(view["target"], text):
                     glossary["hits"] += 1
                 else:
                     missing = {
