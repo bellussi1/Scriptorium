@@ -38,6 +38,7 @@ CHAPTER_TITLE = re.compile(r"^Chapter (\d+): (.+)$", re.DOTALL)
 TOC_NAV = re.compile(r'<nav\b[^>]*epub:type="toc"[^>]*>.*?</nav>', re.DOTALL)
 NAV_LINK = re.compile(r'(<a\b[^>]*?href="([^"]+)"[^>]*>)(.*?)(</a>)', re.DOTALL)
 NCX_MAP = re.compile(r"<navMap\b.*?</navMap>", re.DOTALL)
+LEGACY_LABEL = re.compile(r"Capítulo (\d+): ([^<]+)")
 NCX_POINT_LABEL = re.compile(
     r'(<navLabel>\s*<text>)(.*?)(</text>\s*</navLabel>\s*<content\s+src="([^"]+)"\s*/>)',
     re.DOTALL,
@@ -133,6 +134,88 @@ def _retitle_ncx(text: str, labels: Dict[str, str]) -> Tuple[str, int]:
     return NCX_MAP.sub(replace_map, text), changed
 
 
+def chapter_label(number: int, title_pt: str) -> str:
+    """Return the house-style chapter label: ``Capítulo N TÍTULO``, title in capitals.
+
+    This is the layout of the official PT-BR edition's table of contents and of
+    the chapter headings the translation writes into the body.
+    """
+    return f"Capítulo {number} {title_pt.upper()}"
+
+
+def _caps_legacy_label(text: str) -> Tuple[str, int]:
+    """Rewrite ``Capítulo N: Title`` inside ``text`` to the house style; return the new text and the count."""
+    count = 0
+
+    def repl(match: "re.Match[str]") -> str:
+        nonlocal count
+        count += 1
+        return f"Capítulo {match.group(1)} {escape(html.unescape(match.group(2)).upper())}"
+
+    return LEGACY_LABEL.sub(repl, text), count
+
+
+def _write_epub(output: str | Path, infos: List[zipfile.ZipInfo], content: Dict[str, bytes], changed: Dict[str, bytes]) -> None:
+    """Write every member in its original order; ``mimetype`` stays first and stored."""
+    with zipfile.ZipFile(output, "w") as out:
+        for info in infos:
+            data = changed.get(info.filename, content[info.filename])
+            compress = zipfile.ZIP_STORED if info.filename == "mimetype" else zipfile.ZIP_DEFLATED
+            out.writestr(zipfile.ZipInfo(info.filename, date_time=info.date_time), data, compress_type=compress)
+
+
+def relabel_epub(source: str | Path, output: str | Path) -> Dict[str, Any]:
+    """Write ``output`` with existing ``Capítulo N: Title`` labels moved to the house style.
+
+    Only the ``<title>`` elements, the TOC links and the NCX labels change. The
+    body text is left as it is.
+    """
+    with zipfile.ZipFile(source) as archive:
+        infos = archive.infolist()
+        content = {info.filename: archive.read(info.filename) for info in infos}
+
+    changed: Dict[str, bytes] = {}
+    report: Dict[str, Any] = {"title_elements": 0, "toc_labels": 0, "ncx_labels": 0}
+    for name, raw in content.items():
+        lower = name.lower()
+        if lower.endswith((".xhtml", ".html")):
+            text = raw.decode("utf-8")
+
+            def retitle(match: "re.Match[str]") -> str:
+                new, count = _caps_legacy_label(match.group(1))
+                report["title_elements"] += count
+                return f"<title>{new}</title>"
+
+            text = TITLE_ELEMENT.sub(retitle, text)
+            if TOC_NAV.search(text):
+
+                def toc_block(block: "re.Match[str]") -> str:
+                    def link(match: "re.Match[str]") -> str:
+                        new, count = _caps_legacy_label(match.group(3))
+                        report["toc_labels"] += count
+                        return f"{match.group(1)}{new}{match.group(4)}"
+
+                    return NAV_LINK.sub(link, block.group(0))
+
+                text = TOC_NAV.sub(toc_block, text)
+            if text.encode("utf-8") != raw:
+                changed[name] = text.encode("utf-8")
+        elif lower.endswith(".ncx"):
+            text = raw.decode("utf-8")
+
+            def point(match: "re.Match[str]") -> str:
+                new, count = _caps_legacy_label(match.group(2))
+                report["ncx_labels"] += count
+                return f"{match.group(1)}{new}{match.group(3)}"
+
+            text = NCX_POINT_LABEL.sub(point, text)
+            if text.encode("utf-8") != raw:
+                changed[name] = text.encode("utf-8")
+
+    _write_epub(output, infos, content, changed)
+    return report
+
+
 def apply_epub_edits(
     source: str | Path,
     output: str | Path,
@@ -169,7 +252,7 @@ def apply_epub_edits(
 
         labels: Dict[str, str] = {}
         for number, (name, _english) in sorted(found.items()):
-            label = f"Capítulo {number}: {mapping[number]['pt']}"
+            label = chapter_label(number, mapping[number]["pt"])
             text = changed.get(name, content[name]).decode("utf-8")
             text, count = TITLE_ELEMENT.subn(f"<title>{escape(label)}</title>", text, count=1)
             if count != 1:
@@ -203,11 +286,7 @@ def apply_epub_edits(
         changed[name] = text.replace(old, new, 1).encode("utf-8")
         report["text_edits"].append({"file": name, "old": old, "new": new})
 
-    with zipfile.ZipFile(output, "w") as out:
-        for info in infos:
-            data = changed.get(info.filename, content[info.filename])
-            compress = zipfile.ZIP_STORED if info.filename == "mimetype" else zipfile.ZIP_DEFLATED
-            out.writestr(zipfile.ZipInfo(info.filename, date_time=info.date_time), data, compress_type=compress)
+    _write_epub(output, infos, content, changed)
     return report
 
 
@@ -225,6 +304,9 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     parser.add_argument("--titles", type=Path, help="chapter title map (YAML)")
     parser.add_argument("--edit", type=_parse_edit, action="append", default=[], help="MEMBER|OLD|NEW exact edit")
     parser.add_argument("--series-metadata", action="store_true", help="write series metadata from the title map")
+    parser.add_argument(
+        "--relabel", action="store_true", help="only move existing 'Capítulo N: Title' labels to the house style"
+    )
     args = parser.parse_args(argv)
 
     from .epub import update_opf_metadata
@@ -234,7 +316,10 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     titles = load_title_map(args.titles) if args.titles else None
     stage = args.epub.with_name(f".{args.epub.stem}.post.tmp.epub")
     try:
-        report = apply_epub_edits(args.epub, stage, titles=titles, edits=args.edit)
+        if args.relabel:
+            report = relabel_epub(args.epub, stage)
+        else:
+            report = apply_epub_edits(args.epub, stage, titles=titles, edits=args.edit)
         if args.series_metadata:
             if titles is None or not titles["series"] or titles["series_index"] is None:
                 raise ValueError("--series-metadata needs series and series_index in the title map")

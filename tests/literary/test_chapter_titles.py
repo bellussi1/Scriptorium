@@ -7,7 +7,7 @@ from pathlib import Path
 
 import pytest
 
-from src.literary.chapter_titles import apply_epub_edits, load_title_map
+from src.literary.chapter_titles import apply_epub_edits, load_title_map, relabel_epub
 
 ROOT = Path(__file__).resolve().parents[2]
 DEMON_MAP = ROOT / "literary-resources" / "christopher-ruocchio" / "sun-eater" / "chapter-titles" / "demon-in-white.yaml"
@@ -80,17 +80,40 @@ def test_retitles_chapters_toc_and_ncx_but_not_page_list(tmp_path: Path) -> None
     assert report["chapters_retitled"] == 2
     assert report["toc_labels"] == 2
     assert report["ncx_labels"] == 2
-    assert "<title>Capítulo 1: Eis um Cavalo Pálido</title>" in _read(output, "OEBPS/xhtml/07_Chapter_1_Behold.xhtml")
-    assert "<title>Capítulo 2: Majestade, Monarca, Profeta, Princesa</title>" in _read(
+    assert "<title>Capítulo 1 EIS UM CAVALO PÁLIDO</title>" in _read(output, "OEBPS/xhtml/07_Chapter_1_Behold.xhtml")
+    assert "<title>Capítulo 2 MAJESTADE, MONARCA, PROFETA, PRINCESA</title>" in _read(
         output, "OEBPS/xhtml/08_Chapter_2_Majesty.xhtml"
     )
     nav = _read(output, "OEBPS/nav.xhtml")
-    assert '>Capítulo 1: Eis um Cavalo Pálido</a>' in nav
+    assert ">Capítulo 1 EIS UM CAVALO PÁLIDO</a>" in nav
     assert ">CONTEÚDO</a>" in nav, "non-chapter TOC entries stay as they are"
     assert '<a href="xhtml/07_Chapter_1_Behold.xhtml#p1">1</a>' in nav, "page-list labels are not chapter labels"
     ncx = _read(output, "OEBPS/toc.ncx")
-    assert "<text>Capítulo 1: Eis um Cavalo Pálido</text>" in ncx
+    assert "<text>Capítulo 1 EIS UM CAVALO PÁLIDO</text>" in ncx
     assert "<navLabel><text>1</text></navLabel>" in ncx
+
+
+def test_relabel_moves_legacy_labels_and_keeps_body(tmp_path: Path) -> None:
+    source = _make_epub(tmp_path / "in.epub", first_title="Capítulo 1: Ação &amp; Fim")
+    output = tmp_path / "out.epub"
+    # The NCX and TOC carry the legacy label too.
+    with zipfile.ZipFile(source) as archive:
+        members = {info.filename: archive.read(info.filename) for info in archive.infolist()}
+    members["OEBPS/toc.ncx"] = members["OEBPS/toc.ncx"].replace("CAPÍTULO 1".encode(), "Capítulo 1: Ação &amp; Fim".encode())
+    members["OEBPS/nav.xhtml"] = members["OEBPS/nav.xhtml"].replace("CAPÍTULO 1".encode(), "Capítulo 1: Ação &amp; Fim".encode())
+    with zipfile.ZipFile(source, "w") as archive:
+        for name, data in members.items():
+            archive.writestr(name, data)
+
+    report = relabel_epub(source, output)
+
+    assert report["title_elements"] == 1
+    assert report["toc_labels"] == 1
+    assert report["ncx_labels"] == 1
+    assert "<title>Capítulo 1 AÇÃO &amp; FIM</title>" in _read(output, "OEBPS/xhtml/07_Chapter_1_Behold.xhtml")
+    assert ">Capítulo 1 AÇÃO &amp; FIM</a>" in _read(output, "OEBPS/nav.xhtml")
+    assert "<text>Capítulo 1 AÇÃO &amp; FIM</text>" in _read(output, "OEBPS/toc.ncx")
+    assert "<h1>CAPÍTULO 1</h1>" in _read(output, "OEBPS/xhtml/07_Chapter_1_Behold.xhtml"), "body is untouched"
 
 
 def test_mimetype_stays_first_and_stored(tmp_path: Path) -> None:
