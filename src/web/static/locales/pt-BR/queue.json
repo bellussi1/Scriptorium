@@ -183,5 +183,7 @@
   "run_error": "Não foi possível solicitar uma execução: {{message}}",
   "runner_online": "Agente executor online",
   "runner_offline": "Agente executor offline",
-  "runner_running": "Executor da fila ativo"
+  "runner_running": "Executor da fila ativo",
+  "intent_waiting": "Aguardando o executor aplicar a mudança...",
+  "intent_timeout": "O executor ainda não aplicou a mudança. Ela será aplicada quando o executor estiver online."
 }

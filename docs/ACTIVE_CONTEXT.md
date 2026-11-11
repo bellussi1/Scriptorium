@@ -7,7 +7,34 @@ real repository, not a plan.
 Status: current as of 2026-11-11. Revalidate with `git status` and `git log`
 before acting on anything below.
 
-## Handoff (2026-11-11, afternoon) — read this first
+## Handoff (2026-11-11, evening) — single writer (prompt 5.4), branch only
+
+- **Branch** `claude/epic-matsumoto-f4f45f` (worktree `epic-matsumoto-f4f45f`),
+  not pushed, not merged. Design: `docs/project/reviews/single-writer-design-2026-11-11.md`.
+- **What changed**: the app no longer writes `literary_queue.db`. Each change
+  (add, approve, retry, move, remove, PATCH model, run event) becomes a spool
+  file in `data/literary_queue.intents/`. The host runner (`queue_intents.drain`,
+  called every 0.5 s by `scripts/queue_runner_agent.py`) ingests them into table
+  `queue_intents` and applies them in id order, one transaction each. Routes wait
+  up to `LITERARY_INTENT_WAIT_S` (2.5 s) and answer as before; otherwise `202` +
+  token, and the UI polls `/api/literary/queue/intents/<token>`.
+- **Deviation from prompt 5.2**: the app does not insert into the table, because
+  a second writer across the bind mount is the failure the baseline measured.
+  The table is still the intent log and the source of results.
+- **Stress (host writer, 100 ops)**: 0 5xx, 0 lock errors, 0 timeouts, max 0.63 s,
+  integrity `ok`, 0 inconsistencies. Probe `host_hold`: 0/5 failures, answered in
+  2.6 s (baseline 30.2 s stall). The container-writer probe was not re-run.
+- **Still open**: the live run (Kingdoms of Death) was active; `src/literary/*`
+  modules it loads are unchanged; the app image was not rebuilt. Merge only after
+  `queue status --json` shows `running: false`. Then restart the agent first,
+  then the app container. Queue changes now need the host agent running.
+- **Found, not changed**: `approve` accepts a pending book that has no review
+  yet and walks it to `completed` (pre-existing rule, kept for parity). The CLI
+  `QueueStore.remove_book` still leaves events pointing at the deleted book.
+- **Reads still cross the bind mount** (design section 9); a host-written mirror
+  for UI reads is the follow-up.
+
+## Handoff (2026-11-11, afternoon) — superseded where it conflicts with the evening entry
 
 Entries below this section are historical. Where they conflict, this section wins.
 

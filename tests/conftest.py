@@ -18,6 +18,32 @@ sys.path.insert(0, str(project_root))
 import pytest
 
 
+@pytest.fixture(autouse=True)
+def queue_host_runner_applies_inline(monkeypatch):
+    """Let the test process play the host runner for queue routes.
+
+    The routes wait for the runner to apply an intent. Here the wait is replaced
+    by a drain of the intent spool into the same database, so route tests see
+    the result in the response, as before the single writer existed.
+    """
+    try:
+        from src.api.blueprints import literary_queue_routes as routes
+        from src.literary import queue_intents
+    except ImportError:  # the module is absent in this checkout
+        yield
+        return
+
+    def apply_now(db_path, token):
+        queue_intents.drain(db_path)
+        state = queue_intents.read_intent(db_path, token)
+        if state is not None and state.get("state") == "applied":
+            return state
+        return None
+
+    monkeypatch.setattr(routes, "_await_intent", apply_now)
+    yield
+
+
 def import_module_from_path(module_name, file_path):
     """
     Import a module directly from file path without triggering package imports.

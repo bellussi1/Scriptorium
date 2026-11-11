@@ -1,11 +1,15 @@
 """JSON API for the persistent literary queue.
 
-The queue database itself is written by ``src/literary/queue.py`` (CLI and the
-full-book wrapper). This blueprint reads it for the Queue tab and exposes the
-two controlled mutations the UI needs: enqueueing books from the Calibre
-inventory and reordering pending entries. It also writes the pause-after-book
-request consumed by ``run-all``; it never starts, kills or validates a
-translation job.
+This blueprint never writes ``literary_queue.db``. Every change (add, approve,
+retry, move, remove, model update, run event) is recorded as an intent with
+``src/literary/queue_intents.py`` and applied by the host runner, the only
+writer of the database. The route waits briefly for the runner so the usual
+case answers as before; otherwise it returns ``202`` with the intent token and
+the UI polls ``/api/literary/queue/intents/<token>``.
+
+It still reads the database for the Queue tab, and it writes the pause request
+and run request files consumed by the host agent. It never starts, kills or
+validates a translation job.
 """
 from __future__ import annotations
 
@@ -20,8 +24,9 @@ from typing import Any, Dict, List, Optional
 
 from flask import Blueprint, jsonify, request, send_file
 
+from src.literary import queue_intents
 from src.literary.models import BookRecord
-from src.literary.queue import QueueStore, _transition_path
+from src.literary.queue import hash_config, hash_file
 from src.literary.queue_control import read_control, set_pause, set_pause_now
 from src.literary.queue_run_control import (
     read_agent_status,
@@ -289,6 +294,7 @@ def build_queue_snapshot(db_path: str | Path) -> Dict[str, Any]:
             "agent": read_agent_status(path),
             "runner": read_runner_info(path),
             "run_request": read_run_request(path),
+            "intents": queue_intents.pending_summary(path),
             "health": health,
         }
 
@@ -414,12 +420,87 @@ def build_queue_snapshot(db_path: str | Path) -> Dict[str, Any]:
         "agent": read_agent_status(path),
         "runner": read_runner_info(path),
         "run_request": read_run_request(path),
+        "intents": queue_intents.pending_summary(path),
         "health": health,
     }
 
 
 def _json_error(message: str, status: int = 400):
     return jsonify({"status": "error", "error": message}), status
+
+
+def _intent_wait_seconds() -> float:
+    """How long a mutation waits for the host runner before answering 202."""
+    try:
+        return max(0.0, float(os.getenv("LITERARY_INTENT_WAIT_S", "2.5")))
+    except ValueError:
+        return 2.5
+
+
+def _await_intent(db_path: Path, token: str) -> Optional[Dict[str, Any]]:
+    """Return the applied intent, or ``None`` while the runner is still behind.
+
+    Reads only: the app never writes the queue database.
+    """
+    deadline = time.monotonic() + _intent_wait_seconds()
+    while True:
+        state = queue_intents.read_intent(db_path, token)
+        if state is not None and state.get("state") == "applied":
+            return state
+        if time.monotonic() >= deadline:
+            return None
+        time.sleep(0.1)
+
+
+def _queued_response(
+    db_path: Path,
+    token: str,
+    kind: str,
+    extra: Optional[Dict[str, Any]] = None,
+):
+    snapshot = build_queue_snapshot(db_path)
+    snapshot.update(extra or {})
+    snapshot["intent"] = {"token": token, "kind": kind, "state": "queued"}
+    return jsonify(snapshot), 202
+
+
+def _applied_response(
+    db_path: Path,
+    state: Dict[str, Any],
+    *,
+    status: int = 200,
+    extra: Optional[Dict[str, Any]] = None,
+):
+    """The response the route returned before the single writer existed."""
+    if state.get("error"):
+        return _json_error(str(state["error"]), int(state.get("error_status") or 409))
+    snapshot = build_queue_snapshot(db_path)
+    snapshot.update(extra or {})
+    snapshot.update(state.get("result") or {})
+    snapshot["intent"] = {
+        "token": state["token"],
+        "kind": state["kind"],
+        "state": "applied",
+    }
+    return jsonify(snapshot), status
+
+
+def _next_pending(db_path: Path) -> Optional[Dict[str, Any]]:
+    """Read-only lookup of the next pending book (same order as the store)."""
+    if not db_path.exists():
+        return None
+    conn = sqlite3.connect(f"file:{db_path.resolve().as_posix()}?mode=ro", uri=True)
+    conn.row_factory = sqlite3.Row
+    try:
+        row = conn.execute(
+            """
+            SELECT id, title FROM books WHERE status = 'pending'
+            ORDER BY priority DESC, series, COALESCE(series_index, 0), id LIMIT 1
+            """
+        ).fetchone()
+    finally:
+        conn.close()
+    return dict(row) if row else None
 
 
 def _parse_calibre_ids(payload: Dict[str, Any]) -> Optional[List[int]]:
@@ -505,17 +586,19 @@ def create_literary_queue_blueprint() -> Blueprint:
                 "mode must be 'next'; this fork translates one book per run"
             )
 
-        store = QueueStore(str(db_path))
-        try:
-            pending = store.next_pending()
-            if pending is None:
-                return _json_error("no pending books in the queue", 409)
-            store.add_event(
-                f"queue run requested from Queue UI ({mode})",
-                book_id=pending.id,
-            )
-        finally:
-            store.close()
+        pending = _next_pending(db_path)
+        if pending is None:
+            return _json_error("no pending books in the queue", 409)
+        token = queue_intents.enqueue(
+            db_path,
+            "event",
+            {
+                "message": f"queue run requested from Queue UI ({mode})",
+                "book_id": pending["id"],
+            },
+        )
+        # Best effort: the event is durable in the spool even if not applied yet.
+        _await_intent(db_path, token)
 
         try:
             request_payload = request_run(db_path, mode=mode)
@@ -576,29 +659,61 @@ def create_literary_queue_blueprint() -> Blueprint:
             if calibre_id in inventory and calibre_id not in queued
         ]
 
-        added: List[int] = []
-        store: Optional[QueueStore] = None
-        try:
-            if selected:
-                store = QueueStore(str(db_path))
-                for row in selected:
-                    book_id = store.add_book(
-                        _book_from_inventory(row),
-                        target_language="pt-BR",
-                        priority=store.next_pending_priority(),
-                        model=str(payload.get("model") or ""),
-                        provider=str(payload.get("provider") or ""),
-                    )
-                    added.append(book_id)
+        model = str(payload.get("model") or "")
+        provider = str(payload.get("provider") or "")
+        extra: Dict[str, Any] = {"duplicates": duplicates, "not_found": not_found}
+        if not selected:
             snapshot = build_queue_snapshot(db_path)
-        finally:
-            if store is not None:
-                store.close()
+            snapshot.update({"added": [], **extra})
+            return jsonify(snapshot), 200
 
-        snapshot["added"] = added
-        snapshot["duplicates"] = duplicates
-        snapshot["not_found"] = not_found
-        return jsonify(snapshot), (201 if added else 200)
+        # Facts only the app can see (container paths, the EPUB file) are
+        # computed here; the runner stores them as given.
+        config_hash = hash_config(
+            {"model": model, "provider": provider, "glossary": "", "style": ""}
+        )
+        items: List[Dict[str, Any]] = []
+        for row in selected:
+            record = _book_from_inventory(row)
+            source_hash = (
+                hash_file(record.epub_path)
+                if record.epub_path and os.path.exists(record.epub_path)
+                else ""
+            )
+            items.append(
+                {
+                    "calibre_id": record.calibre_id,
+                    "title": record.title,
+                    "author": record.author,
+                    "series": record.series,
+                    "series_index": record.series_index,
+                    "languages": list(record.languages),
+                    "word_count": record.word_count,
+                    "epub_path": record.epub_path,
+                    "source_hash": source_hash,
+                    "config_hash": config_hash,
+                }
+            )
+        token = queue_intents.enqueue(
+            db_path,
+            "add",
+            {
+                "books": items,
+                "target_language": "pt-BR",
+                "model": model,
+                "provider": provider,
+            },
+        )
+        state = _await_intent(db_path, token)
+        if state is None:
+            return _queued_response(db_path, token, "add", extra)
+        added = list((state.get("result") or {}).get("added") or [])
+        return _applied_response(
+            db_path,
+            state,
+            status=201 if added else 200,
+            extra=extra,
+        )
 
     @bp.route("/api/literary/queue/books/<int:book_id>", methods=["PATCH"])
     def update_literary_queue_book(book_id: int):
@@ -608,22 +723,21 @@ def create_literary_queue_blueprint() -> Blueprint:
         if not model:
             return _json_error("model is required")
 
-        store = QueueStore(str(_db_path()))
-        try:
-            if not store.update_book_model(book_id, model, provider):
-                return _json_error("book not found", 404)
-            snapshot = build_queue_snapshot(_db_path())
-        except ValueError as exc:
-            return _json_error(str(exc), 409)
-        finally:
-            store.close()
-
-        snapshot["updated"] = {
-            "book_id": book_id,
-            "model": model,
-            "provider": provider,
-        }
-        return jsonify(snapshot)
+        db_path = _db_path()
+        book = _book_meta(db_path, book_id)
+        if book is None:
+            return _json_error("book not found", 404)
+        if book["status"] != "pending":
+            return _json_error("only pending books can change model", 409)
+        token = queue_intents.enqueue(
+            db_path,
+            "update_model",
+            {"book_id": book_id, "model": model, "provider": provider},
+        )
+        state = _await_intent(db_path, token)
+        if state is None:
+            return _queued_response(db_path, token, "update_model")
+        return _applied_response(db_path, state)
 
     @bp.route("/api/literary/queue/books/<int:book_id>/log", methods=["GET"])
     def get_literary_queue_book_log(book_id: int):
@@ -680,22 +794,11 @@ def create_literary_queue_blueprint() -> Blueprint:
         )
         if not needs_review and not unreviewed:
             return _json_error("book does not need review", 409)
-        message = "human review approved from Queue UI"
-        store = QueueStore(str(db_path))
-        try:
-            if job is not None:
-                for state in _transition_path(str(job.get("state") or ""), "completed"):
-                    store.set_job_state(int(job["id"]), state, message)
-            for state in _transition_path(str(book["status"]), "completed"):
-                store.set_book_state(book_id, state, message)
-            store.mark_reviewed(book_id, message)
-            store.add_event(message, book_id=book_id, job_id=int(job["id"]) if job else None)
-            snapshot = build_queue_snapshot(db_path)
-        except ValueError as exc:
-            return _json_error(str(exc), 409)
-        finally:
-            store.close()
-        return jsonify(snapshot)
+        token = queue_intents.enqueue(db_path, "approve", {"book_id": book_id})
+        state = _await_intent(db_path, token)
+        if state is None:
+            return _queued_response(db_path, token, "approve")
+        return _applied_response(db_path, state)
 
     @bp.route("/api/literary/queue/books/<int:book_id>/retry", methods=["POST"])
     def retry_literary_queue_book(book_id: int):
@@ -708,30 +811,19 @@ def create_literary_queue_blueprint() -> Blueprint:
         job = _latest_job(db_path, book_id)
         if job and job.get("state") in {"preparing", "translating", "reviewing", "validating"}:
             return _json_error("the translation job is still active", 409)
-        message = (
-            "resume requested from Queue UI"
-            if book["status"] == "paused"
-            else "retry requested from Queue UI"
+        # Only the app can read the live checkpoint DB, so the stale-checkpoint
+        # decision is taken here and the runner applies it.
+        translation_id = str(job.get("translation_id") or "").strip() if job else ""
+        release = bool(translation_id) and not _upstream_is_resumable(translation_id)
+        token = queue_intents.enqueue(
+            db_path,
+            "retry",
+            {"book_id": book_id, "release_stale_checkpoint": release},
         )
-        store = QueueStore(str(db_path))
-        try:
-            store.clear_reviewed(book_id)
-            if job:
-                translation_id = str(job.get("translation_id") or "").strip()
-                if translation_id and not _upstream_is_resumable(translation_id):
-                    store.clear_job_resume_state(
-                        int(job["id"]),
-                        "stale checkpoint released before retry",
-                    )
-            for state in _transition_path(str(book["status"]), "pending"):
-                store.set_book_state(book_id, state, message)
-            store.add_event(message, book_id=book_id)
-            snapshot = build_queue_snapshot(db_path)
-        except ValueError as exc:
-            return _json_error(str(exc), 409)
-        finally:
-            store.close()
-        return jsonify(snapshot)
+        state = _await_intent(db_path, token)
+        if state is None:
+            return _queued_response(db_path, token, "retry")
+        return _applied_response(db_path, state)
 
     @bp.route("/api/literary/queue/kindle.zip", methods=["GET"])
     def download_literary_queue_kindle_zip():
@@ -768,23 +860,21 @@ def create_literary_queue_blueprint() -> Blueprint:
         if direction not in {"up", "down"}:
             return _json_error("direction must be 'up' or 'down'")
 
-        store = QueueStore(str(_db_path()))
-        try:
-            book = store.get_book(book_id)
-            if book is None:
-                return _json_error("book not found", 404)
-            if book.status != "pending":
-                return _json_error("only pending books can be reordered", 409)
-            if not store.move_book(book_id, direction):
-                return _json_error("book is already at the edge of the queue", 409)
-            snapshot = build_queue_snapshot(_db_path())
-        except ValueError as exc:
-            return _json_error(str(exc), 400)
-        finally:
-            store.close()
-
-        snapshot["moved"] = {"book_id": book_id, "direction": direction}
-        return jsonify(snapshot)
+        db_path = _db_path()
+        book = _book_meta(db_path, book_id)
+        if book is None:
+            return _json_error("book not found", 404)
+        if book["status"] != "pending":
+            return _json_error("only pending books can be reordered", 409)
+        token = queue_intents.enqueue(
+            db_path,
+            "move",
+            {"book_id": book_id, "direction": direction},
+        )
+        state = _await_intent(db_path, token)
+        if state is None:
+            return _queued_response(db_path, token, "move")
+        return _applied_response(db_path, state)
 
     @bp.route("/api/literary/queue/books/<int:book_id>", methods=["DELETE"])
     def remove_literary_queue_book(book_id: int):
@@ -801,18 +891,18 @@ def create_literary_queue_blueprint() -> Blueprint:
                 "pause the book before removing it from the queue", 409
             )
 
-        store = QueueStore(str(db_path))
-        try:
-            removed = store.remove_book(book_id)
-            if removed is None:
-                return _json_error("book not found", 404)
-            snapshot = build_queue_snapshot(db_path)
-        except ValueError as exc:
-            return _json_error(str(exc), 409)
-        finally:
-            store.close()
+        token = queue_intents.enqueue(db_path, "remove", {"book_id": book_id})
+        state = _await_intent(db_path, token)
+        if state is None:
+            return _queued_response(db_path, token, "remove")
+        return _applied_response(db_path, state)
 
-        snapshot["removed"] = {"book_id": book_id, "title": removed.title}
-        return jsonify(snapshot)
+    @bp.route("/api/literary/queue/intents/<token>", methods=["GET"])
+    def get_literary_queue_intent(token: str):
+        """Result of one change: ``queued`` until the host runner applies it."""
+        state = queue_intents.read_intent(_db_path(), token)
+        if state is None:
+            return _json_error("intent not found", 404)
+        return jsonify(state)
 
     return bp

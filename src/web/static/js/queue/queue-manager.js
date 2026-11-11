@@ -1185,10 +1185,7 @@ async function addSelectedBooks() {
             headers: { ...apiHeaders(), 'Content-Type': 'application/json' },
             body: JSON.stringify({ calibre_ids: ids }),
         });
-        const data = await response.json().catch(() => ({}));
-        if (!response.ok || data.status === 'error') {
-            throw new Error(data.error || `HTTP ${response.status}`);
-        }
+        const data = await settleQueueResponse(response);
         applySnapshot(data);
         const parts = [t('queue:added', { count: (data.added || []).length })];
         if ((data.duplicates || []).length) {
@@ -1297,10 +1294,7 @@ async function patchBookModel(bookId, model, provider) {
         headers: { ...apiHeaders(), 'Content-Type': 'application/json' },
         body: JSON.stringify({ model, provider }),
     });
-    const data = await response.json().catch(() => ({}));
-    if (!response.ok || data.status === 'error') {
-        throw new Error(data.error || `HTTP ${response.status}`);
-    }
+    const data = await settleQueueResponse(response);
     return data;
 }
 
@@ -1556,6 +1550,47 @@ function closeQuality() {
     qualityBookId = null;
 }
 
+const INTENT_URL = '/api/literary/queue/intents';
+const INTENT_POLL_MS = 400;
+const INTENT_TIMEOUT_MS = 60000;
+
+// The host runner applies queue changes. A 202 carrying an intent means the
+// runner has not applied it yet: poll until it has, then return the snapshot.
+async function awaitQueueIntent(accepted) {
+    const token = accepted.intent.token;
+    setActionStatus(t('queue:intent_waiting'));
+    const deadline = Date.now() + INTENT_TIMEOUT_MS;
+    while (Date.now() < deadline) {
+        await new Promise((resolve) => setTimeout(resolve, INTENT_POLL_MS));
+        const response = await fetch(`${INTENT_URL}/${encodeURIComponent(token)}`, {
+            headers: apiHeaders(),
+            cache: 'no-store',
+        });
+        const state = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(state.error || `HTTP ${response.status}`);
+        if (state.state !== 'applied') continue;
+        if (state.error) throw new Error(state.error);
+        const snapshotResponse = await fetch(QUEUE_URL, {
+            headers: apiHeaders(),
+            cache: 'no-store',
+        });
+        const snapshot = await snapshotResponse.json();
+        return { ...accepted, ...snapshot, ...(state.result || {}) };
+    }
+    throw new Error(t('queue:intent_timeout'));
+}
+
+async function settleQueueResponse(response) {
+    const data = await response.json().catch(() => ({}));
+    if (response.status === 202 && data.intent?.token) {
+        return awaitQueueIntent(data);
+    }
+    if (!response.ok || data.status === 'error') {
+        throw new Error(data.error || `HTTP ${response.status}`);
+    }
+    return data;
+}
+
 async function approveBook(bookId) {
     if (!window.confirm(t('queue:approve_confirm'))) return;
     try {
@@ -1563,10 +1598,7 @@ async function approveBook(bookId) {
             method: 'POST',
             headers: apiHeaders(),
         });
-        const data = await response.json().catch(() => ({}));
-        if (!response.ok || data.status === 'error') {
-            throw new Error(data.error || `HTTP ${response.status}`);
-        }
+        const data = await settleQueueResponse(response);
         applySnapshot(data);
         setActionStatus(t('queue:approved'));
         closeQuality();
@@ -1622,10 +1654,7 @@ async function retryBook(bookId) {
             method: 'POST',
             headers: apiHeaders(),
         });
-        const data = await response.json().catch(() => ({}));
-        if (!response.ok || data.status === 'error') {
-            throw new Error(data.error || `HTTP ${response.status}`);
-        }
+        const data = await settleQueueResponse(response);
         applySnapshot(data);
         setActionStatus(t('queue:retried'));
         closeQuality();
@@ -1646,10 +1675,7 @@ async function removeBook(bookId) {
             method: 'DELETE',
             headers: apiHeaders(),
         });
-        const data = await response.json().catch(() => ({}));
-        if (!response.ok || data.status === 'error') {
-            throw new Error(data.error || `HTTP ${response.status}`);
-        }
+        const data = await settleQueueResponse(response);
         applySnapshot(data);
         loadLibrary();
         toast.success(t('queue:removed', { title }));
@@ -1701,10 +1727,7 @@ async function moveBook(bookId, direction) {
             headers: { ...apiHeaders(), 'Content-Type': 'application/json' },
             body: JSON.stringify({ direction }),
         });
-        const data = await response.json().catch(() => ({}));
-        if (!response.ok || data.status === 'error') {
-            throw new Error(data.error || `HTTP ${response.status}`);
-        }
+        const data = await settleQueueResponse(response);
         applySnapshot(data);
         setActionStatus(t('queue:moved'));
     } catch (error) {

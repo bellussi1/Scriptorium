@@ -183,5 +183,7 @@
   "run_error": "Could not request a run: {{message}}",
   "runner_online": "Runner agent online",
   "runner_offline": "Runner agent offline",
-  "runner_running": "Queue runner active"
+  "runner_running": "Queue runner active",
+  "intent_waiting": "Waiting for the runner to apply the change...",
+  "intent_timeout": "The runner has not applied the change yet. It applies it once the runner is online."
 }

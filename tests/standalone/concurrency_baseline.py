@@ -49,6 +49,8 @@ sys.path.insert(0, str(ROOT))
 from flask import Flask, jsonify  # noqa: E402
 from werkzeug.serving import make_server  # noqa: E402
 
+from src.literary import queue_intents  # noqa: E402
+
 
 def _load_blueprint_module():
     """Load the real route module without importing the whole API package.
@@ -686,6 +688,78 @@ def _stop_writer(process: subprocess.Popen, stop_file: Optional[Path] = None) ->
         handle.close()
 
 
+def _start_applier(db: Path, log: Path) -> subprocess.Popen:
+    """Host runner stand-in: applies queue intents, the only writer of ``db``.
+
+    It runs on the host like ``queue run-all`` and the agent do in production.
+    """
+    stop = db.with_name(f"{db.stem}.applier.stop")
+    stop.unlink(missing_ok=True)
+    handle = log.open("a", encoding="utf-8")
+    process = subprocess.Popen(
+        [
+            sys.executable,
+            "-m",
+            "src.literary.queue_intents",
+            "--db",
+            str(db),
+            "--interval",
+            "0.2",
+            "--stop-file",
+            str(stop),
+        ],
+        cwd=ROOT,
+        stdout=handle,
+        stderr=subprocess.STDOUT,
+        text=True,
+    )
+    process._applier_stop = stop  # type: ignore[attr-defined]
+    process._applier_log_handle = handle  # type: ignore[attr-defined]
+    return process
+
+
+def _settle_intents(process: subprocess.Popen, db: Path, timeout: float = 60.0) -> Dict[str, Any]:
+    """Wait until every intent is applied, then stop the applier and count."""
+    deadline = time.time() + timeout
+    while time.time() < deadline:
+        if queue_intents.pending_summary(db)["pending"] == 0:
+            break
+        time.sleep(0.2)
+    process._applier_stop.write_text("stop\n", encoding="utf-8")  # type: ignore[attr-defined]
+    try:
+        process.wait(timeout=30)
+    except subprocess.TimeoutExpired:
+        process.kill()
+        process.wait(timeout=5)
+    process._applier_log_handle.close()  # type: ignore[attr-defined]
+    return _intent_stats(db)
+
+
+def _intent_stats(db: Path) -> Dict[str, Any]:
+    """Outcome of every intent in the scratch database (read-only)."""
+    conn = sqlite3.connect(f"file:{db.as_posix()}?mode=ro", uri=True)
+    try:
+        rows = conn.execute(
+            "SELECT kind, applied_at, error, error_status FROM queue_intents"
+        ).fetchall()
+    except sqlite3.Error as exc:
+        return {"error": f"could not read queue_intents: {exc}"}
+    finally:
+        conn.close()
+    refusals: Dict[str, int] = {}
+    for _kind, applied_at, error, status in rows:
+        if applied_at and error and int(status or 0) < 500:
+            refusals[f"{status} {error}"] = refusals.get(f"{status} {error}", 0) + 1
+    return {
+        "total": len(rows),
+        "applied": sum(1 for row in rows if row[1] and not row[2]),
+        "refused": sum(1 for row in rows if row[1] and row[2] and int(row[3] or 0) < 500),
+        "failed": sum(1 for row in rows if row[1] and int(row[3] or 0) >= 500),
+        "pending": sum(1 for row in rows if not row[1]),
+        "refusals": refusals,
+    }
+
+
 def _count_lock_lines(path: Path) -> int:
     try:
         text = path.read_text(encoding="utf-8", errors="replace").lower()
@@ -800,6 +874,19 @@ def _write_report(work: Path, report: Dict[str, Any], ops: List[Dict[str, Any]])
         f"| p95 elapsed | {main['p95_elapsed_s']} s |",
         "",
     ]
+    intents = report["main"].get("intents") or {}
+    lines.extend(
+        [
+            "## Queue intents",
+            "",
+            f"- Accepted with 202 (runner behind): {report['main'].get('accepted_202', 0)}",
+            f"- Applied: {intents.get('applied', 0)}, refused: {intents.get('refused', 0)}, "
+            f"failed: {intents.get('failed', 0)}, pending after settle: {intents.get('pending', 0)}",
+        ]
+    )
+    for reason, count in sorted((intents.get("refusals") or {}).items()):
+        lines.append(f"- refused {count}x: `{reason}`")
+    lines.append("")
     writer_stats = report["main"].get("writer_stats") or {}
     if writer_stats:
         lines.extend(
@@ -862,6 +949,15 @@ def main() -> int:
     parser.add_argument("--ops", type=int, default=100)
     parser.add_argument("--skip-9p", action="store_true")
     parser.add_argument("--skip-host-hold", action="store_true")
+    parser.add_argument(
+        "--writer",
+        choices=["host", "container"],
+        default="host",
+        help=(
+            "side of the bind mount the simulated runner writes from. 'host' matches "
+            "production after the single writer; 'container' reproduces the 5.3 run"
+        ),
+    )
     args = parser.parse_args()
 
     work = ROOT / "data" / "tmp" / f"concurrency-baseline-{_stamp()}"
@@ -896,22 +992,25 @@ def main() -> int:
     writer_process_log = work / "writer-main.process.log"
     writer_stop = work / "writer-main.stop"
     locks_before = _count_lock_lines(server_log)
+    applier = _start_applier(main_db, work / "applier-main.log")
     writer = _start_writer(
         db=main_db,
         log=writer_log,
         mode="short",
-        container=True,
+        container=(args.writer == "container"),
         seconds=60,
         stop_file=writer_stop,
         process_log=writer_process_log,
     )
     if not _wait_marker(writer_log, "writer_start", timeout=20):
         _stop_writer(writer, writer_stop)
-        raise SystemExit(f"container writer did not start; see {writer_process_log}")
+        _settle_intents(applier, main_db)
+        raise SystemExit(f"{args.writer} writer did not start; see {writer_process_log}")
 
     print(f"firing {len(ops)} operations with {args.workers} workers")
     results = _run_ops(base, ops, args.workers)
     _stop_writer(writer, writer_stop)
+    main_intents = _settle_intents(applier, main_db)
     time.sleep(1.0)
     main_state = _state(main_db, seed["translating"])
     main_summary = _classify(results)
@@ -921,10 +1020,16 @@ def main() -> int:
     )
     report["main"] = {
         "db": str(main_db),
-        "writer": "container (9p bind mount)",
+        "writer": (
+            "container (9p bind mount)"
+            if args.writer == "container"
+            else "host (NTFS, same side as the runner)"
+        ),
         "summary": main_summary,
         "writer_stats": _writer_stats(writer_process_log),
         "state": main_state,
+        "intents": main_intents,
+        "accepted_202": sum(1 for item in results if item["status"] == 202),
     }
     print(json.dumps(report["main"]["summary"], ensure_ascii=False, indent=2))
     print(
@@ -953,22 +1058,28 @@ def main() -> int:
             report["probes"]["host_hold"] = {"error": "hold writer did not start"}
         else:
             print("host hold active; firing 5 probe operations")
+            host_applier = _start_applier(probe_db, work / "applier-hold-host.log")
             locks_before = _count_lock_lines(server_log)
             probe_ops = _probe_ops(probe_seed)
             probe_results = _run_ops(base, probe_ops, 5)
             _stop_writer(hold)
+            host_intents = _settle_intents(host_applier, probe_db)
             probe_summary = _classify(probe_results)
             _add_strict_metrics(probe_summary, probe_results, probe_ops)
             probe_summary["lock_messages_in_server_log"] = (
                 _count_lock_lines(server_log) - locks_before
             )
             probe_summary["successful_writes_during_hold"] = probe_summary["ok"]
+            probe_summary["accepted_202"] = sum(
+                1 for item in probe_results if item["status"] == 202
+            )
             report["probes"]["host_hold"] = {
                 "db": str(probe_db),
                 "hold_seconds": 35,
                 "summary": probe_summary,
                 "writer_stats": _writer_stats(work / "writer-hold-host.process.log"),
                 "state": _state(probe_db, probe_seed["translating"]),
+                "intents": host_intents,
                 "ops": probe_results,
             }
             print(json.dumps(report["probes"]["host_hold"]["summary"], ensure_ascii=False))
@@ -999,22 +1110,28 @@ def main() -> int:
             }
         else:
             print("container hold active; firing 5 probe operations")
+            container_applier = _start_applier(probe_db, work / "applier-hold-9p.log")
             locks_before = _count_lock_lines(server_log)
             probe_ops = _probe_ops(probe_seed)
             probe_results = _run_ops(base, probe_ops, 5)
             _stop_writer(hold)
+            container_intents = _settle_intents(container_applier, probe_db)
             probe_summary = _classify(probe_results)
             _add_strict_metrics(probe_summary, probe_results, probe_ops)
             probe_summary["lock_messages_in_server_log"] = (
                 _count_lock_lines(server_log) - locks_before
             )
             probe_summary["successful_writes_during_hold"] = probe_summary["ok"]
+            probe_summary["accepted_202"] = sum(
+                1 for item in probe_results if item["status"] == 202
+            )
             report["probes"]["container_hold"] = {
                 "db": str(probe_db),
                 "hold_seconds": 35,
                 "summary": probe_summary,
                 "writer_stats": _writer_stats(work / "writer-hold-9p.process.log"),
                 "state": _state(probe_db, probe_seed["translating"]),
+                "intents": container_intents,
                 "ops": probe_results,
             }
             print(json.dumps(report["probes"]["container_hold"]["summary"], ensure_ascii=False))

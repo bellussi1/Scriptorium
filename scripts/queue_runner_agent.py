@@ -39,11 +39,15 @@ from src.literary.queue_run_control import (  # noqa: E402
     write_agent_status,
     write_runner_info,
 )
+from src.literary.queue_intents import drain as drain_intents  # noqa: E402
 from src.literary.queue_runner import active_direct_translation, output_name  # noqa: E402
 
 DEFAULT_DB = ROOT / "data" / "literary_queue.db"
 LOG_DIR = ROOT / "data" / "queue-runs"
 DEFAULT_INTERVAL = 2.0
+# Queue changes from the UI are applied on this cadence; heartbeats keep
+# DEFAULT_INTERVAL.
+INTENT_INTERVAL = 0.5
 
 
 def _now() -> str:
@@ -112,6 +116,17 @@ def _command(db: Path, mode: str) -> list[str]:
 
 def _publish(db: Path, **payload) -> None:
     write_agent_status(db, payload)
+
+
+def _apply_intents(db: Path) -> None:
+    """Apply queued UI changes: the agent is the only writer of the queue DB."""
+    try:
+        stats = drain_intents(db)
+    except Exception as exc:  # keep the agent alive; the next pass retries
+        print(f"run: queue intents not applied: {exc}", flush=True)
+        return
+    if stats["ingested"] or stats["applied"] or stats["refused"] or stats["failed"]:
+        print(f"run: queue intents {json.dumps(stats)}", flush=True)
 
 
 def _process_request(db: Path, request: dict, *, dry_run: bool) -> int:
@@ -314,17 +329,20 @@ def main() -> int:
     _publish(db, running=False, started_at=_now(), message="agent online")
     print(f"run: agent online; watching {db}", flush=True)
     try:
+        last_heartbeat = 0.0
         while True:
+            _apply_intents(db)
             request = read_run_request(db)
             if request:
                 code = _process_request(db, request, dry_run=args.dry_run)
                 if args.once:
                     return code
-            else:
+            elif time.monotonic() - last_heartbeat >= args.interval:
                 _publish(db, running=False, message="agent online")
+                last_heartbeat = time.monotonic()
                 if args.once:
                     return 0
-            time.sleep(max(0.2, args.interval))
+            time.sleep(max(0.2, min(args.interval, INTENT_INTERVAL)))
     except KeyboardInterrupt:
         _publish(db, running=False, message="agent stopped", stopped_at=_now())
         print("run: agent stopped", flush=True)
