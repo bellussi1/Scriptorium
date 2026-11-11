@@ -210,6 +210,34 @@ def start_job_wrapper(translation_id, config):
 configure_routes(app, state_manager, OUTPUT_DIR, start_job_wrapper, socketio)
 configure_websocket_handlers(socketio, state_manager)
 
+def _queue_owns_translation(translation_id: str) -> bool:
+    """True when the literary queue, not the web UI, owns this translation.
+
+    Queue jobs are resumed by ``scripts/auto_queue.py`` from the host. Restoring
+    them into the web state manager on an app restart can resurrect a stale
+    in-memory progress and make the queue runner resume from the wrong file.
+    """
+    import sqlite3
+    from pathlib import Path
+
+    queue_db = Path(os.getenv("QUEUE_DB_PATH", "data/literary_queue.db"))
+    if not queue_db.exists():
+        return False
+    try:
+        conn = sqlite3.connect(f"file:{queue_db.as_posix()}?mode=ro", uri=True)
+        try:
+            row = conn.execute(
+                "SELECT 1 FROM jobs WHERE translation_id = ? "
+                "AND state NOT IN ('completed', 'failed') LIMIT 1",
+                (translation_id,),
+            ).fetchone()
+        finally:
+            conn.close()
+        return bool(row)
+    except sqlite3.Error:
+        return False
+
+
 # Restore incomplete jobs from database on startup
 def restore_incomplete_jobs():
     """Restore incomplete translation jobs from checkpoints on server startup"""
@@ -238,6 +266,12 @@ def restore_incomplete_jobs():
                 progress = job.get('progress', {})
                 completed = progress.get('completed_chunks', 0)
                 total = progress.get('total_chunks', 0)
+
+                if _queue_owns_translation(translation_id):
+                    logger.info(
+                        f"   - {translation_id}: queue-owned; the queue runner resumes it"
+                    )
+                    continue
 
                 # Restore job into in-memory state
                 state_manager.restore_job_from_checkpoint(translation_id)

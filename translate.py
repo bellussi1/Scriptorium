@@ -465,6 +465,17 @@ if __name__ == "__main__":
 
         # Resume the requested checkpoint or generate a unique translation ID
         translation_id = (getattr(args, "translation_id", "") or "").strip() or f"cli_{uuid.uuid4().hex[:8]}"
+        resume_from_index = 0
+        if (getattr(args, "translation_id", "") or "").strip():
+            checkpoint_data = checkpoint_manager.load_checkpoint(translation_id)
+            if checkpoint_data:
+                resume_from_index = int(checkpoint_data.get("resume_from_index") or 0)
+                # The queue sync maps the upstream status; an interrupted row
+                # left "paused" while the resumed process is actually running.
+                checkpoint_manager.mark_running(translation_id)
+                logger.info(
+                    f"Resuming {translation_id} from checkpoint index {resume_from_index}"
+                )
 
         if args.refine_only:
             asyncio.run(refine_file(
@@ -502,6 +513,7 @@ if __name__ == "__main__":
                 llm_provider=args.provider,
                 checkpoint_manager=checkpoint_manager,
                 translation_id=translation_id,
+                resume_from_index=resume_from_index,
                 log_callback=log_callback,
                 stats_callback=stats_callback,
                 check_interruption_callback=None,
