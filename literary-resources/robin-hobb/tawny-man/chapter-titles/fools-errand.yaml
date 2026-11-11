@@ -1,0 +1,50 @@
+# Chapter titles for "Fool's Errand" (The Tawny Man 1), English -> pt-BR.
+#
+# Used by src/literary/chapter_titles.py to localise the table of contents and
+# the chapter headings. The reader-facing label is built as
+# "Capítulo <ROMAN> <TÍTULO>", with the title in capitals.
+#
+# `en` is the English chapter title as printed in the source EPUB. `pt` is the
+# title already used in the translated body; the body and this map must agree
+# once the pt value is uppercased.
+#
+# The English source has no "Chapter N" heading for V, X, XIV, XXI and XXVIII.
+# Their titles are the capitalised line that opens each of those chapters, and
+# the numbers follow the sequence of the surrounding chapters.
+#
+# Editorial choices: review before publishing. Proper names are kept as in the
+# source. "Dutiful" is still in English in the translated body; it is kept
+# here until an editorial decision is made.
+book: Fool's Errand
+series: The Tawny Man
+series_index: 1
+chapters:
+  - {number: 1, en: "Chade Fallstar", pt: "Chade Fallstar"}
+  - {number: 2, en: "Starling", pt: "Starling"}
+  - {number: 3, en: "Partings", pt: "Despedidas"}
+  - {number: 4, en: "The Hedgewitch", pt: "A Bruxa dos Arbustos"}
+  - {number: 5, en: "The Tawny Man", pt: "O Homem Castanho"}
+  - {number: 6, en: "The Quiet Years", pt: "Os Anos em Silêncio"}
+  - {number: 7, en: "Heart of a Wolf", pt: "Coração de Lobo"}
+  - {number: 8, en: "Old Blood", pt: "Sangue Antigo"}
+  - {number: 9, en: "Dead Man's Regrets", pt: "Arrependimentos de um Homem Morto"}
+  - {number: 10, en: "A Sword and a Summons", pt: "Uma espada e um chamado"}
+  - {number: 11, en: "Chade's Tower", pt: "A Torre de Chade"}
+  - {number: 12, en: "Charms", pt: "Feitiçarias"}
+  - {number: 13, en: "Bargains", pt: "Negociações"}
+  - {number: 14, en: "Laurel", pt: "Laurel"}
+  - {number: 15, en: "Galeton", pt: "Galeton"}
+  - {number: 16, en: "Claws", pt: "Garras"}
+  - {number: 17, en: "The Hunt", pt: "A Caçada"}
+  - {number: 18, en: "Fool's Kiss", pt: "O Beijo de Bobo"}
+  - {number: 19, en: "The Inn", pt: "A Pousada"}
+  - {number: 20, en: "Stones", pt: "Pedras"}
+  - {number: 21, en: "Dutiful", pt: "Dutiful"}
+  - {number: 22, en: "Choices", pt: "Escolhas"}
+  - {number: 23, en: "The Beach", pt: "A Praia"}
+  - {number: 24, en: "Confrontations", pt: "Confrontos"}
+  - {number: 25, en: "Ransom", pt: "Resgate"}
+  - {number: 26, en: "Sacrifice", pt: "Sacrifício"}
+  - {number: 27, en: "Lessons", pt: "Lições"}
+  - {number: 28, en: "Homecoming", pt: "Reencontro em Casa"}
+  - {number: 29, en: "Buckkeep Town", pt: "Buckkeep Town"}
