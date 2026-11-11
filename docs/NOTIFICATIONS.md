@@ -159,7 +159,7 @@ For any service that needs a Bearer token or custom auth header:
 
 ```bash
 NOTIFY_WEBHOOK_URL=https://api.example.com/notify
-NOTIFY_WEBHOOK_HEADERS={"Authorization":"Bearer YOUR_TOKEN_HERE","X-Source":"TBL"}
+NOTIFY_WEBHOOK_HEADERS={"Authorization":"Bearer YOUR_TOKEN_HERE","X-Source":"Scriptorium"}
 NOTIFY_WEBHOOK_PAYLOAD={"event":"{event}","file":"{file}","duration":{duration_seconds:.1f}}
 ```
 

@@ -1,6 +1,6 @@
 @echo off
 REM ============================================
-REM TranslateBookWithLLM - Setup & Update
+REM Scriptorium - Setup & Update
 REM Installation and Update Script
 REM ============================================
 
@@ -12,7 +12,7 @@ REM ========================================
 REM BANNER
 REM ========================================
 echo.
-echo TranslateBook with LLMs - Setup ^& Update
+echo Scriptorium - Setup ^& Update
 echo ─────────────────────────────────────────
 echo.
 

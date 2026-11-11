@@ -1,13 +1,13 @@
 @echo off
 REM ============================================================================
-REM Docker Testing Script for TranslateBookWithLLM
+REM Docker Testing Script for Scriptorium
 REM ============================================================================
 REM This script tests the Docker deployment automatically
 REM Usage: test_docker.bat
 
 echo.
 echo ============================================================
-echo   Docker Test Script - TranslateBookWithLLM
+echo   Docker Test Script - Scriptorium
 echo ============================================================
 echo.
 

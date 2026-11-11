@@ -1,5 +1,5 @@
 """
-Live check that OpenRouter models stop reasoning when TBL asks them to.
+Live check that OpenRouter models stop reasoning when Scriptorium asks them to.
 
 Runs one real translation per model through the project's factory and prints
 the resolved `reasoning` override plus the token counts (including the
@@ -72,7 +72,7 @@ async def run_one(model: str, disable_thinking: bool) -> None:
 async def main() -> None:
     models = sys.argv[1:] or DEFAULT_MODELS
 
-    print("Reasoning disabled (TBL default):")
+    print("Reasoning disabled (Scriptorium default):")
     for model in models:
         await run_one(model, True)
 

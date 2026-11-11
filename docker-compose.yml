@@ -1,7 +1,7 @@
 version: '3.8'
 
 # =============================================================================
-# TranslateBookWithLLM — Docker Compose
+# Scriptorium — Docker Compose
 # =============================================================================
 # All runtime configuration lives in the `environment:` block below.
 # Uncomment and edit only the variables you need; defaults are sensible.

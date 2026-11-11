@@ -34,7 +34,7 @@ def test_contributor_role_uses_epub3_refinement(tmp_path, monkeypatch):
     monkeypatch.setattr(
         translator,
         "GENERATOR_SOURCE",
-        "https://github.com/bellussi1/TranslateBooksWithLLMs",
+        "https://github.com/bellussi1/Scriptorium",
     )
 
     opf_path = tmp_path / "content.opf"

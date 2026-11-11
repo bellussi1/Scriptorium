@@ -1,5 +1,5 @@
 """
-Unified logging system for TranslateBookWithLLM
+Unified logging system for Scriptorium
 Provides consistent logging across CLI, Web, and all file types
 """
 import sys
@@ -58,7 +58,7 @@ class UnifiedLogger:
     """
     
     def __init__(self, 
-                 name: str = "TranslateBookWithLLM",
+                 name: str = "Scriptorium",
                  console_output: bool = True,
                  enable_colors: bool = True,
                  min_level: LogLevel = LogLevel.INFO,
@@ -461,7 +461,7 @@ class UnifiedLogger:
 _global_logger = None
 
 
-def get_logger(name: str = "TranslateBookWithLLM", **kwargs) -> UnifiedLogger:
+def get_logger(name: str = "Scriptorium", **kwargs) -> UnifiedLogger:
     """
     Get or create the global logger instance
 

@@ -5,7 +5,7 @@ description: Operate the TraducaoLLM fork's literary translation queue, resource
 
 # Literary Queue
 
-This is the project-specific layer for the TranslateBooksWithLLMs fork. The
+This is the project-specific layer for Scriptorium, a fork of TranslateBooksWithLLMs. The
 upstream `translate-books-with-llms` skill explains the raw engine; this skill
 explains the queue, the editorial resources, the review gate and the model
 policy around it.

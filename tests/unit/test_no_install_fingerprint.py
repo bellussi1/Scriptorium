@@ -62,7 +62,7 @@ GENERATOR_NAME_ONLY = re.compile(r"^Scriptorium$")
 
 FORBIDDEN_HEADERS = {"x-session-token", "x-client-agent", "x-request-id"}
 
-# httpx sets these on every AsyncClient; `user-agent` is the one TBL overrides.
+# httpx sets these on every AsyncClient; `user-agent` is the one Scriptorium overrides.
 EXPECTED_HEADER_NAMES = {"accept", "accept-encoding", "connection", "user-agent"}
 
 

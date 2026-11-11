@@ -79,7 +79,7 @@ def print_banner() -> None:
     """Print CLI banner."""
     banner = """
 +---------------------------------------------------------------+
-|          TranslateBookWithLLM - Benchmark System              |
+|          Scriptorium - Benchmark System                       |
 |                                                               |
 |  Test translation quality across 40+ languages and models     |
 +---------------------------------------------------------------+
@@ -732,7 +732,7 @@ def _sha256_text(text: str) -> str:
 
 
 def _detect_tbl_version() -> str:
-    """Best-effort TBL version: env var > git short SHA > 'dev'."""
+    """Best-effort Scriptorium version: env var > git short SHA > 'dev'."""
     import os
     env = os.getenv("TBL_VERSION")
     if env:
@@ -978,7 +978,7 @@ def create_parser() -> argparse.ArgumentParser:
     """Create the argument parser."""
     parser = argparse.ArgumentParser(
         prog="benchmark",
-        description="TranslateBookWithLLM Benchmark System - Test translation quality across languages and models",
+        description="Scriptorium Benchmark System - Test translation quality across languages and models",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
@@ -1222,7 +1222,7 @@ Examples:
     )
     add_t_parser.add_argument(
         "--tbl-version",
-        help="TBL version label (defaults to git short SHA or 'dev').",
+        help="Scriptorium version label (defaults to git short SHA or 'dev').",
     )
     add_t_parser.add_argument(
         "--prompt-version",

@@ -503,3 +503,14 @@ Howling Dark is running on Index. When it stops at the review gate:
 
 Do not mix providers mid-book; the review gate and one-book-at-a-time rule
 stay. Dalibre: restart OpenCode so the MCP reconnects with `DALIBRE_TOKEN`.
+
+## Scriptorium rebrand (branch `claude/agitated-morse-ea8e88`, 2026-11-11)
+
+- The product name is Scriptorium in code, UI, locales, the fork docs and the
+  benchmark titles. Upstream credits and URLs, the `tbl-*` EPUB ids and
+  localStorage keys, and the `TBL_*` env vars stay as they are on purpose.
+- Logo candidates are in `docs/design/logo-candidates/`. None is wired into the
+  UI; the owner picks one later.
+- GitHub repository: already bellussi1/Scriptorium (origin updated). Not renamed:
+  the local folder, the Docker compose project (`traducaollm`), containers,
+  images and volumes.

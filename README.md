@@ -33,8 +33,8 @@ a prebuilt Docker image.
    [Ollama](https://ollama.com/), then pull a model: `ollama pull qwen3:14b`.
 2. Clone this fork and create the environment file:
    ```bash
-   git clone https://github.com/bellussi1/TranslateBooksWithLLMs.git
-   cd TranslateBooksWithLLMs
+   git clone https://github.com/bellussi1/Scriptorium.git
+   cd Scriptorium
    cp .env.example .env        # macOS/Linux
    Copy-Item .env.example .env # Windows PowerShell
    ```
@@ -101,8 +101,8 @@ See [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md) for more solutions.
 **Prerequisites:** Python 3.11, [Ollama](https://ollama.com/), Git.
 
 ```bash
-git clone https://github.com/bellussi1/TranslateBooksWithLLMs.git
-cd TranslateBooksWithLLMs
+git clone https://github.com/bellussi1/Scriptorium.git
+cd Scriptorium
 python -m venv venv
 .\venv\Scripts\activate      # Windows PowerShell
 # source venv/bin/activate   # macOS/Linux
@@ -240,7 +240,7 @@ Two things stay local to the device: if you queue several files, other devices o
 
 ## Upstream
 
-This fork is based on [TranslateBooksWithLLMs](https://github.com/hydropix/TranslateBooksWithLLMs)
+Scriptorium is a fork of [TranslateBooksWithLLMs](https://github.com/hydropix/TranslateBooksWithLLMs)
 by hydropix and remains **AGPL-3.0**. The upstream repository, documentation
 and model benchmarks are the reference for the code this fork builds on:
 

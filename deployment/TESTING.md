@@ -1,6 +1,6 @@
 # Docker Testing Guide
 
-This guide explains how to test the Docker deployment of TranslateBookWithLLM.
+This guide explains how to test the Docker deployment of Scriptorium.
 
 ## Prerequisites
 

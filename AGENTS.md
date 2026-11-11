@@ -5,7 +5,7 @@ starting and update it when you stop.
 
 ## What this checkout is
 
-A fork of [TranslateBooksWithLLMs](https://github.com/hydropix/TranslateBooksWithLLMs)
+Scriptorium, a fork of [TranslateBooksWithLLMs](https://github.com/hydropix/TranslateBooksWithLLMs)
 turned into a personal literary translation pipeline, **English → Brazilian
 Portuguese only**. It exists for the owner's own reading: it is not a product,
 it is not published, and translated works never leave this machine.

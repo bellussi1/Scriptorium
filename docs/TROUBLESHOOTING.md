@@ -1,6 +1,6 @@
 # Troubleshooting Guide
 
-Solutions to common problems with TranslateBookWithLLM.
+Solutions to common problems with Scriptorium.
 
 ---
 
@@ -110,7 +110,7 @@ Solutions to common problems with TranslateBookWithLLM.
 
 ### "How do I set the context length?"
 
-**Cause**: The context window belongs to the model server, not to TBL. Ollama and LM Studio decide how many tokens a loaded model can hold; TBL can only stay inside that budget, or ask Ollama for a bigger one. It cannot raise the limit of an OpenAI-compatible server such as LM Studio.
+**Cause**: The context window belongs to the model server, not to Scriptorium. Ollama and LM Studio decide how many tokens a loaded model can hold; Scriptorium can only stay inside that budget, or ask Ollama for a bigger one. It cannot raise the limit of an OpenAI-compatible server such as LM Studio.
 
 **Symptoms of a context window that is too small**: output truncated mid-chunk, the same sentence repeated until the response ends, or chunks left in the source language.
 
@@ -121,7 +121,7 @@ Solutions to common problems with TranslateBookWithLLM.
 
 An advertised context length is only an upper bound - a server can load the model with less.
 
-**Step 2 — set the two TBL settings in `.env`**
+**Step 2 — set the two Scriptorium settings in `.env`**
 
 | Setting | Default | Effect |
 |---------|---------|--------|
