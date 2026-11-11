@@ -81,7 +81,8 @@ def test_legacy_txt_checkpoint_without_marker(cm):
 
 
 def test_gap_resumes_at_first_missing_chunk(cm):
-    cm.start_job("job", "epub", {}, None)
+    # TXT/SRT rows are chunks; EPUB rows are files and keep their own index.
+    cm.start_job("job", "txt", {}, None)
     _seed_chunks(cm, "job", [0, 2])
     # The JSON lies: it claims three completed chunks, but index 1 is missing.
     _set_progress(cm, "job", {

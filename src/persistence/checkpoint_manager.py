@@ -199,6 +199,8 @@ class CheckpointManager:
         # the counts are recomputed from checkpoint_chunks, which is the only
         # source that survives a crash.
         chunk_status = 'completed' if translated_text else 'failed'
+        job = self.db.get_job(translation_id) or {}
+        file_type = str(job.get('file_type') or '').lower()
         saved = self.db.save_checkpoint_atomic(
             translation_id=translation_id,
             chunk_index=chunk_index,
@@ -207,6 +209,11 @@ class CheckpointManager:
             chunk_data=chunk_data,
             chunk_status=chunk_status,
             total_chunks=total_chunks,
+            completed_chunks=completed_chunks,
+            failed_chunks=failed_chunks,
+            # EPUB rows are files, not chunks; the caller/global_stats carries
+            # the real chunk count. TXT/SRT rows are chunks and are authoritative.
+            derive_counts=file_type != 'epub',
             epub_accumulated_stats=epub_accumulated_stats,
             unfinished_units=unfinished_units,
             degraded_units=degraded_units,
@@ -299,11 +306,14 @@ class CheckpointManager:
         - the job must still have work left: a row whose progress reached
           ``total_chunks`` is finished even if the CLI left it as
           ``interrupted`` instead of flipping it to ``completed``;
-        - the job must have at least one persisted checkpoint chunk.
+        - the job must have at least one persisted checkpoint row (a chunk for
+          TXT/SRT, a translated file for EPUB).
 
-        Progress counters are rebuilt from ``checkpoint_chunks`` instead of the
-        running ``progress`` JSON: after a partial cleanup the counters can
-        claim hundreds of chunks while only a handful survived.
+        For TXT/SRT the progress counters are rebuilt from ``checkpoint_chunks``
+        instead of the running ``progress`` JSON. For EPUB those rows are
+        file-level checkpoints; the global chunk count comes from the progress
+        JSON / xhtml state, so it is preserved rather than replaced by the
+        number of files.
 
         Duplicate attempts at the same source book are collapsed to the most
         recently updated row (the database query orders by ``updated_at``
@@ -320,6 +330,7 @@ class CheckpointManager:
         for job in jobs:
             config = job.get('config') or {}
             progress = job.get('progress') or {}
+            file_type = str(job.get('file_type') or '').lower()
 
             # A job whose input file is gone can never be resumed. Keeping it
             # in the list only offers a button that returns 404.
@@ -330,22 +341,31 @@ class CheckpointManager:
             total = int(progress.get('total_chunks') or 0)
             completed = int(progress.get('completed_chunks') or 0)
             failed = int(progress.get('failed_chunks') or 0)
-            unfinished = progress.get('unfinished_chunks')
+            unfinished = (
+                progress.get('unfinished_chunks')
+                or progress.get('epub_unfinished_units')
+            )
             if total > 0 and completed >= total and not failed and not unfinished:
                 continue
 
             stats = self.db.get_chunk_stats(job['translation_id'])
             if stats['total'] == 0:
-                # No stored chunk means nothing to carry over; resuming would
+                # No stored row means nothing to carry over; resuming would
                 # silently redo the job from an arbitrary position.
                 continue
 
-            # Report the checkpoint itself, not the drifting running counter.
-            stored_completed = stats['completed']
+            if file_type == 'epub':
+                # Rows are files; keep the real global chunk counters.
+                stored_completed = completed
+                stored_failed = failed
+            else:
+                stored_completed = stats['completed']
+                stored_failed = stats['failed']
             progress['completed_chunks'] = stored_completed
             job['checkpoint_chunks'] = stats['total']
+            job['checkpoint_files'] = stats['total']
             job['checkpoint_completed_chunks'] = stored_completed
-            job['checkpoint_failed_chunks'] = stats['failed']
+            job['checkpoint_failed_chunks'] = stored_failed
 
             if total > 0:
                 job['progress_percentage'] = int((stored_completed / total) * 100)
@@ -1036,20 +1056,26 @@ class CheckpointManager:
 
             print(f"Partial state saved: {state_file} (chunk {state.current_chunk_index}/{len(state.chunks)})")
 
-            # Only the total belongs here. completed_chunks and failed_chunks
-            # are derived from checkpoint_chunks by save_checkpoint_atomic; the
-            # old state.global_stats counters were the source of the 1074/94
-            # drift that made the queue trust a checkpoint that did not exist.
+            # For EPUB the per-file xhtml state is the chunk-level authority:
+            # checkpoint_chunks stores one row per translated file, not per
+            # chunk. Keep the global completed/failed counters in sync with
+            # this state; the file-level row is not a chunk count.
             if state.global_stats:
                 total = state.global_stats.get('total_chunks')
-                if total is not None:
-                    self.db.update_job_progress(
-                        translation_id=translation_id,
-                        current_chunk_index=None,
-                        total_chunks=total,
-                    )
-                stats = self.db.get_chunk_stats(translation_id)
-                print(f"Checkpoint rows: {stats['completed']}/{total or stats['total']} chunks")
+                completed = state.global_stats.get('completed_chunks')
+                failed = state.global_stats.get('failed_chunks')
+                self.db.update_job_progress(
+                    translation_id=translation_id,
+                    current_chunk_index=None,
+                    total_chunks=total,
+                    completed_chunks=completed,
+                    failed_chunks=failed,
+                )
+                file_rows = self.db.get_chunk_stats(translation_id)['total']
+                print(
+                    f"Checkpoint chunks (xhtml state): {completed}/{total} "
+                    f"(file rows: {file_rows})"
+                )
 
             return True
         except Exception as e:

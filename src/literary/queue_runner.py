@@ -359,6 +359,26 @@ def _upstream_progress(translation_id: Optional[str] = None) -> Tuple[str, int, 
     )
 
 
+def _parse_json_payload(text: str) -> Optional[Dict[str, Any]]:
+    """Parse a pretty-printed JSON object, ignoring any log prefix."""
+    raw = (text or "").strip()
+    if not raw:
+        return None
+    try:
+        value = json.loads(raw)
+        return value if isinstance(value, dict) else None
+    except json.JSONDecodeError:
+        pass
+    start = raw.find("{")
+    if start < 0:
+        return None
+    try:
+        value, _ = json.JSONDecoder().raw_decode(raw[start:])
+        return value if isinstance(value, dict) else None
+    except json.JSONDecodeError:
+        return None
+
+
 def _container_checkpoint_status(translation_id: str) -> Optional[Dict[str, Any]]:
     """Ask the app container for the authoritative live checkpoint state.
 
@@ -390,15 +410,7 @@ def _container_checkpoint_status(translation_id: str) -> Optional[Dict[str, Any]
         return None
     if completed.returncode != 0:
         return None
-    for line in reversed((completed.stdout or "").strip().splitlines()):
-        line = line.strip()
-        if not line.startswith("{"):
-            continue
-        try:
-            return json.loads(line)
-        except json.JSONDecodeError:
-            continue
-    return None
+    return _parse_json_payload(completed.stdout)
 
 
 def _checkpoint_is_resumable_readonly(translation_id: str) -> bool:
@@ -416,7 +428,8 @@ def _checkpoint_is_resumable_readonly(translation_id: str) -> bool:
         conn.row_factory = sqlite3.Row
         try:
             job = conn.execute(
-                "SELECT progress, config FROM translation_jobs WHERE translation_id = ?",
+                "SELECT progress, config, file_type FROM translation_jobs "
+                "WHERE translation_id = ?",
                 (translation_id,),
             ).fetchone()
             if not job:
@@ -438,8 +451,16 @@ def _checkpoint_is_resumable_readonly(translation_id: str) -> bool:
     progress = json.loads(job["progress"] or "{}")
     config = json.loads(job["config"] or "{}")
     total = int(progress.get("total_chunks") or 0)
-    completed = int(stats["completed"] or 0)
-    if total <= 0 or completed <= 0 or completed >= total:
+    file_type = str(job["file_type"] or "").lower()
+    if file_type == "epub":
+        completed = int(progress.get("completed_chunks") or 0)
+        unfinished = bool(progress.get("epub_unfinished_units"))
+    else:
+        completed = int(stats["completed"] or 0)
+        unfinished = False
+    if total <= 0 or (completed <= 0 and not unfinished):
+        return False
+    if completed >= total and not unfinished:
         return False
     input_path = config.get("preserved_input_path") or config.get("file_path")
     input_exists = bool(input_path and Path(input_path).exists())
@@ -819,6 +840,24 @@ def run_queue_book(
             "duration_s": round(time.time() - started, 1),
             "output": str(output_host) if output_host.exists() else "",
         }
+        # Enforce the paused state after the final sync. The upstream row can
+        # still say "running" when SIGTERM beat its status write, and the sync
+        # would otherwise turn the book back into "translating" and let the
+        # supervisor skip to the next pending title.
+        if paused_by_user:
+            store = QueueStore(db_path)
+            try:
+                try:
+                    store.set_job_state(job_id, "paused", "paused by user from the queue UI")
+                except ValueError:
+                    pass
+                try:
+                    store.set_book_state(book.id, "paused", "paused by user from the queue UI")
+                except ValueError:
+                    pass
+            finally:
+                store.close()
+
         _report_path(book.title).write_text(
             json.dumps(report, ensure_ascii=False, indent=2),
             encoding="utf-8",

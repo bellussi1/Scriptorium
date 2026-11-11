@@ -532,6 +532,60 @@ def cmd_queue_sync(args: argparse.Namespace) -> int:
     return 0 if not report.get("error") else 1
 
 
+def cmd_db_snapshot(args: argparse.Namespace) -> int:
+    """Write a compact, consistent snapshot of the live jobs DB."""
+    import re
+    import sqlite3
+    from datetime import datetime, timezone
+
+    live = Path(os.getenv("JOBS_DB_PATH", "data/jobs.db"))
+    out_dir = Path(args.out_dir)
+    out_dir.mkdir(parents=True, exist_ok=True)
+    label = re.sub(r"[^a-z0-9]+", "-", (args.label or "").strip().lower()).strip("-")
+    stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    name = f"jobs-{label + '-' if label else ''}{stamp}.db"
+    out = out_dir / name
+
+    src = sqlite3.connect(f"file:{live.as_posix()}?mode=ro", uri=True, timeout=30)
+    dst = sqlite3.connect(str(out))
+    try:
+        src.backup(dst)
+        dst.commit()
+        integrity = str(dst.execute("PRAGMA quick_check").fetchone()[0])
+    finally:
+        dst.close()
+        src.close()
+    _print_json({
+        "path": str(out),
+        "size": out.stat().st_size,
+        "integrity": integrity,
+        "label": label,
+        "timestamp": stamp,
+    })
+    return 0 if integrity.lower() == "ok" else 1
+
+
+def cmd_db_health(args: argparse.Namespace) -> int:
+    """Report the live jobs DB integrity and journal mode without writing."""
+    import sqlite3
+
+    live = Path(os.getenv("JOBS_DB_PATH", "data/jobs.db"))
+    con = sqlite3.connect(f"file:{live.as_posix()}?mode=ro", uri=True, timeout=30)
+    try:
+        integrity = str(con.execute("PRAGMA quick_check").fetchone()[0])
+        journal = str(con.execute("PRAGMA journal_mode").fetchone()[0])
+        jobs = int(con.execute("SELECT COUNT(*) FROM translation_jobs").fetchone()[0])
+    finally:
+        con.close()
+    _print_json({
+        "path": str(live),
+        "integrity": integrity,
+        "journal_mode": journal,
+        "jobs": jobs,
+    })
+    return 0 if integrity.lower() == "ok" else 1
+
+
 def cmd_checkpoint_status(args: argparse.Namespace) -> int:
     """Report the live checkpoint state from inside the app container."""
     import os
@@ -556,29 +610,47 @@ def cmd_checkpoint_status(args: argparse.Namespace) -> int:
         stats = manager.db.get_chunk_stats(args.id)
         progress = job.get("progress") or {}
         config = job.get("config") or {}
+        file_type = str(job.get("file_type") or "").lower()
         total = int(progress.get("total_chunks") or 0)
         input_path = config.get("preserved_input_path") or config.get("file_path")
         input_exists = bool(input_path and Path(input_path).exists())
         if not input_exists:
             input_exists = (Path("data/uploads") / args.id).exists()
         health = manager.health()
-        resumable = (
-            input_exists
-            and total > 0
-            and stats["total"] > 0
-            and stats["completed"] < total
-            and str(job.get("status") or "") != "completed"
-        )
+        if file_type == "epub":
+            # EPUB checkpoint rows are files; the global chunk count and the
+            # unfinished-chunk map live in the progress JSON / xhtml states.
+            completed = int(progress.get("completed_chunks") or 0)
+            failed = int(progress.get("failed_chunks") or 0)
+            unfinished = bool(progress.get("epub_unfinished_units"))
+            resumable = (
+                input_exists
+                and total > 0
+                and (completed < total or unfinished)
+                and str(job.get("status") or "") != "completed"
+            )
+        else:
+            completed = int(stats["completed"] or 0)
+            failed = int(stats["failed"] or 0)
+            resumable = (
+                input_exists
+                and total > 0
+                and stats["total"] > 0
+                and completed < total
+                and str(job.get("status") or "") != "completed"
+            )
         _print_json({
             "translation_id": args.id,
             "found": True,
             "status": job.get("status"),
+            "file_type": file_type,
             "resumable": resumable,
             "input_exists": input_exists,
             "total_chunks": total,
-            "completed_chunks": stats["completed"],
-            "failed_chunks": stats["failed"],
+            "completed_chunks": completed,
+            "failed_chunks": failed,
             "chunk_rows": stats["total"],
+            "completed_files": stats["completed"],
             "last_index": stats["last_index"],
             "db_integrity": health["integrity"],
             "journal_mode": health["journal_mode"],
@@ -1008,6 +1080,22 @@ def build_parser() -> argparse.ArgumentParser:
     status_parser.add_argument("--reconcile", action="store_true")
     status_parser.add_argument("--json", action="store_true")
     status_parser.set_defaults(func=cmd_checkpoint_status)
+
+    snapshot_parser = queue_sub.add_parser(
+        "db-snapshot",
+        help="Write a consistent snapshot of the live jobs DB",
+    )
+    snapshot_parser.add_argument("--out-dir", default="/app/data/backups")
+    snapshot_parser.add_argument("--label", default="")
+    snapshot_parser.add_argument("--json", action="store_true")
+    snapshot_parser.set_defaults(func=cmd_db_snapshot)
+
+    health_parser = queue_sub.add_parser(
+        "db-health",
+        help="Report live jobs DB integrity and journal mode",
+    )
+    health_parser.add_argument("--json", action="store_true")
+    health_parser.set_defaults(func=cmd_db_health)
 
     job_state_parser = queue_sub.add_parser("set-job-state")
     job_state_parser.add_argument("--db", default="data/literary_queue.db")

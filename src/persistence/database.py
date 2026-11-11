@@ -392,16 +392,22 @@ class Database:
         chunk_data: Optional[Dict[str, Any]] = None,
         chunk_status: str = 'completed',
         total_chunks: Optional[int] = None,
+        completed_chunks: Optional[int] = None,
+        failed_chunks: Optional[int] = None,
+        derive_counts: bool = True,
         epub_accumulated_stats: Optional[Dict[str, Any]] = None,
         unfinished_units: Optional[Dict[str, List[int]]] = None,
         degraded_units: Optional[Dict[str, List[int]]] = None,
     ) -> bool:
-        """Persist a chunk and its progress counters in one transaction.
+        """Persist a chunk/file row and its progress counters in one transaction.
 
-        The chunk table is the authority: completed/failed counts are recomputed
-        from ``checkpoint_chunks`` after the insert instead of trusting a
-        caller's in-memory counter. A crash can lose the newest chunk, but it
-        cannot leave ``progress`` claiming chunks that were never written.
+        For TXT/SRT ``checkpoint_chunks`` stores one row per chunk, so the
+        completed/failed counts are recomputed from the table. For EPUB the
+        rows are **file-level** checkpoints (one per translated XHTML file);
+        the global chunk count comes from the caller / the current file's
+        xhtml state, so ``derive_counts=False`` preserves it. A crash can lose
+        the newest row, but it cannot leave progress claiming rows that were
+        never written.
         """
         with self._lock:
             conn = self._get_connection()
@@ -438,8 +444,14 @@ class Database:
                 progress['current_chunk_index'] = chunk_index
                 if total_chunks is not None:
                     progress['total_chunks'] = total_chunks
-                progress['completed_chunks'] = int(stats['completed'] or 0)
-                progress['failed_chunks'] = int(stats['failed'] or 0)
+                if derive_counts:
+                    progress['completed_chunks'] = int(stats['completed'] or 0)
+                    progress['failed_chunks'] = int(stats['failed'] or 0)
+                else:
+                    if completed_chunks is not None:
+                        progress['completed_chunks'] = int(completed_chunks)
+                    if failed_chunks is not None:
+                        progress['failed_chunks'] = int(failed_chunks)
                 if epub_accumulated_stats is not None:
                     progress['epub_accumulated_stats'] = epub_accumulated_stats
                 if unfinished_units is not None:
@@ -603,21 +615,27 @@ class Database:
                 return {'total': 0, 'completed': 0, 'failed': 0, 'last_index': -1}
 
     def reconcile_job(self, translation_id: str) -> Dict[str, Any]:
-        """Make progress counters and the resume index match the chunk rows.
+        """Validate the checkpoint rows and repair the resume state.
 
-        The first chunk that is not ``completed`` is the only safe resume
-        point. This handles both a missing row and a row explicitly marked
-        ``failed``; it never resumes from the end just because the JSON says so.
+        For TXT/SRT ``checkpoint_chunks`` has one row per chunk, so the first
+        row that is not ``completed`` is the only safe resume point.
+
+        For EPUB the rows are **file-level** checkpoints and the per-file
+        ``xhtml_states`` carry the chunk progress. The global counters and the
+        current file index are already maintained by the EPUB translator, so
+        this method preserves them and only reports the file rows; deriving
+        chunk counts from file rows was what made a 321-chunk run look like 94.
         """
         with self._lock:
             conn = self._get_connection()
             try:
                 job_row = conn.execute(
-                    "SELECT progress FROM translation_jobs WHERE translation_id = ?",
+                    "SELECT progress, file_type FROM translation_jobs WHERE translation_id = ?",
                     (translation_id,),
                 ).fetchone()
                 if not job_row:
                     return {"translation_id": translation_id, "found": False}
+                file_type = str(job_row['file_type'] or '').lower()
                 progress = json.loads(job_row['progress'] or '{}')
                 rows = conn.execute(
                     "SELECT chunk_index, status FROM checkpoint_chunks "
@@ -629,20 +647,40 @@ class Database:
                     for row in rows
                 }
                 total = int(progress.get('total_chunks') or 0)
-                completed = sum(1 for state in present.values() if state == 'completed')
-                failed = sum(1 for state in present.values() if state == 'failed')
-                limit = max(total, (max(present) + 1) if present else 0)
+                completed_files = sum(1 for state in present.values() if state == 'completed')
+                failed_files = sum(1 for state in present.values() if state == 'failed')
+                file_limit = (max(present) + 1) if present else 0
+
+                if file_type == 'epub':
+                    completed = int(progress.get('completed_chunks') or 0)
+                    failed = int(progress.get('failed_chunks') or 0)
+                    current = progress.get('current_chunk_index')
+                    current = int(current) if current is not None else file_limit - 1
+                    limit = file_limit
+                else:
+                    completed = completed_files
+                    failed = failed_files
+                    limit = max(total, file_limit)
+                    current = None
+
                 first_incomplete = 0
                 while (
                     first_incomplete < limit
                     and present.get(first_incomplete) == 'completed'
                 ):
                     first_incomplete += 1
+                if file_type != 'epub':
+                    current = first_incomplete - 1
 
                 progress['completed_chunks'] = completed
                 progress['failed_chunks'] = failed
-                progress['current_chunk_index'] = first_incomplete - 1
-                progress['resume_index_semantics'] = 'completed'
+                progress['current_chunk_index'] = current
+                if file_type != 'epub':
+                    progress['resume_index_semantics'] = 'completed'
+                # EPUB keeps its existing convention marker: new jobs carry
+                # 'completed' (current = last completed file, resume +1);
+                # pre-migration EPUB checkpoints have no marker and store the
+                # next file index, which load_checkpoint must not increment.
                 conn.execute(
                     "UPDATE translation_jobs SET progress = ?, updated_at = CURRENT_TIMESTAMP "
                     "WHERE translation_id = ?",
@@ -652,13 +690,16 @@ class Database:
                 return {
                     "translation_id": translation_id,
                     "found": True,
+                    "file_type": file_type,
                     "total_chunks": total,
                     "completed_chunks": completed,
                     "failed_chunks": failed,
+                    "completed_files": completed_files,
+                    "failed_files": failed_files,
                     "chunks": len(present),
                     "last_index": max(present) if present else -1,
                     "first_incomplete": first_incomplete,
-                    "current_chunk_index": first_incomplete - 1,
+                    "current_chunk_index": current,
                 }
             except Exception as e:
                 try:

@@ -392,9 +392,27 @@ def main() -> int:
                     "message": "starting queue runner",
                 }
             )
+            run_started = _now()
             code = _run(_queue_command(args.db), log_path)
             if args.once:
                 return 0 if code == 0 else 1
+            # A pause-now is a stop request for the whole queue, not a request
+            # to advance to the next pending book. The queue runner honours it
+            # mid-book; the supervisor must stop here instead of picking the
+            # next pending title.
+            control = _read_json(ROOT / "data" / "literary_queue.control.json")
+            honored = control.get("pause_now_honored_after") or {}
+            honored_at = str(control.get("pause_now_honored_at") or "")
+            if honored.get("id") == book["id"] and honored_at >= run_started:
+                _write_status({
+                    "running": False,
+                    "phase": "paused",
+                    "book_id": book["id"],
+                    "title": book["title"],
+                    "message": "pause-now honored; queue stopped",
+                })
+                print(f"auto queue: pause-now honored for {book['title']}; queue stopped", flush=True)
+                return 0
             if code != 0:
                 _write_status(
                     {

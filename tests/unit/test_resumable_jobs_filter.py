@@ -36,13 +36,14 @@ def _job(
     completed=1,
     chunks=2,
     failed=0,
+    file_type='epub',
 ):
     """Create a job with a real input file, chunks and progress metadata."""
     if input_path is not None:
         input_path.parent.mkdir(parents=True, exist_ok=True)
         input_path.write_text('source', encoding='utf-8')
     config = {'preserved_input_path': str(input_path)} if input_path else {}
-    assert cm.db.create_job(translation_id, 'epub', config)
+    assert cm.db.create_job(translation_id, file_type, config)
     for index in range(chunks):
         cm.db.save_chunk(
             translation_id, index, f'source {index}', f'target {index}'
@@ -115,10 +116,11 @@ class TestResumableFilter:
         _job(
             cm,
             'drifted',
-            tmp_path / 'uploads' / 'drifted' / 'Book.epub',
+            tmp_path / 'uploads' / 'drifted' / 'Book.txt',
             total=100,
             completed=90,
             chunks=3,
+            file_type='txt',
         )
 
         job = cm.get_resumable_jobs()[0]
@@ -127,6 +129,27 @@ class TestResumableFilter:
         assert job['checkpoint_chunks'] == 3
         assert job['checkpoint_completed_chunks'] == 3
         assert job['progress_percentage'] == 3
+
+    def test_epub_keeps_the_global_chunk_count_and_reports_files(self, cm, tmp_path):
+        _job(
+            cm,
+            'epub-drift',
+            tmp_path / 'uploads' / 'epub-drift' / 'Book.epub',
+            total=100,
+            completed=90,
+            chunks=3,
+            file_type='epub',
+        )
+
+        job = cm.get_resumable_jobs()[0]
+
+        # EPUB checkpoint rows are files, not chunks; the global counter must
+        # not be replaced by the number of translated files.
+        assert job['progress']['completed_chunks'] == 90
+        assert job['checkpoint_chunks'] == 3
+        assert job['checkpoint_files'] == 3
+        assert job['checkpoint_completed_chunks'] == 90
+        assert job['progress_percentage'] == 90
 
     def test_healthy_job_remains_resumable(self, cm, tmp_path):
         _job(
