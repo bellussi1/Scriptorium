@@ -40,6 +40,22 @@ def test_rewrite_epub_terms_replaces_whole_words_only(tmp_path: Path):
     assert "Chantry" not in style
 
 
+def test_rewrite_epub_terms_preserves_uppercase(tmp_path: Path):
+    epub = tmp_path / "book.epub"
+    make_epub(
+        epub,
+        chapters=[
+            "<html xmlns='http://www.w3.org/1999/xhtml'><body>"
+            "<p>O SONO, ENTÃO, SEGUNDO O CHANTRY</p></body></html>",
+            "<html xmlns='http://www.w3.org/1999/xhtml'><body><p>Nada.</p></body></html>",
+        ],
+    )
+    auto_queue._rewrite_epub_terms(epub, {"Chantry": "Chantria"})
+    with zipfile.ZipFile(epub) as archive:
+        text = archive.read("OEBPS/ch1.xhtml").decode("utf-8")
+    assert "SEGUNDO O CHANTRIA" in text
+
+
 def test_rewrite_epub_terms_in_place_keeps_other_entries(tmp_path: Path):
     epub = tmp_path / "book.epub"
     make_epub(epub)

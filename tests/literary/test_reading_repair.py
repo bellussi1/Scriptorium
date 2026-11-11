@@ -13,6 +13,7 @@ from src.literary.reading_repair import (
     _title_case,
     convert_dialogue_quotes,
     fix_headings,
+    global_text_fixes,
     merge_split_paragraphs,
     normalise_straight_quotes,
     paragraph_text,
@@ -177,6 +178,19 @@ def test_package_language_follows_dc_language():
         "<dc:language>pt-BR</dc:language></metadata></package>"
     )
     assert 'xml:lang="pt-BR"' in _normalise_package_language(opf)
+
+
+def test_global_text_fixes_replaces_chantry_in_any_case():
+    raw = (
+        '<p class="x03-CO-Body-Text"><span class="CO">'
+        "O SONO, ENTÃO, SEGUNDO O CHANTRY </span>é o meio-irmão da Morte.</p>"
+        "<p>A Chantry vigia. E a chantry antiga.</p>"
+    )
+    fixed = global_text_fixes(raw)
+    assert "CHANTRIA" in fixed
+    assert "A Chantria vigia" in fixed
+    assert "a chantria antiga" in fixed
+    assert "Chantry" not in fixed
 
 
 def test_repair_reading_epub_writes_a_valid_copy(tmp_path: Path):

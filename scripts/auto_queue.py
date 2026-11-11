@@ -246,7 +246,13 @@ def _rewrite_epub_terms(
                 def replace(match: re.Match[str]) -> str:
                     key = match.group(1).casefold()
                     counts[key] = counts.get(key, 0) + 1
-                    return normalized[key]
+                    target = normalized[key]
+                    word = match.group(0)
+                    if word.isupper():
+                        return target.upper()
+                    if word.islower():
+                        return target.lower()
+                    return target
 
                 raw = pattern.sub(replace, raw)
                 data = raw.encode("utf-8")

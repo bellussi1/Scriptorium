@@ -20,6 +20,7 @@ import argparse
 import hashlib
 import html
 import json
+import math
 import os
 import re
 import sys
@@ -131,6 +132,84 @@ def _epub_text(path: Path) -> Tuple[str, List[Tuple[str, List[str]]]]:
     return "\n\n".join(full), files
 
 
+def _align_paragraphs(
+    source_counts: List[int], target_counts: List[int]
+) -> Dict[int, Tuple[int, int]]:
+    """Align paragraph sequences by word-count signature.
+
+    The translated EPUB splits dialogue and merges chunk seams, so the same
+    paragraph index no longer describes the same scene. Align the two word-count
+    sequences with a small dynamic program that allows 1:1, 1:2 (a split) and
+    2:1 (a merge) blocks; the mapping is stable even when a chapter gains
+    hundreds of short dialogue paragraphs.
+    """
+    n, m = len(source_counts), len(target_counts)
+    inf = float("inf")
+    dp = [[inf] * (m + 1) for _ in range(n + 1)]
+    back: List[List[Optional[Tuple[int, int, str, int, int]]]] = [
+        [None] * (m + 1) for _ in range(n + 1)
+    ]
+    dp[0][0] = 0.0
+    skip_cost = 1.5
+
+    def relax(i: int, j: int, cost: float, step: Tuple[int, int, str, int, int]) -> None:
+        if cost < dp[i][j]:
+            dp[i][j] = cost
+            back[i][j] = step
+
+    for i in range(n + 1):
+        for j in range(m + 1):
+            base = dp[i][j]
+            if base == inf:
+                continue
+            if i < n:
+                relax(i + 1, j, base + skip_cost, (i, j, "skip_s", i, j))
+            if j < m:
+                relax(i, j + 1, base + skip_cost, (i, j, "skip_t", i, j))
+            if i < n and j < m:
+                cost = abs(math.log((target_counts[j] + 1) / (source_counts[i] + 1)))
+                relax(i + 1, j + 1, base + cost, (i, j, "1:1", i, j))
+            if i < n and j + 1 < m:
+                cost = (
+                    abs(
+                        math.log(
+                            (target_counts[j] + target_counts[j + 1] + 1)
+                            / (source_counts[i] + 1)
+                        )
+                    )
+                    + 0.05
+                )
+                relax(i + 1, j + 2, base + cost, (i, j, "1:2", i, j))
+            if i + 1 < n and j < m:
+                cost = (
+                    abs(
+                        math.log(
+                            (target_counts[j] + 1)
+                            / (source_counts[i] + source_counts[i + 1] + 1)
+                        )
+                    )
+                    + 0.05
+                )
+                relax(i + 2, j + 1, base + cost, (i, j, "2:1", i, j))
+
+    mapping: Dict[int, Tuple[int, int]] = {}
+    i, j = n, m
+    while i > 0 or j > 0:
+        step = back[i][j]
+        if step is None:
+            break
+        pi, pj, kind, i0, j0 = step
+        if kind == "1:1":
+            mapping[i0] = (j0, j0 + 1)
+        elif kind == "1:2":
+            mapping[i0] = (j0, j0 + 2)
+        elif kind == "2:1":
+            mapping[i0] = (j0, j0 + 1)
+            mapping[i0 + 1] = (j0, j0 + 1)
+        i, j = pi, pj
+    return mapping
+
+
 def _sample_pairs(
     source_files: List[Tuple[str, List[str]]],
     target_files: List[Tuple[str, List[str]]],
@@ -150,14 +229,20 @@ def _sample_pairs(
     samples = []
     for name, source_paragraphs in candidates:
         target_paragraphs = target_by_name[name]
+        mapping = _align_paragraphs(
+            [len(paragraph.split()) for paragraph in source_paragraphs],
+            [len(paragraph.split()) for paragraph in target_paragraphs],
+        )
         best: Optional[Tuple[int, str, str]] = None
         for index, source in enumerate(source_paragraphs):
             words = len(source.split())
             if not 40 <= words <= 220:
                 continue
-            if index >= len(target_paragraphs):
+            span = mapping.get(index)
+            if not span:
                 continue
-            target = target_paragraphs[index]
+            start, end = span
+            target = " ".join(target_paragraphs[start:end]).strip()
             target_words = len(target.split())
             if not target_words:
                 continue
@@ -631,7 +716,17 @@ def main() -> int:
     if metrics.get("length_ratio") is not None and not 0.80 <= metrics["length_ratio"] <= 1.20:
         reasons.append(f"length ratio {metrics['length_ratio']} outside 0.80-1.20")
     if not cloud.get("passed"):
-        reasons.append(f"cloud audit failed: {cloud.get('error', 'unknown')}")
+        if cloud.get("ok"):
+            averages = cloud.get("averages") or {}
+            reasons.append(
+                "cloud audit failed: "
+                f"prose {averages.get('prose')}, fidelity {averages.get('fidelity')}, "
+                f"naturalness {averages.get('naturalness')}, "
+                f"meaning {cloud.get('meaning_errors')}, "
+                f"tense {cloud.get('tense_errors')}, gender {cloud.get('gender_errors')}"
+            )
+        else:
+            reasons.append(f"cloud audit failed: {cloud.get('error', 'unknown')}")
 
     passed = not reasons
     audit = {

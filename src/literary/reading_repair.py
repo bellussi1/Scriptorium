@@ -711,6 +711,20 @@ def apply_sun_eater_terms(raw: str, counts: Dict[str, int]) -> Tuple[str, int]:
     return _replace_text_nodes(raw, lambda value: _replace_terms_in_text(value, counts))
 
 
+def _replace_case_preserving(text: str, old: str, new: str) -> str:
+    """Replace a term and keep the original case (CHANTRY -> CHANTRIA)."""
+
+    def replace(match: re.Match) -> str:
+        word = match.group(0)
+        if word.isupper():
+            return new.upper()
+        if word.islower():
+            return new.lower()
+        return new
+
+    return re.sub(rf"\b{re.escape(old)}\b", replace, text, flags=re.IGNORECASE)
+
+
 def global_text_fixes(raw: str) -> str:
     """Simple text-node fixes that also apply to front/back matter."""
 
@@ -719,11 +733,13 @@ def global_text_fixes(raw: str) -> str:
             text.replace("Escuridão Ululante", "Escuridão Uivante")
             .replace("FEITO EM EUA", "FEITO NOS EUA")
             .replace("IMPRESSO EM EUA", "IMPRESSO NOS EUA")
-            .replace("Chantry", "Chantria")
             .replace("VALKA CORREU NA DIREÇÃO DELE", "Valka correu na direção dele")
         )
 
     raw = _map_text_nodes(raw, transform)
+    raw = _map_text_nodes(
+        raw, lambda text: _replace_case_preserving(text, "Chantry", "Chantria")
+    )
     raw = raw.replace(
         "VALKA CORREU NA DIREÇÃO</span> DELE",
         "Valka correu na direção</span> dele",
