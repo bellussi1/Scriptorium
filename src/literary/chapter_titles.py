@@ -134,13 +134,35 @@ def _retitle_ncx(text: str, labels: Dict[str, str]) -> Tuple[str, int]:
     return NCX_MAP.sub(replace_map, text), changed
 
 
-def chapter_label(number: int, title_pt: str) -> str:
+def _roman(number: int) -> str:
+    """Return the upper-case Roman numeral for a positive integer."""
+    if number < 1:
+        raise ValueError(f"Roman numerals start at 1, got {number}")
+    table = (
+        (1000, "M"), (900, "CM"), (500, "D"), (400, "CD"), (100, "C"), (90, "XC"),
+        (50, "L"), (40, "XL"), (10, "X"), (9, "IX"), (5, "V"), (4, "IV"), (1, "I"),
+    )
+    parts: List[str] = []
+    for value, symbol in table:
+        count, number = divmod(number, value)
+        parts.append(symbol * count)
+    return "".join(parts)
+
+
+def chapter_label(number: int, title_pt: str, numeral: str = "arabic") -> str:
     """Return the house-style chapter label: ``Capítulo N TÍTULO``, title in capitals.
 
     This is the layout of the official PT-BR edition's table of contents and of
-    the chapter headings the translation writes into the body.
+    the chapter headings the translation writes into the body. ``numeral`` picks
+    the number style: ``"arabic"`` (the default) or ``"roman"``.
     """
-    return f"Capítulo {number} {title_pt.upper()}"
+    if numeral == "arabic":
+        shown = str(number)
+    elif numeral == "roman":
+        shown = _roman(number)
+    else:
+        raise ValueError(f"numeral must be 'arabic' or 'roman', got {numeral!r}")
+    return f"Capítulo {shown} {title_pt.upper()}"
 
 
 def _caps_legacy_label(text: str) -> Tuple[str, int]:

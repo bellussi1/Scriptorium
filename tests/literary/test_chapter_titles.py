@@ -7,7 +7,12 @@ from pathlib import Path
 
 import pytest
 
-from src.literary.chapter_titles import apply_epub_edits, load_title_map, relabel_epub
+from src.literary.chapter_titles import (
+    apply_epub_edits,
+    chapter_label,
+    load_title_map,
+    relabel_epub,
+)
 
 ROOT = Path(__file__).resolve().parents[2]
 DEMON_MAP = ROOT / "literary-resources" / "christopher-ruocchio" / "sun-eater" / "chapter-titles" / "demon-in-white.yaml"
@@ -198,3 +203,34 @@ def test_kingdoms_of_death_title_map_is_complete() -> None:
     assert len(data["chapters"]) == 51, "the source EPUB has 51 chapter files"
     assert sorted(data["chapters"]) == list(range(1, 52))
     assert data["chapters"][51]["pt"] == "A Glória do Mundo"
+
+
+def test_chapter_label_defaults_to_arabic_numerals() -> None:
+    assert chapter_label(7, "Coração de Lobo") == "Capítulo 7 CORAÇÃO DE LOBO"
+
+
+@pytest.mark.parametrize(
+    ("number", "expected"),
+    [
+        (1, "I"),
+        (4, "IV"),
+        (9, "IX"),
+        (14, "XIV"),
+        (21, "XXI"),
+        (28, "XXVIII"),
+        (29, "XXIX"),
+        (40, "XL"),
+    ],
+)
+def test_chapter_label_roman_numerals(number: int, expected: str) -> None:
+    assert chapter_label(number, "Coração de Lobo", numeral="roman") == f"Capítulo {expected} CORAÇÃO DE LOBO"
+
+
+def test_chapter_label_rejects_unknown_numeral_style() -> None:
+    with pytest.raises(ValueError, match="numeral must be"):
+        chapter_label(7, "Coração de Lobo", numeral="letters")
+
+
+def test_chapter_label_rejects_zero_as_roman_numeral() -> None:
+    with pytest.raises(ValueError, match="start at 1"):
+        chapter_label(0, "Prólogo", numeral="roman")
