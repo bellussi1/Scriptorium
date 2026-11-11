@@ -4,7 +4,10 @@ from __future__ import annotations
 import zipfile
 from pathlib import Path
 
+import pytest
+
 from src.literary.per_file_audit import scan_book
+from src.literary.validation import glossary_target_present, target_present
 
 
 def _epub(path: Path, files: dict[str, str]) -> Path:
@@ -172,3 +175,71 @@ def test_clean_book_passes(tmp_path: Path):
     assert report["gate"]["passed"] is True
     assert report["totals"]["forbidden_hits"] == 0
     assert report["totals"]["glossary_coverage"] == 1.0
+
+
+def test_plural_of_a_glossary_target_is_a_glossary_hit(tmp_path: Path):
+    source = _epub(tmp_path / "source.epub", {"OEBPS/ch1.xhtml": "<p>The Legion marches.</p>"})
+    target = _epub(tmp_path / "target.epub", {"OEBPS/ch1.xhtml": "<p>As Legiões marcham.</p>"})
+
+    report = scan_book(source, target, [_term(source="Legion", target="Legião", forbidden=[])])
+
+    assert report["totals"]["glossary_pairs"] == 1
+    assert report["totals"]["glossary_hits"] == 1
+    assert report["offenders"]["glossary_missing"] == []
+    assert report["gate"]["passed"] is True
+
+
+def test_unrelated_word_is_still_a_glossary_miss(tmp_path: Path):
+    source = _epub(tmp_path / "source.epub", {"OEBPS/ch1.xhtml": "<p>The Legion marches.</p>"})
+    target = _epub(tmp_path / "target.epub", {"OEBPS/ch1.xhtml": "<p>A Legenda marcha.</p>"})
+
+    report = scan_book(source, target, [_term(source="Legion", target="Legião", forbidden=[])])
+
+    assert report["totals"]["glossary_hits"] == 0
+    assert [item["target"] for item in report["offenders"]["glossary_missing"]] == ["Legião"]
+    assert report["gate"]["passed"] is False
+
+
+def test_forbidden_form_is_still_flagged_next_to_an_inflected_target(tmp_path: Path):
+    source = _epub(tmp_path / "source.epub", {"OEBPS/ch1.xhtml": "<p>The Legion marches.</p>"})
+    target = _epub(
+        tmp_path / "target.epub",
+        {"OEBPS/ch1.xhtml": "<p>As Legiões marcham, e o Legion também.</p>"},
+    )
+
+    report = scan_book(source, target, [_term(source="Legion", target="Legião", forbidden=["Legion"])])
+
+    assert report["totals"]["glossary_hits"] == 1
+    assert report["totals"]["forbidden_hits"] == 1
+    assert report["gate"]["passed"] is False
+    assert any("forbidden" in reason for reason in report["gate"]["reasons"])
+
+
+@pytest.mark.parametrize(
+    ("target", "text"),
+    [
+        ("Legião", "as Legiões"),
+        ("Legião", "as Legiãos"),
+        ("Quieto", "Quietas"),
+        ("Imperador", "os Imperadores"),
+    ],
+)
+def test_audit_matcher_accepts_regular_inflections(target: str, text: str):
+    assert glossary_target_present(target, text)
+
+
+@pytest.mark.parametrize(
+    ("target", "text"),
+    [
+        ("Legião", "a Legenda"),
+        ("Legião", "os legionários"),
+        ("Legião Imperial", "as Legiões Imperiais"),
+    ],
+)
+def test_audit_matcher_still_rejects_unrelated_and_multi_word_forms(target: str, text: str):
+    assert not glossary_target_present(target, text)
+
+
+def test_translation_time_guard_is_not_loosened():
+    assert not target_present("Legião", "as Legiões")
+
