@@ -150,7 +150,9 @@ def _mirror_state(translation_id: str) -> Dict[str, Any]:
         if updated_at and (last_at is None or updated_at > last_at):
             last_at = updated_at
         last_value = last_at.isoformat(timespec="seconds") if last_at else None
-        if len(times) >= 2:
+        # File-level rows are not a chunk timeline; the watchdog computes a
+        # rolling chunk rate from its own samples and overrides this.
+        if file_type != "epub" and len(times) >= 2:
             span = (times[-1] - times[0]).total_seconds()
             if span > 0 and completed < total_chunks:
                 rate = (len(times) - 1) / span
@@ -443,6 +445,8 @@ def main() -> int:
         existing = {}
     live_health: Dict[str, Any] = {}
     live_checked = 0.0
+    rate_history: list[tuple[float, int]] = []
+    rate_key = ""
     last_audit: Dict[str, Any] = existing.get("last_audit") or {}
     last_audit_count = int(
         existing.get("audit_checkpoint_count")
@@ -463,6 +467,24 @@ def main() -> int:
             live_health = _live_health()
             live_checked = now
         payload = collect(args.stall_minutes, live_health)
+        if payload.get("active") and payload.get("checkpoint_count") is not None:
+            key = f"{payload.get('book_id')}:{payload.get('translation_id')}"
+            if key != rate_key:
+                rate_history = []
+                rate_key = key
+            rate_history.append((now, int(payload["checkpoint_count"])))
+            cutoff = now - 600
+            rate_history = [item for item in rate_history if item[0] >= cutoff]
+            if len(rate_history) >= 2:
+                first_t, first_count = rate_history[0]
+                last_t, last_count = rate_history[-1]
+                span = last_t - first_t
+                delta = last_count - first_count
+                total = int(payload.get("total_chunks") or 0)
+                if span >= 60 and delta > 0 and total > last_count:
+                    eta_seconds = int((total - last_count) * span / delta)
+                    payload["eta_seconds"] = eta_seconds
+                    payload["eta_human"] = _format_duration(eta_seconds)
         if not args.no_audit and payload.get("active"):
             count = int(payload.get("checkpoint_count") or 0)
             if count > 0 and count >= last_audit_count + max(1, args.audit_every):
