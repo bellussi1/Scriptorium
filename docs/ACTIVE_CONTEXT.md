@@ -173,6 +173,16 @@ before acting on anything below.
 - Still pending: the `literary_queue.db` single-writer/intent refactor (the
   app still writes on approve/retry/add/move/remove; the queue DB stays on the
   bind mount), watchdog auto-restart, and the destructive kill/restart tests.
+- **Terminology freeze (2026-11-11) is staged on branch
+  `glossary/terminology-freeze` (commit `acae484`), not on `main`.** It changes
+  `Imperium` to `policy: keep` (official: Imperium 32x, Império 107x) and adds
+  `datasphere -> esfera de dados`, `animalcule -> animalculo` and
+  `knight-tribune -> tribuna-cavaleira`, plus `docs/project/TERMINOLOGY.md` and
+  a regression test. Do **not** merge while Demon in White is running: the
+  final audit compares the snapshot compiled at book start with the current
+  YAML and would fail on glossary drift. Merge after Demon's audit; the next
+  book then compiles the frozen terms. Howling Dark and Demon keep "Império";
+  a later context-sensitive pass is possible but not scheduled.
 - Host resume asks the live DB through
   `python -m src.literary.cli queue checkpoint-status --id ... --reconcile`;
   the mirror is only a fallback. `JOBS_DB_PATH` is the default for
