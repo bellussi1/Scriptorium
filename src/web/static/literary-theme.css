@@ -397,8 +397,7 @@ h3,
 .form-group label,
 label,
 .queue-stat-label,
-.fixed-language-pair__label,
-.queue-now-eyebrow {
+.fixed-language-pair__label {
     text-transform: none;
     letter-spacing: 0;
     font-family: var(--font-ui);
@@ -672,67 +671,6 @@ label,
     line-height: 1.5;
 }
 
-.queue-now {
-    margin: 0 0 24px;
-    padding: 0 0 20px;
-    border: 0;
-    border-bottom: 1px solid var(--rule);
-    border-radius: 0;
-    background: transparent;
-}
-
-.queue-now-head {
-    margin-bottom: 6px;
-}
-
-.queue-now-eyebrow {
-    font-size: 12px;
-    font-weight: 500;
-    color: var(--muted);
-}
-
-.queue-now-title {
-    font-family: var(--font-display);
-    font-size: 26px;
-    font-weight: 500;
-    letter-spacing: -0.025em;
-    line-height: 1.15;
-}
-
-.queue-now-meta {
-    margin: 6px 0 12px;
-    font-size: 12px;
-    gap: 10px;
-}
-
-.queue-now-meta code {
-    font-size: 11px;
-    color: var(--muted);
-}
-
-.queue-now-progress-line {
-    font-size: 12px;
-}
-
-.queue-now-log {
-    margin-top: 10px;
-    font-size: 12px;
-}
-
-.queue-now-log code {
-    font-size: 11px;
-    color: var(--muted);
-}
-
-.queue-now-actions {
-    min-width: 170px;
-    gap: 6px;
-}
-
-.queue-now-btn {
-    justify-content: flex-start;
-}
-
 .queue-summary {
     display: flex;
     gap: 0;
@@ -878,50 +816,6 @@ label,
     font-size: 12px;
 }
 
-.queue-status {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 0;
-    border: 0 !important;
-    border-radius: 0;
-    background: transparent !important;
-    color: var(--muted) !important;
-    font-family: var(--font-ui);
-    font-size: 12px;
-    font-weight: 500;
-    white-space: nowrap;
-}
-
-.queue-status::before {
-    content: "";
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: currentColor;
-    flex: 0 0 6px;
-}
-
-.queue-status-translating,
-.queue-status-preparing {
-    color: var(--data-accent) !important;
-}
-
-.queue-status-completed {
-    color: var(--success-light) !important;
-}
-
-.queue-status-needs_review,
-.queue-status-paused,
-.queue-status-validating,
-.queue-status-reviewing {
-    color: var(--warning-light-text) !important;
-}
-
-.queue-status-failed {
-    color: var(--danger-light-text) !important;
-}
-
 /* The "Next" marker inverts with the theme: dark ink on paper in light mode,
    light ink on graphite in dark mode. The base queue.css pair (ink background
    plus hardcoded white text) became white-on-white once --primary-light
@@ -932,18 +826,6 @@ label,
     padding: 2px 7px;
     font-size: 10px;
     letter-spacing: 0.05em;
-}
-
-.queue-progress {
-    height: 4px;
-    max-width: 150px;
-    border-radius: 0;
-    background: var(--rule);
-}
-
-.queue-progress > span {
-    border-radius: 0;
-    background: var(--data-accent);
 }
 
 .queue-progress-text {
@@ -997,11 +879,6 @@ label,
 
 .queue-series-col {
     color: var(--muted);
-}
-
-.queue-now-empty {
-    color: var(--muted);
-    font-size: 13px;
 }
 
 /* ---------- Motion ---------- */
@@ -1108,20 +985,6 @@ label,
         font-size: 19px;
     }
 
-    .queue-now-title {
-        font-size: 22px;
-    }
-
-    .queue-now-body {
-        grid-template-columns: minmax(0, 1fr);
-    }
-
-    .queue-now-actions {
-        flex-direction: row;
-        flex-wrap: wrap;
-        min-width: 0;
-    }
-
     .queue-summary {
         display: grid;
         grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -1222,10 +1085,6 @@ label,
         align-items: center;
         justify-content: flex-end;
         gap: 2px;
-    }
-
-    .queue-table .queue-progress {
-        max-width: none;
     }
 
     .queue-table .queue-progress-text {
@@ -1494,13 +1353,6 @@ html.dark .queue-table tbody tr:hover {
     background: var(--danger-light);
 }
 
-.queue-now-meta > span + span::before,
-.queue-now-meta > span + code::before {
-    content: "·";
-    margin-right: 8px;
-    color: var(--rule-strong);
-}
-
 .queue-chip.active {
     background: var(--ink);
     border-color: var(--ink);
@@ -1759,10 +1611,6 @@ h4 {
 .card-header h2,
 .card-header h3 {
     font-size: 21px;
-}
-
-.queue-now-title {
-    font-size: 24px;
 }
 
 .queue-stat-value {
