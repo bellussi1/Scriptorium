@@ -41,7 +41,7 @@ before acting on anything below.
   04:04 UTC on the volume. It was paused at 04:23 to fix the EPUB count
   semantics and resumed at 04:30. The old file index made the resume restart at
   the title page, so it is redoing the front matter and early chapters; at
-  04:33 it was **20/1074**. That redo is a one-time cost of correcting the
+  04:43 it was **88/1074**. That redo is a one-time cost of correcting the
   checkpoint model, not a quality change. Supervisor PID 21444 is running; the
   watchdog PID 29356 writes `data/literary_queue.health.json` every 30 s.
 - **EPUB checkpoint semantics are now explicit.** `checkpoint_chunks` rows are
@@ -61,10 +61,21 @@ before acting on anything below.
   to `pending`.
 - `scripts/db_snapshot.py --label <book>` snapshots the live DB through the
   container and the queue DB through the SQLite backup API; both get a
-  quick_check and a manifest entry. A baseline `jobs-howling-dark-*` snapshot
+  quick_check and a manifest entry. A current `jobs-howling-dark-*` snapshot
   was written. The watchdog is monitor-only by default; `--terminate` exists
-  but is not enabled. The periodic 6 h scheduler and API/UI health fields are
-  still pending.
+  but is not enabled.
+- `src/persistence/recovery.py` checks the live DB before the state manager
+  opens it and promotes the newest healthy snapshot if it is corrupt; the bad
+  file is kept as `jobs-corrupt-<timestamp>.db`. This was tested on a corrupt
+  copy (refused, snapshot restored) and has two unit tests. The queue snapshot
+  now includes `health` and per-book `checkpoint_count`, `last_checkpoint_at`,
+  `process_alive`, `stalled`, `eta_human`, `db_integrity`; the hero shows the
+  stall and uses the health ETA. The API fields take effect on the next app
+  restart; the JS already falls back when they are absent.
+- Still pending: the `literary_queue.db` single-writer/intent refactor (the
+  app still writes on approve/retry/add/move/remove; the queue DB stays on the
+  bind mount), the intra-run audit and glossary hash, the 6 h snapshot
+  scheduler, watchdog auto-restart, and the destructive kill/restart tests.
 - Host resume asks the live DB through
   `python -m src.literary.cli queue checkpoint-status --id ... --reconcile`;
   the mirror is only a fallback. `JOBS_DB_PATH` is the default for
