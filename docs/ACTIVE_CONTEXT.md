@@ -172,6 +172,13 @@ the quality reference, not the active model. Haiku is the paid fallback only if
 cloud is explicitly funded again. Malazan and the other series wait for their
 own resource pass.
 
+No new local screening round is planned. Index stays the default and Hy-MT2 Q4
+the fallback. Qwen3.5-9B is a generalist; public translation/instruction-following
+scores are far below Index. TranslateGemma-4B has a 2K-token input and a fixed
+chat template, so it cannot carry the glossary/style prompt. The public numbers
+are vendor-run and sentence-level; our Sun Eater/Farseer runs are the operative
+evidence.
+
 ## Next decision
 
 Howling Dark is running on Index. When it stops at the review gate:
