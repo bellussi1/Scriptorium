@@ -277,13 +277,43 @@ function renderDistribution(summary, running) {
     host.classList.remove('hidden');
 }
 
+function ensureTranslateContainer() {
+    let container = byId('translateQueueNow');
+    if (container) return container;
+    const tab = byId('tab-translate');
+    if (!tab) return null;
+    container = document.createElement('div');
+    container.id = 'translateQueueNow';
+    container.className = 'queue-now hidden';
+    container.setAttribute('aria-live', 'polite');
+    const progress = byId('progressSection');
+    if (progress && progress.parentElement) {
+        progress.parentElement.insertBefore(container, progress);
+    } else {
+        const host = tab.querySelector('.main-card .card-body') || tab.querySelector('.main-card') || tab;
+        host.appendChild(container);
+    }
+    return container;
+}
+
+function ensureGlobalQualityDrawer() {
+    const drawer = byId('queueQualityDrawer');
+    if (!drawer) return;
+    const queueTab = byId('tab-queue');
+    if (queueTab && queueTab.contains(drawer)) {
+        document.body.appendChild(drawer);
+    }
+}
+
 function renderNow(data) {
     const container = byId('queueNow');
     if (!container) return;
+    const translateContainer = ensureTranslateContainer();
     const books = Array.isArray(data.books) ? data.books : [];
     const active = books.find((book) => RUNNING_STATES.has(statusKey(book)) || book.live);
+    const review = books.find((book) => statusKey(book) === 'needs_review');
     const next = books.find((book) => statusKey(book) === 'pending');
-    const book = active || next;
+    const book = active || review || next;
     if (!book) {
         container.innerHTML = `<div class="queue-now-empty">${escapeHtml(t('queue:now_idle'))}</div>`;
         container.classList.remove('hidden');
@@ -400,13 +430,55 @@ function renderNow(data) {
         </div>
     `;
     container.classList.remove('hidden');
-    if (isActive && book.id) loadNowLog(book.id);
+    if (translateContainer) {
+        if (!isActive && state !== 'needs_review') {
+            translateContainer.classList.add('hidden');
+            translateContainer.innerHTML = '';
+        } else {
+            const translateLogLine = `
+                <div class="queue-now-log" id="translateQueueNowLog">
+                    <span class="queue-muted">${escapeHtml(t('queue:now_last_log'))}:</span>
+                    <code id="translateQueueNowLogLine">—</code>
+                </div>
+            `;
+            translateContainer.innerHTML = `
+                <div class="queue-now-head">
+                    <span class="queue-now-eyebrow">${escapeHtml(t('queue:now_title'))}</span>
+                    <span class="queue-status queue-status-${escapeHtml(state)}">${escapeHtml(nowStatusLabel)}</span>
+                </div>
+                <div class="queue-now-body">
+                    <div class="queue-now-main">
+                        <div class="queue-now-title">${escapeHtml(book.title)}</div>
+                        <div class="queue-now-meta">
+                            ${series ? `<span>${series}</span>` : ''}
+                            <span>${escapeHtml(modelLabel(book))}</span>
+                            ${book.translation_id ? `<code>${escapeHtml(book.translation_id)}</code>` : ''}
+                        </div>
+                        ${progress}
+                        ${translateLogLine}
+                    </div>
+                    <div class="queue-now-actions">
+                        <button type="button" class="btn btn-secondary queue-now-btn" data-now-log="${book.id}">
+                            <span class="material-symbols-outlined" aria-hidden="true">article</span>
+                            ${escapeHtml(t('queue:now_view_log'))}
+                        </button>
+                    </div>
+                </div>
+                <details class="translate-queue-log" open>
+                    <summary>${escapeHtml(t('common:activity_log'))}</summary>
+                    <pre id="translateQueueLog" class="queue-quality-log"></pre>
+                </details>
+            `;
+            translateContainer.classList.remove('hidden');
+        }
+    }
+    if ((isActive || state === 'needs_review') && book.id) loadNowLog(book.id);
 }
 
 async function loadNowLog(bookId) {
     const requestId = ++logPreviewRequest;
     try {
-        const response = await fetch(`${ADD_URL}/${bookId}/log?lines=1`, {
+        const response = await fetch(`${ADD_URL}/${bookId}/log?lines=30`, {
             headers: apiHeaders(),
             cache: 'no-store',
         });
@@ -414,8 +486,15 @@ async function loadNowLog(bookId) {
         const payload = await response.json();
         const lines = Array.isArray(payload.lines) ? payload.lines : [];
         if (requestId !== logPreviewRequest) return;
+        const value = lines.length ? lines[lines.length - 1] : t('queue:log_empty');
         const target = byId('queueNowLogLine');
-        if (target) target.textContent = lines.length ? lines[lines.length - 1] : t('queue:log_empty');
+        if (target) target.textContent = value;
+        const translateTarget = byId('translateQueueNowLogLine');
+        if (translateTarget) translateTarget.textContent = value;
+        const translateLog = byId('translateQueueLog');
+        if (translateLog) {
+            translateLog.textContent = lines.length ? lines.join('\n') : t('queue:log_empty');
+        }
     } catch (error) {
         // A missing log must not break the queue view.
     }
@@ -1414,6 +1493,7 @@ async function moveBook(bookId, direction) {
 }
 
 function initialize() {
+    ensureGlobalQualityDrawer();
     const button = byId('queueRefreshBtn');
     if (button) button.addEventListener('click', refresh);
 
@@ -1458,41 +1538,41 @@ function initialize() {
     const kindleZip = byId('queueKindleZipBtn');
     if (kindleZip) kindleZip.addEventListener('click', downloadKindleZip);
 
-    const now = byId('queueNow');
-    if (now) {
-        now.addEventListener('click', (event) => {
-            const log = event.target.closest('[data-now-log]');
-            if (log) {
-                openQuality(Number(log.dataset.nowLog));
-                return;
-            }
-            const download = event.target.closest('[data-now-download]');
-            if (download) {
-                downloadArtifact(
-                    Number(download.dataset.nowDownload),
-                    download.dataset.nowDownloadName || ''
-                );
-                return;
-            }
-            const approve = event.target.closest('[data-now-approve]');
-            if (approve) {
-                approveBook(Number(approve.dataset.nowApprove));
-                return;
-            }
-            const pause = event.target.closest('[data-now-pause]');
-            if (pause) {
-                pauseNow(Number(pause.dataset.nowPause));
-                return;
-            }
-            const retry = event.target.closest('[data-now-retry]');
-            if (retry) {
-                retryBook(Number(retry.dataset.nowRetry));
-                return;
-            }
-            const remove = event.target.closest('[data-now-remove]');
-            if (remove) removeBook(Number(remove.dataset.nowRemove));
-        });
-    }
+    const handleNowClick = (event) => {
+        const log = event.target.closest('[data-now-log]');
+        if (log) {
+            openQuality(Number(log.dataset.nowLog));
+            return;
+        }
+        const download = event.target.closest('[data-now-download]');
+        if (download) {
+            downloadArtifact(
+                Number(download.dataset.nowDownload),
+                download.dataset.nowDownloadName || ''
+            );
+            return;
+        }
+        const approve = event.target.closest('[data-now-approve]');
+        if (approve) {
+            approveBook(Number(approve.dataset.nowApprove));
+            return;
+        }
+        const pause = event.target.closest('[data-now-pause]');
+        if (pause) {
+            pauseNow(Number(pause.dataset.nowPause));
+            return;
+        }
+        const retry = event.target.closest('[data-now-retry]');
+        if (retry) {
+            retryBook(Number(retry.dataset.nowRetry));
+            return;
+        }
+        const remove = event.target.closest('[data-now-remove]');
+        if (remove) removeBook(Number(remove.dataset.nowRemove));
+    };
+    // Use delegation so the Translate-tab mirror works even when it is
+    // inserted dynamically into an older cached template.
+    document.addEventListener('click', handleNowClick);
 
     const table = byId('queueTableBody');
     if (table) {
@@ -1598,8 +1678,11 @@ function initialize() {
 
     if (refreshTimer) clearInterval(refreshTimer);
     refreshTimer = setInterval(() => {
-        const tab = byId('tab-queue');
-        if (!tab || tab.classList.contains('hidden')) return;
+        const queueTab = byId('tab-queue');
+        const translateTab = byId('tab-translate');
+        const queueVisible = queueTab && !queueTab.classList.contains('hidden');
+        const translateVisible = translateTab && !translateTab.classList.contains('hidden');
+        if (!queueVisible && !translateVisible) return;
         if (document.visibilityState !== 'visible') return;
         refresh();
     }, REFRESH_MS);
@@ -1607,9 +1690,15 @@ function initialize() {
 
     // If the user opened the Queue tab before the app finished booting, the
     // switchTopTab callback ran too early.  Load it now that the module is ready.
+    // The Translate tab also mirrors the active queue book, so refresh it on
+    // boot without loading the queue library/model lists.
     const tab = byId('tab-queue');
     if (tab && !tab.classList.contains('hidden')) {
         open();
+    } else {
+        // The Translate tab mirrors the active queue book, so load the
+        // snapshot on boot even when the Queue tab has not been opened yet.
+        refresh();
     }
 }
 

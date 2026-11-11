@@ -561,6 +561,10 @@
                      surfaced during translation. Each alert is a dismissible card. -->
                 <div id="translationAlerts"></div>
 
+                <!-- Active queue book, mirrored from the Queue tab so the Translate
+                     tab shows the running book, progress and last log line. -->
+                <div id="translateQueueNow" class="queue-now hidden" aria-live="polite"></div>
+
                 <!-- Progress Section -->
                 <div id="progressSection" class="progress-section hidden">
                     <h3 id="currentFileProgressTitle">
@@ -1624,18 +1628,19 @@
             </div>
 
 
-            <div id="queueQualityDrawer" class="queue-drawer-overlay hidden"
-                 role="dialog" aria-modal="true" aria-labelledby="queueQualityTitle">
-                <div class="queue-drawer">
-                    <div class="modal-header">
-                        <h3 id="queueQualityTitle" data-i18n="queue:quality_title">Book quality</h3>
-                        <button type="button" class="close-btn" id="queueQualityClose"
-                                data-i18n-attr="aria-label:common:close" aria-label="Close">&times;</button>
-                    </div>
-                    <div id="queueQualityBody" class="queue-drawer-body"></div>
-                </div>
-            </div>
         </div><!-- /#tab-queue -->
+
+        <div id="queueQualityDrawer" class="queue-drawer-overlay hidden"
+             role="dialog" aria-modal="true" aria-labelledby="queueQualityTitle">
+            <div class="queue-drawer">
+                <div class="modal-header">
+                    <h3 id="queueQualityTitle" data-i18n="queue:quality_title">Book quality</h3>
+                    <button type="button" class="close-btn" id="queueQualityClose"
+                            data-i18n-attr="aria-label:common:close" aria-label="Close">&times;</button>
+                </div>
+                <div id="queueQualityBody" class="queue-drawer-body"></div>
+            </div>
+        </div>
 
         <!-- Tab: Styles -->
         <div id="tab-styles" class="hidden">

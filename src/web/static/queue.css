@@ -907,3 +907,21 @@
         display: none;
     }
 }
+
+.translate-queue-log {
+    margin-top: 10px;
+    padding-top: 8px;
+    border-top: 1px solid var(--border-light);
+}
+
+.translate-queue-log summary {
+    cursor: pointer;
+    color: var(--text-muted-light);
+    font-size: 0.78rem;
+    font-weight: 600;
+    list-style-position: inside;
+}
+
+.translate-queue-log .queue-quality-log {
+    margin: 8px 0 0;
+}

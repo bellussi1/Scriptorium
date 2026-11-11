@@ -18,14 +18,22 @@ before acting on anything below.
 
 ## Runtime
 
-- Queue agent: online, fresh heartbeat, **runner active**.
+- Queue agent: **runner active**, but the last heartbeat and the translation log
+  are from **23:14 UTC**. At 00:52 UTC the job was still at **321/1074
+  chunks**, the GPU was at 95% and the model was 100% in VRAM. This is either a
+  long generation/retry or a stall; the new Translate-tab panel exposes it.
 - **Howling Dark** is translating with Index-Translate 9B, job 19,
-  `cli_c6f4be29`, **200/1074 chunks** at 22:50 UTC. Started 22:11:59;
-  ~5.3 chunks/min, ETA roughly 2.8 h.
+  `cli_c6f4be29`. If it does not advance, pause-now and resume from the saved
+  checkpoint; do not delete the partial.
 - One pass, refinement disabled (`--refine-limit 0`). This is the first Index
   book at production chunk size; use the measured rate for the next books.
 - Main app on `:5000`, preview on `:5001`. The app container was restarted at
   22:11 UTC to clear the `jobs.db` disk I/O error.
+- The Translate tab now mirrors the active queue book: title, progress, ETA,
+  last log line and a 30-line activity log. The panel is created dynamically so
+  it works with the cached template and does not stop the translation. The
+  quality/log drawer was moved to the document body so it opens from either
+  tab. The static template also carries the panel for the next restart.
 
 ## Translation state
 
