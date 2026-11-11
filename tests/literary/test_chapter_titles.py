@@ -11,6 +11,7 @@ from src.literary.chapter_titles import apply_epub_edits, load_title_map
 
 ROOT = Path(__file__).resolve().parents[2]
 DEMON_MAP = ROOT / "literary-resources" / "christopher-ruocchio" / "sun-eater" / "chapter-titles" / "demon-in-white.yaml"
+KINGDOMS_MAP = ROOT / "literary-resources" / "christopher-ruocchio" / "sun-eater" / "chapter-titles" / "kingdoms-of-death.yaml"
 
 NAV = (
     '<html xmlns:epub="http://www.idpf.org/2007/ops"><body>'
@@ -163,3 +164,14 @@ def test_demon_in_white_title_map_is_complete() -> None:
     assert data["series_index"] == 3.0
     assert sorted(data["chapters"]) == list(range(1, 88))
     assert data["chapters"][66]["pt"] == "Império do Silêncio"
+
+
+def test_kingdoms_of_death_title_map_is_complete() -> None:
+    data = load_title_map(KINGDOMS_MAP)
+
+    assert data["book"] == "Kingdoms of Death"
+    assert data["series"] == "The Sun Eater"
+    assert data["series_index"] == 4.0
+    assert len(data["chapters"]) == 51, "the source EPUB has 51 chapter files"
+    assert sorted(data["chapters"]) == list(range(1, 52))
+    assert data["chapters"][51]["pt"] == "A Glória do Mundo"
