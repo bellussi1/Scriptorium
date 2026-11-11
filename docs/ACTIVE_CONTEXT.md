@@ -42,7 +42,7 @@ before acting on anything below.
   semantics and resumed at 04:30. The old file index made the resume restart at
   the title page, so it is redoing the front matter and early chapters; at
   06:03 it was **392/1074**. That redo is a one-time cost of correcting the
-  checkpoint model, not a quality change. Supervisor PID 28608 is running; the
+  checkpoint model, not a quality change. Supervisor PID 15564 is running; the
   watchdog PID 25488 writes `data/literary_queue.health.json` every 30 s.
 - The 05:52 app restart loaded the health/auto-restore/template and exposed a
   CLI resume bug: `translate.py` did not pass the checkpoint resume index to
@@ -57,6 +57,12 @@ before acting on anything below.
 - The watchdog ETA for EPUB now comes from its own 10-minute rolling chunk
   rate; the file-level checkpoint rows are not a chunk timeline. The hero
   health chips (process/checkpoint/DB/audit) are active after the app restart.
+- The overnight supervisor (`auto_queue.py`, PID 15564 after the 06:27 restart)
+  now has two bounded safety nets before it blocks: a crashed book with a
+  `translation_id` is retried once from its checkpoint, and a final audit whose
+  only failure is a forbidden rendering is repaired with the compiled glossary
+  target (whole-word rewrite, backup kept, EPUBCheck must stay clean) and
+  re-audited. Anything else still blocks for human review.
 - **EPUB checkpoint semantics are now explicit.** `checkpoint_chunks` rows are
   **files**, not chunks, for EPUB; the per-file `xhtml_states` carry the chunk
   progress. The global completed count stays in the progress JSON and is
