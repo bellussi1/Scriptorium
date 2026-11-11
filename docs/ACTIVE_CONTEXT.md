@@ -63,6 +63,35 @@ before acting on anything below.
   only failure is a forbidden rendering is repaired with the compiled glossary
   target (whole-word rewrite, backup kept, EPUBCheck must stay clean) and
   re-audited. Anything else still blocks for human review.
+- **Howling Dark finished translating at 09:09 UTC** (1074/1074 chunks, 94
+  files, 2 h 11 m), then the source-aware refine ran for about four hours and
+  the reader repair was accepted (merged 56 seams, 3,878 dialogue quotes, 801
+  splits). The final artifact is
+  `translated_files/Howling Dark (pt-BR).refined.epub`: EPUBCheck **0/0/0**,
+  `validate epub` passed with one expected `spine_extra` warning (attribution
+  page), TOC labels localized (`Capa`, `Sumário`, `Capítulo 1: A Companhia
+  Vermelha` … `Capítulo 80`, `Léxico`), `docTitle` and NCX uid aligned,
+  `dc:language` and package `xml:lang` both `pt-BR`. A backup of the file
+  before the manual case fix is `.pre-casefix.epub`.
+- **The final audit blocks the book.** Deterministic gates pass: coverage
+  0.9935 (153/154), zero forbidden renderings after fixing the all-caps
+  `CHANTRY` on the dropcap of chapter 76, pt-PT 24.7/100k, leakage 0.0002,
+  repetition 0, length ratio 1.0046, queue gate and EPUBCheck clean. The
+  aligned cloud audit (`data/audits/howling-dark-verify-20261111T093932Z/`)
+  scores fidelity 4.286, naturalness 3.714, terminology 3.857, register 3.857,
+  prose **3.571**, tense 0, gender 0, but **3 meaning notes**; the documented
+  gate allows at most one. The notes are minor (a lost idiom in "wave the fleet
+  above", an unnatural "ragdolled puddle", a partial omission of "nor did any
+  know"), but the gate is blocking. The book stays in `needs_review`; it was
+  not auto-approved and Demon in White was not started. A visual pass also
+  caught `TIVAMOS NOSSO CARON` in chapter 24 (should be `TÍNHAMOS NOSSO
+  CARONTE`), a model defect the sample missed; it was fixed in place as a
+  two-word typo correction (`CARONTE` was already the form used in the same
+  chapter) and EPUBCheck stayed 0/0/0. The audit report predates that correction
+  and still shows the pre-fix text; the deterministic metrics are unaffected.
+- The audit sampler now aligns paragraphs by word-count signature (1:1, 1:2 and
+  2:1 blocks) instead of the raw index; before the fix three of seven samples
+  compared different scenes and were unscored.
 - **EPUB checkpoint semantics are now explicit.** `checkpoint_chunks` rows are
   **files**, not chunks, for EPUB; the per-file `xhtml_states` carry the chunk
   progress. The global completed count stays in the progress JSON and is
@@ -250,20 +279,23 @@ Expert report: `docs/project/reviews/sun-eater-model-selection-2026-11-10.md`.
 
 ## 24/7 auto gate (owner-authorized 2026-11-10)
 
-- `scripts/auto_queue.py` (pid 40576) waits for Howling Dark. At the gate it
-  runs `scripts/audit_book.py`; on a full pass it approves, exports Kindle and
-  starts the next pending book. Any failure stops and leaves `needs_review`.
+- `scripts/auto_queue.py` (PID 15564 before the Howling Dark gate) waits for a
+  book, runs `scripts/audit_book.py` at `needs_review`, approves only on a full
+  pass, exports Kindle and starts the next pending book. Any failure stops and
+  leaves `needs_review`. It is **stopped/blocked** after the Howling Dark audit;
+  start it again after the review decision.
 - Gates: queue validation/EPUBCheck; glossary coverage >= 0.90 and zero
   forbidden renderings; pt-PT <= 50 per 100k; English leakage <= 0.01;
   repetition <= 0.05; length ratio 0.80-1.20; Haiku sample audit with
-  fidelity/naturalness >= 3.5 and at most one meaning error.
+  fidelity/naturalness/prose >= 3.5 and at most one meaning error.
 - Caps: **US$ 0.05 per book**, **US$ 0.50 total**; model `claude-haiku-5-5`
   with thinking disabled. Audit rows use `stage: auto-audit` in the ledger.
-- Calibration on the archived Hy-MT2 Howling Dark: coverage 0.977; it fails
-  only on the forbidden `Chantry` (the old output uses Chantry instead of
-  Chantria). The Extrasolarian change is recorded as glossary drift and
-  excluded from the hard gate because the run saw the old target. Cloud test:
-  six meaning errors, cost US$ 0.0008.
+- Howling Dark gate result (2026-11-11): all deterministic gates pass; cloud
+  audit prose 3.571, fidelity 4.286, naturalness 3.714, tense 0, gender 0,
+  meaning **3** -> fails the one-error gate. Report:
+  `data/audits/howling-dark-verify-20261111T093932Z/audit.md`. Decision: leave
+  the book in `needs_review`; no auto-approval. The supervisor was not restarted
+  after the block.
 - Reports: `data/audits/<book>-<timestamp>/audit.md`; supervisor status:
   `data/literary_queue.auto.json`.
 
