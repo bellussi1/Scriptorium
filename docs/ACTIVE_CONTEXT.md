@@ -92,6 +92,11 @@ before acting on anything below.
 - The audit sampler now aligns paragraphs by word-count signature (1:1, 1:2 and
   2:1 blocks) instead of the raw index; before the fix three of seven samples
   compared different scenes and were unscored.
+- **Demon in White is translating** (book 8, job 23, translation
+  `cli_d5687b57`, started 09:50 UTC). The pipeline is free because Howling Dark
+  finished; the review decision on Howling Dark does not block it. The
+  supervisor is stopped, so Demon will stop at its own `needs_review` without
+  an automatic audit until it is restarted or audited manually.
 - **EPUB checkpoint semantics are now explicit.** `checkpoint_chunks` rows are
   **files**, not chunks, for EPUB; the per-file `xhtml_states` carry the chunk
   progress. The global completed count stays in the progress JSON and is
