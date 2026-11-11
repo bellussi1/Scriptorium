@@ -11,6 +11,7 @@ before acting on anything below.
 
 Entries below this section are historical. Where they conflict, this section wins.
 
+- **Kingdoms fallbacks (2026-11-11)**: branch `claude/friendly-elion-fdd7f5`, four commits, not pushed or merged. The "LLM API request failed" lines were extraction failures, not API errors; the placeholder fallbacks were 4 in 351 chunks, all in the first 63. Fallbacks now carry reason and attempts (`epub_fallback_units`); `queue retranslate-fallbacks --book-id N` lists them, `--apply` re-translates them. Job 24 runs the old code and has no reason index. Note: `docs/project/reviews/kingdoms-run-fallbacks-2026-11-11.md`.
 - **Kingdoms of Death** (book 11, job 24, translation `cli_bb4e0e4f`) is
   translating on Index-Translate 9B through `queue run --book-id 11
   --parallel 1`. It started 17:23 local, 862 chunks, and stops at
