@@ -84,6 +84,7 @@ must stay in sync between `pt-BR` and `en`; `pt-BR` is the default.
 
 - `pytest` for the Python suite; the i18n suite must stay green when locale keys
   change.
+- Lint: `venv\Scripts\python.exe -m ruff check .` (config in `ruff.toml`); the baseline of existing findings is in `docs/project/reviews/`.
 - Any change to EPUB generation or repair ends with EPUBCheck and a look at the
   resulting file in the reader.
 - Report the commands you ran and their real result. Do not claim a check you
