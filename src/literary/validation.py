@@ -194,6 +194,46 @@ def target_present(expected: str, text: str) -> bool:
     return False
 
 
+_VOWEL_END_RE = re.compile(r"[aeiouáéíóúâêôãõà]$", re.IGNORECASE)
+_SINGLE_WORD_RE = re.compile(r"[^\W\d_]+")
+
+
+def _inflected_forms(term: str) -> set[str]:
+    """Regular plural and gender forms of a single-word glossary target.
+
+    ``-ão`` nouns take ``-ões`` and ``-ãos``; other vowel endings take ``-s``;
+    consonant endings take ``-es``; a final ``o``/``a`` also yields the other
+    gender, each with its plural.
+    """
+    if term.casefold().endswith("ão"):
+        base = term[:-2]
+        return {base + "ões", base + "ãos"}
+    forms = {term + ("s" if _VOWEL_END_RE.search(term) else "es")}
+    if term[-1].casefold() in {"o", "a"}:
+        stem = term[:-1]
+        forms |= {stem + "o", stem + "a", stem + "os", stem + "as"}
+    return forms
+
+
+def glossary_target_present(expected: str, text: str) -> bool:
+    """Audit-side glossary check: ``target_present`` plus regular inflections.
+
+    A single-word target also matches its plural and gender forms as whole
+    words, so ``Legião`` is found in ``Legiões``. Multi-word targets keep the
+    full-phrase rule. Translation-time guards keep ``target_present``; only the
+    audit's coverage measure uses this function.
+    """
+    expected = (expected or "").strip()
+    if target_present(expected, text):
+        return True
+    if len(expected) < 4 or not _SINGLE_WORD_RE.fullmatch(expected):
+        return False
+    alternatives = "|".join(
+        re.escape(form) for form in sorted(_inflected_forms(expected))
+    )
+    return re.search(rf"\b(?:{alternatives})\b", text or "", re.IGNORECASE) is not None
+
+
 def numbers_compatible(source: Counter, target: Counter) -> bool:
     """Treat common compound-number renderings as equivalent.
 
