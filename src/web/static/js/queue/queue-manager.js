@@ -206,6 +206,15 @@ function stateLabel(book) {
     return t(`queue:${STATUS_KEYS[key] || 'status_unknown'}`);
 }
 
+function nowEyebrow(book, isActive) {
+    if (isActive) return t('queue:now_title');
+    const key = statusKey(book);
+    if (key === 'needs_review') return t('queue:now_review');
+    if (key === 'failed') return t('queue:now_attention');
+    if (key === 'paused') return t('queue:now_paused');
+    return t('queue:now_next');
+}
+
 function statusLabel(book) {
     const key = statusKey(book);
     return t(`queue:${STATUS_KEYS[key] || 'status_unknown'}`);
@@ -369,7 +378,10 @@ function ensureGlobalQualityDrawer() {
 
 function renderTranslateHero(container, book, ctx) {
     if (!container) return;
-    if (!ctx.isActive && ctx.state !== 'needs_review') {
+    const attention = ctx.state === 'needs_review'
+        || ctx.state === 'failed'
+        || ctx.state === 'paused';
+    if (!ctx.isActive && !attention) {
         container.classList.add('hidden');
         container.innerHTML = '';
         return;
@@ -381,6 +393,9 @@ function renderTranslateHero(container, book, ctx) {
     const stalled = ctx.isActive && idleMs > 5 * 60 * 1000;
     const rate = rollingRate(book) || averageRate(book);
     const rateLabel = formatRate(rate);
+    // A failed or paused job has no live rate; the historical average would
+    // imply progress that is not happening.
+    const showRate = ctx.isActive || ctx.state === 'completed' || ctx.state === 'needs_review';
     const currentLabel = formatNumber(ctx.current);
     const totalLabel = formatNumber(ctx.total);
     const started = formatStarted(book.job_created_at);
@@ -412,7 +427,11 @@ function renderTranslateHero(container, book, ctx) {
             </button>
         `);
     }
-    if (book.artifact) {
+    // A failed or paused book can still have an old artifact on disk. Offering
+    // "Download EPUB" there would look like the failed run produced a book.
+    const canDownload = book.artifact
+        && (ctx.state === 'completed' || ctx.state === 'needs_review');
+    if (canDownload) {
         actions.push(`
             <button type="button" class="btn btn-secondary translate-hero__btn"
                     data-now-download="${book.id}"
@@ -445,7 +464,7 @@ function renderTranslateHero(container, book, ctx) {
     container.innerHTML = `
         <div class="translate-hero__top">
             <div class="translate-hero__identity">
-                <p class="translate-hero__eyebrow">${escapeHtml(ctx.isActive ? t('queue:now_title') : t('queue:now_next'))}</p>
+                <p class="translate-hero__eyebrow">${escapeHtml(nowEyebrow(book, ctx.isActive))}</p>
                 <h2 class="translate-hero__title">${escapeHtml(book.title)}</h2>
                 <p class="translate-hero__meta">
                     ${ctx.series ? `<span>${ctx.series}</span>` : ''}
@@ -475,7 +494,7 @@ function renderTranslateHero(container, book, ctx) {
             </div>
             <div class="translate-hero__stat">
                 <span class="translate-hero__stat-label">${escapeHtml(t('queue:now_rate_label'))}</span>
-                <strong class="translate-hero__stat-value">${escapeHtml(rateLabel ? t('queue:now_rate_value', { rate: rateLabel }) : t('queue:now_value_unknown'))}</strong>
+                <strong class="translate-hero__stat-value">${escapeHtml(showRate && rateLabel ? t('queue:now_rate_value', { rate: rateLabel }) : t('queue:now_value_unknown'))}</strong>
             </div>
             <div class="translate-hero__stat">
                 <span class="translate-hero__stat-label">${escapeHtml(t('queue:now_started_label'))}</span>
@@ -506,8 +525,12 @@ function renderNow(data) {
     const books = Array.isArray(data.books) ? data.books : [];
     const active = books.find((book) => RUNNING_STATES.has(statusKey(book)) || book.live);
     const review = books.find((book) => statusKey(book) === 'needs_review');
+    // A failed or paused book is more important than the next pending one:
+    // showing "Next up: Demon in White" while Howling Dark failed hides the
+    // state the user needs to act on.
+    const retryable = books.find((book) => ['failed', 'paused'].includes(statusKey(book)));
     const next = books.find((book) => statusKey(book) === 'pending');
-    const book = active || review || next;
+    const book = active || review || retryable || next;
     if (!book) {
         container.innerHTML = `<div class="queue-now-empty">${escapeHtml(t('queue:now_idle'))}</div>`;
         container.classList.remove('hidden');
@@ -564,7 +587,7 @@ function renderNow(data) {
             </button>
         `);
     }
-    if (book.artifact) {
+    if (book.artifact && (state === 'completed' || state === 'needs_review')) {
         buttons.push(`
             <button type="button" class="btn btn-secondary queue-now-btn"
                     data-now-download="${book.id}"
@@ -609,7 +632,7 @@ function renderNow(data) {
     }
     container.innerHTML = `
         <div class="queue-now-head">
-            <span class="queue-now-eyebrow">${escapeHtml(isActive ? t('queue:now_title') : t('queue:now_next'))}</span>
+            <span class="queue-now-eyebrow">${escapeHtml(nowEyebrow(book, isActive))}</span>
             <span class="queue-status queue-status-${escapeHtml(state)}">${escapeHtml(nowStatusLabel)}</span>
         </div>
         <div class="queue-now-body">
@@ -639,7 +662,7 @@ function renderNow(data) {
         series,
         showError,
     });
-    if ((isActive || state === 'needs_review') && book.id) loadNowLog(book.id);
+    if ((isActive || RETRY_STATES.has(state)) && book.id) loadNowLog(book.id);
 }
 
 async function loadNowLog(bookId) {
@@ -677,7 +700,7 @@ async function loadNowLog(bookId) {
 
 function actionButtons(book, isFirst, isLast) {
     const buttons = [];
-    if (book.artifact) {
+    if (book.artifact && ['completed', 'needs_review'].includes(statusKey(book))) {
         const downloadLabel = escapeHtml(t('queue:download'));
         const qualityLabel = escapeHtml(t('queue:quality_open'));
         buttons.push(`
