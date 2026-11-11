@@ -260,6 +260,25 @@ def build_library_inventory(db_path: str | Path) -> Dict[str, Any]:
 
 def build_queue_snapshot(db_path: str | Path) -> Dict[str, Any]:
     path = Path(db_path)
+    health: Dict[str, Any] = {}
+    health_path = Path(os.getenv(
+        "QUEUE_HEALTH_PATH",
+        str(path.with_name("literary_queue.health.json")),
+    ))
+    try:
+        payload = json.loads(health_path.read_text(encoding="utf-8"))
+        if isinstance(payload, dict):
+            health = payload
+    except (OSError, json.JSONDecodeError):
+        health = {}
+    health_fresh = False
+    if health.get("timestamp"):
+        try:
+            stamp = datetime.fromisoformat(str(health["timestamp"]))
+            health_fresh = (datetime.now(timezone.utc) - stamp).total_seconds() < 120
+        except ValueError:
+            health_fresh = False
+
     if not path.exists():
         return {
             "status": "empty",
@@ -270,6 +289,7 @@ def build_queue_snapshot(db_path: str | Path) -> Dict[str, Any]:
             "agent": read_agent_status(path),
             "runner": read_runner_info(path),
             "run_request": read_run_request(path),
+            "health": health,
         }
 
     conn = sqlite3.connect(f"file:{path.resolve().as_posix()}?mode=ro", uri=True)
@@ -351,6 +371,26 @@ def build_queue_snapshot(db_path: str | Path) -> Dict[str, Any]:
         if state == "paused" and paused_now_id == book["id"]:
             book["live"] = False
             book["paused_by_user"] = True
+        # The watchdog health is the real process/checkpoint truth. Use it only
+        # while it is fresh; a dead watchdog must not make the UI stale-live.
+        if health_fresh and health.get("book_id") == book["id"]:
+            book["checkpoint_count"] = health.get("checkpoint_count")
+            book["checkpoint_files"] = health.get("chunk_rows")
+            book["last_checkpoint_at"] = health.get("last_checkpoint_at")
+            book["last_checkpoint_age_seconds"] = health.get("last_checkpoint_age_seconds")
+            book["process_alive"] = health.get("process_alive")
+            book["stalled"] = bool(health.get("stalled"))
+            book["eta_seconds"] = health.get("eta_seconds")
+            book["eta_human"] = health.get("eta_human")
+            live_db = health.get("live_db") or {}
+            book["db_integrity"] = live_db.get("integrity")
+            book["journal_mode"] = live_db.get("journal_mode")
+            if health.get("checkpoint_count") is not None:
+                book["current_chapter"] = int(health["checkpoint_count"])
+            if health.get("process_alive") is False or health.get("stalled"):
+                book["live"] = False
+            else:
+                book["live"] = True
         if state == "pending":
             position += 1
             book["position"] = position
@@ -373,6 +413,7 @@ def build_queue_snapshot(db_path: str | Path) -> Dict[str, Any]:
         "agent": read_agent_status(path),
         "runner": read_runner_info(path),
         "run_request": read_run_request(path),
+        "health": health,
     }
 
 

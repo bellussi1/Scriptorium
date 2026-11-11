@@ -389,8 +389,20 @@ function renderTranslateHero(container, book, ctx) {
 
     const samples = progressSamples(book);
     const lastSample = samples[samples.length - 1];
-    const idleMs = lastSample ? Date.now() - lastSample.t : 0;
-    const stalled = ctx.isActive && idleMs > 5 * 60 * 1000;
+    const sampleIdleMs = lastSample ? Date.now() - lastSample.t : 0;
+    const apiLast = book.last_checkpoint_at ? Date.parse(book.last_checkpoint_at) : NaN;
+    const apiIdleMs = Number.isFinite(apiLast) ? Date.now() - apiLast : 0;
+    const apiAgeMs = Number(book.last_checkpoint_age_seconds) > 0
+        ? Number(book.last_checkpoint_age_seconds) * 1000
+        : apiIdleMs;
+    const processDead = book.process_alive === false;
+    const stalled = ctx.isActive && (
+        Boolean(book.stalled)
+        || processDead
+        || apiAgeMs > 5 * 60 * 1000
+        || sampleIdleMs > 5 * 60 * 1000
+    );
+    const stallMs = apiAgeMs > 0 ? apiAgeMs : sampleIdleMs;
     const rate = rollingRate(book) || averageRate(book);
     const rateLabel = formatRate(rate);
     // A failed or paused job has no live rate; the historical average would
@@ -399,11 +411,16 @@ function renderTranslateHero(container, book, ctx) {
     const currentLabel = formatNumber(ctx.current);
     const totalLabel = formatNumber(ctx.total);
     const started = formatStarted(book.job_created_at);
+    const etaLabel = book.eta_human || ctx.eta;
     const errorLine = ctx.showError
         ? `<p class="translate-hero__error">${escapeHtml(t('queue:now_error', { message: book.error }))}</p>`
         : '';
+    const integrityError = book.db_integrity
+        && String(book.db_integrity).toLowerCase() !== 'ok'
+        ? `<p class="translate-hero__error">DB: ${escapeHtml(book.db_integrity)}</p>`
+        : '';
     const stalledLine = stalled
-        ? `<p class="translate-hero__stall">${escapeHtml(t('queue:now_stalled', { time: formatDuration(idleMs / 1000) }))}</p>`
+        ? `<p class="translate-hero__stall">${escapeHtml(t('queue:now_stalled', { time: formatDuration(stallMs / 1000) }))}</p>`
         : '';
     const actions = [];
 
@@ -490,7 +507,7 @@ function renderTranslateHero(container, book, ctx) {
             </div>
             <div class="translate-hero__stat">
                 <span class="translate-hero__stat-label">${escapeHtml(t('queue:now_remaining_label'))}</span>
-                <strong class="translate-hero__stat-value">${escapeHtml(ctx.eta || t('queue:now_value_unknown'))}</strong>
+                <strong class="translate-hero__stat-value">${escapeHtml(etaLabel || t('queue:now_value_unknown'))}</strong>
             </div>
             <div class="translate-hero__stat">
                 <span class="translate-hero__stat-label">${escapeHtml(t('queue:now_rate_label'))}</span>
@@ -503,6 +520,7 @@ function renderTranslateHero(container, book, ctx) {
         </div>
         ${stalledLine}
         ${errorLine}
+        ${integrityError}
         <div class="translate-hero__log">
             <span class="translate-hero__log-label">${escapeHtml(t('queue:now_last_log'))}</span>
             <code id="translateQueueNowLogLine">—</code>
