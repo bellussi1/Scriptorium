@@ -96,7 +96,10 @@ before acting on anything below.
   `cli_d5687b57`, started 09:50 UTC). The pipeline is free because Howling Dark
   finished; the review decision on Howling Dark does not block it. The
   supervisor is stopped, so Demon will stop at its own `needs_review` without
-  an automatic audit until it is restarted or audited manually.
+  an automatic audit until it is restarted or audited manually. The watchdog
+  (PID 40128, restarted 11:12 UTC) now resets its intra-run audit counter when
+  the book changes; Demon's first partial audit at 448 chunks **passed**
+  (pt-PT 37.9/100k, leakage 0.0008, repetition 0, length 0.9982).
 - **EPUB checkpoint semantics are now explicit.** `checkpoint_chunks` rows are
   **files**, not chunks, for EPUB; the per-file `xhtml_states` carry the chunk
   progress. The global completed count stays in the progress JSON and is
