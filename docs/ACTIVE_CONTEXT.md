@@ -569,3 +569,16 @@ stay. Dalibre: restart OpenCode so the MCP reconnects with `DALIBRE_TOKEN`.
   coverage 0.8345. Not approved.
 - The audit reads `translated_files/<title> (pt-BR).epub`, not `.refined.epub`.
   Audit a copy placed in an `--outputs` folder until this is fixed.
+
+## Body chapter headings aligned (2026-11-11)
+
+- Demon in White (refined): 43 body title headings now follow `demon-in-white.yaml`.
+  Chapter 71's body number was restored. Backup: `Demon in White (pt-BR).refined.pre-body.epub`.
+- Howling Dark (refined): chapter 50's title was "50O DEMÔNIO E O HOMEM HONESTO“ELA";
+  now "O DEMÔNIO E O HOMEM HONESTO" everywhere. "“ELA" was the opening word of the
+  first line and went back into the body ("“ELA FEZ ISSO com…"). Body number "50" was
+  restored. Backup: `Howling Dark (pt-BR).refined.pre-body.epub`.
+- Howling Dark has no title map; its titles still come from glossary entries. Only
+  chapter 50 was edited.
+- All three refined books: title, TOC, NCX, body title and body number agree for
+  every chapter (Demon 87, Howling 80, Kingdoms 51). Re-audit not run for Demon or Howling.
