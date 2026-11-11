@@ -38,27 +38,47 @@ before acting on anything below.
   atomic replace, quick_check, sidecar `jobs.mirror.json`).
 - Job 20 (`cli_bc71db89`) is failed/archived at 11/1074. The fresh run is
   **job 21, `cli_c00e8ea2`**, queue job 21, book 10 `translating`; it started at
-  04:04 UTC on the volume and was at 5/1074 at 04:06. Supervisor PID 4764 is
-  running. One pass, refinement disabled.
-- Checkpoint writes now go through `Database.save_checkpoint_atomic`: the chunk
-  row and the progress JSON are one `BEGIN IMMEDIATE` transaction, and the
-  completed/failed counts are recomputed from `checkpoint_chunks`.
-  `CheckpointManager.load_checkpoint` calls `reconcile_job` and resumes from the
-  first non-completed chunk, never from a drifting counter. `xhtml_states` are
-  written atomically.
+  04:04 UTC on the volume. It was paused at 04:23 to fix the EPUB count
+  semantics and resumed at 04:30. The old file index made the resume restart at
+  the title page, so it is redoing the front matter and early chapters; at
+  04:33 it was **20/1074**. That redo is a one-time cost of correcting the
+  checkpoint model, not a quality change. Supervisor PID 21444 is running; the
+  watchdog PID 29356 writes `data/literary_queue.health.json` every 30 s.
+- **EPUB checkpoint semantics are now explicit.** `checkpoint_chunks` rows are
+  **files**, not chunks, for EPUB; the per-file `xhtml_states` carry the chunk
+  progress. The global completed count stays in the progress JSON and is
+  updated by `save_xhtml_partial_state`. `save_checkpoint_atomic` derives
+  counts from rows only for TXT/SRT (`derive_counts=True`); EPUB passes the
+  caller's global count. `reconcile_job` preserves the EPUB file index and the
+  global counters; deriving them from file rows made a 321-chunk run look like
+  94. `CheckpointManager.get_resumable_jobs` and `queue checkpoint-status`
+  follow the same split. `xhtml_states` are written atomically.
+- A pause-now now stops the whole queue: the queue runner re-applies the book
+  `paused` state after the final sync, and `auto_queue.py` exits instead of
+  picking the next pending title. The accidental Demon in White run (11 chunks)
+  was stopped and its partial archived at
+  `translated_files/archive/demon-in-white-partial-2026-11-11/`; book 8 is back
+  to `pending`.
+- `scripts/db_snapshot.py --label <book>` snapshots the live DB through the
+  container and the queue DB through the SQLite backup API; both get a
+  quick_check and a manifest entry. A baseline `jobs-howling-dark-*` snapshot
+  was written. The watchdog is monitor-only by default; `--terminate` exists
+  but is not enabled. The periodic 6 h scheduler and API/UI health fields are
+  still pending.
 - Host resume asks the live DB through
   `python -m src.literary.cli queue checkpoint-status --id ... --reconcile`;
   the mirror is only a fallback. `JOBS_DB_PATH` is the default for
   `CheckpointManager`, so the CLI and the app point at the volume.
-- Tests: `pytest -q tests/unit tests/literary` gives 2344 passed and one
+- Tests: `pytest -q tests/unit tests/literary` gives **2345 passed** and one
   unrelated environment-dependent failure
   (`test_path_validator.test_reject_path_separator_backslash`, a Linux
   backslash path).
-- Still pending from the reliability plan: watchdog/health JSON and the API/UI
-  fields (`checkpoint_count`, `last_checkpoint_at`, `stalled`, `db_integrity`),
-  which need the next app restart; a single writer for `literary_queue.db`
-  (still host + app); snapshots/integrity automation; and the quality layer
-  (glossary hash, intra-run audit, final gate additions).
+- Still pending from the reliability plan: the API/UI health fields
+  (`checkpoint_count`, `last_checkpoint_at`, `stalled`, `db_integrity`) and the
+  UI reading `literary_queue.health.json`, which need the next app restart; a
+  single writer for `literary_queue.db` (still host + app); a scheduler for the
+  6 h snapshots and automatic restore; watchdog auto-restart; and the quality
+  layer (glossary hash, intra-run audit, final gate additions).
 - Main app on `:5000`, preview on `:5001`.
 - The Translate tab now has a full-width `translate-hero` at the top: large
   percentage, 22px progress bar (18px on mobile), chunks/ETA/rate/start stats,
@@ -86,8 +106,15 @@ before acting on anything below.
   old upload `data/uploads/cli_c6f4be29` is backed up as `.bak-2026-11-11`.
   Job 19 was cleared so no stale checkpoint can be mixed into the new run.
 - The fresh Howling Dark run is job 21 (`cli_c00e8ea2`), started at 04:04 UTC
-  on the named volume. The queue job 21 carries that translation id; the host
-  mirror is `data/jobs.mirror.db`.
+  on the named volume and resumed at 04:30 after the EPUB count fix. The queue
+  job 21 carries that translation id; the host mirror is
+  `data/jobs.mirror.db`; the live count is in
+  `data/literary_queue.health.json`.
+- Demon in White (book 8) was accidentally started by the old supervisor after
+  the pause-now because the book state stayed `translating`. It was stopped at
+  11 chunks, its upload archived at
+  `translated_files/archive/demon-in-white-partial-2026-11-11/`, its job 22
+  resume state cleared, and the book returned to `pending`.
 - The Demon in White, Ashes of Man and Disquiet Gods partials were discarded;
   their checkpoint uploads were removed. Kingdoms of Death and Shadows Upon
   Time are pending on Index. The old Gemini partial is gone; no model mixing.
