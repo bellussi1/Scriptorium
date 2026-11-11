@@ -12,6 +12,7 @@ import re
 import httpx
 
 from ..base import LLMProvider, LLMResponse, is_output_limit_finish
+from ..failure import LLMFailure
 from ..exceptions import ContextOverflowError, RateLimitError, RepetitionLoopError
 from ..rate_limit_handler import compute_wait_time
 from ..thinking.cache import get_thinking_cache
@@ -526,6 +527,7 @@ class OllamaProvider(LLMProvider):
                 YELLOW = '\033[93m'
                 RESET = '\033[0m'
 
+                self.last_failure = LLMFailure.from_exception("ollama", "timeout", e)
                 if self.log_callback:
                     self.log_callback("llm_timeout",
                         f"{YELLOW}⚠️ LLM request timeout (attempt {attempt + 1}/{MAX_TRANSLATION_ATTEMPTS}){RESET}\n"
@@ -619,6 +621,10 @@ class OllamaProvider(LLMProvider):
                     raise ContextOverflowError(error_message)
 
                 # Handle other HTTP errors
+                self.last_failure = LLMFailure.from_exception(
+                    "ollama", "http", e, message=error_message,
+                    status=e.response.status_code if e.response is not None else None,
+                )
                 if self.log_callback:
                     self.log_callback("llm_http_error",
                         f"{YELLOW}⚠️ HTTP error from LLM server (attempt {attempt + 1}/{MAX_TRANSLATION_ATTEMPTS}){RESET}\n"
@@ -651,6 +657,7 @@ class OllamaProvider(LLMProvider):
                 YELLOW = '\033[93m'
                 RESET = '\033[0m'
 
+                self.last_failure = LLMFailure.from_exception("ollama", "json", e)
                 if self.log_callback:
                     self.log_callback("llm_json_error",
                         f"{YELLOW}⚠️ Invalid JSON response from LLM (attempt {attempt + 1}/{MAX_TRANSLATION_ATTEMPTS}){RESET}\n"
@@ -682,6 +689,7 @@ class OllamaProvider(LLMProvider):
                 YELLOW = '\033[93m'
                 RESET = '\033[0m'
 
+                self.last_failure = LLMFailure.from_exception("ollama", "unexpected", e)
                 if self.log_callback:
                     self.log_callback("llm_unexpected_error",
                         f"{YELLOW}⚠️ Unexpected error during LLM request (attempt {attempt + 1}/{MAX_TRANSLATION_ATTEMPTS}){RESET}\n"
