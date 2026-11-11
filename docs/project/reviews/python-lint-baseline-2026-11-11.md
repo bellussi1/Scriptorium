@@ -120,8 +120,8 @@ Files with the most findings: `src/config.py` (60), `translation_api.py` (27),
   any code that calls `typing.get_type_hints`. Not checked: whether any path
   resolves them at runtime.
 - **F821 `Path` in `tests/literary/test_benchmark_adapters.py:144` and `:171`.**
-  Possibly a real NameError when that test runs. Not verified here; the pytest
-  subset in this change includes `tests/literary`.
+  The `tests/literary` run passed, so these lines are not hit at runtime by the
+  current tests. Still unresolved statically; check in the sweep.
 - **F841 (44, 36 of them unsafe).** Removing an assignment can drop a side effect
   when the right-hand side is a call. Review each by hand.
 - **F811 (1).** Check that the earlier definition was not meant to be the one used.
