@@ -41,9 +41,9 @@ before acting on anything below.
   04:04 UTC on the volume. It was paused at 04:23 to fix the EPUB count
   semantics and resumed at 04:30. The old file index made the resume restart at
   the title page, so it is redoing the front matter and early chapters; at
-  04:43 it was **88/1074**. That redo is a one-time cost of correcting the
+  05:13 it was **243/1074**. That redo is a one-time cost of correcting the
   checkpoint model, not a quality change. Supervisor PID 21444 is running; the
-  watchdog PID 29356 writes `data/literary_queue.health.json` every 30 s.
+  watchdog PID 23084 writes `data/literary_queue.health.json` every 30 s.
 - **EPUB checkpoint semantics are now explicit.** `checkpoint_chunks` rows are
   **files**, not chunks, for EPUB; the per-file `xhtml_states` carry the chunk
   progress. The global completed count stays in the progress JSON and is
@@ -72,10 +72,22 @@ before acting on anything below.
   `process_alive`, `stalled`, `eta_human`, `db_integrity`; the hero shows the
   stall and uses the health ETA. The API fields take effect on the next app
   restart; the JS already falls back when they are absent.
+- Intra-run audit: `scripts/intra_run_audit.py` runs every 100 chunks through
+  the watchdog and writes `data/audits/intra-run/`. The first audit at 233
+  chunks failed with **1 forbidden rendering: `Chantry`** (glossary target
+  `Chantria`); pt-PT 16.6/100k, English leakage 0.0005, repetition 0.0001 and
+  length ratio 1.01 passed. The glossary hash is
+  `03fc8f8f...392a` with a `.sha256` sidecar. The run continues because the
+  intra-run audit is a warning; the final gate will block until the term is
+  fixed. `audit_book.py` now also fails on glossary drift or a changed snapshot
+  hash.
+- Snapshot scheduler: the watchdog runs `db_snapshot.py` every 6 h and keeps
+  7 daily snapshots plus one per book; `next_snapshot_at` was 11:11 UTC. The
+  hero now has health chips for process, last checkpoint, DB integrity and
+  audit; the API sends them after the next app restart.
 - Still pending: the `literary_queue.db` single-writer/intent refactor (the
   app still writes on approve/retry/add/move/remove; the queue DB stays on the
-  bind mount), the intra-run audit and glossary hash, the 6 h snapshot
-  scheduler, watchdog auto-restart, and the destructive kill/restart tests.
+  bind mount), watchdog auto-restart, and the destructive kill/restart tests.
 - Host resume asks the live DB through
   `python -m src.literary.cli queue checkpoint-status --id ... --reconcile`;
   the mirror is only a fallback. `JOBS_DB_PATH` is the default for
