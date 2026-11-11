@@ -212,7 +212,16 @@ function refreshBulkBar() {
 // Top-tab switching
 // ========================================
 
-function switchTopTab(name) {
+// Remember the tab across reloads. The hash wins over localStorage so a
+// bookmarked section still opens where it says, while a normal F5 returns to
+// the tab the user was last working in instead of always resetting to Translate.
+const TOP_TAB_STORAGE_KEY = 'tbl-top-tab';
+const TOP_TAB_NAMES = new Set([
+    'translate', 'queue', 'files', 'glossaries', 'styles', 'sample', 'settings',
+]);
+
+function switchTopTab(name, options = {}) {
+    if (!TOP_TAB_NAMES.has(name)) name = 'translate';
     const translateTab = $('tab-translate');
     const settingsTab = $('tab-settings');
     const glossariesTab = $('tab-glossaries');
@@ -244,6 +253,15 @@ function switchTopTab(name) {
         }
     });
 
+    if (!options.silent) {
+        try {
+            localStorage.setItem(TOP_TAB_STORAGE_KEY, name);
+        } catch (e) { /* private mode: the hash still carries the tab */ }
+        try {
+            history.replaceState(null, '', `#${name}`);
+        } catch (e) { /* file:// or blocked history: persistence is best effort */ }
+    }
+
     if (name === 'glossaries') {
         loadList();
     } else if (name === 'files' && typeof window.refreshFileList === 'function') {
@@ -253,6 +271,17 @@ function switchTopTab(name) {
     } else if (name === 'queue' && window.QueueManager && typeof window.QueueManager.open === 'function') {
         window.QueueManager.open();
     }
+}
+
+function restoreTopTab() {
+    let name = '';
+    try {
+        const hash = String(window.location.hash || '').replace(/^#/, '');
+        if (TOP_TAB_NAMES.has(hash)) name = hash;
+        if (!name) name = localStorage.getItem(TOP_TAB_STORAGE_KEY) || '';
+    } catch (e) { /* ignore unavailable storage */ }
+    if (!TOP_TAB_NAMES.has(name)) name = 'translate';
+    switchTopTab(name, { silent: true });
 }
 
 // ========================================
@@ -2088,3 +2117,4 @@ export const GlossaryManager = {
 };
 
 window.switchTopTab = switchTopTab;
+window.restoreTopTab = restoreTopTab;

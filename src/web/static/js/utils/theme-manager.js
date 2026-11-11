@@ -61,6 +61,11 @@ export class ThemeManager {
                 this.themeIcon.textContent = 'dark_mode';
             }
         }
+        // The template boots with class="light"; keep the two classes mutually
+        // exclusive so the class list reflects the active theme.
+        this.htmlElement.classList.toggle('light', theme !== 'dark');
+        // Keep native controls and scrollbars in the same palette as the page.
+        this.htmlElement.style.colorScheme = theme;
 
         // Save preference
         localStorage.setItem(this.STORAGE_KEY, theme);

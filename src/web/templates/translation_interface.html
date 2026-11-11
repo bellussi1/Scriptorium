@@ -6,6 +6,25 @@
     <title>Translate Books with LLMs</title>
     <link rel="icon" type="image/png" href="/static/TBL-Logo-alpha.png">
 
+    <!-- Apply the saved theme before the stylesheets paint. Without this the
+         template starts on the light palette and ThemeManager switches to dark
+         only after the module graph loads, which flashes light on every F5. -->
+    <script>
+        (function () {
+            try {
+                var key = 'tbl-theme-preference';
+                var saved = localStorage.getItem(key);
+                var dark = saved
+                    ? saved === 'dark'
+                    : window.matchMedia('(prefers-color-scheme: dark)').matches;
+                var root = document.documentElement;
+                root.classList.toggle('dark', dark);
+                root.classList.toggle('light', !dark);
+                root.style.colorScheme = dark ? 'dark' : 'light';
+            } catch (e) { /* private mode: keep the light default */ }
+        })();
+    </script>
+
     <!-- Initial locale + app version handed off by Flask so i18next boots
          without an extra round-trip and JSON caches bust on app upgrades.
          tojson escapes safely for a <script> context. -->
@@ -324,6 +343,12 @@
         <!-- Tab: Translate -->
         <div id="tab-translate">
 
+        <!-- Active queue book: the first thing on the tab so the current
+             translation state is visible without scrolling. Rendered by
+             queue-manager.js; the static node also gives the next app boot
+             a stable anchor. -->
+        <section id="translateQueueNow" class="translate-hero hidden"></section>
+
         <!-- Main Translation Configuration Card -->
         <div class="main-card">
             <div class="card-body">
@@ -560,10 +585,6 @@
                 <!-- Sticky alerts: high-failure-rate / fallback recommendations
                      surfaced during translation. Each alert is a dismissible card. -->
                 <div id="translationAlerts"></div>
-
-                <!-- Active queue book, mirrored from the Queue tab so the Translate
-                     tab shows the running book, progress and last log line. -->
-                <div id="translateQueueNow" class="queue-now hidden" aria-live="polite"></div>
 
                 <!-- Progress Section -->
                 <div id="progressSection" class="progress-section hidden">
@@ -2109,6 +2130,6 @@
 
     <!-- Scripts -->
     <script src="/static/js/vendor/socket.io.min.js"></script>
-    <script type="module" src="/static/js/index.js?v=20261103-termfix1"></script>
+    <script type="module" src="/static/js/index.js?v=20261111-translate-hero1"></script>
 </body>
 </html>

@@ -458,6 +458,10 @@ async function initializeModules() {
     ResumeManager.initialize();
     HistoryManager.initialize();
     LifecycleManager.initialize();
+    // Restore the tab the user left open once every tab module is ready.
+    // F5 used to always land on Translate; a saved Queue/Files/Styles tab
+    // now reopens where it was, and switchTopTab persists the next change.
+    if (typeof window.restoreTopTab === 'function') window.restoreTopTab();
     UpdateChecker.initialize().catch((e) => console.warn('UpdateChecker init failed:', e));
 
     // 2. Wire cross-module + WebSocket handlers BEFORE the socket connects.
