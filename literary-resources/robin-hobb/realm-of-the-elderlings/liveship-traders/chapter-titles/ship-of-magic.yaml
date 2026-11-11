@@ -1,0 +1,65 @@
+# Chapter titles for "Ship of Magic" (The Liveship Traders 1), English -> pt-BR.
+#
+# Used by src/literary/chapter_headings.py to restore chapter headings in the
+# body and to build the table of contents (NCX). The `en` value must equal the
+# English heading title in the source EPUB (typographic apostrophes are compared
+# as ASCII). The reader-facing TOC label is built as "Capítulo N TÍTULO" and the
+# body heading as "CAPÍTULO N" followed by the title in capitals.
+#
+# `parts` lists the English part headings (MIDSUMMER, AUTUMN, WINTER); each opens
+# the chapter given in `before`. `body_start` marks where the book text starts.
+#
+# `residue` lists the pieces of translator heading text that sit in the body
+# just before a chapter (exact text, in order). They are removed and replaced by
+# the canonical headings. Leave it empty when the body has no such text.
+#
+# Titles are editorial choices made without an official edition: review them
+# before publishing. Terms follow literary-resources/robin-hobb/realm-of-the-elderlings/
+# liveship-traders/glossary.yaml where it has an entry.
+book: Ship of Magic
+series: The Liveship Traders
+series_index: 1
+body_start:
+  en: "PROLOGUE - THE TANGLE"
+  pt: "PRÓLOGO"
+parts:
+  - {before: 1, en: "MIDSUMMER", pt: "Verão Meio"}
+  - {before: 16, en: "AUTUMN", pt: "Outono"}
+  - {before: 20, en: "WINTER", pt: "Inverno"}
+chapters:
+  - {number: 1, en: "Of Priests and Pirates", pt: "De Santos e Piratas", residue: ["VERÃO MEIO", "– CAPÍTULO UM – DE SANTOS", "E", "PIRATAS"]}
+  - {number: 2, en: "Liveships", pt: "Navios Vivos", residue: ["MagiaCAPÍTULO DOIS – NAVIOS", "VIVOS"]}
+  - {number: 3, en: "Ephron Vestrit", pt: "Ephron Vestrit", residue: ["CAPÍTULO TRÊS - EPHRON VESTRIT"]}
+  - {number: 4, en: "Divvytown", pt: "Divvytown", residue: ["CAPÍTULO QUATRO - DIVVYTOWN"]}
+  - {number: 5, en: "Bingtown", pt: "Bingtown", anchor: "Ela passou dezessete dias", residue: []}
+  - {number: 6, en: "The Quickening of the Vivacia", pt: "O Despertar da Vivacia", residue: []}
+  - {number: 7, en: "Loyalties", pt: "Lealdades", anchor: "A cidade inteira se reuniu", residue: []}
+  - {number: 8, en: "Night Conversations", pt: "Noite de Conversas", residue: ["CAPÍTULO OITO – NOITE", "CONVERSAS"]}
+  - {number: 9, en: "A Change of Fortunes", pt: "Uma Mudança de Sorte", residue: []}
+  - {number: 10, en: "Confrontations", pt: "Confrontos", residue: ["CAPÍTULO DEZ – CONFRONTOS"]}
+  - {number: 11, en: "Consequences and Reflections", pt: "Consequências e Reflexões", anchor: "Curtil coçou", residue: []}
+  - {number: 12, en: "Of Derelicts and Slaveships", pt: "De Destroços e Navios Negreiros", anchor: "De cabeça para baixo sob a água", residue: []}
+  - {number: 13, en: "Transitions", pt: "Transições", residue: ["CAPÍTULO DEZESSETE – TRANSIÇÕES"]}
+  - {number: 14, en: "Family Matters", pt: "Assuntos de Família", residue: ["MagicCAPÍTULO QUATORZE – ASSUNTOS", "FAMILIARES"]}
+  - {number: 15, en: "Negotiations", pt: "Negociações", residue: []}
+  - {number: 16, en: "New Roles", pt: "Novos Papéis", residue: ["AUTUMN", "CAPÍTULO DEZESSEIS - NOVOS PAPEIS"]}
+  - {number: 17, en: "Kennit's Whore", pt: "A Prostituta de Kennit", residue: ["CAPÍTULO DEZETE - A", "PROSTITUTA", "DE KENNIT"]}
+  - {number: 18, en: "Malta", pt: "Malta", residue: []}
+  - {number: 19, en: "Testimony", pt: "Testemunho", residue: ["CAPÍTULO DEZESSETE - TESTEMUNHO"]}
+  - {number: 20, en: "Crimpers", pt: "Aliciadores", residue: []}
+  - {number: 21, en: "Visitors", pt: "Visitantes", residue: ["CAPÍTULO VIGÉSIMO PRIMEIRO – VISITANTES"]}
+  - {number: 22, en: "Plots and Perils", pt: "Intrigas e Perigos", anchor: "“Cale a boca.”", residue: []}
+  - {number: 23, en: "Jamaillia Slavers", pt: "Escravagistas de Jamaillia", residue: []}
+  - {number: 24, en: "Rain Wild Traders", pt: "Comerciantes do Rain Wild", residue: ["CAPÍTULO VIGÉSIMO QUATRO - CHUVA", "COMERCIANTES SELVAGENS"]}
+  - {number: 25, en: "Candletown", pt: "Candletown", residue: ["CAPÍTULO VINTE E CINCO –", "CANDLETOWN"]}
+  - {number: 26, en: "Gifts", pt: "Presentes", residue: ["CAPÍTULO VINTE E SEIS – PRESENTES"]}
+  - {number: 27, en: "Prisoners", pt: "Prisioneiros", residue: []}
+  - {number: 28, en: "Vicissitudes", pt: "Vicissitudes", residue: ["CAPÍTULO VIGÉSIMO OITVO –", "VIRALIDADES"]}
+  - {number: 29, en: "Dreams and Reality", pt: "Sonhos e Realidade", residue: ["CAPÍTULO VIGÉSIMO NOVE – SONHOS", "E REALIDADE"]}
+  - {number: 30, en: "Defiance and Alliance", pt: "Desafio e Aliança", residue: ["CAPÍTULO TRINTA – DESRESPEITO E", "ALIANÇA"]}
+  - {number: 31, en: "Ships and Serpents", pt: "Navios e Serpentes", residue: []}
+  - {number: 32, en: "Storm", pt: "Tempestade", residue: []}
+  - {number: 33, en: "Day of Reckoning", pt: "Dia do Acerto de Contas", residue: ["CAPÍTULO TRINTA E TRÊS – DIA DA", "RECONCILIAÇÃO"]}
+  - {number: 34, en: "Restorations", pt: "Reparos", residue: ["CAPÍTULO TRINTA E QUATRO -", "REPAROS"]}
+  - {number: 35, en: "Pirates and Captives", pt: "Piratas e Cativos", residue: []}
+  - {number: 36, en: "She Who Remembers", pt: "Aquela que Lembra", residue: ["CAPÍTULO TRINTA E SEIS – AQUELA QUE", "LEMBRA"]}
