@@ -170,6 +170,16 @@ before acting on anything below.
   metadata dialect, unique-identifier/NCX uid, TOC labels from the source,
   reader repair for Sun Eater, and a KOReader/Calibre open. The Fool's Errand
   case remains the reference for the Realm redo.
+- **Series metadata is now written into the translated EPUB, not only the
+  Kindle copy.** The queue runner applies `update_opf_metadata` after the reader
+  repair and before the gate, then re-runs `validate_epub_pair` and EPUBCheck;
+  the file is replaced only on success and the report carries
+  `series_metadata`. Howling Dark was patched in place (backup
+  `.pre-series.epub`): `belongs-to-collection` + `collection-type` +
+  `group-position` and `calibre:series`/`calibre:series_index`; Calibre
+  `ebook-meta` reads `The Sun Eater #2`, EPUBCheck is 0/0/0. Demon in White's
+  running process predates this change, so its final EPUB needs the same
+  one-shot post-pass after the run; the next book applies it automatically.
 - Still pending: the `literary_queue.db` single-writer/intent refactor (the
   app still writes on approve/retry/add/move/remove; the queue DB stays on the
   bind mount), watchdog auto-restart, and the destructive kill/restart tests.

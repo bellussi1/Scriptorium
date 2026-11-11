@@ -39,6 +39,7 @@ try:
 except Exception:
     pass
 from .reading_repair import repair_reading_epub
+from .epub import update_opf_metadata
 from .repair import repair_doc_roles_in_epub, repair_dropcaps_in_epub
 from .resources import (
     write_glossary_json,
@@ -954,6 +955,47 @@ def run_queue_book(
             if reader_temp.exists():
                 reader_temp.unlink()
 
+    series_report = None
+    if book.series:
+        series_source = refined_host if refined_host.exists() else v2_host
+        series_temp = OUTPUT_DIR / f".{output_host.stem}.series.tmp.epub"
+        log(book.title, f"writing series metadata: {book.series} #{book.series_index}")
+        try:
+            update_opf_metadata(
+                str(series_source),
+                str(series_temp),
+                series=book.series,
+                series_index=book.series_index,
+            )
+            series_validation = validate_epub_pair(
+                str(host_source(book)), str(series_temp), expected_language="pt-BR"
+            )
+            series_epubcheck = _epubcheck(series_temp)
+            if bool(series_validation.get("passed")) and series_epubcheck.get("errors") == 0:
+                os.replace(series_temp, refined_host)
+                validation = series_validation
+                epubcheck = series_epubcheck
+                series_report = {
+                    "applied": True,
+                    "series": book.series,
+                    "series_index": book.series_index,
+                    "final": str(refined_host),
+                }
+                log(book.title, "series metadata accepted")
+            else:
+                series_report = {
+                    "applied": False,
+                    "reason": "series metadata validation failed",
+                }
+                log(book.title, "series metadata rejected: validation gate failed")
+                if series_temp.exists():
+                    series_temp.unlink()
+        except Exception as exc:
+            series_report = {"applied": False, "error": str(exc)}
+            log(book.title, f"series metadata failed; keeping the previous artifact: {exc}")
+            if series_temp.exists():
+                series_temp.unlink()
+
     store = QueueStore(db_path)
     gate_ok = bool(validation.get("passed")) and epubcheck.get("errors") == 0
     review_message = (
@@ -1005,6 +1047,7 @@ def run_queue_book(
         "epubcheck": epubcheck,
         "refine": refine_report,
         "reader_repair": reader_report,
+        "series_metadata": series_report,
         "queue_state": target_state,
         "review_required": target_state != "completed",
         "queue_job": job,
