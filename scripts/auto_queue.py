@@ -185,6 +185,212 @@ def _export_kindle(db: Path) -> int:
     )
 
 
+def _term_targets(db: Path, book: Dict[str, Any]) -> Dict[str, str]:
+    """Map each forbidden rendering to the glossary target for this book."""
+    try:
+        sys.path.insert(0, str(ROOT))
+        from src.literary.queue import QueueStore
+        from src.literary.resources import compile_for_book, load_tree
+        from src.literary.run_plan import build_run_plan
+
+        store = QueueStore(str(db))
+        try:
+            queued = store.get_book(int(book["id"]))
+        finally:
+            store.close()
+        if queued is None:
+            return {}
+        plan = build_run_plan(queued)
+        scopes = plan.get("scopes") or {}
+        tree = load_tree(str(ROOT / "literary-resources"))
+        compiled = compile_for_book(
+            tree,
+            scopes.get("author", ""),
+            scopes.get("universe", ""),
+            scopes.get("subseries", ""),
+            scopes.get("book", ""),
+            book_order=queued.series_index,
+        )
+        mapping: Dict[str, str] = {}
+        for term in compiled.glossary.terms:
+            for forbidden in getattr(term, "forbidden", []) or []:
+                if forbidden and term.target:
+                    mapping[str(forbidden).casefold()] = str(term.target)
+        return mapping
+    except Exception as exc:
+        print(f"auto queue: could not load glossary terms: {exc}", flush=True)
+        return {}
+
+
+def _rewrite_epub_terms(
+    path: Path, replacements: Dict[str, str], output: Optional[Path] = None
+) -> Dict[str, int]:
+    """Replace whole-word renderings in every text file of an EPUB."""
+    import zipfile
+
+    destination = output or path.with_name(f".{path.name}.termfix.tmp")
+    counts: Dict[str, int] = {}
+    normalized = {str(key).casefold(): value for key, value in replacements.items()}
+    pattern = re.compile(
+        r"(?<![\w])(" + "|".join(re.escape(key) for key in normalized) + r")(?![\w])",
+        flags=re.I,
+    )
+    with zipfile.ZipFile(path, "r") as source, zipfile.ZipFile(
+        destination, "w", zipfile.ZIP_DEFLATED
+    ) as target:
+        for item in source.infolist():
+            data = source.read(item.filename)
+            if item.filename.lower().endswith((".xhtml", ".html", ".htm", ".ncx", ".opf")):
+                raw = data.decode("utf-8", "replace")
+
+                def replace(match: re.Match[str]) -> str:
+                    key = match.group(1).casefold()
+                    counts[key] = counts.get(key, 0) + 1
+                    return normalized[key]
+
+                raw = pattern.sub(replace, raw)
+                data = raw.encode("utf-8")
+            target.writestr(item, data)
+    if output is None:
+        os.replace(destination, path)
+    return counts
+
+
+def _epubcheck(path: Path) -> Dict[str, Any]:
+    from src.literary.queue_runner import _epubcheck as run_epubcheck
+
+    return run_epubcheck(Path(path).resolve())
+
+
+def _repair_forbidden(db: Path, book: Dict[str, Any], audit: Dict[str, Any]) -> Dict[str, Any]:
+    """Apply glossary term fixes to the audited EPUB when nothing else failed.
+
+    The queue runner already runs the reader repair with the Sun Eater terms.
+    This is the last deterministic resort for a forbidden rendering that only
+    lives in a text node the repair does not visit. The original file is kept
+    until EPUBCheck accepts the rewritten copy.
+    """
+    reasons = [str(item) for item in (audit.get("reasons") or [])]
+    if len(reasons) != 1 or "forbidden rendering" not in reasons[0]:
+        return {"ok": False, "message": "not a forbidden-only failure"}
+    hits = (audit.get("terms") or {}).get("forbidden_hits") or []
+    raw_target = str(audit.get("target") or "").strip()
+    target = Path(raw_target) if raw_target else None
+    if not hits or target is None or not target.is_file():
+        return {"ok": False, "message": "no target or no forbidden hits"}
+    mapping = _term_targets(db, book)
+    replacements = {
+        str(hit["forbidden"]).casefold(): mapping.get(str(hit["forbidden"]).casefold(), "")
+        for hit in hits
+    }
+    replacements = {key: value for key, value in replacements.items() if value}
+    if not replacements:
+        return {"ok": False, "message": "no glossary target for the forbidden forms"}
+    backup = target.with_name(f"{target.stem}.pre-termfix{target.suffix}")
+    fixed = target.with_name(f".{target.stem}.termfix{target.suffix}")
+    if backup.exists():
+        backup.unlink()
+    if fixed.exists():
+        fixed.unlink()
+    try:
+        counts = _rewrite_epub_terms(target, replacements, fixed)
+        check = _epubcheck(fixed)
+        if check.get("errors") != 0:
+            fixed.unlink(missing_ok=True)
+            return {
+                "ok": False,
+                "message": f"EPUBCheck rejected the term fix: {check.get('errors')} errors",
+            }
+        target.replace(backup)
+        os.replace(fixed, target)
+    except Exception as exc:
+        fixed.unlink(missing_ok=True)
+        if not target.exists() and backup.exists():
+            backup.replace(target)
+        return {"ok": False, "message": f"term fix failed: {exc}"}
+    print(f"auto queue: term fix applied to {target.name}: {counts}", flush=True)
+    return {"ok": True, "changes": counts, "message": "term fix applied"}
+
+
+def _can_retry(
+    book: Dict[str, Any],
+    job: Optional[Dict[str, Any]],
+    retries: Dict[int, int],
+    max_retries: int,
+) -> bool:
+    """Only retry a crashed run that still owns a resumable checkpoint."""
+    if max_retries <= 0 or not job:
+        return False
+    if retries.get(int(book["id"]), 0) >= max_retries:
+        return False
+    if not str(job.get("translation_id") or "").strip():
+        return False
+    error = str(job.get("error") or "").casefold()
+    if "gate" in error or "paused by user" in error:
+        return False
+    return True
+
+
+def _requeue_failed(db: Path, book: Dict[str, Any], job: Dict[str, Any]) -> int:
+    """Send a failed book back to the queue so the runner resumes its checkpoint."""
+    if _run(
+        [
+            sys.executable,
+            "-m",
+            "src.literary.cli",
+            "queue",
+            "set-job-state",
+            "--db",
+            str(db),
+            "--job-id",
+            str(job["id"]),
+            "--state",
+            "paused",
+            "--message",
+            "automatic retry after a failed run",
+        ],
+        LOG_DIR / "auto-retry.log",
+    ) != 0:
+        return 1
+    return _run(
+        [
+            sys.executable,
+            "-m",
+            "src.literary.cli",
+            "queue",
+            "set-state",
+            "--db",
+            str(db),
+            "--book-id",
+            str(book["id"]),
+            "--state",
+            "pending",
+            "--message",
+            "automatic retry after a failed run",
+        ],
+        LOG_DIR / "auto-retry.log",
+    )
+
+
+def _audit_command(
+    *, book_id: int, job_id: int, report: Path, out_dir: Path, max_cloud_usd: float
+) -> List[str]:
+    return [
+        sys.executable,
+        str(DEFAULT_AUDIT),
+        "--book-id",
+        str(book_id),
+        "--job-id",
+        str(job_id),
+        "--report",
+        str(report),
+        "--max-cloud-usd",
+        str(max_cloud_usd),
+        "--out",
+        str(out_dir),
+    ]
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--db", type=Path, default=DEFAULT_DB)
@@ -192,6 +398,7 @@ def main() -> int:
     parser.add_argument("--max-cloud-usd", type=float, default=0.05)
     parser.add_argument("--max-total-cloud-usd", type=float, default=0.50)
     parser.add_argument("--interval", type=float, default=30.0)
+    parser.add_argument("--max-retries", type=int, default=1, help="automatic retries per failed book")
     parser.add_argument("--once", action="store_true")
     args = parser.parse_args()
 
@@ -210,6 +417,7 @@ def main() -> int:
     print(f"auto queue: log={log_path}", flush=True)
 
     started = 0
+    retries: Dict[int, int] = {}
     report_waits: Dict[int, float] = {}
     try:
         while True:
@@ -238,6 +446,20 @@ def main() -> int:
             failed = [book for book in books if book["status"] == "failed"]
             if failed:
                 book = failed[0]
+                job = _latest_job(args.db, book["id"])
+                if _can_retry(book, job, retries, args.max_retries):
+                    retries[book["id"]] = retries.get(book["id"], 0) + 1
+                    if _requeue_failed(args.db, book, job) == 0:
+                        _write_status(
+                            {
+                                "running": True,
+                                "phase": "retrying",
+                                "book_id": book["id"],
+                                "title": book["title"],
+                                "message": "automatic retry from the last checkpoint",
+                            }
+                        )
+                        continue
                 _write_status(
                     {
                         "running": False,
@@ -315,22 +537,28 @@ def main() -> int:
                         "message": "running audit",
                     }
                 )
-                command = [
-                    sys.executable,
-                    str(DEFAULT_AUDIT),
-                    "--book-id",
-                    str(book["id"]),
-                    "--job-id",
-                    str(job["id"]),
-                    "--report",
-                    str(report),
-                    "--max-cloud-usd",
-                    str(args.max_cloud_usd),
-                    "--out",
-                    str(audit_dir),
-                ]
+                command = _audit_command(
+                    book_id=book["id"],
+                    job_id=job["id"],
+                    report=report,
+                    out_dir=audit_dir,
+                    max_cloud_usd=args.max_cloud_usd,
+                )
                 code = _run(command, log_path)
                 audit = _read_json(audit_dir / "audit.json")
+                if code != 0 or not audit.get("passed"):
+                    repair = _repair_forbidden(args.db, book, audit)
+                    if repair.get("ok"):
+                        audit_dir = audit_dir.with_name(audit_dir.name + "-termfix")
+                        command = _audit_command(
+                            book_id=book["id"],
+                            job_id=job["id"],
+                            report=report,
+                            out_dir=audit_dir,
+                            max_cloud_usd=args.max_cloud_usd,
+                        )
+                        code = _run(command, log_path)
+                        audit = _read_json(audit_dir / "audit.json")
                 if code != 0 or not audit.get("passed"):
                     _write_status(
                         {
@@ -414,6 +642,31 @@ def main() -> int:
                 print(f"auto queue: pause-now honored for {book['title']}; queue stopped", flush=True)
                 return 0
             if code != 0:
+                failed_book = next(
+                    (item for item in _books(args.db) if item["id"] == book["id"]), None
+                )
+                failed_job = _latest_job(args.db, book["id"])
+                if (
+                    failed_book
+                    and failed_book["status"] == "failed"
+                    and _can_retry(failed_book, failed_job, retries, args.max_retries)
+                ):
+                    retries[failed_book["id"]] = retries.get(failed_book["id"], 0) + 1
+                    if _requeue_failed(args.db, failed_book, failed_job) == 0:
+                        _write_status(
+                            {
+                                "running": True,
+                                "phase": "retrying",
+                                "book_id": failed_book["id"],
+                                "title": failed_book["title"],
+                                "message": "automatic retry from the last checkpoint",
+                            }
+                        )
+                        print(
+                            f"auto queue: retrying {failed_book['title']} from checkpoint",
+                            flush=True,
+                        )
+                        continue
                 _write_status(
                     {
                         "running": False,
