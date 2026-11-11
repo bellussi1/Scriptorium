@@ -1,5 +1,5 @@
 """
-Live check that Poe bots stop reasoning and searching when TBL asks them to.
+Live check that Poe bots stop reasoning and searching when Scriptorium asks them to.
 
 Runs one real translation per bot family through the project's factory and
 prints the resolved overrides plus the token counts, then repeats the first bot
@@ -74,7 +74,7 @@ async def run_one(model: str, override_defaults: bool) -> None:
 async def main() -> None:
     models = sys.argv[1:] or DEFAULT_MODELS
 
-    print("Reasoning and web search minimised (TBL defaults):")
+    print("Reasoning and web search minimised (Scriptorium defaults):")
     for model in models:
         await run_one(model, True)
 

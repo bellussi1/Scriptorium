@@ -1,5 +1,5 @@
 """
-Prompts module for TranslateBookWithLLM
+Prompts module for Scriptorium
 """
 from src.prompts.prompts import (
     PromptPair,

@@ -1,6 +1,6 @@
 # Docker Deployment Guide
 
-This guide explains how to deploy TranslateBookWithLLM using Docker.
+This guide explains how to deploy Scriptorium using Docker.
 
 ## Prerequisites
 
@@ -117,7 +117,7 @@ These folders are created automatically and persist between container restarts.
 
 ### Checkpoint and Resume System
 
-TranslateBookWithLLM includes a checkpoint system that allows you to resume interrupted translations. This requires the `data` volume to be properly configured.
+Scriptorium includes a checkpoint system that allows you to resume interrupted translations. This requires the `data` volume to be properly configured.
 
 **How it works:**
 

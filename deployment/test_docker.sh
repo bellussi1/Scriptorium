@@ -1,6 +1,6 @@
 #!/bin/bash
 # ============================================================================
-# Docker Testing Script for TranslateBookWithLLM
+# Docker Testing Script for Scriptorium
 # ============================================================================
 # This script tests the Docker deployment automatically
 # Usage: ./test_docker.sh
@@ -15,7 +15,7 @@ NC='\033[0m' # No Color
 
 echo ""
 echo "============================================================"
-echo "  Docker Test Script - TranslateBookWithLLM"
+echo "  Docker Test Script - Scriptorium"
 echo "============================================================"
 echo ""
 

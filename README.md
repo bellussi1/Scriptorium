@@ -240,7 +240,7 @@ Two things stay local to the device: if you queue several files, other devices o
 
 ## Upstream
 
-This fork is based on [TranslateBooksWithLLMs](https://github.com/hydropix/TranslateBooksWithLLMs)
+Scriptorium is a fork of [TranslateBooksWithLLMs](https://github.com/hydropix/TranslateBooksWithLLMs)
 by hydropix and remains **AGPL-3.0**. The upstream repository, documentation
 and model benchmarks are the reference for the code this fork builds on:
 

@@ -1,6 +1,6 @@
 # LLM Providers Guide
 
-TBL supports multiple LLM providers. This guide explains how to set up each one.
+Scriptorium supports multiple LLM providers. This guide explains how to set up each one.
 
 ---
 
@@ -12,7 +12,7 @@ Runs models locally on your machine.
 
 1. Install from [ollama.com](https://ollama.com/)
 2. Download a model: `ollama pull qwen3:14b`
-3. Select "Ollama" in TBL
+3. Select "Ollama" in Scriptorium
 
 ### Models by VRAM
 
@@ -27,7 +27,7 @@ Browse models: [ollama.com/search](https://ollama.com/search)
 
 ### Cloud models
 
-`-cloud` models (e.g. `gemma3:27b-cloud`) are not run locally — the local Ollama daemon relays them to Ollama's hosted infrastructure using the account signed in with `ollama signin`. Once that account's usage limit is reached, the daemon returns HTTP 429. TBL pauses the job and saves a checkpoint, so you can resume once the quota resets or you add credits. The **"Don't auto-pause on rate limit (HTTP 429)"** setting is the opt-out: enable it and TBL waits and auto-resumes instead of pausing.
+`-cloud` models (e.g. `gemma3:27b-cloud`) are not run locally — the local Ollama daemon relays them to Ollama's hosted infrastructure using the account signed in with `ollama signin`. Once that account's usage limit is reached, the daemon returns HTTP 429. Scriptorium pauses the job and saves a checkpoint, so you can resume once the quota resets or you add credits. The **"Don't auto-pause on rate limit (HTTP 429)"** setting is the opt-out: enable it and Scriptorium waits and auto-resumes instead of pausing.
 
 ### CLI Example
 
@@ -39,7 +39,7 @@ python translate.py -i book.txt -o book_fr.txt -m qwen3:14b
 
 ## OpenAI-Compatible Servers (Local or Hosted)
 
-TBL supports local and hosted endpoints that implement the OpenAI Chat Completions API. This includes:
+Scriptorium supports local and hosted endpoints that implement the OpenAI Chat Completions API. This includes:
 
 - **llama.cpp** (`llama-server`) - Lightweight, direct model serving
 - **LM Studio** - Desktop app with GUI
@@ -50,7 +50,7 @@ TBL supports local and hosted endpoints that implement the OpenAI Chat Completio
 ### Setup
 
 1. Start your local server or obtain access to a hosted compatible endpoint
-2. In TBL:
+2. In Scriptorium:
    - Select "OpenAI-Compatible" provider
    - Set the endpoint URL (local examples below). A base URL ending in `/v1` is completed to `/v1/chat/completions` automatically; any other path is used as-is
    - Enter an API key if that endpoint requires one; leave it empty only when authentication is disabled
@@ -89,7 +89,7 @@ Access to 200+ models from multiple providers through a single API.
 ### Setup
 
 1. Get API key at [openrouter.ai/keys](https://openrouter.ai/keys)
-2. In TBL: Select "OpenRouter", enter your key
+2. In Scriptorium: Select "OpenRouter", enter your key
 3. Choose a model from the list (your [presets](#presets) appear first)
 
 ### CLI Example
@@ -111,12 +111,12 @@ a model with fallback models, provider routing (preferred or excluded providers,
 quantization), sampling parameters and reasoning settings. You use one by sending
 `@preset/<slug>` as the model.
 
-Presets are worth using with TBL because they expose OpenRouter options that TBL has no UI or CLI
+Presets are worth using with Scriptorium because they expose OpenRouter options that Scriptorium has no UI or CLI
 flag for. Provider routing and model fallbacks are configured only there. A preset is also edited
-on OpenRouter's site, so you can tune it without touching TBL, and the same configuration works in
+on OpenRouter's site, so you can tune it without touching Scriptorium, and the same configuration works in
 every tool that uses your OpenRouter account.
 
-When TBL loads the OpenRouter model list, it also calls `GET /api/v1/presets` with the same API key
+When Scriptorium loads the OpenRouter model list, it also calls `GET /api/v1/presets` with the same API key
 and lists your active presets first, as `@preset/<slug>` (the preset description is the tooltip).
 Type `preset` or part of the slug in the model search to find them. On the CLI, pass the preset as
 the model:
@@ -128,7 +128,7 @@ python translate.py -i book.txt -o book_fr.txt \
 ```
 
 Notes:
-- TBL does not send its reasoning override for a preset, so the preset's own reasoning setting
+- Scriptorium does not send its reasoning override for a preset, so the preset's own reasoning setting
   applies (see [Reasoning](#reasoning)).
 - Presets have no fixed price, so the cost estimate shows pricing as unknown. You can enter a
   price by hand in the cost panel.
@@ -138,7 +138,7 @@ Notes:
 
 Many OpenRouter models reason by default (DeepSeek V4.x at effort `high`, Qwen 3.x), and reasoning
 tokens are billed as output: DeepSeek V4.1 Flash was seen producing 4,700 to 31,000 output tokens
-for translation chunks of about 3,000 input tokens. TBL reads each model's reasoning metadata from
+for translation chunks of about 3,000 input tokens. Scriptorium reads each model's reasoning metadata from
 `/api/v1/models` and sends OpenRouter's unified `reasoning` parameter (except for presets): `{"enabled": false}` when
 reasoning can be turned off, or the lowest supported effort on models where it is mandatory (a
 warning is logged for those). The per-request log line shows the reasoning token count whenever
@@ -148,7 +148,7 @@ the model reports one. `OPENROUTER_DISABLE_THINKING=false` keeps each model's de
 
 ## OpenAI Cloud
 
-Official OpenAI API (GPT models). Uses the same "OpenAI-Compatible" provider in TBL.
+Official OpenAI API (GPT models). Uses the same "OpenAI-Compatible" provider in Scriptorium.
 
 ### Models
 
@@ -160,7 +160,7 @@ Official OpenAI API (GPT models). Uses the same "OpenAI-Compatible" provider in 
 ### Setup
 
 1. Get API key at [platform.openai.com](https://platform.openai.com/api-keys)
-2. In TBL:
+2. In Scriptorium:
    - Select "OpenAI-Compatible" provider
    - Keep endpoint as `https://api.openai.com/v1/chat/completions`
    - Enter your API key
@@ -191,7 +191,7 @@ Google's Gemini models.
 ### Setup
 
 1. Get API key at [Google AI Studio](https://makersuite.google.com/app/apikey)
-2. In TBL: Select "Gemini", enter your key
+2. In Scriptorium: Select "Gemini", enter your key
 
 ### CLI Example
 
@@ -218,7 +218,7 @@ European cloud provider with strong multilingual quality.
 ### Setup
 
 1. Get API key at [console.mistral.ai/api-keys](https://console.mistral.ai/api-keys)
-2. In TBL: Select "Mistral", enter your key
+2. In Scriptorium: Select "Mistral", enter your key
 
 ### CLI Example
 
@@ -247,7 +247,7 @@ Chinese LLM provider with 64K context and OpenAI-compatible API. Supports thinki
 ### Setup
 
 1. Get API key at [platform.deepseek.com/api_keys](https://platform.deepseek.com/api_keys)
-2. In TBL: Select "DeepSeek", enter your key
+2. In Scriptorium: Select "DeepSeek", enter your key
 
 ### CLI Example
 
@@ -269,7 +269,7 @@ Single key, many models — Claude, GPT, Gemini, Llama, Mistral, DeepSeek and mo
 ### Setup
 
 1. Get API key at [poe.com/api_key](https://poe.com/api_key)
-2. In TBL: Select "Poe", enter your key
+2. In Scriptorium: Select "Poe", enter your key
 3. Pick a model name from [poe.com](https://poe.com/) (case-sensitive, e.g. `Claude-Sonnet-4`)
 
 ### CLI Example
@@ -285,11 +285,11 @@ python translate.py -i book.txt -o book_fr.txt \
 
 ### Reasoning and web search
 
-Poe bots ship with two defaults that cost tokens translation never uses, so TBL overrides both.
+Poe bots ship with two defaults that cost tokens translation never uses, so Scriptorium overrides both.
 
 **Reasoning.** Most bots reason by default (`gemini-3.6-flash`: `thinking_level=medium`, `grok-4.5`
 and `kimi-k3`: `reasoning_effort=high`, `glm-5.x`: `enable_thinking=true`). On a 102-token prompt,
-`gemini-3.6-flash` spent 1167 reasoning tokens out of 1231 output tokens. TBL asks each bot for its
+`gemini-3.6-flash` spent 1167 reasoning tokens out of 1231 output tokens. Scriptorium asks each bot for its
 lowest reasoning setting; `POE_DISABLE_THINKING=false` keeps reasoning on.
 
 **Web search.** `gemini-3.6-flash` and `grok-4.5` search the web by default, and every chunk pays for
@@ -314,7 +314,7 @@ Hosted models via NVIDIA's inference platform — OpenAI-compatible API, generou
 ### Setup
 
 1. Get API key at [build.nvidia.com](https://build.nvidia.com/)
-2. In TBL: Select "NVIDIA NIM", enter your key
+2. In Scriptorium: Select "NVIDIA NIM", enter your key
 
 ### CLI Example
 

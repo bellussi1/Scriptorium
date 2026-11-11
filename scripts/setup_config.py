@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-Quick configuration setup script for TranslateBookWithLLM
+Quick configuration setup script for Scriptorium
 
 This script helps users create and configure their .env file.
 """
@@ -20,7 +20,7 @@ from src.utils.env_helper import (
 def print_banner():
     """Print welcome banner"""
     print("\n" + "="*70)
-    print("  TranslateBookWithLLM - Configuration Setup")
+    print("  Scriptorium - Configuration Setup")
     print("="*70 + "\n")
 
 

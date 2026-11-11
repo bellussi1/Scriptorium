@@ -349,7 +349,7 @@ def start_server():
 
         logger.info("")
         logger.info("=" * 50)
-        logger.info("  TranslateBook with LLMs - Server")
+        logger.info("  Scriptorium - Server")
         logger.info("=" * 50)
         logger.info("")
         logger.info(f"  Ollama Endpoint: {DEFAULT_OLLAMA_API_ENDPOINT}")

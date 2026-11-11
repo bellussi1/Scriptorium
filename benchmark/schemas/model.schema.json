@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://github.com/hydropix/TranslateBookWithLLM/schemas/model.schema.json",
-  "title": "TBL Benchmark Model Registry Entry",
+  "title": "Scriptorium Benchmark Model Registry Entry",
   "type": "object",
   "required": ["id", "provider"],
   "additionalProperties": false,

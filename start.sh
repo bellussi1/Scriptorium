@@ -1,12 +1,12 @@
 #!/bin/bash
 # ============================================
-# TranslateBookWithLLM - Smart Launcher
+# Scriptorium - Smart Launcher
 # Installation + Update + Launch All-in-One
 # ============================================
 
 echo ""
 echo "============================================"
-echo "TranslateBookWithLLM - Smart Launcher"
+echo "Scriptorium - Smart Launcher"
 echo "============================================"
 echo ""
 

@@ -28,7 +28,7 @@ Translating a full book typically requires hundreds (sometimes thousands) of API
 
 ## Quick start
 
-You can supply multiple keys via **any** of the three configuration channels TBL supports. All accept the same comma-separated format.
+You can supply multiple keys via **any** of the three configuration channels Scriptorium supports. All accept the same comma-separated format.
 
 ### 1. Via `.env` file (recommended for repeated runs)
 
@@ -160,13 +160,13 @@ DEEPSEEK_API_KEY=key1,key2,key3   # Triples your effective RPM ceiling
 
 - **It does not parallelize requests.** Translation is still sequential — the keys are used one at a time, in turn. Parallel dispatch is a separate feature.
 - **It does not pre-validate keys.** A revoked or invalid key (HTTP 401) stays in the pool and will keep generating 401 errors until you remove it. Only HTTP 429 is treated as transient.
-- **It does not persist throttle state across restarts.** If you restart TBL mid-translation, all keys are considered fresh. Most rate-limit windows are short (1 minute for RPM), so this is rarely a problem in practice. Daily quotas (RPD) reset at midnight UTC anyway.
+- **It does not persist throttle state across restarts.** If you restart Scriptorium mid-translation, all keys are considered fresh. Most rate-limit windows are short (1 minute for RPM), so this is rarely a problem in practice. Daily quotas (RPD) reset at midnight UTC anyway.
 
 ### When rotation is skipped
 
 - **Single-key pools** behave exactly like the previous single-key code: sleep on 429, retry, raise on exhaustion. No rotation overhead.
 - **Ollama** (local) has no quota for a purely local model, so it has no key pool for that case. Rotation is irrelevant.
-  - A `-cloud` model (e.g. `gemma3:27b-cloud`), however, is relayed by the local Ollama daemon through the account you signed in with `ollama signin`, and that account can hit HTTP 429 once its usage limit is reached. TBL now pauses the translation and saves a checkpoint instead of leaving the remaining chunks untranslated, and there is still no key rotation for Ollama.
+  - A `-cloud` model (e.g. `gemma3:27b-cloud`), however, is relayed by the local Ollama daemon through the account you signed in with `ollama signin`, and that account can hit HTTP 429 once its usage limit is reached. Scriptorium now pauses the translation and saves a checkpoint instead of leaving the remaining chunks untranslated, and there is still no key rotation for Ollama.
   - To chain several Ollama accounts, use the **OpenAI-compatible** provider against `https://ollama.com/v1` instead, which does support multi-key rotation.
 - **OpenAI-compatible local servers** (llama.cpp, vLLM, LM Studio) typically run without an API key; rotation is skipped automatically.
 

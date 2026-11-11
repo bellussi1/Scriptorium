@@ -11,7 +11,7 @@ Features:
     - Automatic context size detection
     - Reasoning disabled by default (translation-friendly), per model metadata
     - Account presets (@preset/<slug>) listed with the models. Presets hold
-      settings TBL has no options for (provider routing, model fallbacks),
+      settings Scriptorium has no options for (provider routing, model fallbacks),
       edited on openrouter.ai
 """
 

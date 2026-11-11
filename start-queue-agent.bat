@@ -1,6 +1,6 @@
 @echo off
 REM ============================================
-REM TranslateBookWithLLM - Queue Runner Agent
+REM Scriptorium - Queue Runner Agent
 REM Host-side supervisor for the Queue UI's Run buttons.
 REM Keep this window open while using the Queue tab.
 REM ============================================

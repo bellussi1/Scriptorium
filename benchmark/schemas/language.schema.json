@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://github.com/hydropix/TranslateBookWithLLM/schemas/language.schema.json",
-  "title": "TBL Benchmark Language",
+  "title": "Scriptorium Benchmark Language",
   "type": "object",
   "required": ["code", "name", "native_name", "category"],
   "additionalProperties": false,

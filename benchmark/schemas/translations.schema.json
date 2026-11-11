@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://github.com/hydropix/TranslateBookWithLLM/schemas/translations.schema.json",
-  "title": "TBL Benchmark Translations (per-model)",
+  "title": "Scriptorium Benchmark Translations (per-model)",
   "description": "Immutable record of all translations a model has produced. No scores. One file per model.",
   "type": "object",
   "required": ["schema_version", "model", "environment", "contributors", "translations"],

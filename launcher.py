@@ -51,7 +51,7 @@ def setup_working_directory():
             print("\nCreating default configuration file...")
 
             # Create a minimal .env with defaults
-            default_env = """# TranslateBook with LLM Configuration
+            default_env = """# Scriptorium Configuration
 # This file was auto-generated on first run
 
 # === LLM PROVIDER ===
