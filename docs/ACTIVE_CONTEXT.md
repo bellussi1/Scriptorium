@@ -182,7 +182,13 @@ before acting on anything below.
   one-shot post-pass after the run; the next book applies it automatically.
 - Still pending: the `literary_queue.db` single-writer/intent refactor (the
   app still writes on approve/retry/add/move/remove; the queue DB stays on the
-  bind mount), watchdog auto-restart, and the destructive kill/restart tests.
+  bind mount) and watchdog auto-restart. The destructive kill/restart tests
+  were run on 2026-11-11: DB recovery 5/5, process SIGKILL and container kill
+  both resumed from the checkpoint; see `docs/project/DESTRUCTIVE_TESTS.md`.
+  Two findings to fix: a resumed job can write a `(1)` duplicate when the
+  target EPUB already exists, and the upstream job status stays `running`
+  after a fully-completed resume (the queue runner still marks
+  `needs_review`, so the queue flow is unaffected).
 - **Terminology freeze (2026-11-11) is staged on branch
   `glossary/terminology-freeze` (commit `acae484`), not on `main`.** It changes
   `Imperium` to `policy: keep` (official: Imperium 32x, Império 107x) and adds
