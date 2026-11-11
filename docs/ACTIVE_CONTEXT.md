@@ -514,3 +514,20 @@ stay. Dalibre: restart OpenCode so the MCP reconnects with `DALIBRE_TOKEN`.
 - GitHub repository: already bellussi1/Scriptorium (origin updated). Not renamed:
   the local folder, the Docker compose project (`traducaollm`), containers,
   images and volumes.
+
+## Ship of Magic chapter headings (branch `claude/zealous-solomon-ea5a8e`, 2026-11-11)
+
+- `translated_files/Ship of Magic (pt-BR).refined.epub` (gitignored, main checkout)
+  now has 36 `CAPÍTULO n` + title headings and 3 part headings (Verão Meio,
+  Outono, Inverno, from the English MIDSUMMER/AUTUMN/WINTER). The NCX lists the
+  parts with their chapters nested, labelled with `chapter_label`. Backup:
+  `Ship of Magic (pt-BR).refined.pre-chapters.epub` in the same folder.
+- The body already held partial, mis-numbered translator headings. Their text is
+  listed per chapter in `ship-of-magic.yaml` (`residue`) and removed; only heading
+  text was removed. Prose is unchanged (word-count diff: only heading words).
+- Code: `src/literary/chapter_headings.py` (sentence alignment against the English
+  source, residue removal, NCX rebuild, gates); tests in
+  `tests/literary/test_chapter_headings.py`.
+- Chapters 5, 7, 12, 11 and 22 use a manual `anchor` text. 11 and 22 could not be
+  checked against the English line (the first English sentence is not in the
+  translated body); verify those two headings by reading.
