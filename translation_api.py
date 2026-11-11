@@ -56,6 +56,7 @@ from src.api.handlers import start_translation_job
 from src.api.translation_state import get_state_manager
 from src.api.auth import register_auth
 from src.persistence.mirror import start_mirror_exporter
+from src.persistence.recovery import recover_live_db_if_needed
 
 
 # Initialize Flask app with static folder configuration
@@ -97,6 +98,12 @@ socketio = SocketIO(app, async_mode='threading')
 
 # Gate every /api/ route behind the per-session token (issue #210).
 register_auth(app)
+
+# If the live DB is corrupt, promote the newest healthy snapshot before the
+# state manager opens it. This is the only automatic write on the live volume.
+_recovery = recover_live_db_if_needed()
+if _recovery.get("status") not in {"ok", "missing"}:
+    logger.warning(f"jobs DB recovery: {_recovery}")
 
 # Thread-safe state manager (generates unique session ID for this server instance)
 state_manager = get_state_manager()
