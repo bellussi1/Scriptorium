@@ -31,8 +31,8 @@ GITHUB_REPO_OWNER = (
     os.getenv("UPDATE_CHECK_REPO_OWNER", "bellussi1").strip() or "bellussi1"
 )
 GITHUB_REPO_NAME = (
-    os.getenv("UPDATE_CHECK_REPO_NAME", "TranslateBooksWithLLMs").strip()
-    or "TranslateBooksWithLLMs"
+    os.getenv("UPDATE_CHECK_REPO_NAME", "Scriptorium").strip()
+    or "Scriptorium"
 )
 GITHUB_RELEASES_API = f"https://api.github.com/repos/{GITHUB_REPO_OWNER}/{GITHUB_REPO_NAME}/releases/latest"
 GITHUB_TAGS_API = f"https://api.github.com/repos/{GITHUB_REPO_OWNER}/{GITHUB_REPO_NAME}/tags"

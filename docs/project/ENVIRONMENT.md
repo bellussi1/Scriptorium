@@ -194,7 +194,7 @@ Windows restore point.
 | Local branch | `main` |
 | HEAD | `b5ed606` — upstream release **1.5.22** |
 | Upstream | `hydropix/TranslateBooksWithLLMs` |
-| Fork remote | `bellussi1/TranslateBooksWithLLMs` |
+| Fork remote | `bellussi1/Scriptorium` |
 | Local vs upstream | Fast-forwarded to upstream `main`; 45 commits behind was the starting state |
 | Local changes | Additive literary layer, dev Docker files, two small glossary patches, tests; no push |
 | Python version in image | 3.11-slim (the upstream Dockerfile uses 3.11) |

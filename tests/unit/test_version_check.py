@@ -55,7 +55,7 @@ def test_update_check_uses_the_fork_when_enabled(monkeypatch):
             {
                 "tag_name": "v9.9.9",
                 "name": "v9.9.9",
-                "html_url": "https://github.com/bellussi1/TranslateBooksWithLLMs/releases/tag/v9.9.9",
+                "html_url": "https://github.com/bellussi1/Scriptorium/releases/tag/v9.9.9",
                 "body": "notes",
                 "published_at": "2026-01-01T00:00:00Z",
             },
@@ -66,12 +66,12 @@ def test_update_check_uses_the_fork_when_enabled(monkeypatch):
     monkeypatch.setattr(
         version_checker,
         "GITHUB_RELEASES_API",
-        "https://api.github.com/repos/bellussi1/TranslateBooksWithLLMs/releases/latest",
+        "https://api.github.com/repos/bellussi1/Scriptorium/releases/latest",
     )
     monkeypatch.setattr(
         version_checker,
         "GITHUB_TAGS_API",
-        "https://api.github.com/repos/bellussi1/TranslateBooksWithLLMs/tags",
+        "https://api.github.com/repos/bellussi1/Scriptorium/tags",
     )
     version_checker.invalidate_cache()
 
@@ -80,7 +80,7 @@ def test_update_check_uses_the_fork_when_enabled(monkeypatch):
     assert result["update_available"] is True
     assert result["latest"] == "9.9.9"
     assert calls == [
-        "https://api.github.com/repos/bellussi1/TranslateBooksWithLLMs/releases/latest"
+        "https://api.github.com/repos/bellussi1/Scriptorium/releases/latest"
     ]
     assert "hydropix" not in calls[0]
     version_checker.invalidate_cache()

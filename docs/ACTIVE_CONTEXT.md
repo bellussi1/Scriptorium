@@ -511,5 +511,6 @@ stay. Dalibre: restart OpenCode so the MCP reconnects with `DALIBRE_TOKEN`.
   localStorage keys, and the `TBL_*` env vars stay as they are on purpose.
 - Logo candidates are in `docs/design/logo-candidates/`. None is wired into the
   UI; the owner picks one later.
-- Not renamed: the GitHub repository, the local folder, the Docker compose
-  project (`traducaollm`), containers, images and volumes.
+- GitHub repository: already bellussi1/Scriptorium (origin updated). Not renamed:
+  the local folder, the Docker compose project (`traducaollm`), containers,
+  images and volumes.
