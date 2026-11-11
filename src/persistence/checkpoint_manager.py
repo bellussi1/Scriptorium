@@ -42,14 +42,16 @@ class CheckpointManager:
     and file storage for uploaded files.
     """
 
-    def __init__(self, db_path: str = "data/jobs.db", server_session_id: Optional[str] = None):
+    def __init__(self, db_path: Optional[str] = None, server_session_id: Optional[str] = None):
         """
         Initialize checkpoint manager.
 
         Args:
-            db_path: Path to SQLite database
+            db_path: Path to SQLite database. Defaults to ``JOBS_DB_PATH`` so
+                the CLI and the web app always point at the live volume.
             server_session_id: Unique identifier for the current server session
         """
+        db_path = db_path or os.getenv("JOBS_DB_PATH", "data/jobs.db")
         self.db = Database(db_path)
         self.uploads_dir = Path("data/uploads")
         self.uploads_dir.mkdir(parents=True, exist_ok=True)
@@ -192,34 +194,30 @@ class CheckpointManager:
         Returns:
             True if saved successfully
         """
-        # Save chunk
+        # One transaction for the chunk row and the progress JSON. The
+        # caller's completed_chunks/failed_chunks are deliberately ignored:
+        # the counts are recomputed from checkpoint_chunks, which is the only
+        # source that survives a crash.
         chunk_status = 'completed' if translated_text else 'failed'
-        chunk_saved = self.db.save_chunk(
-            translation_id,
-            chunk_index,
-            original_text,
-            translated_text,
-            chunk_data,
-            chunk_status
-        )
-
-        # Update job progress
-        progress_saved = self.db.update_job_progress(
-            translation_id,
-            current_chunk_index=chunk_index,
+        saved = self.db.save_checkpoint_atomic(
+            translation_id=translation_id,
+            chunk_index=chunk_index,
+            original_text=original_text,
+            translated_text=translated_text,
+            chunk_data=chunk_data,
+            chunk_status=chunk_status,
             total_chunks=total_chunks,
-            completed_chunks=completed_chunks,
-            failed_chunks=failed_chunks,
             epub_accumulated_stats=epub_accumulated_stats,
             unfinished_units=unfinished_units,
-            degraded_units=degraded_units
+            degraded_units=degraded_units,
         )
 
-        # Update translation context if provided
+        # Update translation context if provided. Context is not part of the
+        # resume index, so it stays a separate, best-effort write.
         if translation_context:
             self.db.update_translation_context(translation_id, translation_context)
 
-        return chunk_saved and progress_saved
+        return saved
 
     def load_checkpoint(self, translation_id: str) -> Optional[Dict[str, Any]]:
         """
@@ -235,6 +233,13 @@ class CheckpointManager:
                 - resume_from_index: Index to resume from
         """
         # Get job data
+        if not self.db.get_job(translation_id):
+            return None
+
+        # Recompute the counters and the resume index from the chunk rows
+        # before trusting the progress JSON. Never resume from the end just
+        # because a drifting counter says so.
+        self.db.reconcile_job(translation_id)
         job = self.db.get_job(translation_id)
         if not job:
             return None
@@ -273,6 +278,14 @@ class CheckpointManager:
             'failed_chunk_indices': failed_chunk_indices,
             'translation_context': job.get('translation_context')
         }
+
+    def reconcile_job(self, translation_id: str) -> Dict[str, Any]:
+        """Recompute progress counters and the resume index from chunk rows."""
+        return self.db.reconcile_job(translation_id)
+
+    def health(self) -> Dict[str, Any]:
+        """Return the live database integrity and journal mode."""
+        return self.db.health()
 
     def get_resumable_jobs(self) -> List[Dict[str, Any]]:
         """
@@ -1012,23 +1025,31 @@ class CheckpointManager:
         state.updated_at = datetime.now(timezone.utc).isoformat().replace('+00:00', 'Z')
 
         try:
-            # Serialize and save
-            with open(state_file, 'w', encoding='utf-8') as f:
+            # Atomic write: a crash in the middle of the JSON must never leave
+            # a half-written state file that the resume path then trusts.
+            tmp_file = state_file.with_name(state_file.name + ".tmp")
+            with open(tmp_file, 'w', encoding='utf-8') as f:
                 json.dump(state.to_dict(), f, ensure_ascii=False, indent=2)
+                f.flush()
+                os.fsync(f.fileno())
+            os.replace(tmp_file, state_file)
 
             print(f"Partial state saved: {state_file} (chunk {state.current_chunk_index}/{len(state.chunks)})")
 
-            # Update main checkpoint progress with global_stats if available
-            # This ensures the UI shows correct progress across all XHTML files
+            # Only the total belongs here. completed_chunks and failed_chunks
+            # are derived from checkpoint_chunks by save_checkpoint_atomic; the
+            # old state.global_stats counters were the source of the 1074/94
+            # drift that made the queue trust a checkpoint that did not exist.
             if state.global_stats:
-                self.db.update_job_progress(
-                    translation_id=translation_id,
-                    current_chunk_index=None,  # Don't update chunk index
-                    total_chunks=state.global_stats.get('total_chunks'),
-                    completed_chunks=state.global_stats.get('completed_chunks'),
-                    failed_chunks=state.global_stats.get('failed_chunks')
-                )
-                print(f"Updated main checkpoint with global stats: {state.global_stats.get('completed_chunks')}/{state.global_stats.get('total_chunks')} chunks")
+                total = state.global_stats.get('total_chunks')
+                if total is not None:
+                    self.db.update_job_progress(
+                        translation_id=translation_id,
+                        current_chunk_index=None,
+                        total_chunks=total,
+                    )
+                stats = self.db.get_chunk_stats(translation_id)
+                print(f"Checkpoint rows: {stats['completed']}/{total or stats['total']} chunks")
 
             return True
         except Exception as e:

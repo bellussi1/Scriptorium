@@ -1,10 +1,8 @@
-"""Resume-index convention + backward-compat for load_checkpoint.
+"""Resume-index convention + reconciliation in ``load_checkpoint``.
 
-New checkpoints carry the 'resume_index_semantics' = 'completed' marker, so
-current_chunk_index is the last completed unit for every format and resume is
-always +1. Pre-migration checkpoints (no marker) must still resume correctly
-via the legacy per-format branch (EPUB stored file_idx+1, TXT/SRT stored the
-last completed chunk).
+The chunk rows are now the source of truth. These tests seed both the chunk
+rows and (where relevant) the legacy progress JSON to verify that
+``load_checkpoint`` reconciles the two before choosing a resume point.
 """
 
 import json
@@ -28,43 +26,68 @@ def _set_progress(manager, translation_id, progress):
     conn.commit()
 
 
+def _seed_chunks(manager, translation_id, indices):
+    for index in indices:
+        manager.db.save_chunk(
+            translation_id,
+            index,
+            "x",
+            "y",
+            status="completed",
+        )
+
+
 @pytest.mark.parametrize("file_type", ["epub", "txt", "srt"])
 def test_new_marked_checkpoint_resumes_at_next_unit(cm, file_type):
     cm.start_job("job", file_type, {}, None)
-    # New convention: store the last completed unit index.
-    cm.save_checkpoint(
-        translation_id="job",
-        chunk_index=2,
-        original_text="x",
-        translated_text="y",
-        total_chunks=10,
-        completed_chunks=3,
-        failed_chunks=0,
-    )
+    for index in range(3):
+        cm.save_checkpoint(
+            translation_id="job",
+            chunk_index=index,
+            original_text="x",
+            translated_text="y",
+            total_chunks=10,
+            completed_chunks=3,
+            failed_chunks=0,
+        )
     assert cm.load_checkpoint("job")["resume_from_index"] == 3
 
 
 def test_legacy_epub_checkpoint_without_marker(cm):
     # Pre-migration EPUB: current_chunk_index was file_idx+1 (the next file),
-    # and there is no semantics marker.
+    # and there is no semantics marker. Reconciliation derives the index from
+    # the three completed chunk rows.
     cm.start_job("job", "epub", {}, None)
+    _seed_chunks(cm, "job", [0, 1, 2])
     _set_progress(cm, "job", {
-        "current_chunk_index": 3,  # = file_idx(2) + 1 under the old convention
+        "current_chunk_index": 3,
         "total_chunks": 10,
         "completed_chunks": 3,
         "failed_chunks": 0,
     })
-    # Legacy branch: EPUB must NOT add +1, so it resumes at file 3.
     assert cm.load_checkpoint("job")["resume_from_index"] == 3
 
 
 def test_legacy_txt_checkpoint_without_marker(cm):
     cm.start_job("job", "txt", {}, None)
+    _seed_chunks(cm, "job", [0, 1, 2, 3, 4, 5])
     _set_progress(cm, "job", {
-        "current_chunk_index": 5,  # last completed chunk under the old convention
+        "current_chunk_index": 5,
         "total_chunks": 10,
         "completed_chunks": 6,
         "failed_chunks": 0,
     })
-    # Legacy branch: TXT adds +1.
     assert cm.load_checkpoint("job")["resume_from_index"] == 6
+
+
+def test_gap_resumes_at_first_missing_chunk(cm):
+    cm.start_job("job", "epub", {}, None)
+    _seed_chunks(cm, "job", [0, 2])
+    # The JSON lies: it claims three completed chunks, but index 1 is missing.
+    _set_progress(cm, "job", {
+        "current_chunk_index": 2,
+        "total_chunks": 10,
+        "completed_chunks": 3,
+        "failed_chunks": 0,
+    })
+    assert cm.load_checkpoint("job")["resume_from_index"] == 1

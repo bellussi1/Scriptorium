@@ -50,7 +50,9 @@ from .validation import validate_epub_pair
 
 ROOT = Path(__file__).resolve().parents[2]
 QUEUE_DB = ROOT / "data" / "literary_queue.db"
-CHECKPOINT_DB = ROOT / "data" / "jobs.db"
+# Host-side read-only copy. The live DB is on a Docker volume and is only
+# opened by the app container; see src/persistence/mirror.py.
+CHECKPOINT_DB = ROOT / "data" / "jobs.mirror.db"
 INVENTORY = ROOT / "data" / "calibre" / "targets.json"
 OUTPUT_DIR = ROOT / "translated_files"
 RUN_DIR = ROOT / "data" / "queue-runs"
@@ -357,27 +359,103 @@ def _upstream_progress(translation_id: Optional[str] = None) -> Tuple[str, int, 
     )
 
 
-def _checkpoint_is_resumable(translation_id: str) -> bool:
-    """True when a paused job still has its input and a usable checkpoint.
+def _container_checkpoint_status(translation_id: str) -> Optional[Dict[str, Any]]:
+    """Ask the app container for the authoritative live checkpoint state.
 
-    A queue row can outlive its checkpoint (the upload directory was pruned,
-    the input file was deleted, or the progress already covers every chunk).
-    Resuming such a job would fail after the runner has already marked the book
-    as preparing, so the runner checks before choosing the resume path and
-    falls back to a fresh translation.
+    The host only has the mirror, which can be up to one interval behind. A
+    resume decision is made against the live volume, then the mirror is only
+    used as a fallback for tests or when Docker is unavailable.
     """
+    if os.getenv("PYTEST_CURRENT_TEST"):
+        return None
+    if CHECKPOINT_DB.name != "jobs.mirror.db":
+        return None  # a test monkeypatched the checkpoint path
+    command = [
+        "docker", "compose", "-f", "docker-compose.dev.yml",
+        "exec", "-T", "app",
+        "python", "-m", "src.literary.cli", "queue", "checkpoint-status",
+        "--id", translation_id, "--reconcile", "--json",
+    ]
+    try:
+        completed = subprocess.run(
+            command,
+            cwd=str(ROOT),
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            timeout=60,
+        )
+    except Exception:
+        return None
+    if completed.returncode != 0:
+        return None
+    for line in reversed((completed.stdout or "").strip().splitlines()):
+        line = line.strip()
+        if not line.startswith("{"):
+            continue
+        try:
+            return json.loads(line)
+        except json.JSONDecodeError:
+            continue
+    return None
+
+
+def _checkpoint_is_resumable_readonly(translation_id: str) -> bool:
+    """Read-only fallback over the mirror; never writes to the database."""
+    import sqlite3
+
     if not translation_id or not CHECKPOINT_DB.exists():
         return False
-    from src.persistence.checkpoint_manager import CheckpointManager
-
-    manager = CheckpointManager(db_path=str(CHECKPOINT_DB))
     try:
-        return any(
-            job["translation_id"] == translation_id
-            for job in manager.get_resumable_jobs()
+        conn = sqlite3.connect(
+            f"file:{CHECKPOINT_DB.as_posix()}?mode=ro",
+            uri=True,
+            timeout=10,
         )
-    finally:
-        manager.close()
+        conn.row_factory = sqlite3.Row
+        try:
+            job = conn.execute(
+                "SELECT progress, config FROM translation_jobs WHERE translation_id = ?",
+                (translation_id,),
+            ).fetchone()
+            if not job:
+                return False
+            stats = conn.execute(
+                """
+                SELECT COUNT(*) AS total,
+                       SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) AS completed
+                FROM checkpoint_chunks
+                WHERE translation_id = ?
+                """,
+                (translation_id,),
+            ).fetchone()
+        finally:
+            conn.close()
+    except sqlite3.Error:
+        return False
+
+    progress = json.loads(job["progress"] or "{}")
+    config = json.loads(job["config"] or "{}")
+    total = int(progress.get("total_chunks") or 0)
+    completed = int(stats["completed"] or 0)
+    if total <= 0 or completed <= 0 or completed >= total:
+        return False
+    input_path = config.get("preserved_input_path") or config.get("file_path")
+    input_exists = bool(input_path and Path(input_path).exists())
+    if not input_exists:
+        input_exists = (ROOT / "data" / "uploads" / translation_id).exists()
+    return input_exists
+
+
+def _checkpoint_is_resumable(translation_id: str) -> bool:
+    """True when the live checkpoint still has work and a readable input."""
+    if not translation_id:
+        return False
+    status = _container_checkpoint_status(translation_id)
+    if status is not None:
+        return bool(status.get("resumable"))
+    return _checkpoint_is_resumable_readonly(translation_id)
 
 
 def _find_translation_id(title: str, since: Optional[str] = None) -> Optional[str]:

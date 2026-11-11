@@ -147,7 +147,7 @@ def _process_request(db: Path, request: dict, *, dry_run: bool) -> int:
     finally:
         store.close()
     active = active_direct_translation(
-        db.with_name("jobs.db"),
+        db.with_name("jobs.mirror.db"),
         exclude_translation_id=exclude,
     )
     if active:

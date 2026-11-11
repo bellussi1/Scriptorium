@@ -236,7 +236,7 @@ def cmd_queue_run(args: argparse.Namespace) -> int:
         finally:
             store.close()
     active = active_direct_translation(
-        Path(args.db).with_name("jobs.db"),
+        Path(args.db).with_name("jobs.mirror.db"),
         exclude_translation_id=exclude,
     )
     if active:
@@ -304,7 +304,7 @@ def cmd_queue_run_all(args: argparse.Namespace) -> int:
         finally:
             store.close()
         active = active_direct_translation(
-            Path(args.db).with_name("jobs.db"),
+            Path(args.db).with_name("jobs.mirror.db"),
             exclude_translation_id=exclude,
         )
         if active:
@@ -530,6 +530,62 @@ def cmd_queue_sync(args: argparse.Namespace) -> int:
     _print_json(report)
     store.close()
     return 0 if not report.get("error") else 1
+
+
+def cmd_checkpoint_status(args: argparse.Namespace) -> int:
+    """Report the live checkpoint state from inside the app container."""
+    import os
+    from pathlib import Path
+
+    from src.persistence.checkpoint_manager import CheckpointManager
+
+    db_path = os.getenv("JOBS_DB_PATH", "data/jobs.db")
+    manager = CheckpointManager(db_path=db_path)
+    try:
+        if args.reconcile:
+            manager.reconcile_job(args.id)
+        job = manager.get_job(args.id)
+        if not job:
+            _print_json({
+                "translation_id": args.id,
+                "found": False,
+                "resumable": False,
+            })
+            return 1
+
+        stats = manager.db.get_chunk_stats(args.id)
+        progress = job.get("progress") or {}
+        config = job.get("config") or {}
+        total = int(progress.get("total_chunks") or 0)
+        input_path = config.get("preserved_input_path") or config.get("file_path")
+        input_exists = bool(input_path and Path(input_path).exists())
+        if not input_exists:
+            input_exists = (Path("data/uploads") / args.id).exists()
+        health = manager.health()
+        resumable = (
+            input_exists
+            and total > 0
+            and stats["total"] > 0
+            and stats["completed"] < total
+            and str(job.get("status") or "") != "completed"
+        )
+        _print_json({
+            "translation_id": args.id,
+            "found": True,
+            "status": job.get("status"),
+            "resumable": resumable,
+            "input_exists": input_exists,
+            "total_chunks": total,
+            "completed_chunks": stats["completed"],
+            "failed_chunks": stats["failed"],
+            "chunk_rows": stats["total"],
+            "last_index": stats["last_index"],
+            "db_integrity": health["integrity"],
+            "journal_mode": health["journal_mode"],
+        })
+        return 0
+    finally:
+        manager.close()
 
 
 def cmd_queue_job_state(args: argparse.Namespace) -> int:
@@ -936,10 +992,22 @@ def build_parser() -> argparse.ArgumentParser:
     attach_parser.add_argument("--translation-id", required=True)
     attach_parser.set_defaults(func=cmd_queue_attach)
 
-    sync_parser = queue_sub.add_parser("sync", help="Reconcile with data/jobs.db (read-only)")
+    sync_parser = queue_sub.add_parser(
+        "sync",
+        help="Reconcile with data/jobs.mirror.db (read-only)",
+    )
     sync_parser.add_argument("--db", default="data/literary_queue.db")
-    sync_parser.add_argument("--checkpoint-db", default="data/jobs.db")
+    sync_parser.add_argument("--checkpoint-db", default="data/jobs.mirror.db")
     sync_parser.set_defaults(func=cmd_queue_sync)
+
+    status_parser = queue_sub.add_parser(
+        "checkpoint-status",
+        help="Report the live jobs.db checkpoint for one translation",
+    )
+    status_parser.add_argument("--id", required=True)
+    status_parser.add_argument("--reconcile", action="store_true")
+    status_parser.add_argument("--json", action="store_true")
+    status_parser.set_defaults(func=cmd_checkpoint_status)
 
     job_state_parser = queue_sub.add_parser("set-job-state")
     job_state_parser.add_argument("--db", default="data/literary_queue.db")

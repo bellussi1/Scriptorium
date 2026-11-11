@@ -47,8 +47,26 @@ class Database:
         # Ensure directory exists
         os.makedirs(os.path.dirname(db_path), exist_ok=True)
 
+        # Never initialize the schema on a corrupt database: it would either
+        # fail halfway or make the damage harder to explain. The live DB is on
+        # a Docker volume; a failure here should stop the app loudly.
+        self._verify_integrity()
+
         # Initialize schema
         self._initialize_schema()
+
+    def _verify_integrity(self) -> None:
+        """Run a full integrity check before opening the database for writes."""
+        conn = sqlite3.connect(self.db_path, timeout=30.0)
+        try:
+            row = conn.execute("PRAGMA integrity_check").fetchone()
+            result = str(row[0] if row else "unknown")
+        finally:
+            conn.close()
+        if result.lower() != "ok":
+            raise RuntimeError(
+                f"jobs database integrity check failed for {self.db_path}: {result}"
+            )
 
     def _get_connection(self) -> sqlite3.Connection:
         """Get thread-local database connection."""
@@ -59,15 +77,15 @@ class Database:
                 timeout=30.0
             )
             conn.row_factory = sqlite3.Row
-            # The jobs database lives on a Windows bind mount shared by the app
-            # container and the host queue tools. SQLite WAL uses shared memory
-            # files that are not reliable across that boundary and produced
-            # "disk I/O error" / "database disk image is malformed" failures.
-            # DELETE keeps the same durability without the shared-memory file.
+            # The live jobs DB now lives on a Docker named volume (ext4), not
+            # on the Windows bind mount. DELETE + FULL keeps a rollback journal
+            # with a real fsync; WAL is still avoided because the host reads a
+            # snapshot, never this file.
             journal_mode = os.getenv("SQLITE_JOURNAL_MODE", "DELETE").strip().upper()
             if journal_mode not in {"DELETE", "TRUNCATE", "PERSIST", "MEMORY", "WAL", "OFF"}:
                 journal_mode = "DELETE"
             conn.execute(f"PRAGMA journal_mode={journal_mode}")
+            conn.execute("PRAGMA synchronous=FULL")
             conn.execute("PRAGMA busy_timeout=30000")
             # SQLite scopes foreign_keys per connection, not per database, so it
             # must be enabled here (on every connection we hand out) rather than
@@ -76,6 +94,17 @@ class Database:
             conn.execute("PRAGMA foreign_keys = ON")
             self._local.connection = conn
         return self._local.connection
+
+    def health(self) -> Dict[str, Any]:
+        """Return the live database integrity and journal mode."""
+        conn = self._get_connection()
+        integrity = conn.execute("PRAGMA quick_check").fetchone()
+        journal = conn.execute("PRAGMA journal_mode").fetchone()
+        return {
+            "path": self.db_path,
+            "integrity": str(integrity[0] if integrity else "unknown"),
+            "journal_mode": str(journal[0] if journal else "unknown"),
+        }
 
     def _initialize_schema(self):
         """Create database tables if they don't exist."""
@@ -354,6 +383,84 @@ class Database:
                 print(f"Error saving chunk: {e}")
                 return False
 
+    def save_checkpoint_atomic(
+        self,
+        translation_id: str,
+        chunk_index: int,
+        original_text: str,
+        translated_text: Optional[str] = None,
+        chunk_data: Optional[Dict[str, Any]] = None,
+        chunk_status: str = 'completed',
+        total_chunks: Optional[int] = None,
+        epub_accumulated_stats: Optional[Dict[str, Any]] = None,
+        unfinished_units: Optional[Dict[str, List[int]]] = None,
+        degraded_units: Optional[Dict[str, List[int]]] = None,
+    ) -> bool:
+        """Persist a chunk and its progress counters in one transaction.
+
+        The chunk table is the authority: completed/failed counts are recomputed
+        from ``checkpoint_chunks`` after the insert instead of trusting a
+        caller's in-memory counter. A crash can lose the newest chunk, but it
+        cannot leave ``progress`` claiming chunks that were never written.
+        """
+        with self._lock:
+            conn = self._get_connection()
+            try:
+                conn.execute("BEGIN IMMEDIATE")
+                conn.execute("""
+                    INSERT OR REPLACE INTO checkpoint_chunks
+                    (translation_id, chunk_index, original_text, translated_text,
+                     chunk_data, status, completed_at)
+                    VALUES (?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+                """, (
+                    translation_id,
+                    chunk_index,
+                    original_text,
+                    translated_text,
+                    json.dumps(chunk_data) if chunk_data else None,
+                    chunk_status,
+                ))
+                stats = conn.execute("""
+                    SELECT COUNT(*) AS total,
+                           SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) AS completed,
+                           SUM(CASE WHEN status = 'failed' THEN 1 ELSE 0 END) AS failed
+                    FROM checkpoint_chunks
+                    WHERE translation_id = ?
+                """, (translation_id,)).fetchone()
+                job_row = conn.execute(
+                    "SELECT progress FROM translation_jobs WHERE translation_id = ?",
+                    (translation_id,),
+                ).fetchone()
+                if not job_row:
+                    conn.rollback()
+                    return False
+                progress = json.loads(job_row['progress'] or '{}')
+                progress['current_chunk_index'] = chunk_index
+                if total_chunks is not None:
+                    progress['total_chunks'] = total_chunks
+                progress['completed_chunks'] = int(stats['completed'] or 0)
+                progress['failed_chunks'] = int(stats['failed'] or 0)
+                if epub_accumulated_stats is not None:
+                    progress['epub_accumulated_stats'] = epub_accumulated_stats
+                if unfinished_units is not None:
+                    progress['epub_unfinished_units'] = unfinished_units
+                if degraded_units is not None:
+                    progress['epub_degraded_units'] = degraded_units
+                conn.execute(
+                    "UPDATE translation_jobs SET progress = ?, updated_at = CURRENT_TIMESTAMP "
+                    "WHERE translation_id = ?",
+                    (json.dumps(progress), translation_id),
+                )
+                conn.commit()
+                return True
+            except Exception as e:
+                try:
+                    conn.rollback()
+                except Exception:
+                    pass
+                print(f"Error saving atomic checkpoint: {e}")
+                return False
+
     def get_job(self, translation_id: str) -> Optional[Dict[str, Any]]:
         """
         Retrieve job information.
@@ -494,6 +601,72 @@ class Database:
             except Exception as e:
                 print(f"Error getting chunk stats: {e}")
                 return {'total': 0, 'completed': 0, 'failed': 0, 'last_index': -1}
+
+    def reconcile_job(self, translation_id: str) -> Dict[str, Any]:
+        """Make progress counters and the resume index match the chunk rows.
+
+        The first chunk that is not ``completed`` is the only safe resume
+        point. This handles both a missing row and a row explicitly marked
+        ``failed``; it never resumes from the end just because the JSON says so.
+        """
+        with self._lock:
+            conn = self._get_connection()
+            try:
+                job_row = conn.execute(
+                    "SELECT progress FROM translation_jobs WHERE translation_id = ?",
+                    (translation_id,),
+                ).fetchone()
+                if not job_row:
+                    return {"translation_id": translation_id, "found": False}
+                progress = json.loads(job_row['progress'] or '{}')
+                rows = conn.execute(
+                    "SELECT chunk_index, status FROM checkpoint_chunks "
+                    "WHERE translation_id = ? ORDER BY chunk_index",
+                    (translation_id,),
+                ).fetchall()
+                present = {
+                    int(row['chunk_index']): str(row['status'])
+                    for row in rows
+                }
+                total = int(progress.get('total_chunks') or 0)
+                completed = sum(1 for state in present.values() if state == 'completed')
+                failed = sum(1 for state in present.values() if state == 'failed')
+                limit = max(total, (max(present) + 1) if present else 0)
+                first_incomplete = 0
+                while (
+                    first_incomplete < limit
+                    and present.get(first_incomplete) == 'completed'
+                ):
+                    first_incomplete += 1
+
+                progress['completed_chunks'] = completed
+                progress['failed_chunks'] = failed
+                progress['current_chunk_index'] = first_incomplete - 1
+                progress['resume_index_semantics'] = 'completed'
+                conn.execute(
+                    "UPDATE translation_jobs SET progress = ?, updated_at = CURRENT_TIMESTAMP "
+                    "WHERE translation_id = ?",
+                    (json.dumps(progress), translation_id),
+                )
+                conn.commit()
+                return {
+                    "translation_id": translation_id,
+                    "found": True,
+                    "total_chunks": total,
+                    "completed_chunks": completed,
+                    "failed_chunks": failed,
+                    "chunks": len(present),
+                    "last_index": max(present) if present else -1,
+                    "first_incomplete": first_incomplete,
+                    "current_chunk_index": first_incomplete - 1,
+                }
+            except Exception as e:
+                try:
+                    conn.rollback()
+                except Exception:
+                    pass
+                print(f"Error reconciling job: {e}")
+                return {"translation_id": translation_id, "found": False, "error": str(e)}
 
     def get_failed_chunk_indices(self, translation_id: str) -> List[int]:
         """

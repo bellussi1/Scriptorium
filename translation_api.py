@@ -55,6 +55,7 @@ from src.api.websocket import configure_websocket_handlers
 from src.api.handlers import start_translation_job
 from src.api.translation_state import get_state_manager
 from src.api.auth import register_auth
+from src.persistence.mirror import start_mirror_exporter
 
 
 # Initialize Flask app with static folder configuration
@@ -300,6 +301,10 @@ def start_server():
 
         # Validate configuration before starting
         validate_configuration()
+
+        # The host queue runner reads a read-only SQLite mirror; only this
+        # process writes the live jobs.db on the Docker volume.
+        start_mirror_exporter()
 
         logger.info("")
         logger.info("=" * 50)

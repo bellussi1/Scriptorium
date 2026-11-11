@@ -31,6 +31,11 @@ services:
       EPUB_TRANSLATE_METADATA_ENABLED: "true"
       ATTRIBUTION_ENABLED: "true"
       PYTHONPATH: /app:/app/src
+      # Live checkpoint DB on a Docker named volume (ext4). The host reads the
+      # read-only mirror on the bind mount instead of opening this file.
+      JOBS_DB_PATH: /app/state/jobs.db
+      JOBS_MIRROR_PATH: /app/data/jobs.mirror.db
+      JOBS_MIRROR_INTERVAL: "30"
     volumes:
       - ./translate.py:/app/translate.py:ro
       - ./src:/app/src:ro
@@ -40,6 +45,7 @@ services:
       - ./literary-resources:/app/literary-resources:ro
       - ./Custom_Instructions:/app/Custom_Instructions
       - ./data:/app/data
+      - jobs_state:/app/state
       - ./translated_files:/app/translated_files
       - ./logs:/app/logs
       - ./.env:/app/.env
@@ -57,3 +63,6 @@ services:
       timeout: 10s
       retries: 3
       start_period: 40s
+
+volumes:
+  jobs_state:
