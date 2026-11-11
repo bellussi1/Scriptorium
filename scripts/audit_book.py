@@ -39,6 +39,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 from benchmark.literary.metrics import english_leakage, length_ratio, repetition_ratio  # noqa: E402
+from src.literary.per_file_audit import PT_PT_PATTERNS, scan_book  # noqa: E402
 from src.literary.queue import QueueStore  # noqa: E402
 from src.literary.resources import compile_for_book, load_tree  # noqa: E402
 from src.literary.run_plan import build_run_plan  # noqa: E402
@@ -46,27 +47,6 @@ from src.literary.validation import target_present  # noqa: E402
 
 LEDGER = ROOT / "data" / "cost_ledger.jsonl"
 AUDIT_ROOT = ROOT / "data" / "audits"
-
-PT_PT_PATTERNS = [
-    r"\btu\b",
-    r"\bdespertaste\b",
-    r"\bquil[oó]metros?\b",
-    r"\bcontacto\b",
-    r"\bde facto\b",
-    r"\bdem[oó]nio\b",
-    r"\ba dan[cç]ar\b",
-    r"\bestamos a\b",
-    r"\bconvosco\b",
-    r"\bcompreendes\b",
-    r"\bencontr[aá]mos\b",
-    r"\btrav[aá]mos\b",
-    r"\bouvistes\b",
-    r"\bpr[eé]mios?\b",
-    r"\bF[eé]nix\b",
-    r"\bse tinha deslocado\b",
-    r"\bfazer-vos\b",
-    r"\bv[oó]s\b",
-]
 
 TRANSLATED_CATEGORIES = {
     "character",
@@ -310,17 +290,21 @@ def _term_form_map(terms: List[Any]) -> Dict[str, Tuple[str, Tuple[str, ...]]]:
     return mapping
 
 
-def _term_audit(
+def _resolve_terms(
     book: Any,
-    source_text: str,
-    target_text: str,
-    *,
     glossary_path: Optional[Path] = None,
 ) -> Dict[str, Any]:
-    snapshot_terms: List[Any] = []
+    """Resolve the glossary snapshot (or the current compiled terms).
+
+    The snapshot is what the run actually used; the compiled tree is only a
+    fallback when the run report has no snapshot. Both are returned so the
+    per-file scan can reuse the same terms without compiling twice.
+    """
     current_terms: List[Any] = []
     current_map: Dict[str, Tuple[str, Tuple[str, ...]]] = {}
+    snapshot_terms: List[Any] = []
     snapshot = ""
+    error = ""
     try:
         plan = build_run_plan(book)
         scopes = plan.get("scopes") or {}
@@ -336,21 +320,55 @@ def _term_audit(
         current_terms = compiled.glossary.terms
         current_map = _term_form_map(current_terms)
     except Exception as exc:
-        if not (glossary_path and glossary_path.exists()):
-            return {
-                "ok": False,
-                "error": f"{type(exc).__name__}: {exc}",
-                "coverage": None,
-                "forbidden_hits": [],
-                "missing": [],
-            }
+        error = f"{type(exc).__name__}: {exc}"
 
-    if glossary_path and glossary_path.exists():
-        snapshot_terms = _load_glossary_snapshot(glossary_path)
+    if glossary_path and Path(glossary_path).exists():
+        snapshot_terms = _load_glossary_snapshot(Path(glossary_path))
         snapshot = str(glossary_path)
         terms = snapshot_terms
+    elif error and not current_terms:
+        return {
+            "terms": [],
+            "current_terms": [],
+            "current_map": {},
+            "snapshot": "",
+            "error": error,
+        }
     else:
         terms = current_terms
+
+    return {
+        "terms": terms,
+        "current_terms": current_terms,
+        "current_map": current_map,
+        "snapshot": snapshot,
+        "error": "",
+    }
+
+
+def _term_audit(
+    book: Any,
+    source_text: str,
+    target_text: str,
+    *,
+    glossary_path: Optional[Path] = None,
+    resolved: Optional[Dict[str, Any]] = None,
+) -> Dict[str, Any]:
+    data = resolved if resolved is not None else _resolve_terms(book, glossary_path)
+    if data.get("error"):
+        return {
+            "ok": False,
+            "error": data["error"],
+            "coverage": None,
+            "forbidden_hits": [],
+            "missing": [],
+        }
+
+    terms = data["terms"]
+    current_terms = data["current_terms"]
+    current_map = data["current_map"]
+    snapshot_terms = terms if data["snapshot"] else []
+    snapshot = data["snapshot"]
 
     source_cf = source_text.casefold()
     eligible = 0
@@ -883,12 +901,18 @@ def main() -> int:
     target_text, target_files = _epub_text(target)
     samples = _sample_pairs(source_files, target_files, limit=max(3, args.samples))
     glossary_path = str((report.get("assets") or {}).get("glossary_host") or "").strip()
+    resolved = _resolve_terms(
+        book,
+        Path(glossary_path) if glossary_path else None,
+    )
     terms = _term_audit(
         book,
         source_text,
         target_text,
         glossary_path=Path(glossary_path) if glossary_path else None,
+        resolved=resolved,
     )
+    per_file = scan_book(source, target, resolved["terms"])
     metrics = _text_metrics(source_text, target_text)
     glossary_hash = None
     glossary_hash_mismatch = False
@@ -935,6 +959,8 @@ def main() -> int:
         reasons.append(f"repetition {metrics['repetition_ratio']} > 0.05")
     if metrics.get("length_ratio") is not None and not 0.80 <= metrics["length_ratio"] <= 1.20:
         reasons.append(f"length ratio {metrics['length_ratio']} outside 0.80-1.20")
+    for reason in per_file["gate"]["reasons"]:
+        reasons.append(f"per-file: {reason}")
     if not cloud.get("passed"):
         if cloud.get("ok"):
             averages = cloud.get("averages") or {}
@@ -971,6 +997,13 @@ def main() -> int:
         "terms": terms,
         "metrics": metrics,
         "samples": samples,
+        "per_file": {
+            "schema": per_file["schema"],
+            "schema_version": per_file["schema_version"],
+            "totals": per_file["totals"],
+            "gate": per_file["gate"],
+            "offenders": per_file["offenders"],
+        },
         "cloud": cloud,
         "glossary_hash": glossary_hash,
         "glossary_hash_mismatch": glossary_hash_mismatch,
@@ -979,6 +1012,10 @@ def main() -> int:
     out_dir = args.out or (AUDIT_ROOT / f"{_slug(book.title)}-{datetime.now(timezone.utc):%Y%m%dT%H%M%SZ}")
     out_dir.mkdir(parents=True, exist_ok=True)
     (out_dir / "audit.json").write_text(json.dumps(audit, ensure_ascii=False, indent=2), encoding="utf-8")
+    (out_dir / "per_file.json").write_text(
+        json.dumps(per_file, ensure_ascii=False, indent=2),
+        encoding="utf-8",
+    )
     (out_dir / "samples.jsonl").write_text(
         "\n".join(json.dumps(sample, ensure_ascii=False) for sample in samples) + "\n",
         encoding="utf-8",
@@ -1014,6 +1051,35 @@ def main() -> int:
     if warnings:
         lines.extend(["", "## Warnings", ""])
         lines.extend(f"- {warning}" for warning in warnings)
+    totals = per_file["totals"]
+    offenders = per_file["offenders"]
+    lines.extend(
+        [
+            "",
+            "## Per-file coverage",
+            "",
+            f"- XHTML files scanned: {totals['files']} (100%); paired with source: {totals['files_with_source']}",
+            f"- Words: {totals['words']}; forbidden hits: {totals['forbidden_hits']}",
+            f"- Glossary file pairs: {totals['glossary_hits']}/{totals['glossary_pairs']} ({totals['glossary_coverage']})",
+            f"- pt-PT: {totals['pt_pt']} total, {totals['pt_pt_blocking']} blocking ({totals['pt_pt_blocking_per_100k']} per 100k)",
+            f"- English leakage: {totals['english_leakage']}; repetition: {totals['repetition_ratio']}; length ratio: {totals['length_ratio']}",
+            f"- Dropcap issues: {totals['dropcap_issues']}; all-caps hits: {totals['caps_hits']}; missing targets: {totals['missing_targets']}",
+        ]
+    )
+    for title, key, formatter in [
+        ("Glossary offenders", "glossary_missing", lambda item: f"{item['file']}: {item['source']} -> {item['target']} ({item.get('confidence') or 'unrated'})"),
+        ("pt-PT offenders", "pt_pt", lambda item: f"{item['file']}: {item['blocking']} blocking, {item['count']} total ({item['blocking_per_100k']} per 100k)"),
+        ("Leakage offenders", "english_leakage", lambda item: f"{item['file']}: {item['ratio']}"),
+        ("Repetition offenders", "repetition", lambda item: f"{item['file']}: {item['ratio']}"),
+        ("Length-ratio offenders", "length_ratio", lambda item: f"{item['file']}: {item['ratio']}"),
+        ("Dropcap offenders", "dropcap", lambda item: f"{item['file']}: {item['message']}"),
+        ("All-caps offenders", "caps", lambda item: f"{item['file']}: {item['token']} ({item['kind']})"),
+    ]:
+        entries = offenders.get(key) or []
+        if not entries:
+            continue
+        lines.extend(["", f"### {title}", ""])
+        lines.extend(f"- {formatter(item)}" for item in entries[:5])
     lines.extend(["", "## Missing glossary targets", ""])
     for item in (terms.get("missing") or [])[:15]:
         lines.append(f"- {item['source']} -> {item['target']} ({item['category']})")

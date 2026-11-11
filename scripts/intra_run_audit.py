@@ -29,6 +29,7 @@ sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(ROOT / "scripts"))
 
 import audit_book  # noqa: E402
+from src.literary.per_file_audit import scan_book  # noqa: E402
 from src.literary.queue import QueueStore  # noqa: E402
 
 QUEUE_DB = ROOT / "data" / "literary_queue.db"
@@ -133,89 +134,102 @@ def audit(
     try:
         source_text, source_files = audit_book._epub_text(source)
         target_text, target_files = audit_book._epub_text(partial)
+
+        target_names = {name for name, _ in target_files}
+        matched_source = [
+            (name, paragraphs)
+            for name, paragraphs in source_files
+            if name in target_names
+        ]
+        if matched_source:
+            source_text = "\n\n".join(
+                paragraph for _, paragraphs in matched_source for paragraph in paragraphs
+            )
+        target_text = "\n\n".join(
+            paragraph for _, paragraphs in target_files for paragraph in paragraphs
+        )
+
+        samples = audit_book._sample_pairs(
+            matched_source or source_files,
+            target_files,
+            limit=samples_limit,
+        )
+        metrics = _metrics(source_text, target_text)
+
+        book = QueueStore.get_book_readonly(str(QUEUE_DB), book_id)
+        if book is None:
+            return {
+                "ok": False,
+                "error": f"book {book_id} not found",
+                "translation_id": translation_id,
+            }
+        glossary = COMPILED / f"{_slug(book.title)}-glossary.json"
+        resolved = audit_book._resolve_terms(
+            book,
+            glossary if glossary.exists() else None,
+        )
+        terms = audit_book._term_audit(
+            book,
+            source_text,
+            target_text,
+            glossary_path=glossary if glossary.exists() else None,
+            resolved=resolved,
+        )
+        per_file = scan_book(source, partial, resolved["terms"])
+        glossary_hash = None
+        if glossary.exists():
+            glossary_hash = hashlib.sha256(glossary.read_bytes()).hexdigest()
+            (COMPILED / f"{_slug(book.title)}-glossary.sha256").write_text(
+                glossary_hash + "\n",
+                encoding="utf-8",
+            )
+
+        reasons: List[str] = []
+        if not samples:
+            reasons.append("no aligned source/target samples")
+        if terms.get("error"):
+            reasons.append(f"glossary audit failed: {terms['error']}")
+        if terms.get("coverage") is not None and terms["coverage"] < 0.90:
+            reasons.append(f"glossary coverage {terms['coverage']} < 0.90")
+        if terms.get("forbidden_hits"):
+            reasons.append(f"{len(terms['forbidden_hits'])} forbidden rendering(s)")
+        if metrics.get("pt_pt_per_100k") is not None and metrics["pt_pt_per_100k"] > 50:
+            reasons.append(f"pt-PT markers {metrics['pt_pt_per_100k']} > 50")
+        if metrics.get("english_leakage") is not None and metrics["english_leakage"] > 0.01:
+            reasons.append(f"English leakage {metrics['english_leakage']} > 0.01")
+        if metrics.get("repetition_ratio") is not None and metrics["repetition_ratio"] > 0.05:
+            reasons.append(f"repetition {metrics['repetition_ratio']} > 0.05")
+        if metrics.get("length_ratio") is not None and not 0.80 <= metrics["length_ratio"] <= 1.20:
+            reasons.append(f"length ratio {metrics['length_ratio']} outside 0.80-1.20")
+        for reason in per_file["gate"]["reasons"]:
+            reasons.append(f"per-file: {reason}")
+
+        passed = not reasons
+        report = {
+            "ok": True,
+            "passed": passed,
+            "generated_at": _now(),
+            "book_id": book_id,
+            "title": book.title,
+            "translation_id": translation_id,
+            "scope": "partial",
+            "files": len(targets),
+            "samples": samples,
+            "metrics": metrics,
+            "terms": terms,
+            "per_file": {
+                "totals": per_file["totals"],
+                "gate": per_file["gate"],
+                "offenders": per_file["offenders"],
+            },
+            "glossary": str(glossary) if glossary.exists() else None,
+            "glossary_hash": glossary_hash,
+            "reasons": reasons,
+        }
+        return report
     finally:
         if partial and partial.exists():
             partial.unlink()
-
-    target_names = {name for name, _ in target_files}
-    matched_source = [
-        (name, paragraphs)
-        for name, paragraphs in source_files
-        if name in target_names
-    ]
-    if matched_source:
-        source_text = "\n\n".join(
-            paragraph for _, paragraphs in matched_source for paragraph in paragraphs
-        )
-    target_text = "\n\n".join(
-        paragraph for _, paragraphs in target_files for paragraph in paragraphs
-    )
-
-    samples = audit_book._sample_pairs(
-        matched_source or source_files,
-        target_files,
-        limit=samples_limit,
-    )
-    metrics = _metrics(source_text, target_text)
-
-    book = QueueStore.get_book_readonly(str(QUEUE_DB), book_id)
-    if book is None:
-        return {
-            "ok": False,
-            "error": f"book {book_id} not found",
-            "translation_id": translation_id,
-        }
-    glossary = COMPILED / f"{_slug(book.title)}-glossary.json"
-    terms = audit_book._term_audit(
-        book,
-        source_text,
-        target_text,
-        glossary_path=glossary if glossary.exists() else None,
-    )
-    glossary_hash = None
-    if glossary.exists():
-        glossary_hash = hashlib.sha256(glossary.read_bytes()).hexdigest()
-        (COMPILED / f"{_slug(book.title)}-glossary.sha256").write_text(
-            glossary_hash + "\n",
-            encoding="utf-8",
-        )
-
-    reasons: List[str] = []
-    if not samples:
-        reasons.append("no aligned source/target samples")
-    if terms.get("error"):
-        reasons.append(f"glossary audit failed: {terms['error']}")
-    if terms.get("coverage") is not None and terms["coverage"] < 0.90:
-        reasons.append(f"glossary coverage {terms['coverage']} < 0.90")
-    if terms.get("forbidden_hits"):
-        reasons.append(f"{len(terms['forbidden_hits'])} forbidden rendering(s)")
-    if metrics.get("pt_pt_per_100k") is not None and metrics["pt_pt_per_100k"] > 50:
-        reasons.append(f"pt-PT markers {metrics['pt_pt_per_100k']} > 50")
-    if metrics.get("english_leakage") is not None and metrics["english_leakage"] > 0.01:
-        reasons.append(f"English leakage {metrics['english_leakage']} > 0.01")
-    if metrics.get("repetition_ratio") is not None and metrics["repetition_ratio"] > 0.05:
-        reasons.append(f"repetition {metrics['repetition_ratio']} > 0.05")
-    if metrics.get("length_ratio") is not None and not 0.80 <= metrics["length_ratio"] <= 1.20:
-        reasons.append(f"length ratio {metrics['length_ratio']} outside 0.80-1.20")
-
-    passed = not reasons
-    report = {
-        "ok": True,
-        "passed": passed,
-        "generated_at": _now(),
-        "book_id": book_id,
-        "title": book.title,
-        "translation_id": translation_id,
-        "scope": "partial",
-        "files": len(targets),
-        "samples": samples,
-        "metrics": metrics,
-        "terms": terms,
-        "glossary": str(glossary) if glossary.exists() else None,
-        "glossary_hash": glossary_hash,
-        "reasons": reasons,
-    }
-    return report
 
 
 def _write_report(report: Dict[str, Any]) -> Path:
