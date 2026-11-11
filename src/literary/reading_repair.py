@@ -906,6 +906,38 @@ def localise_document_title(raw: str, href: str, chapter_titles: Dict[str, str])
     return raw[: match.start(1)] + html.escape(label) + raw[match.end(1) :]
 
 
+def _normalise_package_language(opf: str) -> str:
+    """Align the package xml:lang with the translated dc:language."""
+    if re.search(
+        r"<dc:language\b[^>]*>\s*pt-BR\s*</dc:language\s*>", opf, re.IGNORECASE
+    ):
+        opf = re.sub(
+            r'(<package\b[^>]*\bxml:lang=")[^"]*(")',
+            r"\g<1>pt-BR\g<2>",
+            opf,
+            count=1,
+            flags=re.IGNORECASE,
+        )
+    return opf
+
+
+def _package_title(source_path: str) -> str:
+    """Return the translated dc:title so the TOC matches the package."""
+    with zipfile.ZipFile(source_path) as archive:
+        for name in archive.namelist():
+            if not name.lower().endswith(".opf"):
+                continue
+            opf = archive.read(name).decode("utf-8", "replace")
+            match = re.search(
+                r"<dc:title\b[^>]*>(.*?)</dc:title\s*>",
+                opf,
+                re.IGNORECASE | re.DOTALL,
+            )
+            if match:
+                return html.unescape(re.sub(r"<[^>]+>", "", match.group(1))).strip()
+    return ""
+
+
 def _read_chapter_titles(source_path: str) -> Dict[str, str]:
     titles: Dict[str, str] = {}
     with zipfile.ZipFile(source_path) as archive:
@@ -931,8 +963,15 @@ def _read_chapter_titles(source_path: str) -> Dict[str, str]:
     return titles
 
 
-def _localise_nav(nav: str, labels: Dict[str, str]) -> str:
-    nav = nav.replace("<title>Howling Dark</title>", "<title>Escuridão Uivante</title>")
+def _localise_nav(nav: str, labels: Dict[str, str], book_title: str = "") -> str:
+    if book_title:
+        nav = re.sub(
+            r"<title\b[^>]*>.*?</title\s*>",
+            lambda match: f"<title>{html.escape(book_title)}</title>",
+            nav,
+            count=1,
+            flags=re.IGNORECASE | re.DOTALL,
+        )
     nav = nav.replace("<h1>Contents</h1>", "<h1>Sumário</h1>")
     toc = re.search(r'<nav\b[^>]*epub:type="toc"[^>]*>', nav, re.IGNORECASE)
     if toc:
@@ -970,8 +1009,15 @@ def _localise_nav(nav: str, labels: Dict[str, str]) -> str:
     return nav
 
 
-def _localise_ncx(ncx: str, labels: Dict[str, str]) -> str:
-    ncx = ncx.replace("<text>Howling Dark</text>", "<text>Escuridão Uivante</text>")
+def _localise_ncx(ncx: str, labels: Dict[str, str], book_title: str = "") -> str:
+    if book_title:
+        ncx = re.sub(
+            r"<docTitle\b[^>]*>\s*<text>.*?</text>\s*</docTitle\s*>",
+            lambda match: f"<docTitle><text>{html.escape(book_title)}</text></docTitle>",
+            ncx,
+            count=1,
+            flags=re.IGNORECASE | re.DOTALL,
+        )
     start = ncx.find("<navMap>")
     end = ncx.find("</navMap>", start)
     if start < 0 or end < 0:
@@ -1093,6 +1139,7 @@ def repair_reading_epub(
     os.makedirs(output_dir, exist_ok=True)
 
     chapter_titles = _read_chapter_titles(source_path)
+    book_title = _package_title(source_path)
     report = RepairReport(source=source_path, output=output_path)
     term_counts: Dict[str, int] = {}
 
@@ -1108,11 +1155,14 @@ def repair_reading_epub(
                 if name.endswith("_nav.xhtml"):
                     nav = data.decode("utf-8", "replace")
                     labels = _nav_labels(chapter_titles)
-                    data = _localise_nav(nav, labels).encode("utf-8")
+                    data = _localise_nav(nav, labels, book_title).encode("utf-8")
                 elif name.lower().endswith(".ncx"):
                     ncx = data.decode("utf-8", "replace")
                     labels = _nav_labels(chapter_titles)
-                    data = _localise_ncx(ncx, labels).encode("utf-8")
+                    data = _localise_ncx(ncx, labels, book_title).encode("utf-8")
+                elif name.lower().endswith(".opf"):
+                    opf = data.decode("utf-8", "replace")
+                    data = _normalise_package_language(opf).encode("utf-8")
                 elif name.lower().endswith((".xhtml", ".html", ".htm")):
                     raw = data.decode("utf-8", "replace")
                     report.documents += 1

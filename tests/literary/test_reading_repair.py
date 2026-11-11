@@ -5,6 +5,10 @@ import zipfile
 from pathlib import Path
 
 from src.literary.reading_repair import (
+    _localise_nav,
+    _localise_ncx,
+    _normalise_package_language,
+    _package_title,
     _replace_terms_in_text,
     _title_case,
     convert_dialogue_quotes,
@@ -128,6 +132,51 @@ def test_headings_drop_leading_dashes_and_use_the_reader_titles():
 def test_title_case_keeps_small_words_lowercase():
     assert _title_case("À BEIRA DA HISTÓRIA") == "À Beira da História"
     assert _title_case("O MUNDO SOMBRIO") == "O Mundo Sombrio"
+
+
+def test_package_title_comes_from_the_opf(tmp_path: Path):
+    source = tmp_path / "in.epub"
+    with zipfile.ZipFile(source, "w", zipfile.ZIP_DEFLATED) as archive:
+        archive.writestr(
+            "OEBPS/content.opf",
+            "<package><metadata><dc:title>Escuridão Uivante</dc:title>"
+            "</metadata></package>",
+        )
+    assert _package_title(str(source)) == "Escuridão Uivante"
+
+
+def test_localise_nav_and_ncx_use_the_translated_title():
+    nav = (
+        '<html><head><title>Demon in White</title></head><body>'
+        '<nav epub:type="toc"><ol><li><a href="01_Cover.xhtml">Cover</a></li>'
+        '<li><a href="08_Chapter_1_The_Red_Com.xhtml">Chapter I</a></li>'
+        "</ol></nav></body></html>"
+    )
+    repaired = _localise_nav(
+        nav,
+        {"01_Cover.xhtml": "Capa", "08_Chapter_1_The_Red_Com.xhtml": "Capítulo 1: A Companhia Vermelha"},
+        "Demonte em Branco",
+    )
+    assert "<title>Demonte em Branco</title>" in repaired
+    assert ">Capa<" in repaired
+    assert ">Capítulo 1: A Companhia Vermelha<" in repaired
+
+    ncx = (
+        "<ncx><head/><docTitle><text>Demon in White</text></docTitle><navMap>"
+        '<navPoint><content src="01_Cover.xhtml"/><text>Cover</text></navPoint>'
+        "</navMap></ncx>"
+    )
+    fixed = _localise_ncx(ncx, {"01_Cover.xhtml": "Capa"}, "Demonte em Branco")
+    assert "<docTitle><text>Demonte em Branco</text></docTitle>" in fixed
+    assert "<text>Capa</text>" in fixed
+
+
+def test_package_language_follows_dc_language():
+    opf = (
+        '<package version="3.0" xml:lang="en-US"><metadata>'
+        "<dc:language>pt-BR</dc:language></metadata></package>"
+    )
+    assert 'xml:lang="pt-BR"' in _normalise_package_language(opf)
 
 
 def test_repair_reading_epub_writes_a_valid_copy(tmp_path: Path):
