@@ -2,9 +2,11 @@
 Version check & self-update routes.
 
 Endpoints:
-    GET  /api/version/check         - current vs latest GitHub release
+    GET  /api/version/check         - current vs latest fork release (disabled by default)
     GET  /api/version/update/status - in-flight update progress
-    POST /api/version/update        - kick off git pull + pip install + restart
+    POST /api/version/update        - git pull + pip install + restart (disabled by default)
+
+Set UPDATE_CHECK_ENABLED=true to enable the check and the self-update.
 """
 import logging
 from pathlib import Path
@@ -83,6 +85,12 @@ def create_version_blueprint(state_manager):
             - the install is not a git checkout
         """
         repo_root = _repo_root()
+
+        if not version_checker.UPDATE_CHECK_ENABLED:
+            return jsonify({
+                "error": "update_disabled",
+                "message": "Update check and self-update are disabled. Set UPDATE_CHECK_ENABLED=true to enable.",
+            }), 409
 
         if not app_updater.is_git_repo(repo_root):
             return jsonify({

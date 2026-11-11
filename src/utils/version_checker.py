@@ -2,10 +2,14 @@
 Version checker
 
 Compares the locally installed version (src/__version__.py) with the latest
-GitHub release of the repository so the UI can surface an update banner.
-Result is cached in memory to avoid hammering the GitHub API.
+GitHub release of this fork so the UI can surface an update banner. The check
+is disabled by default; set ``UPDATE_CHECK_ENABLED=true`` to enable it. The
+repository defaults to the fork and can be overridden with
+``UPDATE_CHECK_REPO_OWNER`` / ``UPDATE_CHECK_REPO_NAME``. Result is cached in
+memory to avoid hammering the GitHub API.
 """
 import logging
+import os
 import re
 import threading
 import time
@@ -17,8 +21,19 @@ from src import __version__
 
 logger = logging.getLogger(__name__)
 
-GITHUB_REPO_OWNER = "hydropix"
-GITHUB_REPO_NAME = "TranslateBooksWithLLMs"
+UPDATE_CHECK_ENABLED = os.getenv("UPDATE_CHECK_ENABLED", "false").strip().lower() in {
+    "1",
+    "true",
+    "yes",
+    "on",
+}
+GITHUB_REPO_OWNER = (
+    os.getenv("UPDATE_CHECK_REPO_OWNER", "bellussi1").strip() or "bellussi1"
+)
+GITHUB_REPO_NAME = (
+    os.getenv("UPDATE_CHECK_REPO_NAME", "TranslateBooksWithLLMs").strip()
+    or "TranslateBooksWithLLMs"
+)
 GITHUB_RELEASES_API = f"https://api.github.com/repos/{GITHUB_REPO_OWNER}/{GITHUB_REPO_NAME}/releases/latest"
 GITHUB_TAGS_API = f"https://api.github.com/repos/{GITHUB_REPO_OWNER}/{GITHUB_REPO_NAME}/tags"
 
@@ -103,12 +118,22 @@ def check_for_update(force: bool = False, timeout: float = 5.0) -> dict:
     last known cached entry is returned (so an offline UI still shows status);
     if no cache exists yet, returns `update_available=False` with `error`.
     """
+    current = get_current_version()
+    if not UPDATE_CHECK_ENABLED:
+        return {
+            "current": current,
+            "latest": None,
+            "update_available": False,
+            "release_url": "",
+            "release_notes": "",
+            "error": "update check disabled",
+        }
+
     now = time.time()
     with _cache_lock:
         if not force and _cache["data"] and (now - _cache["timestamp"]) < CACHE_TTL_SECONDS:
             return _cache["data"]
 
-    current = get_current_version()
     remote_info = _fetch_latest_from_github(timeout=timeout)
 
     if not remote_info:

@@ -165,7 +165,9 @@ def _do_update(repo_root: Path, install_deps: bool, restart: bool) -> None:
         old_hash = _hash_requirements(req_path)
 
         state.set_step("Fetching updates from GitHub")
-        fetch = _run(["git", "fetch", "--all", "--prune"], cwd=repo_root, timeout=120)
+        # Fetch only the fork's origin. `--all` would also contact the
+        # upstream remote when the checkout still has one configured.
+        fetch = _run(["git", "fetch", "origin", "--prune"], cwd=repo_root, timeout=120)
         if fetch.stdout:
             state.append(fetch.stdout.strip())
         if fetch.returncode != 0:

@@ -11,7 +11,7 @@ from typing import Iterable, List, Optional, Union
 import httpx
 
 from src import __version__
-from src.config import TRANSLATE_TAG_IN, TRANSLATE_TAG_OUT, REQUEST_TIMEOUT
+from src.config import GENERATOR_NAME, TRANSLATE_TAG_IN, TRANSLATE_TAG_OUT, REQUEST_TIMEOUT
 from src.core.llm.utils.extraction import TranslationExtractor
 from src.core.llm.key_pool import KeyPool
 
@@ -105,7 +105,7 @@ class LLMProvider(ABC):
             self._client = httpx.AsyncClient(
                 limits=httpx.Limits(max_keepalive_connections=5, max_connections=10),
                 timeout=httpx.Timeout(REQUEST_TIMEOUT),
-                headers={"User-Agent": f"TranslateBookWithLLM/{__version__}"}
+                headers={"User-Agent": f"{GENERATOR_NAME}/{__version__}"}
             )
         return self._client
 

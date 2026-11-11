@@ -38,7 +38,7 @@ from docx import Document
 from lxml import etree
 
 from src import __version__
-from src.config import NAMESPACES
+from src.config import GENERATOR_NAME, NAMESPACES
 from src.core.docx.converter import DocxHtmlConverter
 from src.core.docx.plain_extractor import build_minimal_docx, extract_plain_paragraphs
 from tests.characterization import fake_llm, fixtures, recorder
@@ -245,7 +245,7 @@ async def test_llm_client_sends_no_identifying_headers():
             f"header {name!r} carries a hex token: {value!r}"
         )
 
-    assert headers["user-agent"] == f"TranslateBookWithLLM/{__version__}", (
+    assert headers["user-agent"] == f"{GENERATOR_NAME}/{__version__}", (
         f"User-Agent must be the per-release constant, got "
         f"{headers['user-agent']!r}"
     )

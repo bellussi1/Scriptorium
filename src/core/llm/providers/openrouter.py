@@ -442,8 +442,8 @@ class OpenRouterProvider(LLMProvider):
             headers = {
                 "Authorization": f"Bearer {current_key}",
                 "Content-Type": "application/json",
-                "HTTP-Referer": "https://github.com/hydropix/TranslateBookWithLLM",
-                "X-Title": "TranslateBookWithLLM",
+                # No upstream HTTP-Referer/X-Title: this fork does not
+                # attribute provider traffic to the original project.
             }
             try:
                 response = await client.post(
