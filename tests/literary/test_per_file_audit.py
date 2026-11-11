@@ -222,6 +222,8 @@ def test_forbidden_form_is_still_flagged_next_to_an_inflected_target(tmp_path: P
         ("Legião", "as Legiãos"),
         ("Quieto", "Quietas"),
         ("Imperador", "os Imperadores"),
+        ("Animal", "animais"),
+        ("O Imortal", "dos Imortais"),
     ],
 )
 def test_audit_matcher_accepts_regular_inflections(target: str, text: str):
@@ -234,6 +236,8 @@ def test_audit_matcher_accepts_regular_inflections(target: str, text: str):
         ("Legião", "a Legenda"),
         ("Legião", "os legionários"),
         ("Legião Imperial", "as Legiões Imperiais"),
+        ("O Imortal", "um Imortal"),
+        ("O Imortal", "as Imortalidades"),
     ],
 )
 def test_audit_matcher_still_rejects_unrelated_and_multi_word_forms(target: str, text: str):
