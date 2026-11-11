@@ -1,13 +1,16 @@
 """Read-only queue status derived from ``literary_queue.db``.
 
-This is the single source of truth for the CLI/API/UI/plugin status: it never
-reads the watchdog or supervisor JSON caches and never writes to the database.
+Queue truth (running, book, job, progress, next pending, blockers) is derived
+only from the database. The ``supervisor`` block is process metadata read from
+``literary_queue.supervisor.json``: it reports whether the supervisor is alive
+and the last restart reason, and is never used to decide what is running.
 The heartbeat is the newest ``updated_at`` of the active book/job, which the
 queue sync refreshes while a translation is running. ``rate`` is chunks per
 minute and ``eta`` is seconds.
 """
 from __future__ import annotations
 
+import json
 import sqlite3
 from datetime import datetime, timezone
 from pathlib import Path
@@ -16,6 +19,7 @@ from typing import Any, Dict, Optional
 SCHEMA = "literary-queue.status"
 SCHEMA_VERSION = "1.0"
 DEFAULT_STALE_AFTER_S = 120.0
+SUPERVISOR_STALE_AFTER_S = 30.0
 ACTIVE_STATES = ("preparing", "translating", "reviewing", "validating")
 BLOCKER_STATES = ("needs_review", "failed", "paused")
 
@@ -60,7 +64,42 @@ def _status(
         "stale": False,
         "next_pending": None,
         "blockers": [],
+        "supervisor": None,
         "db": db,
+    }
+
+
+def _supervisor_status(
+    db_path: str | Path, snapshot_at: datetime
+) -> Optional[Dict[str, Any]]:
+    """Read the supervisor process file; never used for queue truth."""
+    path = Path(db_path).with_name("literary_queue.supervisor.json")
+    if not path.exists():
+        return None
+    try:
+        age = max(0.0, snapshot_at.timestamp() - path.stat().st_mtime)
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return None
+    if not isinstance(data, dict):
+        return None
+    worker = data.get("worker") if isinstance(data.get("worker"), dict) else {}
+    restart = data.get("restart") if isinstance(data.get("restart"), dict) else {}
+    return {
+        "online": age <= SUPERVISOR_STALE_AFTER_S,
+        "state": data.get("state"),
+        "pid": data.get("pid"),
+        "heartbeat_age_s": round(age, 1),
+        "worker_running": bool(worker.get("running")),
+        "message": data.get("message"),
+        "restart": {
+            "attempts_last_hour": restart.get("attempts_last_hour"),
+            "max_per_hour": restart.get("max_per_hour"),
+            "last_reason": restart.get("last_reason"),
+            "last_at": restart.get("last_at"),
+            "next_attempt_at": restart.get("next_attempt_at"),
+            "backoff_s": restart.get("backoff_s"),
+        },
     }
 
 
@@ -130,6 +169,7 @@ def build_queue_status(
     snapshot_at = _now()
     db = {"integrity": "missing", "journal_mode": None}
     status = _status(snapshot_at, db)
+    status["supervisor"] = _supervisor_status(path, snapshot_at)
 
     if not path.exists():
         status["blockers"].append({"kind": "db_missing", "detail": str(path)})
@@ -252,6 +292,19 @@ def format_queue_status(status: Dict[str, Any]) -> str:
     next_pending = status.get("next_pending") or {}
     blockers = status.get("blockers") or []
     db = status.get("db") or {}
+    supervisor = status.get("supervisor") or {}
+    if supervisor:
+        restart = supervisor.get("restart") or {}
+        supervisor_line = (
+            f"supervisor: online={'yes' if supervisor.get('online') else 'no'} "
+            f"state={supervisor.get('state') or '-'} "
+            f"worker={'yes' if supervisor.get('worker_running') else 'no'} "
+            f"last_restart={restart.get('last_reason') or '-'} "
+            f"({restart.get('attempts_last_hour', 0)}/"
+            f"{restart.get('max_per_hour', 0)} in 1h)"
+        )
+    else:
+        supervisor_line = "supervisor: -"
     lines = [
         f"running: {'yes' if status.get('running') else 'no'}",
         (
@@ -279,6 +332,7 @@ def format_queue_status(status: Dict[str, Any]) -> str:
             else "next: -"
         ),
         f"heartbeat: {status.get('heartbeat_age_s')}s stale={'yes' if status.get('stale') else 'no'}",
+        supervisor_line,
         "blockers: " + (", ".join(str(item.get("kind")) for item in blockers) or "none"),
         f"db: {db.get('integrity')}/{db.get('journal_mode')}",
         f"snapshot: {status.get('snapshot_at')}",

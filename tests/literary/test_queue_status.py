@@ -3,9 +3,11 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 import sqlite3
 import subprocess
 import sys
+import time
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
@@ -192,3 +194,66 @@ def test_cli_status_json(tmp_path: Path):
     assert status["schema_version"] == "1.0"
     assert status["running"] is True
     assert status["book"]["id"] == book_id
+
+
+def _write_supervisor_file(db: Path) -> Path:
+    path = db.with_name("literary_queue.supervisor.json")
+    path.write_text(
+        json.dumps(
+            {
+                "schema": "literary-queue.supervisor",
+                "schema_version": "1.0",
+                "pid": 111,
+                "heartbeat": "2026-11-11T16:00:00+00:00",
+                "state": "backoff",
+                "message": "backoff 60s after worker_died",
+                "worker": {"pid": 222, "running": False},
+                "restart": {
+                    "attempts_last_hour": 1,
+                    "max_per_hour": 3,
+                    "last_reason": "worker_died",
+                    "last_at": "2026-11-11T15:59:00+00:00",
+                    "next_attempt_at": "2026-11-11T16:01:00+00:00",
+                    "backoff_s": 60,
+                },
+            }
+        ),
+        encoding="utf-8",
+    )
+    return path
+
+
+def test_status_reports_the_supervisor_restart_reason(tmp_path: Path):
+    db = tmp_path / "queue.db"
+    store = QueueStore(str(db))
+    store.close()
+    _write_supervisor_file(db)
+
+    status = build_queue_status(db)
+
+    assert status["supervisor"]["online"] is True
+    assert status["supervisor"]["state"] == "backoff"
+    assert status["supervisor"]["worker_running"] is False
+    assert status["supervisor"]["restart"]["last_reason"] == "worker_died"
+    assert status["supervisor"]["restart"]["attempts_last_hour"] == 1
+    assert status["supervisor"]["restart"]["max_per_hour"] == 3
+
+
+def test_stale_supervisor_file_is_offline(tmp_path: Path):
+    db = tmp_path / "queue.db"
+    store = QueueStore(str(db))
+    store.close()
+    path = _write_supervisor_file(db)
+    old = time.time() - 600
+    os.utime(path, (old, old))
+
+    status = build_queue_status(db)
+
+    assert status["supervisor"]["online"] is False
+    assert status["supervisor"]["heartbeat_age_s"] >= 500
+
+
+def test_missing_supervisor_file_is_reported_as_absent(tmp_path: Path):
+    status = build_queue_status(tmp_path / "missing.db")
+
+    assert status["supervisor"] is None

@@ -189,6 +189,16 @@ before acting on anything below.
   target EPUB already exists, and the upstream job status stays `running`
   after a fully-completed resume (the queue runner still marks
   `needs_review`, so the queue flow is unaffected).
+- **Supervisor auto-restart (2026-11-11).** `scripts/auto_queue.py` now runs a
+  supervisor around the worker. It restarts the worker on death or a stale
+  heartbeat with exponential backoff and at most 3 attempts per rolling hour;
+  it never restarts on `needs_review`, holding in `blocked_gate` and notifying.
+  The restart reason is written to `data/literary_queue.supervisor.json`, the
+  alerts log, the queue events and `queue status --json` (`supervisor` block).
+  `--no-supervise` keeps the old single-process mode. Scenarios:
+  `tests/standalone/auto_supervisor_scenarios.py`; unit tests:
+  `tests/literary/test_auto_supervisor.py`. The watchdog itself is still
+  monitor-only; its auto-restart remains pending.
 - **Terminology freeze (2026-11-11) is staged on branch
   `glossary/terminology-freeze` (commit `acae484`), not on `main`.** It changes
   `Imperium` to `policy: keep` (official: Imperium 32x, Império 107x) and adds
