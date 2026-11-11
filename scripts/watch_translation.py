@@ -448,6 +448,7 @@ def main() -> int:
     rate_history: list[tuple[float, int]] = []
     rate_key = ""
     last_audit: Dict[str, Any] = existing.get("last_audit") or {}
+    audit_key = str(existing.get("audit_key") or "")
     last_audit_count = int(
         existing.get("audit_checkpoint_count")
         or (last_audit.get("checkpoint_count") if isinstance(last_audit, dict) else 0)
@@ -487,6 +488,10 @@ def main() -> int:
                     payload["eta_human"] = _format_duration(eta_seconds)
         if not args.no_audit and payload.get("active"):
             count = int(payload.get("checkpoint_count") or 0)
+            key = f"{payload.get('book_id')}:{payload.get('translation_id')}"
+            if key != audit_key:
+                audit_key = key
+                last_audit_count = 0
             if count > 0 and count >= last_audit_count + max(1, args.audit_every):
                 result = _run_audit(
                     int(payload.get("book_id") or 0),
@@ -510,6 +515,7 @@ def main() -> int:
             payload["audit_checkpoint_count"] = last_audit_count
         if last_audit:
             payload["last_audit"] = last_audit
+        payload["audit_key"] = audit_key
         if not args.no_snapshots and now >= next_snapshot:
             label = re.sub(
                 r"[^a-z0-9]+", "-",
