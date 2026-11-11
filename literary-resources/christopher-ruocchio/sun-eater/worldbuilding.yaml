@@ -354,16 +354,67 @@ terms:
     first_appearance: demon-in-white
     approved: false
   - source: Imperium
-    target: Império
+    target: Imperium
     category: organization
-    policy: translate
+    policy: keep
     notes: >-
-      The Sollan polity. Prefer Império Sollano for the full name; use Império
-      for the anaphoric "Imperium" only when the source uses it that way.
-    source_reference: "Source text (Howling Dark); editorial rendering"
-    confidence: provisional
+      The proper name of the Sollan polity, kept in Latin as in the official PT
+      edition (32 occurrences of Imperium against 107 of Império). Do not
+      translate this term. Use "império" only for the common noun ("empire")
+      and "Império Sollano" for the full translated name; "Imperium Sollano" is
+      not the official form. A capitalized "Império" that names the polity is a
+      translation of "the Empire", not of "Imperium".
+    source_reference: "Official PT-BR edition, Calibre 436"
+    confidence: confirmed
     first_appearance: empire-of-silence
-    approved: false
+    approved: true
+  - source: datasphere
+    target: esfera de dados
+    category: concept
+    policy: translate
+    aliases: [dataspheres]
+    alias_targets: {dataspheres: esferas de dados}
+    forbidden: [datasphere, dataspheres, dataesfera, dataesferas]
+    notes: >-
+      The in-world data network. Books 2-3 use "esfera de dados" consistently
+      (16 occurrences in Howling Dark); freeze that form for the series. Do not
+      switch to the English coinage or to "dataesfera" without a series-wide
+      pass. Lowercase in running text.
+    source_reference: "Editorial decision, 2026-11-11; consistency with Howling Dark and Demon in White"
+    confidence: reviewed
+    first_appearance: howling-dark
+    approved: true
+  - source: animalcule
+    target: animalculo
+    category: concept
+    policy: adapt
+    aliases: [animalcules]
+    alias_targets: {animalcules: animalculos}
+    forbidden: [animalcule, animalcules]
+    notes: >-
+      A microscopic xenobite; the Portuguese common noun is "animalculo".
+      Howling Dark left one occurrence in English. Use the naturalized form
+      from the next book, lowercase, and keep the plural "animalculos".
+    source_reference: "Editorial decision, 2026-11-11"
+    confidence: reviewed
+    first_appearance: howling-dark
+    approved: true
+  - source: knight-tribune
+    target: tribuna-cavaleira
+    category: title
+    policy: translate
+    aliases: [Knight-Tribune, knight-tribunes]
+    alias_targets: {knight-tribunes: tribunas-cavaleiras}
+    forbidden: [knight-tribune, knight-tribunes]
+    notes: >-
+      Military rank held by Raine Smythe, a woman; keep the feminine compound
+      "tribuna-cavaleira" (9 occurrences in Howling Dark). "Tribuna" here is
+      the rank, not a platform. For a male holder use "tribuno-cavaleiro"; do
+      not use the masculine form for Smythe. Do not leave the English term.
+    source_reference: "Editorial decision, 2026-11-11; Howling Dark"
+    confidence: reviewed
+    first_appearance: howling-dark
+    approved: true
   - source: Watchers
     target: Vigilantes
     category: other
