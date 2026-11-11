@@ -5,7 +5,9 @@ script adds the editorial gates that a human would otherwise check:
 
 - glossary target coverage and forbidden renderings;
 - pt-PT markers, English leakage, repetition and length ratio;
-- five source/target samples reviewed by a cheap cloud model (Haiku).
+- eight source/target samples reviewed by a cheap cloud model (Haiku): factual
+  meaning errors gate the book, style notes (calques, lost irony, weakened
+  imagery) are advisory.
 
 It is deliberately conservative: a missing API key, an API error or a budget
 cap breach fails the audit and leaves the book in ``needs_review``.
@@ -462,11 +464,12 @@ def _cloud_prompt(samples: List[Dict[str, Any]]) -> str:
         "For each pair, judge fidelity, naturalness, terminology, register and prose on a 1-5 scale.",
         "Check the verb tense against the source's narrative frame. Count unjustified tense shifts as tense_errors; the retrospective past frame must stay past.",
         "Check grammatical gender agreement for characters, nouns and glossary terms. Count errors as gender_errors; a female character or a feminine noun must not default to masculine.",
-        "Flag prose that reads like an English calque or loses the narrator's ironic, elevated register, even when the meaning is correct.",
+        "Classify every finding in exactly one bucket. meaning_errors counts only factual or denotative errors: a wrong referent, an inverted relation, a dropped proposition that changes what happens, an added fact, or a wrong number, name or term. Do not count calques, lost irony, weakened imagery, awkward collocation, register shifts, or an untranslated loanword that is still understandable; those are style_notes.",
+        "A faithful passage can still have style_notes. style_notes are advisory and do not fail the book; do not inflate meaning_errors with style issues. Use the same finding in both fields only when a style choice also changes the facts.",
+        "Flag pt-PT forms (tu, contacto, de facto, demónio, a dançar) and English leakage in notes; do not count them as meaning_errors.",
         "If the target does not correspond to the source paragraph, set alignment_suspect to true and do not score it.",
-        "Count meaning errors, omissions and additions. Flag pt-PT forms (tu, contacto, de facto, demónio, a dançar) and English leakage.",
         "Return ONLY a JSON object with this shape:",
-        '{"items":[{"id":"...","alignment_suspect":false,"fidelity":1,"naturalness":1,"terminology":1,"register":1,"prose":1,"meaning_errors":0,"tense_errors":0,"gender_errors":0,"notes":"short Portuguese note"}],"summary":"short Portuguese summary"}',
+        '{"items":[{"id":"...","alignment_suspect":false,"fidelity":1,"naturalness":1,"terminology":1,"register":1,"prose":1,"meaning_errors":0,"style_notes":0,"tense_errors":0,"gender_errors":0,"notes":"short Portuguese note"}],"summary":"short Portuguese summary"}',
         "Do not use markdown fences. Do not add commentary outside the JSON.",
         "",
     ]
@@ -483,6 +486,221 @@ def _cloud_prompt(samples: List[Dict[str, Any]]) -> str:
             ]
         )
     return "\n".join(lines)
+
+
+def _cloud_verdict(items: List[Dict[str, Any]]) -> Dict[str, Any]:
+    """Apply the cloud gate to the judge's items.
+
+    ``meaning_errors`` is factual and gates the book. ``style_notes`` covers
+    calques, lost irony, weakened imagery and similar editorial notes; it is
+    reported and may raise an advisory warning, but it never fails the book.
+    """
+    scored = [
+        item
+        for item in items
+        if isinstance(item, dict) and not item.get("alignment_suspect")
+    ]
+
+    def average(key_name: str) -> float:
+        values = [float(item.get(key_name) or 0) for item in scored]
+        return round(sum(values) / len(values), 3) if values else 0.0
+
+    averages = {
+        "fidelity": average("fidelity"),
+        "naturalness": average("naturalness"),
+        "terminology": average("terminology"),
+        "register": average("register"),
+        "prose": average("prose"),
+    }
+    meaning_errors = sum(int(item.get("meaning_errors") or 0) for item in scored)
+    meaning_candidates = sum(
+        int(item.get("meaning_candidates", item.get("meaning_errors") or 0))
+        for item in scored
+    )
+    style_notes = sum(int(item.get("style_notes") or 0) for item in scored)
+    tense_errors = sum(int(item.get("tense_errors") or 0) for item in scored)
+    gender_errors = sum(int(item.get("gender_errors") or 0) for item in scored)
+
+    warnings: List[str] = []
+    if style_notes > max(3, len(scored)):
+        warnings.append(
+            f"high style-note count: {style_notes} across {len(scored)} scored "
+            "samples (advisory)"
+        )
+    if meaning_errors == 1:
+        warnings.append("one factual meaning error tolerated by the gate")
+    if meaning_candidates > meaning_errors:
+        warnings.append(
+            f"{meaning_candidates - meaning_errors} candidate meaning error(s) "
+            "not confirmed by the second pass"
+        )
+
+    passed = (
+        len(scored) >= 3
+        and averages["fidelity"] >= 3.5
+        and averages["naturalness"] >= 3.5
+        and averages["prose"] >= 3.5
+        and meaning_errors <= 1
+        and tense_errors <= 1
+        and gender_errors <= 1
+    )
+    return {
+        "passed": passed,
+        "averages": averages,
+        "meaning_errors": meaning_errors,
+        "meaning_candidates": meaning_candidates,
+        "style_notes": style_notes,
+        "tense_errors": tense_errors,
+        "gender_errors": gender_errors,
+        "scored_samples": len(scored),
+        "warnings": warnings,
+    }
+
+
+def _confirmation_prompt(
+    samples: List[Dict[str, Any]], flagged: List[Dict[str, Any]]
+) -> str:
+    by_id = {str(sample.get("id")): sample for sample in samples}
+    lines = [
+        "You are verifying candidate factual errors flagged by a first pass.",
+        "For each pair, decide how many factual errors are confirmed. A factual error changes what the reader understands happened: a wrong referent, an inverted relation, a dropped or added proposition that changes an event, or a wrong number, name or term.",
+        "A weaker image, a calque, lost irony, register, or a nuance that is still understandable is NOT a factual error. Do not confirm those. The first pass often over-counts; be strict.",
+        'Return ONLY JSON: {"items":[{"id":"...","confirmed_errors":0,"reason":"short Portuguese"}]}',
+        "Do not use markdown fences. Do not add commentary outside the JSON.",
+        "",
+    ]
+    for item in flagged:
+        sample = by_id.get(str(item.get("id")))
+        if not sample:
+            continue
+        lines.extend(
+            [
+                f"ID: {item.get('id')}",
+                f"FIRST-PASS NOTE: {item.get('notes', '')}",
+                "SOURCE:",
+                sample["source"],
+                "",
+                "TARGET:",
+                sample["target"],
+                "",
+            ]
+        )
+    return "\n".join(lines)
+
+
+def _apply_meaning_confirmation(
+    items: List[Dict[str, Any]], confirmed: Dict[str, Dict[str, Any]]
+) -> List[Dict[str, Any]]:
+    """Replace candidate meaning errors with the confirmed count.
+
+    A missing id keeps the candidate count: an incomplete confirmation must
+    never turn a possible factual error into a pass.
+    """
+    for item in items:
+        candidates = int(item.get("meaning_errors") or 0)
+        if not candidates:
+            continue
+        entry = confirmed.get(str(item.get("id")))
+        if entry is None:
+            continue
+        item["meaning_candidates"] = candidates
+        item["meaning_errors"] = max(0, int(entry.get("confirmed_errors") or 0))
+        item["meaning_confirmation"] = str(entry.get("reason") or "")
+    return items
+
+
+def _confirm_meaning_errors(
+    samples: List[Dict[str, Any]],
+    flagged: List[Dict[str, Any]],
+    *,
+    key: str,
+    model: str,
+    max_cloud_usd: float,
+) -> tuple[Optional[Dict[str, Dict[str, Any]]], str, int, int, float]:
+    """Second, narrow pass over the candidate factual errors.
+
+    Returns ``(confirmed_by_id, error, input_tokens, output_tokens, cost)``.
+    ``confirmed_by_id`` is None when the verification could not run; the
+    caller then keeps the first-pass count instead of passing the book.
+    """
+    payload = {
+        "model": model,
+        "max_tokens": 1200,
+        "thinking": {"type": "disabled"},
+        "system": "You are a strict bilingual fact-checker. Confirm only changes in what the text says, not style.",
+        "messages": [
+            {"role": "user", "content": _confirmation_prompt(samples, flagged)}
+        ],
+    }
+    try:
+        response = requests.post(
+            "https://api.anthropic.com/v1/messages",
+            headers={
+                "x-api-key": key,
+                "anthropic-version": "2023-06-01",
+                "content-type": "application/json",
+            },
+            json=payload,
+            timeout=120,
+        )
+        if not response.ok:
+            return (
+                None,
+                f"HTTP {response.status_code}: {response.text[:400]}",
+                0,
+                0,
+                0.0,
+            )
+        data = response.json()
+    except Exception as exc:
+        return (None, f"{type(exc).__name__}: {exc}", 0, 0, 0.0)
+
+    usage = data.get("usage") or {}
+    input_tokens = int(usage.get("input_tokens") or 0)
+    output_tokens = int(usage.get("output_tokens") or 0)
+    cost = input_tokens * 0.10 / 1_000_000 + output_tokens * 0.50 / 1_000_000
+    if cost > max_cloud_usd:
+        return (
+            None,
+            f"confirmation cost ${cost:.4f} exceeds cap ${max_cloud_usd:.4f}",
+            input_tokens,
+            output_tokens,
+            cost,
+        )
+
+    content = ""
+    for block in data.get("content") or []:
+        if block.get("type") == "text":
+            content += block.get("text", "")
+    start = content.find("{")
+    end = content.rfind("}")
+    if start < 0 or end <= start:
+        return (None, "confirmation returned no JSON", input_tokens, output_tokens, cost)
+    try:
+        parsed = json.loads(content[start : end + 1])
+    except ValueError as exc:
+        return (
+            None,
+            f"invalid confirmation JSON: {exc}",
+            input_tokens,
+            output_tokens,
+            cost,
+        )
+    entries = parsed.get("items") or []
+    confirmed = {
+        str(entry.get("id")): entry
+        for entry in entries
+        if isinstance(entry, dict) and entry.get("id")
+    }
+    if not confirmed:
+        return (
+            None,
+            "confirmation returned no items",
+            input_tokens,
+            output_tokens,
+            cost,
+        )
+    return (confirmed, "", input_tokens, output_tokens, cost)
 
 
 def _cloud_audit(
@@ -566,41 +784,43 @@ def _cloud_audit(
             "cost_usd": round(cost, 6),
         }
 
-    def average(key_name: str) -> float:
-        values = [float(item.get(key_name) or 0) for item in scored]
-        return round(sum(values) / len(values), 3) if values else 0.0
-
-    meaning_errors = sum(int(item.get("meaning_errors") or 0) for item in scored)
-    tense_errors = sum(int(item.get("tense_errors") or 0) for item in scored)
-    gender_errors = sum(int(item.get("gender_errors") or 0) for item in scored)
+    verdict = _cloud_verdict(items)
+    total_input = input_tokens
+    total_output = output_tokens
+    total_cost = cost
+    flagged = [
+        item
+        for item in items
+        if isinstance(item, dict) and int(item.get("meaning_errors") or 0) > 0
+    ]
+    if flagged:
+        confirmed, error, extra_in, extra_out, extra_cost = _confirm_meaning_errors(
+            samples,
+            flagged,
+            key=key,
+            model=model,
+            max_cloud_usd=max(0.0, max_cloud_usd - cost),
+        )
+        total_input += extra_in
+        total_output += extra_out
+        total_cost += extra_cost
+        if confirmed is None:
+            verdict["warnings"].append(f"meaning confirmation unavailable: {error}")
+        else:
+            _apply_meaning_confirmation(items, confirmed)
+            verdict = _cloud_verdict(items)
+            verdict["meaning_confirmation"] = "applied"
     result = {
         "ok": True,
-        "passed": average("fidelity") >= 3.5
-        and average("naturalness") >= 3.5
-        and average("prose") >= 3.5
-        and meaning_errors <= 1
-        and tense_errors <= 1
-        and gender_errors <= 1
-        and len(scored) >= 3,
         "model": model,
-        "input_tokens": input_tokens,
-        "output_tokens": output_tokens,
-        "cost_usd": round(cost, 6),
-        "averages": {
-            "fidelity": average("fidelity"),
-            "naturalness": average("naturalness"),
-            "terminology": average("terminology"),
-            "register": average("register"),
-            "prose": average("prose"),
-        },
-        "meaning_errors": meaning_errors,
-        "tense_errors": tense_errors,
-        "gender_errors": gender_errors,
-        "scored_samples": len(scored),
+        "input_tokens": total_input,
+        "output_tokens": total_output,
+        "cost_usd": round(total_cost, 6),
+        **verdict,
         "items": items,
         "summary": parsed.get("summary", ""),
     }
-    _record_cost(book_title, model, input_tokens, output_tokens, cost)
+    _record_cost(book_title, model, total_input, total_output, total_cost)
     return result
 
 
@@ -722,7 +942,8 @@ def main() -> int:
                 "cloud audit failed: "
                 f"prose {averages.get('prose')}, fidelity {averages.get('fidelity')}, "
                 f"naturalness {averages.get('naturalness')}, "
-                f"meaning {cloud.get('meaning_errors')}, "
+                f"meaning {cloud.get('meaning_errors')}/{cloud.get('meaning_candidates')} confirmed, "
+                f"style {cloud.get('style_notes')}, "
                 f"tense {cloud.get('tense_errors')}, gender {cloud.get('gender_errors')}"
             )
         else:
@@ -741,6 +962,7 @@ def main() -> int:
         "report": str(args.report) if args.report else "",
         "passed": passed,
         "reasons": reasons,
+        "warnings": cloud.get("warnings") or [],
         "gate": {
             "queue_gate": gate_ok,
             "epubcheck_errors": int(epubcheck.get("errors") or 0),
@@ -778,7 +1000,7 @@ def main() -> int:
         f"- English leakage: {metrics.get('english_leakage')}",
         f"- Repetition: {metrics.get('repetition_ratio')}",
         f"- Length ratio: {metrics.get('length_ratio')}",
-        f"- Cloud samples: {cloud.get('scored_samples')} scored; averages {cloud.get('averages')}; meaning errors {cloud.get('meaning_errors')}",
+        f"- Cloud samples: {cloud.get('scored_samples')} scored; averages {cloud.get('averages')}; meaning errors {cloud.get('meaning_errors')}/{cloud.get('meaning_candidates')} confirmed; style notes {cloud.get('style_notes')} (advisory)",
         f"- Cloud prose: {(cloud.get('averages') or {}).get('prose')}; tense errors {cloud.get('tense_errors')}; gender errors {cloud.get('gender_errors')}",
         "",
         "## Reasons",
@@ -788,6 +1010,10 @@ def main() -> int:
         lines.extend(f"- {reason}" for reason in reasons)
     else:
         lines.append("- All gates passed.")
+    warnings = cloud.get("warnings") or []
+    if warnings:
+        lines.extend(["", "## Warnings", ""])
+        lines.extend(f"- {warning}" for warning in warnings)
     lines.extend(["", "## Missing glossary targets", ""])
     for item in (terms.get("missing") or [])[:15]:
         lines.append(f"- {item['source']} -> {item['target']} ({item['category']})")

@@ -314,6 +314,19 @@ Expert report: `docs/project/reviews/sun-eater-model-selection-2026-11-10.md`.
   `data/audits/howling-dark-verify-20261111T093932Z/audit.md`. Decision: leave
   the book in `needs_review`; no auto-approval. The supervisor was not restarted
   after the block.
+- **The cloud gate was calibrated on 2026-11-11.** `meaning_errors` now counts
+  only factual/denotative errors; calques, lost irony, weakened imagery and
+  register are `style_notes`, advisory and non-gating. A second, narrow Haiku
+  pass re-checks every candidate meaning error and only the confirmed count
+  gates the book; a missing confirmation keeps the candidate count (never a
+  silent pass). The calibrated re-run of Howling Dark
+  (`data/audits/howling-dark-calibrated2-20261111T135618Z/`) scored prose 4.0,
+  fidelity 4.143, naturalness 4.0, style 9 (advisory warning), meaning
+  candidates 4, confirmed **2** -> still fails the one-error gate. Manual
+  reading says the two confirmed notes are false positives (`uptown` -> "lá em
+  cima" and `glad` -> "grato"); the judge over-confirms. Open decision: approve
+  the book manually, add a stronger adjudicator for the confirmed candidates,
+  or relax the threshold to 2. The report is the evidence.
 - Reports: `data/audits/<book>-<timestamp>/audit.md`; supervisor status:
   `data/literary_queue.auto.json`.
 
