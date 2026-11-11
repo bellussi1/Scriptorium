@@ -1,319 +1,165 @@
-# Docker Deployment Guide
+# Docker — local build
 
-This guide explains how to use the official Docker images published to GitHub Container Registry.
+This fork is **built from this checkout**. It does not publish a Docker image,
+a desktop release or a package. The upstream `ghcr.io/hydropix/...` image is not
+used here.
 
-## Quick Start with Pre-built Image
+The local stack is `docker-compose.dev.yml`:
 
-### Pull the Latest Image
+- service `app`
+- image `translatebook-literary:dev`
+- container `translatebook-literary-dev`
+- Dockerfile `deployment/Dockerfile.dev`
+- port `127.0.0.1:5000`
 
-```bash
-docker pull ghcr.io/hydropix/translatebookswithllms:latest
-```
+## Prerequisites
 
-### Run the Container
+- Docker Desktop (Windows/macOS) or Docker Engine + Compose v2 (Linux)
+- Ollama running on the host, with the model you intend to use
+- A Calibre library on the host
+- This repository checked out locally
 
-```bash
-docker run -d \
-  -p 5000:5000 \
-  -v $(pwd)/translated_files:/app/translated_files \
-  -v $(pwd)/logs:/app/logs \
-  -e API_ENDPOINT=http://host.docker.internal:11434/api/generate \
-  -e DEFAULT_MODEL=qwen3:14b \
-  ghcr.io/hydropix/translatebookswithllms:latest
-```
-
-Access the web interface at: `http://localhost:5000`
-
-## Available Image Tags
-
-- `latest` - Latest stable version from main branch
-- `v1.2.3` - Specific semantic version (e.g., v1.0.0, v2.1.3)
-- `v1.2` - Latest patch version of major.minor (e.g., v1.2)
-- `v1` - Latest minor and patch of major version
-- `main-<sha>` - Specific commit from main branch
-
-## Using Docker Compose
-
-### 1. Create a `.env` file
+## 1. Configure `.env`
 
 ```bash
-cp deployment/.env.docker.example deployment/.env
+cp .env.example .env        # macOS/Linux
+Copy-Item .env.example .env # Windows PowerShell
 ```
 
-Edit the `.env` file to configure your LLM settings:
+Set at least:
 
 ```env
-API_ENDPOINT=http://host.docker.internal:11434/api/generate
-DEFAULT_MODEL=qwen3:14b
 LLM_PROVIDER=ollama
-PORT=5000
-OLLAMA_NUM_CTX=2048
-REQUEST_TIMEOUT=900
+DEFAULT_MODEL=qwen3:14b
+CALIBRE_LIBRARY_PATH=C:/Users/you/Biblioteca do calibre
 ```
 
-### 2. Create `docker-compose.yml`
+`CALIBRE_LIBRARY_PATH` is the host path mounted read-only at `/library` in the
+container. The dev compose pins Ollama to
+`http://host.docker.internal:11434/api/generate`; edit that line in
+`docker-compose.dev.yml` if Ollama runs on another machine.
 
-```yaml
-version: '3.8'
-
-services:
-  translate-book:
-    image: ghcr.io/hydropix/translatebookswithllms:latest
-    ports:
-      - "5000:5000"
-    volumes:
-      - ./translated_files:/app/translated_files
-      - ./logs:/app/logs
-      - ./data:/app/data
-    env_file:
-      - .env
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:5000/api/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
-```
-
-### 3. Start the Service
+## 2. Build and start
 
 ```bash
-docker compose up -d
+docker compose -f docker-compose.dev.yml up -d --build
+docker compose -f docker-compose.dev.yml ps
+docker compose -f docker-compose.dev.yml logs -f app
 ```
 
-## Using with Remote Ollama Server
+The healthcheck calls `http://localhost:5000/api/health`. Open
+**http://localhost:5000**.
 
-If your Ollama server is on a different machine in your local network:
+The first build compiles the image locally. Nothing is pushed to a registry.
 
-```yaml
-version: '3.8'
+## 3. Translate from the CLI
 
-services:
-  translate-book:
-    image: ghcr.io/hydropix/translatebookswithllms:latest
-    ports:
-      - "5000:5000"
-    environment:
-      - API_ENDPOINT=http://ollama-server.local:11434/api/generate
-      - LLM_PROVIDER=ollama
-    extra_hosts:
-      # Replace with your Ollama server's IP address
-      # Example: if your server is at 192.168.1.50
-      - "ollama-server.local:YOUR_OLLAMA_SERVER_IP"
-    volumes:
-      - ./translated_files:/app/translated_files
-      - ./logs:/app/logs
-```
-
-**Note:** Docker Desktop isolates containers from your local network. Use `extra_hosts` to map hostnames to IP addresses.
-
-## Multi-Platform Support
-
-The images are built for multiple architectures:
-- `linux/amd64` - Intel/AMD 64-bit systems
-- `linux/arm64` - ARM 64-bit systems (Apple Silicon, Raspberry Pi, etc.)
-
-Docker automatically pulls the correct architecture for your system.
-
-## Environment Variables
-
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `API_ENDPOINT` | LLM API endpoint | `http://localhost:11434/api/generate` |
-| `DEFAULT_MODEL` | Default LLM model | `qwen3:14b` |
-| `LLM_PROVIDER` | Provider (ollama/gemini/openai) | `ollama` |
-| `GEMINI_API_KEY` | Gemini API key | - |
-| `OPENAI_API_KEY` | OpenAI API key | - |
-| `PORT` | Web server port | `5000` |
-| `OLLAMA_NUM_CTX` | Context window size | `2048` |
-| `REQUEST_TIMEOUT` | API timeout (seconds) | `900` |
-| `MAX_TOKENS_PER_CHUNK` | Tokens per translation chunk | `400` |
-| `SIGNATURE_ENABLED` | Add signature to translations | `true` |
-| `ATTRIBUTION_PAGE_ENABLED` | Append an attribution page to translated EPUBs | `true` |
-
-## Volume Mounts
-
-### Recommended Volumes
+Inside the running container:
 
 ```bash
--v /path/to/translated_files:/app/translated_files  # Output files
--v /path/to/logs:/app/logs                         # Application logs
--v /path/to/data:/app/data                         # Uploads and temp data
+# Check the CLI
+docker compose -f docker-compose.dev.yml exec -T app python translate.py --help
+
+# Translate a book from the mounted Calibre library
+docker compose -f docker-compose.dev.yml exec -T app python translate.py \
+  -i "/library/Author/Book/Book.epub" \
+  -o "/app/translated_files/Book.pt-BR.epub" \
+  -sl English -tl "Portuguese (Brazil)" \
+  --provider ollama -m qwen3:14b
 ```
 
-### Permissions
-
-The container runs as the default user. Ensure mounted directories have appropriate permissions:
+From the host, with the venv active and dependencies installed:
 
 ```bash
-mkdir -p translated_files logs data
-chmod 755 translated_files logs data
+python translate.py -i book.epub \
+  -sl English -tl "Portuguese (Brazil)" \
+  --provider ollama -m qwen3:14b
 ```
 
-## Using with Ollama
+The fork's queue path adds the glossary, style and review gate; see
+`docs/project/README.md`.
 
-### Scenario 1: Ollama on Host Machine
+## 4. Run the queue agent
+
+The browser queue and the literary runner are separate. The app shows the
+queue, but the host agent starts the actual `queue run-all` process:
+
+```bat
+start-queue-agent.bat
+```
+
+or, from a Python environment with the repo dependencies:
 
 ```bash
-docker run -d \
-  -p 5000:5000 \
-  -e API_ENDPOINT=http://host.docker.internal:11434/api/generate \
-  -e DEFAULT_MODEL=qwen3:14b \
-  ghcr.io/hydropix/translatebookswithllms:latest
+python scripts/queue_runner_agent.py
 ```
 
-**Note**: `host.docker.internal` allows the container to access services on the host.
+The agent calls `docker compose -f docker-compose.dev.yml exec ...` for the
+translation process, so the dev container must be running. Keep one agent and
+one book at a time.
 
-### Scenario 2: Ollama in Separate Container
+## 5. Source-only setup (without Docker)
 
-```yaml
-version: '3.8'
-
-services:
-  ollama:
-    image: ollama/ollama:latest
-    ports:
-      - "11434:11434"
-    volumes:
-      - ollama_data:/root/.ollama
-
-  translate-book:
-    image: ghcr.io/hydropix/translatebookswithllms:latest
-    ports:
-      - "5000:5000"
-    environment:
-      - API_ENDPOINT=http://ollama:11434/api/generate
-      - DEFAULT_MODEL=qwen3:14b
-    depends_on:
-      - ollama
-
-volumes:
-  ollama_data:
-```
-
-## Using Cloud LLM Providers
-
-### Gemini
+Prerequisites: Python 3.11, Ollama, Git.
 
 ```bash
-docker run -d \
-  -p 5000:5000 \
-  -e LLM_PROVIDER=gemini \
-  -e GEMINI_API_KEY=your_api_key_here \
-  -e DEFAULT_MODEL=gemini-2.0-flash \
-  ghcr.io/hydropix/translatebookswithllms:latest
+python -m venv venv
+.\venv\Scripts\activate      # Windows PowerShell
+# source venv/bin/activate   # macOS/Linux
+pip install -r requirements.txt
+python launcher.py           # starts the web server
+# or: python translation_api.py
 ```
 
-### OpenAI
+`launcher.py` is the source/PyInstaller wrapper; from a source checkout it
+prints `[DEV] Running as Python script` and starts the same Flask server.
+The CLI is `python translate.py --help`.
+
+## 6. Data and persistence
+
+| Host path | Container path | Purpose |
+| --- | --- | --- |
+| `translated_files/` | `/app/translated_files` | translated EPUBs and Kindle exports |
+| `data/` | `/app/data` | uploads, mirror, glossaries, snapshots |
+| `logs/` | `/app/logs` | app logs |
+| `jobs_state` volume | `/app/state` | live `jobs.db`; do not delete |
+
+The live jobs DB lives on the Docker named volume. The host reads the mirror at
+`data/jobs.mirror.db`; do not point the app at the mirror.
+
+## 7. Update
 
 ```bash
-docker run -d \
-  -p 5000:5000 \
-  -e LLM_PROVIDER=openai \
-  -e OPENAI_API_KEY=your_api_key_here \
-  -e API_ENDPOINT=https://api.openai.com/v1/chat/completions \
-  -e DEFAULT_MODEL=gpt-4o \
-  ghcr.io/hydropix/translatebookswithllms:latest
+git pull --ff-only
+docker compose -f docker-compose.dev.yml up -d --build
 ```
 
-## Health Check
+No image, release or package is published by this fork. The update is always
+from the checkout.
 
-The container includes a built-in health check:
+## 8. Tests
 
 ```bash
-curl http://localhost:5000/api/health
-```
-
-Expected response:
-```json
-{"status": "ok"}
-```
-
-## Viewing Logs
-
-```bash
-# Docker logs
-docker logs <container_id>
-
-# Application logs (if volume mounted)
-tail -f logs/translation.log
+docker compose -f docker-compose.dev.yml exec -T app python -m pytest -q tests/unit tests/literary
+docker compose -f docker-compose.dev.yml exec -T app python -m pytest -q tests/test_frontend_i18n.py
 ```
 
 ## Troubleshooting
 
-### Container won't start
+- **Port 5000 busy:** stop the other app or change the port mapping in
+  `docker-compose.dev.yml`.
+- **Ollama connection refused:** check `ollama list` on the host; from the
+  container, `host.docker.internal` must resolve.
+- **Calibre library empty:** verify `CALIBRE_LIBRARY_PATH` in `.env` and the
+  `/library` mount.
+- **Healthcheck fails:** `docker compose -f docker-compose.dev.yml logs app`.
+- **Permission errors on `data/` or `translated_files/`:** the container runs
+  with a read-only root; those two paths must be writable by the container
+  user.
 
-1. Check logs: `docker logs <container_id>`
-2. Verify port 5000 is available: `netstat -an | grep 5000`
-3. Check environment variables are set correctly
+## Upstream and license
 
-### Can't connect to Ollama
-
-1. Verify Ollama is running: `curl http://localhost:11434/api/tags`
-2. Use `host.docker.internal` instead of `localhost` in `API_ENDPOINT`
-3. Ensure firewall allows container to access host
-
-### Permission denied on volumes
-
-```bash
-# Fix permissions
-sudo chown -R $(id -u):$(id -g) translated_files logs data
-```
-
-## Building Custom Images
-
-If you need to build a custom image:
-
-```bash
-# Clone the repository
-git clone https://github.com/hydropix/TranslateBookWithLLM.git
-cd TranslateBookWithLLM
-
-# Build the image
-docker build -f deployment/Dockerfile -t my-custom-translator .
-
-# Run your custom image
-docker run -d -p 5000:5000 my-custom-translator
-```
-
-## Security Considerations
-
-- **API Keys**: Never commit API keys to `.env` files in version control
-- **Network**: Use Docker networks to isolate containers
-- **Volumes**: Mount volumes with minimal necessary permissions
-- **Updates**: Regularly update to the latest image version for security patches
-
-## GitHub Container Registry
-
-Images are automatically built and published to GitHub Container Registry when:
-- New commits are pushed to `main` branch (tagged as `latest`)
-- New version tags are created (e.g., `v1.0.0`)
-
-### Pulling Specific Versions
-
-```bash
-# Latest version
-docker pull ghcr.io/hydropix/translatebookswithllms:latest
-
-# Specific version
-docker pull ghcr.io/hydropix/translatebookswithllms:v1.2.3
-
-# Specific commit
-docker pull ghcr.io/hydropix/translatebookswithllms:main-abc1234
-```
-
-## CI/CD Integration
-
-The project uses GitHub Actions to automatically build and publish Docker images:
-- **Workflow**: `.github/workflows/docker-publish.yml`
-- **Multi-platform**: Builds for amd64 and arm64
-- **Caching**: Uses GitHub Actions cache for faster builds
-- **Tagging**: Automatic semantic versioning and latest tags
-
-## Support
-
-For issues related to Docker deployment:
-1. Check this documentation
-2. Review container logs
-3. Open an issue at: https://github.com/hydropix/TranslateBookWithLLM/issues
+This fork is based on
+[TranslateBooksWithLLMs](https://github.com/hydropix/TranslateBooksWithLLMs)
+by hydropix and remains **AGPL-3.0**. See `LICENSE` and the upstream
+repository for the original project.

@@ -3,13 +3,9 @@ https://github.com/user-attachments/assets/4afc5f90-18d8-4586-ba73-626ae681ba57
 <div align="center">
   <h1>Scriptorium</h1>
   <p><strong>Tradução literária EN → pt-BR</strong> — fork pessoal de <a href="https://github.com/hydropix/TranslateBooksWithLLMs">TranslateBooksWithLLMs</a> (AGPL-3.0).</p>
-  <p>翻译书籍 · 本を翻訳する · 책을 번역하다 · किताबों का अनुवाद · Перевод книг · แปลหนังสือ · Μετάφραση βιβλίων · ترجمة الكتب</p>
-
-[![Download Windows](https://img.shields.io/badge/Download-Windows-blue?style=for-the-badge&logo=windows)](https://github.com/hydropix/TranslateBooksWithLLMs/releases/latest/download/TranslateBook-Windows.zip) [![Download macOS Intel](https://img.shields.io/badge/Download-macOS%20Intel-black?style=for-the-badge&logo=apple)](https://github.com/hydropix/TranslateBooksWithLLMs/releases/latest/download/TranslateBook-macOS-Intel.zip) [![Download macOS Apple Silicon](https://img.shields.io/badge/Download-macOS%20M1%2FM2%2FM3%2FM4-black?style=for-the-badge&logo=apple)](https://github.com/hydropix/TranslateBooksWithLLMs/releases/latest/download/TranslateBook-macOS-AppleSilicon.zip)
-
 </div>
 
-A desktop app that translates **books**, **subtitles**, and **documents** with AI - local or cloud. Drop a file, pick a language, get the result.
+A local-first literary translation pipeline for **English → Brazilian Portuguese**. It runs one book at a time, keeps a glossary and a style per series, resumes from checkpoints, and produces a validated EPUB for KOReader/Calibre. There are no published binaries or images for this fork; build it from this checkout.
 
 > **Fork scope:** this checkout's browser UI and `/api/translate` are fixed to
 > **English -> Brazilian Portuguese**. The generic translator code remains in the
@@ -26,26 +22,34 @@ A desktop app that translates **books**, **subtitles**, and **documents** with A
 
 <img width="1150" height="579" alt="image" src="https://github.com/user-attachments/assets/d7dfa806-830b-4405-8300-f10208943d22" />
 
-
-> **[Translation Quality Benchmarks](https://github.com/hydropix/TranslateBooksWithLLMs/wiki)** - Find the best model for your target language.
-
 ---
 
-## Quick Start
+## Quick Start (local build)
 
-1. **Download** the release for your platform (buttons above), or grab it from the [releases page](https://github.com/hydropix/TranslateBooksWithLLMs/releases/latest).
-2. **Extract** the archive.
-3. **Run** `TranslateBook.exe` (Windows) or `./TranslateBook` (macOS).
-4. **Open** http://localhost:5000 in your browser.
+This fork is built from this checkout. It does not publish desktop binaries or
+a prebuilt Docker image.
 
-That's it (就这么简单 · これだけ · 이게 다예요). On first launch, you choose a translation provider:
+1. Install [Docker Desktop](https://www.docker.com/products/docker-desktop/) and
+   [Ollama](https://ollama.com/), then pull a model: `ollama pull qwen3:14b`.
+2. Clone this fork and create the environment file:
+   ```bash
+   git clone https://github.com/bellussi1/TranslateBooksWithLLMs.git
+   cd TranslateBooksWithLLMs
+   cp .env.example .env        # macOS/Linux
+   Copy-Item .env.example .env # Windows PowerShell
+   ```
+3. Set `CALIBRE_LIBRARY_PATH` to your Calibre library and `DEFAULT_MODEL` to the
+   model you pulled. The dev compose reads `.env` and mounts the library at
+   `/library`.
+4. Build and start the local container:
+   ```bash
+   docker compose -f docker-compose.dev.yml up -d --build
+   ```
+5. Open http://localhost:5000.
 
-- **Free & local** - Install [Ollama](https://ollama.com/) and pull a model (e.g. `ollama pull qwen3:14b`). Nothing leaves your machine.
-- **Cloud (often free tier available)** - Paste an API key from one of the providers below.
-
-> **Note:** First run creates a `TranslateBook_Data` folder with your settings.
->
-> **macOS:** On first launch, go to **System Settings > Privacy & Security** and click **Open Anyway**.
+The container writes EPUBs to `translated_files/` and keeps the live jobs DB in
+the `jobs_state` volume. See [docs/DOCKER.md](docs/DOCKER.md) for the CLI, the
+queue agent and the source-only setup.
 
 ---
 
@@ -92,65 +96,50 @@ See [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md) for more solutions.
 ## Advanced
 
 <details>
-<summary><b>Install from source</b></summary>
+<summary><b>Run from source without Docker</b></summary>
 
-**Prerequisites:** [Python 3.8+](https://www.python.org/downloads/), [Ollama](https://ollama.com/), [Git](https://git-scm.com/)
+**Prerequisites:** Python 3.11, [Ollama](https://ollama.com/), Git.
 
 ```bash
-git clone https://github.com/hydropix/TranslateBooksWithLLMs.git
-cd TranslateBookWithLLM
-ollama pull qwen3:14b    # Download a model
-
-# Windows
-start.bat
-
-# Mac/Linux
-chmod +x start.sh && ./start.sh
+git clone https://github.com/bellussi1/TranslateBooksWithLLMs.git
+cd TranslateBooksWithLLMs
+python -m venv venv
+.\venv\Scripts\activate      # Windows PowerShell
+# source venv/bin/activate   # macOS/Linux
+pip install -r requirements.txt
+ollama pull qwen3:14b
+python launcher.py           # starts the web server
+# or: python translation_api.py
 ```
 
-The web interface opens at **http://localhost:5000**.
+The web interface opens at **http://localhost:5000**. For the CLI, keep the
+venv active and run `python translate.py --help`.
 
 </details>
 
 <details>
 <summary><b>Command line</b></summary>
 
+The browser UI is fixed to English → Brazilian Portuguese. The CLI accepts the
+standard flags; use the same pair for consistency with the queue and glossary.
+
 ```bash
-# Basic (auto-generates "book (Chinese).epub")
-python translate.py -i book.epub -sl English -tl Chinese
+# Host, with the venv active and Ollama running
+python translate.py -i book.epub \
+  -sl English -tl "Portuguese (Brazil)" \
+  --provider ollama -m qwen3:14b
 
-# With OpenRouter
-python translate.py -i book.txt --provider openrouter \
-    --openrouter_api_key YOUR_KEY -m anthropic/claude-sonnet-4 -tl French
-
-# With OpenAI
-python translate.py -i book.txt --provider openai \
-    --openai_api_key YOUR_KEY -m gpt-4o -tl French
-
-# With Gemini
-python translate.py -i book.txt --provider gemini \
-    --gemini_api_key YOUR_KEY -m gemini-2.0-flash -tl French
-
-# With Mistral
-python translate.py -i book.txt --provider mistral \
-    --mistral_api_key YOUR_KEY -m mistral-large-latest -tl French
-
-# With DeepSeek
-python translate.py -i book.txt --provider deepseek \
-    --deepseek_api_key YOUR_KEY -m deepseek-v4-pro -tl French
-
-# With Poe
-python translate.py -i book.txt --provider poe \
-    --poe_api_key YOUR_KEY -m Claude-Sonnet-4 -tl French
-
-# With NVIDIA NIM
-python translate.py -i book.txt --provider nim \
-    --nim_api_key YOUR_KEY -m meta/llama-3.1-8b-instruct -tl French
-
-# With local OpenAI-compatible server (llama.cpp, LM Studio, vLLM, etc.)
-python translate.py -i book.txt --provider openai \
-    --api_endpoint http://localhost:8080/v1/chat/completions -m your-model -tl French
+# Inside the dev container, with the book under /library
+docker compose -f docker-compose.dev.yml exec -T app python translate.py \
+  -i /library/Author/Book/Book.epub \
+  -o /app/translated_files/Book.pt-BR.epub \
+  -sl English -tl "Portuguese (Brazil)" \
+  --provider ollama -m qwen3:14b
 ```
+
+The output defaults to `{name} (Portuguese (Brazil)).epub`; `-o` is optional.
+The queue adds glossary, style and the review gate; see
+`docs/project/README.md`.
 
 ### Main options
 
@@ -159,7 +148,7 @@ python translate.py -i book.txt --provider openai \
 | `-i, --input` | Input file | Required |
 | `-o, --output` | Output file | Auto: `{name} ({lang}).{ext}` |
 | `-sl, --source_lang` | Source language | English |
-| `-tl, --target_lang` | Target language | Chinese |
+| `-tl, --target_lang` | Target language | Portuguese (Brazil) |
 | `-m, --model` | Model name | qwen3:14b |
 | `--provider` | ollama/openrouter/openai/gemini/mistral/deepseek/poe/nim | ollama |
 | `--parallel` | Chunks translated concurrently (cloud only; Ollama stays at 1) | 1 |
@@ -208,14 +197,19 @@ PARALLEL_TRANSLATIONS=1      # Concurrent chunks (cloud only; Ollama stays at 1)
 </details>
 
 <details>
-<summary><b>Docker</b></summary>
+<summary><b>Docker (local build)</b></summary>
 
 ```bash
-docker build -t translatebook .
-docker run -p 5000:5000 -v $(pwd)/translated_files:/app/translated_files translatebook
+docker compose -f docker-compose.dev.yml up -d --build
+docker compose -f docker-compose.dev.yml ps
+docker compose -f docker-compose.dev.yml logs -f app
 ```
 
-See [docs/DOCKER.md](docs/DOCKER.md) for more options.
+The dev compose builds `translatebook-literary:dev` from
+`deployment/Dockerfile.dev`, mounts this checkout, and exposes
+`127.0.0.1:5000`. This fork has no published image; do not pull the upstream
+`ghcr.io` image. See [docs/DOCKER.md](docs/DOCKER.md) for the full local-build
+guide, the CLI and the queue agent.
 
 </details>
 
@@ -240,17 +234,21 @@ Two things stay local to the device: if you queue several files, other devices o
 | [docs/STYLE_EXTRACTION.md](docs/STYLE_EXTRACTION.md) | Extract a reusable writing-style preset from sample books and apply it to every chunk (Web UI) |
 | [docs/CLI.md](docs/CLI.md) | Complete CLI reference |
 | [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md) | Problem solutions |
-| [docs/DOCKER.md](docs/DOCKER.md) | Docker deployment guide |
+| [docs/DOCKER.md](docs/DOCKER.md) | Local Docker build guide |
 
 ---
 
-## Support
+## Upstream
 
-If TBL saves you time, you can support its development on Ko-fi:
+This fork is based on [TranslateBooksWithLLMs](https://github.com/hydropix/TranslateBooksWithLLMs)
+by hydropix and remains **AGPL-3.0**. The upstream repository, documentation
+and model benchmarks are the reference for the code this fork builds on:
 
-<a href="https://ko-fi.com/Y1M021FYBG" target="_blank"><img src="https://ko-fi.com/img/githubbutton_sm.svg" alt="Support me on Ko-fi" height="36"></a>
+- [Upstream repository](https://github.com/hydropix/TranslateBooksWithLLMs)
+- [Upstream model benchmarks](https://github.com/hydropix/TranslateBooksWithLLMs/wiki)
 
-Thank you · 谢谢 · ありがとう · 감사합니다 · धन्यवाद · Спасибо · ขอบคุณ · Ευχαριστώ · شكرًا
+The original author's support link is preserved:
+[Ko-fi](https://ko-fi.com/Y1M021FYBG).
 
 ---
 
