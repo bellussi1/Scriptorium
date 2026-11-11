@@ -422,6 +422,41 @@ function renderTranslateHero(container, book, ctx) {
     const stalledLine = stalled
         ? `<p class="translate-hero__stall">${escapeHtml(t('queue:now_stalled', { time: formatDuration(stallMs / 1000) }))}</p>`
         : '';
+    const healthItems = [];
+    if (book.process_alive !== undefined && book.process_alive !== null) {
+        healthItems.push(`
+            <span class="translate-hero__health-item ${book.process_alive ? 'is-ok' : 'is-bad'}">
+                <span class="translate-hero__health-dot" aria-hidden="true"></span>
+                ${escapeHtml(t(book.process_alive ? 'queue:now_health_alive' : 'queue:now_health_dead'))}
+            </span>
+        `);
+    }
+    if (book.last_checkpoint_age_seconds !== undefined && book.last_checkpoint_age_seconds !== null) {
+        healthItems.push(`
+            <span class="translate-hero__health-item">
+                ${escapeHtml(t('queue:now_health_checkpoint'))}: ${escapeHtml(formatDuration(Number(book.last_checkpoint_age_seconds)))}
+            </span>
+        `);
+    }
+    if (book.db_integrity) {
+        const dbOk = String(book.db_integrity).toLowerCase() === 'ok';
+        healthItems.push(`
+            <span class="translate-hero__health-item ${dbOk ? 'is-ok' : 'is-bad'}">
+                ${escapeHtml(t('queue:now_health_db'))}: ${escapeHtml(book.db_integrity)}
+            </span>
+        `);
+    }
+    if (book.last_audit) {
+        const auditOk = Boolean(book.last_audit.passed);
+        healthItems.push(`
+            <span class="translate-hero__health-item ${auditOk ? 'is-ok' : 'is-warn'}">
+                ${escapeHtml(t('queue:now_health_audit'))}: ${escapeHtml(t(auditOk ? 'queue:now_health_audit_ok' : 'queue:now_health_audit_flag'))}
+            </span>
+        `);
+    }
+    const healthRow = healthItems.length
+        ? `<div class="translate-hero__health">${healthItems.join('')}</div>`
+        : '';
     const actions = [];
 
     if (ctx.isActive) {
@@ -518,6 +553,7 @@ function renderTranslateHero(container, book, ctx) {
                 <strong class="translate-hero__stat-value">${escapeHtml(started || t('queue:now_value_unknown'))}</strong>
             </div>
         </div>
+        ${healthRow}
         ${stalledLine}
         ${errorLine}
         ${integrityError}

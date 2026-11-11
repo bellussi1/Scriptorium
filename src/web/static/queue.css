@@ -1093,6 +1093,44 @@
     font-weight: 500;
 }
 
+.translate-hero__health {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 14px;
+}
+
+.translate-hero__health-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 9px;
+    border: 1px solid var(--border-light);
+    border-radius: 999px;
+    color: var(--text-muted-light);
+    font-size: 0.72rem;
+    font-variant-numeric: tabular-nums;
+}
+
+.translate-hero__health-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+}
+
+.translate-hero__health-item.is-ok {
+    color: var(--success-light);
+}
+
+.translate-hero__health-item.is-bad {
+    color: var(--danger-light-text);
+}
+
+.translate-hero__health-item.is-warn {
+    color: var(--warning-light-text);
+}
+
 .translate-hero__stall,
 .translate-hero__error {
     margin: 14px 0 0;

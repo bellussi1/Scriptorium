@@ -220,6 +220,89 @@ def _process_alive(book: Dict[str, Any]) -> Optional[bool]:
     return None
 
 
+def _parse_json(text: str) -> Optional[Dict[str, Any]]:
+    raw = (text or "").strip()
+    if not raw:
+        return None
+    try:
+        value = json.loads(raw)
+        return value if isinstance(value, dict) else None
+    except json.JSONDecodeError:
+        pass
+    start = raw.find("{")
+    if start < 0:
+        return None
+    try:
+        value, _ = json.JSONDecoder().raw_decode(raw[start:])
+        return value if isinstance(value, dict) else None
+    except json.JSONDecodeError:
+        return None
+
+
+def _run_audit(book_id: int, translation_id: str) -> Dict[str, Any]:
+    command = [
+        sys.executable,
+        str(ROOT / "scripts" / "intra_run_audit.py"),
+        "--book-id", str(book_id),
+        "--translation-id", translation_id,
+        "--json",
+    ]
+    try:
+        completed = subprocess.run(
+            command,
+            cwd=str(ROOT),
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            timeout=300,
+        )
+    except Exception as exc:
+        return {"ok": False, "error": str(exc)}
+    payload = _parse_json(completed.stdout)
+    if payload is None:
+        return {
+            "ok": False,
+            "error": "no JSON from intra_run_audit",
+            "returncode": completed.returncode,
+            "stderr": (completed.stderr or "")[-500:],
+        }
+    payload["returncode"] = completed.returncode
+    return payload
+
+
+def _run_snapshot(label: str) -> Dict[str, Any]:
+    command = [
+        sys.executable,
+        str(ROOT / "scripts" / "db_snapshot.py"),
+        "--label", label,
+        "--keep-daily", "7",
+        "--keep-labeled", "1",
+    ]
+    try:
+        completed = subprocess.run(
+            command,
+            cwd=str(ROOT),
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            timeout=300,
+        )
+    except Exception as exc:
+        return {"ok": False, "error": str(exc)}
+    payload = _parse_json(completed.stdout)
+    if payload is None:
+        return {
+            "ok": False,
+            "error": "no JSON from db_snapshot",
+            "returncode": completed.returncode,
+            "stderr": (completed.stderr or "")[-500:],
+        }
+    payload["returncode"] = completed.returncode
+    return payload
+
+
 def _live_health() -> Dict[str, Any]:
     command = [
         "docker", "compose", "-f", str(COMPOSE_FILE),
@@ -344,18 +427,85 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--interval", type=int, default=30)
     parser.add_argument("--stall-minutes", type=int, default=10)
+    parser.add_argument("--audit-every", type=int, default=100)
+    parser.add_argument("--no-audit", action="store_true")
+    parser.add_argument("--audit-block", action="store_true")
+    parser.add_argument("--snapshot-every-hours", type=float, default=6.0)
+    parser.add_argument("--no-snapshots", action="store_true")
     parser.add_argument("--once", action="store_true")
     parser.add_argument("--terminate", action="store_true")
     args = parser.parse_args()
 
+    existing: Dict[str, Any] = {}
+    try:
+        existing = json.loads(HEALTH_PATH.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        existing = {}
     live_health: Dict[str, Any] = {}
     live_checked = 0.0
+    last_audit: Dict[str, Any] = existing.get("last_audit") or {}
+    last_audit_count = int(
+        existing.get("audit_checkpoint_count")
+        or (last_audit.get("checkpoint_count") if isinstance(last_audit, dict) else 0)
+        or 0
+    )
+    last_snapshot: Dict[str, Any] = existing.get("last_snapshot") or {}
+    next_snapshot = time.time() + max(0.1, args.snapshot_every_hours) * 3600
+    try:
+        next_snapshot = datetime.fromisoformat(
+            str(existing.get("next_snapshot_at"))
+        ).timestamp()
+    except (ValueError, TypeError):
+        pass
     while True:
         now = time.time()
         if now - live_checked > 300:
             live_health = _live_health()
             live_checked = now
         payload = collect(args.stall_minutes, live_health)
+        if not args.no_audit and payload.get("active"):
+            count = int(payload.get("checkpoint_count") or 0)
+            if count > 0 and count >= last_audit_count + max(1, args.audit_every):
+                result = _run_audit(
+                    int(payload.get("book_id") or 0),
+                    str(payload.get("translation_id") or ""),
+                )
+                last_audit_count = count
+                last_audit = {
+                    "timestamp": _iso(),
+                    "passed": bool(result.get("passed")),
+                    "report": result.get("report"),
+                    "reasons": result.get("reasons") or [],
+                    "metrics": result.get("metrics"),
+                    "glossary_hash": result.get("glossary_hash"),
+                    "checkpoint_count": count,
+                }
+                payload["last_audit"] = last_audit
+                payload["audit_checkpoint_count"] = count
+                if args.audit_block and result.get("passed") is False:
+                    payload["audit_blocked"] = True
+        if last_audit_count:
+            payload["audit_checkpoint_count"] = last_audit_count
+        if last_audit:
+            payload["last_audit"] = last_audit
+        if not args.no_snapshots and now >= next_snapshot:
+            label = re.sub(
+                r"[^a-z0-9]+", "-",
+                str(payload.get("title") or "").strip().lower(),
+            ).strip("-")
+            result = _run_snapshot(label)
+            last_snapshot = {
+                "timestamp": _iso(),
+                "ok": bool(result.get("ok")),
+                "snapshots": result.get("snapshots") or [],
+            }
+            payload["last_snapshot"] = last_snapshot
+            next_snapshot = time.time() + max(0.1, args.snapshot_every_hours) * 3600
+        if last_snapshot:
+            payload["last_snapshot"] = last_snapshot
+        payload["next_snapshot_at"] = datetime.fromtimestamp(
+            next_snapshot, timezone.utc
+        ).isoformat(timespec="seconds")
         if args.terminate and payload.get("stalled") and payload.get("process_alive"):
             book = {"id": payload.get("book_id"), "title": payload.get("title")}
             payload["terminated"] = _terminate(book)

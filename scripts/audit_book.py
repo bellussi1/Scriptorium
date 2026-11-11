@@ -17,6 +17,7 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import hashlib
 import html
 import json
 import os
@@ -572,6 +573,15 @@ def main() -> int:
         glossary_path=Path(glossary_path) if glossary_path else None,
     )
     metrics = _text_metrics(source_text, target_text)
+    glossary_hash = None
+    glossary_hash_mismatch = False
+    if glossary_path and Path(glossary_path).exists():
+        glossary_file = Path(glossary_path)
+        sidecar = glossary_file.with_suffix(".sha256")
+        glossary_hash = hashlib.sha256(glossary_file.read_bytes()).hexdigest()
+        if sidecar.exists():
+            expected = sidecar.read_text(encoding="utf-8").strip()
+            glossary_hash_mismatch = bool(expected and expected != glossary_hash)
 
     validation = report.get("validation") or {}
     epubcheck = report.get("epubcheck") or {}
@@ -596,6 +606,10 @@ def main() -> int:
         reasons.append(f"glossary coverage {terms.get('coverage')} < 0.90")
     if terms.get("forbidden_hits"):
         reasons.append(f"{len(terms['forbidden_hits'])} forbidden rendering(s) found")
+    if terms.get("drift"):
+        reasons.append(f"{len(terms['drift'])} glossary term(s) drifted after the run")
+    if glossary_hash_mismatch:
+        reasons.append("compiled glossary snapshot changed after the run")
     if metrics.get("pt_pt_per_100k", 0) > 50:
         reasons.append(f"pt-PT markers {metrics['pt_pt_per_100k']} per 100k > 50")
     if metrics.get("english_leakage") is not None and metrics["english_leakage"] > 0.01:
@@ -629,6 +643,8 @@ def main() -> int:
         "metrics": metrics,
         "samples": samples,
         "cloud": cloud,
+        "glossary_hash": glossary_hash,
+        "glossary_hash_mismatch": glossary_hash_mismatch,
     }
 
     out_dir = args.out or (AUDIT_ROOT / f"{_slug(book.title)}-{datetime.now(timezone.utc):%Y%m%dT%H%M%SZ}")

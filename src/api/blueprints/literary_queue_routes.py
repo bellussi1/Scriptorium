@@ -382,6 +382,7 @@ def build_queue_snapshot(db_path: str | Path) -> Dict[str, Any]:
             book["stalled"] = bool(health.get("stalled"))
             book["eta_seconds"] = health.get("eta_seconds")
             book["eta_human"] = health.get("eta_human")
+            book["last_audit"] = health.get("last_audit")
             live_db = health.get("live_db") or {}
             book["db_integrity"] = live_db.get("integrity")
             book["journal_mode"] = live_db.get("journal_mode")
