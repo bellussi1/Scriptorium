@@ -121,6 +121,27 @@ def test_relabel_moves_legacy_labels_and_keeps_body(tmp_path: Path) -> None:
     assert "<h1>CAPÍTULO 1</h1>" in _read(output, "OEBPS/xhtml/07_Chapter_1_Behold.xhtml"), "body is untouched"
 
 
+def test_relabel_takes_pt_titles_from_map(tmp_path: Path) -> None:
+    source = _make_epub(tmp_path / "in.epub", first_title="Capítulo 1: Céu Crepuscular")
+    output = tmp_path / "out.epub"
+
+    report = relabel_epub(source, output, titles=_titles())
+
+    assert report["title_elements"] == 1
+    chapter = _read(output, "OEBPS/xhtml/07_Chapter_1_Behold.xhtml")
+    assert "<title>Capítulo 1 EIS UM CAVALO PÁLIDO</title>" in chapter
+    assert "Céu Crepuscular" not in chapter
+
+
+def test_relabel_with_map_refuses_chapter_missing_from_map(tmp_path: Path) -> None:
+    source = _make_epub(tmp_path / "in.epub", first_title="Capítulo 3: Outro")
+    output = tmp_path / "out.epub"
+
+    with pytest.raises(ValueError, match="no pt-BR title for chapter 3"):
+        relabel_epub(source, output, titles=_titles())
+    assert not output.exists()
+
+
 def test_mimetype_stays_first_and_stored(tmp_path: Path) -> None:
     source = _make_epub(tmp_path / "in.epub")
     output = tmp_path / "out.epub"
