@@ -41,7 +41,7 @@ before acting on anything below.
   04:04 UTC on the volume. It was paused at 04:23 to fix the EPUB count
   semantics and resumed at 04:30. The old file index made the resume restart at
   the title page, so it is redoing the front matter and early chapters; at
-  05:13 it was **243/1074**. That redo is a one-time cost of correcting the
+  05:25 it was **301/1074**. That redo is a one-time cost of correcting the
   checkpoint model, not a quality change. Supervisor PID 21444 is running; the
   watchdog PID 23084 writes `data/literary_queue.health.json` every 30 s.
 - **EPUB checkpoint semantics are now explicit.** `checkpoint_chunks` rows are
@@ -85,6 +85,21 @@ before acting on anything below.
   7 daily snapshots plus one per book; `next_snapshot_at` was 11:11 UTC. The
   hero now has health chips for process, last checkpoint, DB integrity and
   audit; the API sends them after the next app restart.
+- Glossaries: the queue runtime uses
+  `data/compiled/howling-dark-glossary.json` (172 terms; the log says
+  `Glossary loaded: 172 terms`). The UI tab uses a separate
+  `data/glossaries.db`, which was empty (0 rows, stale WAL); it is not the
+  runtime source. The 11 compiled Sun Eater/Realm glossaries were imported
+  through the app API: **11 glossaries, 1,062 terms**; Howling Dark has the
+  same 172 terms as the runtime. `db_snapshot.py` now snapshots
+  `glossaries.db` too (current `glossaries-howling-dark-*.db`, 11/1,062).
+  The UI copy stores only source/target/category/gender; the `forbidden`,
+  `policy` and alias metadata live in the compiled runtime JSON. Editing the
+  UI copy does not change the queue; the queue recompiles the YAML under
+  `literary-resources/` at the start of each book. The glossary DB is still on
+  the bind mount with WAL; moving it to the state volume is a gate item.
+  The UI tab now lists the 11 glossaries; the first intra-run audit also uses
+  the runtime glossary and caught the single `Chantry`/`Chantria` issue.
 - Still pending: the `literary_queue.db` single-writer/intent refactor (the
   app still writes on approve/retry/add/move/remove; the queue DB stays on the
   bind mount), watchdog auto-restart, and the destructive kill/restart tests.

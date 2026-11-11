@@ -25,6 +25,7 @@ from typing import Any, Dict, List, Optional
 ROOT = Path(__file__).resolve().parents[1]
 BACKUP_DIR = ROOT / "data" / "backups"
 QUEUE_DB = ROOT / "data" / "literary_queue.db"
+GLOSSARY_DB = ROOT / "data" / "glossaries.db"
 COMPOSE_FILE = ROOT / "docker-compose.dev.yml"
 MANIFEST = BACKUP_DIR / "snapshots.jsonl"
 
@@ -97,6 +98,25 @@ def snapshot_queue(label: str) -> Dict[str, Any]:
     integrity = _quick_check(path)
     record = _record("queue", label, path, integrity)
     return {"kind": "queue", "ok": integrity.lower() == "ok", **record}
+
+
+def snapshot_glossaries(label: str) -> Dict[str, Any]:
+    if not GLOSSARY_DB.exists():
+        return {"kind": "glossaries", "ok": False, "error": "glossaries database not found"}
+    suffix = f"-{label}" if label else ""
+    path = BACKUP_DIR / f"glossaries{suffix}-{_stamp()}.db"
+    BACKUP_DIR.mkdir(parents=True, exist_ok=True)
+    src = sqlite3.connect(f"file:{GLOSSARY_DB.as_posix()}?mode=ro", uri=True, timeout=30)
+    dst = sqlite3.connect(str(path))
+    try:
+        src.backup(dst)
+        dst.commit()
+    finally:
+        dst.close()
+        src.close()
+    integrity = _quick_check(path)
+    record = _record("glossaries", label, path, integrity)
+    return {"kind": "glossaries", "ok": integrity.lower() == "ok", **record}
 
 
 def snapshot_live(label: str) -> Dict[str, Any]:
@@ -189,6 +209,7 @@ def main() -> int:
     parser.add_argument("--label", default="")
     parser.add_argument("--no-live", action="store_true")
     parser.add_argument("--no-queue", action="store_true")
+    parser.add_argument("--no-glossaries", action="store_true")
     parser.add_argument("--keep-daily", type=int, default=7)
     parser.add_argument("--keep-labeled", type=int, default=1)
     args = parser.parse_args()
@@ -197,6 +218,8 @@ def main() -> int:
     results: List[Dict[str, Any]] = []
     if not args.no_queue:
         results.append(snapshot_queue(label))
+    if not args.no_glossaries:
+        results.append(snapshot_glossaries(label))
     if not args.no_live:
         results.append(snapshot_live(label))
     removed = prune(args.keep_daily, args.keep_labeled)
