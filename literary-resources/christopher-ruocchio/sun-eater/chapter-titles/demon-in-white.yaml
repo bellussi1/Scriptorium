@@ -1,0 +1,100 @@
+# Chapter titles for "Demon in White" (The Sun Eater 3), English -> pt-BR.
+#
+# Used by src/literary/chapter_titles.py to localise the table of contents and
+# the <title> element of each chapter. The `en` value must equal the English
+# title in the source EPUB (typographic apostrophes are compared as ASCII).
+# The reader-facing label is built as "Capítulo N: <pt>".
+#
+# These are editorial choices made without an official edition: review them
+# before publishing. Proper names are kept as in the glossary.
+book: Demon in White
+series: The Sun Eater
+series_index: 3
+chapters:
+  - {number: 1, en: "Behold a Pale Horse", pt: "Eis um Cavalo Pálido"}
+  - {number: 2, en: "The Firstborn Son of Earth", pt: "O Primogênito da Terra"}
+  - {number: 3, en: "The Empire of the Clouds", pt: "O Império das Nuvens"}
+  - {number: 4, en: "Children of the Sun", pt: "Filhos do Sol"}
+  - {number: 5, en: "Tamerlane", pt: "Tamerlane"}
+  - {number: 6, en: "Alone", pt: "Sozinho"}
+  - {number: 7, en: "Before the Sun Fell", pt: "Antes que o Sol Caísse"}
+  - {number: 8, en: "Dream Evil", pt: "Sonho Maligno"}
+  - {number: 9, en: "The Devil’s Cohort", pt: "A Coorte do Diabo"}
+  - {number: 10, en: "Pinion and Claw", pt: "Asa e Garra"}
+  - {number: 11, en: "Decimation", pt: "Decimação"}
+  - {number: 12, en: "Udax", pt: "Udax"}
+  - {number: 13, en: "Too Close to the Sun", pt: "Perto Demais do Sol"}
+  - {number: 14, en: "Request and Require", pt: "Pedir e Exigir"}
+  - {number: 15, en: "The Shadows of Arae", pt: "As Sombras de Arae"}
+  - {number: 16, en: "Other Devils", pt: "Outros Demônios"}
+  - {number: 17, en: "Lorian", pt: "Lorian"}
+  - {number: 18, en: "Night Journeys", pt: "Viagens Noturnas"}
+  - {number: 19, en: "The Jaws Are Closed", pt: "As Mandíbulas Estão Fechadas"}
+  - {number: 20, en: "The Aquilarii", pt: "Os Aquilarii"}
+  - {number: 21, en: "Demon in Black", pt: "O Demônio Negro"}
+  - {number: 22, en: "Into the Maw", pt: "Rumo às Fauces"}
+  - {number: 23, en: "Kingdoms of Death", pt: "Reinos da Morte"}
+  - {number: 24, en: "Beyond the Doors of the Dark", pt: "Além das Portas da Escuridão"}
+  - {number: 25, en: "In the Belly of the Whale", pt: "No Ventre da Baleia"}
+  - {number: 26, en: "The Vayadan", pt: "O Vayadan"}
+  - {number: 27, en: "The Battle of the Beast", pt: "A Batalha da Besta"}
+  - {number: 28, en: "The Devil Triumphant", pt: "O Diabo Triunfante"}
+  - {number: 29, en: "Far Beyond the Sun", pt: "Muito Além do Sol"}
+  - {number: 30, en: "Selene", pt: "Selene"}
+  - {number: 31, en: "The Cloud Gardens", pt: "Os Jardins das Nuvens"}
+  - {number: 32, en: "Lions", pt: "Leões"}
+  - {number: 33, en: "There Are Endings", pt: "Existem Finais"}
+  - {number: 34, en: "Majesty, Monarch, Prophet, Princess", pt: "Majestade, Monarca, Profeta, Princesa"}
+  - {number: 35, en: "Those Things You Thought Unreal", pt: "Aquelas Coisas que Você Julgava Irreais"}
+  - {number: 36, en: "The First Steps", pt: "Os Primeiros Passos"}
+  - {number: 37, en: "Blade Without Handle", pt: "Lâmina Sem Cabo"}
+  - {number: 38, en: "Valka Awakes", pt: "Valka Desperta"}
+  - {number: 39, en: "The Council of Ghosts", pt: "O Conselho dos Fantasmas"}
+  - {number: 40, en: "The Plan", pt: "O Plano"}
+  - {number: 41, en: "The Good Soldier", pt: "O Bom Soldado"}
+  - {number: 42, en: "Impossible Tasks", pt: "Tarefas Impossíveis"}
+  - {number: 43, en: "Purgatory", pt: "Purgatório"}
+  - {number: 44, en: "Along Comes a Spider", pt: "Eis que Surge uma Aranha"}
+  - {number: 45, en: "Visitation", pt: "Visitação"}
+  - {number: 46, en: "Shadows of the Past", pt: "Sombras do Passado"}
+  - {number: 47, en: "Once a Myrmidon", pt: "Uma Vez Mirmidão"}
+  - {number: 48, en: "Halfmortal", pt: "Semimortal"}
+  - {number: 49, en: "Regeneration", pt: "Regeneração"}
+  - {number: 50, en: "Evil Eyes", pt: "Mau-Olhado"}
+  - {number: 51, en: "The Merchant of Death", pt: "O Mercador da Morte"}
+  - {number: 52, en: "Falling Off the Edge of the World", pt: "Caindo da Borda do Mundo"}
+  - {number: 53, en: "The Golden Age", pt: "A Idade de Ouro"}
+  - {number: 54, en: "Unlooked-For", pt: "Inesperado"}
+  - {number: 55, en: "Reunion", pt: "Reencontro"}
+  - {number: 56, en: "Meeting of the Minds", pt: "Encontro de Mentes"}
+  - {number: 57, en: "Gabriel’s Archive", pt: "O Arquivo de Gabriel"}
+  - {number: 58, en: "Island in Time", pt: "Ilha no Tempo"}
+  - {number: 59, en: "Island in the Sun", pt: "Ilha sob o Sol"}
+  - {number: 60, en: "The Library Again", pt: "A Biblioteca Outra Vez"}
+  - {number: 61, en: "Horizon", pt: "Horizonte"}
+  - {number: 62, en: "Computer God", pt: "Deus-Computador"}
+  - {number: 63, en: "Late Goodbye", pt: "Adeus Tardio"}
+  - {number: 64, en: "The Last Command", pt: "O Último Comando"}
+  - {number: 65, en: "The Lone and Level Sands", pt: "As Areias Solitárias e Planas"}
+  - {number: 66, en: "Empire of Silence", pt: "Império do Silêncio"}
+  - {number: 67, en: "The Summons", pt: "A Convocação"}
+  - {number: 68, en: "Annica", pt: "Annica"}
+  - {number: 69, en: "The Highest Place", pt: "O Lugar Mais Alto"}
+  - {number: 70, en: "The Agony", pt: "A Agonia"}
+  - {number: 71, en: "Whispers", pt: "Sussurros"}
+  - {number: 72, en: "Between the Hammer and the Anvil", pt: "Entre o Martelo e a Bigorna"}
+  - {number: 73, en: "Berenike", pt: "Berenike"}
+  - {number: 74, en: "Phylacteries", pt: "Filactérios"}
+  - {number: 75, en: "The Noise of Thunder", pt: "O Ruído do Trovão"}
+  - {number: 76, en: "The Giant", pt: "O Gigante"}
+  - {number: 77, en: "Upon the Ramparts", pt: "Sobre as Muralhas"}
+  - {number: 78, en: "Of Rats and Falcons", pt: "De Ratos e Falcões"}
+  - {number: 79, en: "The Dismal Night", pt: "A Noite Sombria"}
+  - {number: 80, en: "Black Sun", pt: "Sol Negro"}
+  - {number: 81, en: "The Labyrinth Again", pt: "O Labirinto Outra Vez"}
+  - {number: 82, en: "The Depths Below", pt: "As Profundezas Abaixo"}
+  - {number: 83, en: "No Man’s Land", pt: "Terra de Ninguém"}
+  - {number: 84, en: "The Crawler", pt: "O Rastejante"}
+  - {number: 85, en: "The Winged Centurion", pt: "O Centurião Alado"}
+  - {number: 86, en: "The Scourge of Earth", pt: "O Flagelo da Terra"}
+  - {number: 87, en: "No Sword Can Cut", pt: "Nenhuma Espada Pode Cortar"}
