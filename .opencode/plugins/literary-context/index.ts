@@ -1,6 +1,6 @@
 import { Plugin } from "@opencode/plugin"
 import { execFileSync } from "node:child_process"
-import { existsSync, readFileSync, statSync } from "node:fs"
+import { readFileSync } from "node:fs"
 import { join } from "node:path"
 
 type Json = Record<string, unknown>
@@ -8,11 +8,13 @@ type Json = Record<string, unknown>
 const BUDGETS = "data/budgets.json"
 const LEDGER = "data/cost_ledger.jsonl"
 const ACTIVE = "docs/ACTIVE_CONTEXT.md"
-const AGENT = "data/literary_queue.agent.json"
-const RUNNER = "data/literary_queue.runner.json"
-const AUTO = "data/literary_queue.auto.json"
-const HEALTH = "data/literary_queue.health.json"
-const CONTROL = "data/literary_queue.control.json"
+const QUEUE_DB = process.env.LITERARY_QUEUE_DB || "data/literary_queue.db"
+const STATUS_SCHEMA = "literary-queue.status"
+const STATUS_VERSION = "1.0"
+const STATUS_TIMEOUT_MS = 5000
+
+let lastStatus: Json | null = null
+let lastStatusAt = 0
 
 function readJson(root: string, relative: string): Json {
   try {
@@ -43,98 +45,154 @@ function compact(value: string, limit = 320): string {
   return oneLine.length > limit ? oneLine.slice(0, limit - 1) + "…" : oneLine
 }
 
-function slug(value: string): string {
-  return (
-    value
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, "-")
-      .replace(/^-+|-+$/g, "") || "book"
-  )
+function statusCommand(dbPath: string): string[] {
+  return [
+    "-m",
+    "src.literary.cli",
+    "queue",
+    "status",
+    "--json",
+    "--db",
+    dbPath,
+  ]
 }
 
-function tailLines(root: string, relative: string, limit = 12): string[] {
-  const text = readText(root, relative)
-  if (!text) return []
-  return text
-    .split(/\r?\n/)
-    .filter((line) => line.trim())
-    .slice(-limit)
-    .map((line) => compact(line, 400))
-}
-
-function currentLogPath(root: string): string {
-  const health = readJson(root, HEALTH)
-  const auto = readJson(root, AUTO)
-  const title = String(health.title || auto.title || "").trim()
-  if (!title) return ""
-  const candidate = `data/queue-runs/${slug(title)}.log`
-  return existsSync(join(root, candidate)) ? candidate : ""
-}
-
-function cacheKey(root: string): string {
-  return [ACTIVE, BUDGETS, LEDGER, AUTO, HEALTH, CONTROL]
-    .map((relative) => {
-      const path = join(root, relative)
-      return existsSync(path) ? String(statSync(path).mtimeMs) : "0"
-    })
-    .join(":")
-}
-
-function statusLine(root: string): string {
-  const auto = readJson(root, AUTO)
-  const health = readJson(root, HEALTH)
-  const agent = readJson(root, AGENT)
-  const runner = readJson(root, RUNNER)
-
-  const state = String(health.state || "")
-  const active = ["preparing", "translating", "reviewing", "validating"].includes(state)
-  const title = String(health.title || auto.title || "").trim()
-  const progress =
-    health.checkpoint_count != null && health.total_chunks != null
-      ? `${String(health.checkpoint_count)}/${String(health.total_chunks)}`
+function runtimeLine(snapshot: Json): string {
+  const status = (snapshot.status || {}) as Json
+  if (!snapshot.available) return String(snapshot.runtime || "status indisponível")
+  if (!Boolean(status.running)) return "idle — no active book"
+  const book = (status.book || {}) as Json
+  const progress = (status.progress || {}) as Json
+  const chunks = Number(progress.chunks || 0)
+  const total = Number(progress.total || 0)
+  const percent = Number(progress.percent || 0)
+  const heartbeat =
+    status.heartbeat_age_s !== null && status.heartbeat_age_s !== undefined
+      ? ` · heartbeat ${String(status.heartbeat_age_s)}s`
       : ""
-  const eta = health.eta_human ? `, ETA ${String(health.eta_human)}` : ""
-  const healthFresh =
-    Boolean(health.timestamp) && Date.now() - Date.parse(String(health.timestamp)) < 120_000
-  const autoFresh =
-    Boolean(auto.heartbeat) && Date.now() - Date.parse(String(auto.heartbeat)) < 300_000
-  const supervisor = auto.phase
-    ? `supervisor ${autoFresh ? "" : "stale "}${String(auto.phase)}${
-        auto.title ? ` (${String(auto.title)})` : ""
-      }`
+  const stale = Boolean(status.stale) ? " · stale" : ""
+  const progressText = total
+    ? ` ${chunks}/${total} (${percent}%)`
     : ""
-
-  if (active) {
-    const runnerLine = `runner ${state}${title ? ` ${title}` : ""}${progress ? ` ${progress}` : ""}${eta}`
-    return `${supervisor ? supervisor + "; " : ""}${runnerLine}${healthFresh ? "" : " (health stale)"}`
-  }
-  if (title) {
-    return `${supervisor ? supervisor + "; " : ""}runner idle, last ${title}${
-      healthFresh ? "" : " (health stale)"
-    }`
-  }
-  if (supervisor) return `${supervisor}; runner idle`
-
-  const online = agent.heartbeat
-    ? Date.now() - Date.parse(String(agent.heartbeat)) < 120_000
-    : Boolean(agent.online)
-  const running = Boolean(runner.running)
-  return `agent ${online ? "online" : "offline"}, ${running ? "runner active" : "runner idle"}`
+  return `running — #${String(book.id)} ${String(book.title)} (${String(
+    book.state,
+  )})${progressText}${heartbeat}${stale}`
 }
 
-function nextLine(root: string): string {
+function nextLine(snapshot: Json): string {
+  if (!snapshot.available) return "indisponível"
+  const status = (snapshot.status || {}) as Json
+  const next = (status.next_pending || null) as Json | null
+  if (!next) return "none"
+  const suffix = Boolean(status.running) ? " (after the running book)" : ""
+  return `#${String(next.id)} ${String(next.title)}${suffix}`
+}
+
+function blockersLine(snapshot: Json): string {
+  if (!snapshot.available) return "indisponível"
+  const status = (snapshot.status || {}) as Json
+  const blockers = Array.isArray(status.blockers) ? status.blockers : []
+  if (!blockers.length) return "none"
+  return blockers
+    .map((raw) => {
+      if (!raw || typeof raw !== "object") return String(raw)
+      const item = raw as Json
+      const kind = String(item.kind || "blocker")
+      if (item.book_id !== undefined && item.book_id !== null) {
+        return `${kind} #${String(item.book_id)} ${String(item.title || "")}`.trim()
+      }
+      if (item.age_s !== undefined && item.age_s !== null) {
+        return `${kind} (${String(item.age_s)}s)`
+      }
+      return kind
+    })
+    .join("; ")
+}
+
+function dbLine(snapshot: Json): string {
+  if (!snapshot.available) return "indisponível"
+  const status = (snapshot.status || {}) as Json
+  const db = (status.db || {}) as Json
+  return `${String(db.integrity || "?")}/${String(db.journal_mode || "?")}`
+}
+
+function readStatus(root: string, dbPath: string = QUEUE_DB): Json {
   try {
-    const output = execFileSync(
-      "python",
-      ["-m", "src.literary.cli", "queue", "next"],
-      { cwd: root, encoding: "utf8", timeout: 15_000 },
-    )
-    const book = JSON.parse(output) as Json
-    if (!book || !book.id) return "no pending book"
-    return `#${book.id} ${book.title} (${book.provider}/${book.model})`
-  } catch {
-    return "unavailable"
+    const output = execFileSync("python", statusCommand(dbPath), {
+      cwd: root,
+      encoding: "utf8",
+      timeout: STATUS_TIMEOUT_MS,
+      windowsHide: true,
+      maxBuffer: 1_000_000,
+    })
+    const status = JSON.parse(output) as Json
+    if (
+      status.schema !== STATUS_SCHEMA ||
+      status.schema_version !== STATUS_VERSION
+    ) {
+      throw new Error(
+        `unexpected status schema ${String(status.schema)}/${String(
+          status.schema_version,
+        )}`,
+      )
+    }
+    lastStatus = status
+    lastStatusAt = Date.now()
+    return {
+      available: true,
+      source: "python -m src.literary.cli queue status --json",
+      db: dbPath,
+      age_s: 0,
+      status,
+      runtime: runtimeLine({ available: true, status }),
+      next: nextLine({ available: true, status }),
+      blockers: blockersLine({ available: true, status }),
+      db_line: dbLine({ available: true, status }),
+      snapshot_at: String(status.snapshot_at || ""),
+    }
+  } catch (error) {
+    const age = lastStatusAt
+      ? Math.max(0, Math.round((Date.now() - lastStatusAt) / 1000))
+      : null
+    const ageText =
+      age === null ? "sem dado anterior" : `último dado há ${age}s`
+    const runtime = `status indisponível (${ageText})`
+    return {
+      available: false,
+      source: "python -m src.literary.cli queue status --json",
+      db: dbPath,
+      age_s: age,
+      error: String(error),
+      runtime,
+      next: "indisponível",
+      blockers: "indisponível",
+      db_line: "indisponível",
+      snapshot_at: lastStatus ? String(lastStatus.snapshot_at || "") : "",
+      last_status: lastStatus,
+    }
   }
+}
+
+function contextBlock(root: string): string {
+  const snapshot = readStatus(root)
+  const active = readText(root, ACTIVE)
+  const decision = compact(section(active, "Decision"))
+  const budgets = budgetLines(root).join("; ")
+  return [
+    "<literary-context>",
+    `Runtime: ${String(snapshot.runtime)}.`,
+    `Next pending: ${String(snapshot.next)}.`,
+    `Blockers: ${String(snapshot.blockers)}.`,
+    snapshot.available
+      ? `DB: ${String(snapshot.db_line)} · snapshot: ${String(snapshot.snapshot_at)}.`
+      : `Status error: ${compact(String(snapshot.error || "unknown"), 160)}.`,
+    decision ? `Decision: ${decision}` : "",
+    budgets ? `Budgets: ${budgets}.` : "",
+    "Rules: one book/one chunk, mode=next, review gate, no cloud run without an explicit cap.",
+    "</literary-context>",
+  ]
+    .filter(Boolean)
+    .join("\n")
 }
 
 function budgetLines(root: string): string[] {
@@ -155,7 +213,6 @@ function budgetLines(root: string): string[] {
     const budget = raw as Json
     const spent = totals.get(provider) || 0
     const currency = String(budget.currency || "USD")
-    const note = String(budget.note || "")
     if (currency === "BRL") {
       const cap = Number(budget.cap || 0)
       const capUsd = Number(budget.cap_usd || 0)
@@ -170,74 +227,36 @@ export default Plugin.define({
   id: "literary-context",
   async setup(ctx) {
     const root = ctx.location.directory
-    let cachedKey = ""
-    let cachedBlock = ""
-    let cachedAt = 0
 
     await ctx.session.hook("context", (event) => {
-      const key = cacheKey(root)
-      const now = Date.now()
-      if (!cachedBlock || key !== cachedKey || now - cachedAt > 30_000) {
-        const active = readText(root, ACTIVE)
-        const decision = compact(section(active, "Decision"))
-        const next = compact(section(active, "Next decision"))
-        const budgets = budgetLines(root).join("; ")
-        cachedBlock = [
-          "<literary-context>",
-          `Runtime: ${statusLine(root)}.`,
-          `Next pending: ${nextLine(root)} (after the active book).`,
-          decision ? `Decision: ${decision}` : "",
-          next ? `Next: ${next}` : "",
-          budgets ? `Budgets: ${budgets}.` : "",
-          "Rules: one book/one chunk, mode=next, review gate, no cloud run without an explicit cap.",
-          "</literary-context>",
-        ]
-          .filter(Boolean)
-          .join("\n")
-        cachedKey = key
-        cachedAt = now
-      }
-      event.system.push({ type: "text", text: cachedBlock })
+      event.system.push({ type: "text", text: contextBlock(root) })
     })
 
     await ctx.tool.transform((editor) => {
       editor.add({
         name: "literary_status",
         description:
-          "Return the live TraducaoLLM queue state: watchdog health, supervisor phase, current book, next pending book and the current queue-run log tail.",
-        input: { type: "object", properties: {}, additionalProperties: false },
-        execute: async () => {
-          const health = readJson(root, HEALTH)
-          const auto = readJson(root, AUTO)
-          const control = readJson(root, CONTROL)
-          const agent = readJson(root, AGENT)
-          const runner = readJson(root, RUNNER)
-          const current = {
-            book_id: health.book_id ?? auto.book_id ?? null,
-            title: health.title ?? auto.title ?? null,
-            state: health.state ?? auto.phase ?? null,
-            checkpoint_count: health.checkpoint_count ?? null,
-            total_chunks: health.total_chunks ?? null,
-            eta_human: health.eta_human ?? null,
-            process_alive: health.process_alive ?? null,
-            stalled: health.stalled ?? null,
-            last_checkpoint_age_seconds: health.last_checkpoint_age_seconds ?? null,
-            supervisor_phase: auto.phase ?? null,
-            supervisor_message: auto.message ?? null,
-          }
-          const logPath = currentLogPath(root)
-          const payload = {
-            current,
-            supervisor: auto,
-            health,
-            control,
-            next: nextLine(root),
-            log_path: logPath,
-            log_tail: logPath ? tailLines(root, logPath, 12) : [],
-            legacy: { agent, runner },
-          }
+          "Return the canonical read-only queue status from `queue status --json`: running, book, job, progress, next pending, blockers, heartbeat, stale and DB. Optional `db` is a diagnostic override; the default is the live queue DB.",
+        input: {
+          type: "object",
+          properties: {
+            db: {
+              type: "string",
+              description: "Optional queue DB path for a diagnostic run.",
+            },
+          },
+          additionalProperties: false,
+        },
+        execute: async (args) => {
+          const requested =
+            args && typeof args.db === "string" && args.db.trim()
+              ? args.db.trim()
+              : QUEUE_DB
+          const snapshot = readStatus(root, requested)
           return {
-            content: [{ type: "text", text: JSON.stringify(payload, null, 2) }],
+            content: [
+              { type: "text", text: JSON.stringify(snapshot, null, 2) },
+            ],
           }
         },
       })
