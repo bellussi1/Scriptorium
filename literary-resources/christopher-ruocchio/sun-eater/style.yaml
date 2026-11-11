@@ -8,6 +8,12 @@ rules:
     instruction: Keep the first-person retrospective frame of a narrator writing history after the fact; let him address the reader, dramatize his own memory, and mythologize himself while also undercutting the myth.
   - dimension: register
     instruction: Sustain an elevated literary register with classical, religious, and military diction; let irony and self-awareness prevent the grandeur from becoming solemn, and avoid modern colloquialisms in narration.
+  - dimension: verb_tense
+    instruction: Preserve the retrospective past frame. Keep the English simple past and past perfect as Portuguese pretérito perfeito and pretérito mais-que-perfeito; use the present only for direct address, aphorism, or a scene explicitly in the present, and do not let the narration drift into an unmarked present. Keep sequence-of-tense relations when a past event is seen from a later past.
+  - dimension: grammatical_gender
+    instruction: Respect the gender recorded in the glossary and the natural gender of every character. Make articles, adjectives, participles and pronouns agree, never default a female character or a gendered term to masculine, and keep the chosen gender consistent across the book. When a noun's gender is not in the glossary, choose the Portuguese noun's natural gender and stay with it.
+  - dimension: prose_and_idiom
+    instruction: Write Portuguese prose rather than English calques. Prefer Portuguese word order, verb collocations and connective logic; read each paragraph as a unit, keep the narrator's ironic self-mythology, and do not smooth fragments, rhetorical periods or deliberate repetition into neutral, generic prose.
   - dimension: sentence_rhythm
     instruction: Vary by scene, using long accumulative periods for court ritual and exposition and short fragments or one-line paragraphs for disorientation and combat, and for moments of revelation; do not even out the extremes.
   - dimension: dialogue

@@ -374,11 +374,14 @@ def _text_metrics(source_text: str, target_text: str) -> Dict[str, Any]:
 def _cloud_prompt(samples: List[Dict[str, Any]]) -> str:
     lines = [
         "You are auditing a literary translation from English into Brazilian Portuguese.",
-        "For each pair, judge fidelity, naturalness, terminology and register on a 1-5 scale.",
+        "For each pair, judge fidelity, naturalness, terminology, register and prose on a 1-5 scale.",
+        "Check the verb tense against the source's narrative frame. Count unjustified tense shifts as tense_errors; the retrospective past frame must stay past.",
+        "Check grammatical gender agreement for characters, nouns and glossary terms. Count errors as gender_errors; a female character or a feminine noun must not default to masculine.",
+        "Flag prose that reads like an English calque or loses the narrator's ironic, elevated register, even when the meaning is correct.",
         "If the target does not correspond to the source paragraph, set alignment_suspect to true and do not score it.",
         "Count meaning errors, omissions and additions. Flag pt-PT forms (tu, contacto, de facto, demónio, a dançar) and English leakage.",
         "Return ONLY a JSON object with this shape:",
-        '{"items":[{"id":"...","alignment_suspect":false,"fidelity":1,"naturalness":1,"terminology":1,"register":1,"meaning_errors":0,"notes":"short Portuguese note"}],"summary":"short Portuguese summary"}',
+        '{"items":[{"id":"...","alignment_suspect":false,"fidelity":1,"naturalness":1,"terminology":1,"register":1,"prose":1,"meaning_errors":0,"tense_errors":0,"gender_errors":0,"notes":"short Portuguese note"}],"summary":"short Portuguese summary"}',
         "Do not use markdown fences. Do not add commentary outside the JSON.",
         "",
     ]
@@ -412,7 +415,7 @@ def _cloud_audit(
 
     payload = {
         "model": model,
-        "max_tokens": 1600,
+        "max_tokens": 2600,
         "thinking": {"type": "disabled"},
         "system": "You are a meticulous bilingual literary editor. Judge only the supplied source and target.",
         "messages": [{"role": "user", "content": _cloud_prompt(samples)}],
@@ -483,11 +486,16 @@ def _cloud_audit(
         return round(sum(values) / len(values), 3) if values else 0.0
 
     meaning_errors = sum(int(item.get("meaning_errors") or 0) for item in scored)
+    tense_errors = sum(int(item.get("tense_errors") or 0) for item in scored)
+    gender_errors = sum(int(item.get("gender_errors") or 0) for item in scored)
     result = {
         "ok": True,
         "passed": average("fidelity") >= 3.5
         and average("naturalness") >= 3.5
+        and average("prose") >= 3.5
         and meaning_errors <= 1
+        and tense_errors <= 1
+        and gender_errors <= 1
         and len(scored) >= 3,
         "model": model,
         "input_tokens": input_tokens,
@@ -498,8 +506,11 @@ def _cloud_audit(
             "naturalness": average("naturalness"),
             "terminology": average("terminology"),
             "register": average("register"),
+            "prose": average("prose"),
         },
         "meaning_errors": meaning_errors,
+        "tense_errors": tense_errors,
+        "gender_errors": gender_errors,
         "scored_samples": len(scored),
         "items": items,
         "summary": parsed.get("summary", ""),
@@ -543,6 +554,7 @@ def main() -> int:
     parser.add_argument("--db", type=Path, default=ROOT / "data" / "literary_queue.db")
     parser.add_argument("--outputs", type=Path, default=ROOT / "translated_files")
     parser.add_argument("--max-cloud-usd", type=float, default=0.05)
+    parser.add_argument("--samples", type=int, default=8)
     parser.add_argument("--no-cloud", action="store_true")
     parser.add_argument("--out", type=Path)
     args = parser.parse_args()
@@ -564,7 +576,7 @@ def main() -> int:
 
     source_text, source_files = _epub_text(source)
     target_text, target_files = _epub_text(target)
-    samples = _sample_pairs(source_files, target_files)
+    samples = _sample_pairs(source_files, target_files, limit=max(3, args.samples))
     glossary_path = str((report.get("assets") or {}).get("glossary_host") or "").strip()
     terms = _term_audit(
         book,
@@ -672,6 +684,7 @@ def main() -> int:
         f"- Repetition: {metrics.get('repetition_ratio')}",
         f"- Length ratio: {metrics.get('length_ratio')}",
         f"- Cloud samples: {cloud.get('scored_samples')} scored; averages {cloud.get('averages')}; meaning errors {cloud.get('meaning_errors')}",
+        f"- Cloud prose: {(cloud.get('averages') or {}).get('prose')}; tense errors {cloud.get('tense_errors')}; gender errors {cloud.get('gender_errors')}",
         "",
         "## Reasons",
         "",

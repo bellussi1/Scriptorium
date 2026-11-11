@@ -100,6 +100,20 @@ before acting on anything below.
   the bind mount with WAL; moving it to the state volume is a gate item.
   The UI tab now lists the 11 glossaries; the first intra-run audit also uses
   the runtime glossary and caught the single `Chantry`/`Chantria` issue.
+- Quality gates: `literary-resources/.../sun-eater/style.yaml` now has explicit
+  `verb_tense`, `grammatical_gender` and `prose_and_idiom` dimensions. The
+  source-aware refine pass is enabled by default (`refine=True` in
+  `run_queue_book`; `--refine-limit 0` means every flagged segment); the
+  `Refinement enabled: False` line in `translate.py` is the prompt-level
+  refinement, not the queue's `refine-epub` pass. The current translation
+  prompt compiled before this style edit, but the end-of-book refine pass will
+  read the new dimensions. The final cloud audit now samples 8 passages and
+  gates `prose >= 3.5`, `tense_errors <= 1` and `gender_errors <= 1` in
+  addition to fidelity, naturalness, meaning and pt-PT. The final EPUB gate
+  follows the `epub-quality` checklist: EPUBCheck 0/0/0, package version and
+  metadata dialect, unique-identifier/NCX uid, TOC labels from the source,
+  reader repair for Sun Eater, and a KOReader/Calibre open. The Fool's Errand
+  case remains the reference for the Realm redo.
 - Still pending: the `literary_queue.db` single-writer/intent refactor (the
   app still writes on approve/retry/add/move/remove; the queue DB stays on the
   bind mount), watchdog auto-restart, and the destructive kill/restart tests.
