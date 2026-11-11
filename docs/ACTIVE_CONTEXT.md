@@ -396,6 +396,9 @@ Expert report: `docs/project/reviews/sun-eater-model-selection-2026-11-10.md`.
   the variable; until then the `dalibre` tools are unavailable.
 - P2 not added: read-only SQLite MCP. Revisit only if the plugin status tool is
   not enough or another agent needs direct DB access.
+- `docs/prompts/README.md` holds the 2026-11-11 hardening prompt library (fork
+  identity, status, gate coverage, 24/7, concurrency, generalisation, model
+  ceiling). Proposals only; none of it is implemented or verified.
 
 ## Decision
 
