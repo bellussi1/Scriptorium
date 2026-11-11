@@ -36,7 +36,7 @@ one state-read inconsistency, the translating book reported not alive.
 
 ## Earlier runs
 
-- `20260111T200322Z` (run 2026-11-11T20:03:22Z, reported by the earlier OpenCode
+- `20261111T200322Z` (run 2026-11-11T20:03:22Z, reported by the earlier OpenCode
   session): 100 operations, 73 of them 500, 25 writer disk I/O errors, 0 lock errors.
 - `20261111T200018Z`: 5 operations only (smoke test), 0 failures.
 

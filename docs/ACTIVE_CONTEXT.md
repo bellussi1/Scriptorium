@@ -7,6 +7,64 @@ real repository, not a plan.
 Status: current as of 2026-11-11. Revalidate with `git status` and `git log`
 before acting on anything below.
 
+## Handoff (2026-11-11, afternoon) — read this first
+
+Entries below this section are historical. Where they conflict, this section wins.
+
+- **Kingdoms of Death** (book 11, job 24, translation `cli_bb4e0e4f`) is
+  translating on Index-Translate 9B through `queue run --book-id 11
+  --parallel 1`. It started 17:23 local, 862 chunks, and stops at
+  `needs_review`; nothing is auto-approved. While it runs, do not change
+  `literary-resources/*.yaml` or the literary modules it loads: the final
+  audit compares the glossary with a snapshot taken at book start.
+- **Merged** `glossary/terminology-freeze` into `main` (`2c96a1d`). Imperium is
+  `policy: keep`; datasphere, animalcule and knight-tribune are added. The
+  freeze applies to books compiled after the merge, so Kingdoms uses
+  "Imperium" while Howling Dark and Demon in White keep "Império".
+- **App container** rebuilt and restarted (`translatebook-literary-dev`,
+  healthy). The translation runs inside it, so rebuild before a new book.
+- **Howling Dark** (book 10, job 21): audit PASS
+  (`data/audits/review-20261111-howling-dark/audit.md`). Approved from the
+  Queue UI at 15:52 UTC.
+- **Demon in White** (book 8, job 23): approved from the Queue UI at 15:52 UTC
+  **without a passing audit**. Post-pass applied with
+  `src/literary/chapter_titles.py` and the map in
+  `literary-resources/christopher-ruocchio/sun-eater/chapter-titles/`:
+  87 chapter titles localised (`<title>`, TOC and NCX), Lexicon headword
+  `Chantry` -> `Chantria`, series metadata written (Calibre reads
+  "The Sun Eater #3"), EPUBCheck 0/0/0. Backup:
+  `translated_files/Demon in White (pt-BR).refined.pre-review.epub`.
+  Re-audit is still FAIL for two reasons: (1) glossary drift on `Imperium`
+  (snapshot "Império", current "Imperium", the intended freeze); (2) chapter 22
+  coverage 0.7647, a matcher false positive on inflected forms ("Legiões").
+  Metrics pass: cloud prose 3.857, fidelity 4.286, naturalness 3.571, meaning
+  1 confirmed (gate allows 1), tense 0, gender 0.
+- **Prompts**: 5.3 done (`docs/project/reviews/concurrency-baseline-2026-11-11.md`:
+  24% 5xx on the latest run, 73% on the earlier one, disk I/O and index
+  corruption on the bind mount, 30 s stall under a host write hold). 5.2 never
+  got an answer; write the design, then implement 5.4 on a branch and merge
+  only after the Kingdoms run ends. Prompts 5.4 to 7.3 are still open.
+- **Lonesome Dove** is not in the queue yet. Source: Calibre id 311,
+  `Lonesome Dove (311)/Lonesome Dove - Larry McMurtry.epub`, language `eng`.
+  Resources exist in `literary-resources/larry-mcmurtry/lonesome-dove/`.
+  Calibre id 405 (`Pombo Solitário`) is probably the owner's unreviewed PT
+  translation; it is not a reference. Queue order: Kingdoms (19), Ashes of
+  Man (18), Disquiet Gods (17), Shadows Upon Time (16), **Lonesome Dove (15)**,
+  The Mad Ship (13), then the rest of Realm.
+- **Owner decisions pending**: (1) accept the `Imperium` drift for Demon, or
+  re-translate the term; (2) treat the chapter 22 coverage as a matcher bug and
+  fix it after Kingdoms is audited; (3) label the meaning-gate sample
+  (`data/audits/adjudicator-calibration/sample.jsonl`); (4) confirm the
+  "Scriptorium" name; (5) decide whether Imperium/Império may mix across the
+  series; (6) upstream issue #333 is still open.
+- **Known defects, still open**: a resumed run writes a `(1)` duplicate
+  (`get_unique_output_path`); a job stays `running` after a complete resume;
+  the watchdog is monitor-only; the single writer is not implemented.
+- **Tests**: `venv\Scripts\python.exe -m pytest -q tests/unit tests/literary`
+  gave 2,411 passed, exit 0, on the merged tree (requirements-dev installed in
+  the venv). Use the venv interpreter, not the system Python.
+- Review of the OpenCode session: `docs/project/reviews/opencode-session-review-2026-11-11.md`.
+
 ## Repository
 
 - Branch `main`; the local benchmark report and adapters are committed through
