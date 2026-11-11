@@ -29,23 +29,36 @@ before acting on anything below.
   gone. The old partial EPUB is archived at
   `translated_files/archive/howling-dark-partial-2026-11-11/`; the old upload
   is backed up. Queue job 19 was cleared.
-- **Howling Dark job 20 is stopped after a second bind-mount failure.** At
-  03:15 UTC the app logged `Error updating job progress: disk I/O error`; the
-  supervisor then saw `attempt to write a readonly database` and marked the
-  book failed. The translate process kept running orphaned and its in-memory
-  progress reached 83/1074, but only **11** `checkpoint_chunks` rows persisted.
-  The process was paused at 03:26 UTC so the drift would stop.
-- State was reconciled to the persisted checkpoint: upstream `interrupted`,
-  11/1074 chunks; queue job 20 `failed`, 11/1074. Backups with integrity OK:
-  `data/backups/jobs-20261111T033341Z.db` and
-  `data/backups/literary_queue-20261111T033341Z.db`.
-- **Do not restart Howling Dark on the Windows bind mount.** The DELETE journal
-  fixed WAL corruption but not the intermittent read-only/I/O errors. The next
-  step is to move the live `jobs.db` to a Docker named volume and give the host
-  a read-only snapshot/mirror; then restart the book fresh, because the 11-row
-  checkpoint is not a trustworthy resume point.
-- The auto supervisor (pid 9528) stopped; no translation is running. The host
-  queue agent is dead. One pass, refinement disabled.
+- **The live jobs DB is now on a Docker named volume.** `docker-compose.dev.yml`
+  sets `JOBS_DB_PATH=/app/state/jobs.db` (volume `traducaollm_jobs_state`) and
+  `JOBS_MIRROR_PATH=/app/data/jobs.mirror.db`. The old bind-mount DB was moved
+  to `data/backups/jobs-old-bind-mount-20261111.db`; the host no longer opens
+  `data/jobs.db` for anything. The app writes the live DB; the host reads the
+  mirror, refreshed every 30 s by `src/persistence/mirror.py` (SQLite backup API,
+  atomic replace, quick_check, sidecar `jobs.mirror.json`).
+- Job 20 (`cli_bc71db89`) is failed/archived at 11/1074. The fresh run is
+  **job 21, `cli_c00e8ea2`**, queue job 21, book 10 `translating`; it started at
+  04:04 UTC on the volume and was at 5/1074 at 04:06. Supervisor PID 4764 is
+  running. One pass, refinement disabled.
+- Checkpoint writes now go through `Database.save_checkpoint_atomic`: the chunk
+  row and the progress JSON are one `BEGIN IMMEDIATE` transaction, and the
+  completed/failed counts are recomputed from `checkpoint_chunks`.
+  `CheckpointManager.load_checkpoint` calls `reconcile_job` and resumes from the
+  first non-completed chunk, never from a drifting counter. `xhtml_states` are
+  written atomically.
+- Host resume asks the live DB through
+  `python -m src.literary.cli queue checkpoint-status --id ... --reconcile`;
+  the mirror is only a fallback. `JOBS_DB_PATH` is the default for
+  `CheckpointManager`, so the CLI and the app point at the volume.
+- Tests: `pytest -q tests/unit tests/literary` gives 2344 passed and one
+  unrelated environment-dependent failure
+  (`test_path_validator.test_reject_path_separator_backslash`, a Linux
+  backslash path).
+- Still pending from the reliability plan: watchdog/health JSON and the API/UI
+  fields (`checkpoint_count`, `last_checkpoint_at`, `stalled`, `db_integrity`),
+  which need the next app restart; a single writer for `literary_queue.db`
+  (still host + app); snapshots/integrity automation; and the quality layer
+  (glossary hash, intra-run audit, final gate additions).
 - Main app on `:5000`, preview on `:5001`.
 - The Translate tab now has a full-width `translate-hero` at the top: large
   percentage, 22px progress bar (18px on mobile), chunks/ETA/rate/start stats,
@@ -65,12 +78,16 @@ before acting on anything below.
   `translated_files/archive/howling-dark-hy-mt2-2026-11-10/`.
 - Howling Dark job 20 (`cli_bc71db89`) is failed/stopped at **11/1074**
   persisted chunks after the 03:15 bind-mount write failures. Its partial
-  uploads (`data/uploads/cli_bc71db89`, 12 files through chapter 4) are still on
-  disk but are not a trustworthy resume point; archive them before the fresh
-  run. The interrupted partial EPUB from job 19 is archived at
-  `translated_files/archive/howling-dark-partial-2026-11-11/`; the old upload
-  `data/uploads/cli_c6f4be29` is backed up as `.bak-2026-11-11`. Job 19 was
-  cleared so no stale checkpoint can be mixed into the new run.
+  uploads (`data/uploads/cli_bc71db89`, 12 files through chapter 4) and the old
+  fixed/fixed-v2 EPUBs are archived at
+  `translated_files/archive/howling-dark-partial-2026-11-11-job20/`; they are
+  not a trustworthy resume point. The interrupted partial EPUB from job 19 is
+  archived at `translated_files/archive/howling-dark-partial-2026-11-11/`; the
+  old upload `data/uploads/cli_c6f4be29` is backed up as `.bak-2026-11-11`.
+  Job 19 was cleared so no stale checkpoint can be mixed into the new run.
+- The fresh Howling Dark run is job 21 (`cli_c00e8ea2`), started at 04:04 UTC
+  on the named volume. The queue job 21 carries that translation id; the host
+  mirror is `data/jobs.mirror.db`.
 - The Demon in White, Ashes of Man and Disquiet Gods partials were discarded;
   their checkpoint uploads were removed. Kingdoms of Death and Shadows Upon
   Time are pending on Index. The old Gemini partial is gone; no model mixing.
