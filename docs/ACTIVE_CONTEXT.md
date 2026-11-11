@@ -4,7 +4,7 @@ Handoff between sessions. Read this first; update it before you stop. This file
 is the shared state for both Claude Code and OpenCode, so it must describe the
 real repository, not a plan.
 
-Status: current as of 2026-11-10. Revalidate with `git status` and `git log`
+Status: current as of 2026-11-11. Revalidate with `git status` and `git log`
 before acting on anything below.
 
 ## Repository
@@ -29,24 +29,45 @@ before acting on anything below.
   gone. The old partial EPUB is archived at
   `translated_files/archive/howling-dark-partial-2026-11-11/`; the old upload
   is backed up. Queue job 19 was cleared.
-- **Howling Dark is now a fresh run**: job 20, `cli_bc71db89`, **3/1074
-  chunks** at 02:36 UTC, no malformed errors. The auto supervisor (pid 9528)
-  is running the queue directly; the host queue agent is dead. One pass,
-  refinement disabled.
+- **Howling Dark job 20 is stopped after a second bind-mount failure.** At
+  03:15 UTC the app logged `Error updating job progress: disk I/O error`; the
+  supervisor then saw `attempt to write a readonly database` and marked the
+  book failed. The translate process kept running orphaned and its in-memory
+  progress reached 83/1074, but only **11** `checkpoint_chunks` rows persisted.
+  The process was paused at 03:26 UTC so the drift would stop.
+- State was reconciled to the persisted checkpoint: upstream `interrupted`,
+  11/1074 chunks; queue job 20 `failed`, 11/1074. Backups with integrity OK:
+  `data/backups/jobs-20261111T033341Z.db` and
+  `data/backups/literary_queue-20261111T033341Z.db`.
+- **Do not restart Howling Dark on the Windows bind mount.** The DELETE journal
+  fixed WAL corruption but not the intermittent read-only/I/O errors. The next
+  step is to move the live `jobs.db` to a Docker named volume and give the host
+  a read-only snapshot/mirror; then restart the book fresh, because the 11-row
+  checkpoint is not a trustworthy resume point.
+- The auto supervisor (pid 9528) stopped; no translation is running. The host
+  queue agent is dead. One pass, refinement disabled.
 - Main app on `:5000`, preview on `:5001`.
-- The Translate tab now mirrors the active queue book: title, progress, ETA,
-  last log line and a 30-line activity log. The panel is created dynamically so
-  it works with the cached template and does not stop the translation. The
-  quality/log drawer was moved to the document body so it opens from either
-  tab. The static template also carries the panel for the next restart.
+- The Translate tab now has a full-width `translate-hero` at the top: large
+  percentage, 22px progress bar (18px on mobile), chunks/ETA/rate/start stats,
+  last meaningful log line and pause/log/queue actions. The compact `queueNow`
+  remains on the Queue tab. The hero moves itself to the top and re-renders
+  even when the template is cached.
+- Tab choice persists across F5 via `localStorage` plus the URL hash. The theme
+  is applied by an inline head script before the CSS, so dark mode does not
+  flash light; that inline script takes effect on the next Flask restart, while
+  `ThemeManager` already removes the stale `light` class and sets
+  `color-scheme`.
 
 ## Translation state
 
 - **Sun Eater books 2-7 are now `ollama` / Index-Translate 9B**, one book at a
   time. Howling Dark is first. Its old Hy-MT2 output is archived at
   `translated_files/archive/howling-dark-hy-mt2-2026-11-10/`.
-- Howling Dark is now job 20 (`cli_bc71db89`), a fresh run after the jobs.db
-  corruption. The interrupted partial EPUB is archived at
+- Howling Dark job 20 (`cli_bc71db89`) is failed/stopped at **11/1074**
+  persisted chunks after the 03:15 bind-mount write failures. Its partial
+  uploads (`data/uploads/cli_bc71db89`, 12 files through chapter 4) are still on
+  disk but are not a trustworthy resume point; archive them before the fresh
+  run. The interrupted partial EPUB from job 19 is archived at
   `translated_files/archive/howling-dark-partial-2026-11-11/`; the old upload
   `data/uploads/cli_c6f4be29` is backed up as `.bak-2026-11-11`. Job 19 was
   cleared so no stale checkpoint can be mixed into the new run.
