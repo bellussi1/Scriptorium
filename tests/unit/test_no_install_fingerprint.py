@@ -58,7 +58,7 @@ HEX_TOKEN = re.compile(r"(?<![0-9a-fA-F])[0-9a-fA-F]{12,}(?![0-9a-fA-F])")
 
 # Exactly `GENERATOR_NAME`, nothing appended. Spelled out as a literal rather
 # than read from src.config so that widening the constant itself is caught.
-GENERATOR_NAME_ONLY = re.compile(r"^TranslateBook with LLM \(TBL\)$")
+GENERATOR_NAME_ONLY = re.compile(r"^Scriptorium$")
 
 FORBIDDEN_HEADERS = {"x-session-token", "x-client-agent", "x-request-id"}
 

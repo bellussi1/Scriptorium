@@ -465,8 +465,9 @@ SAVE_RAW_LLM_RESPONSES = os.getenv('SAVE_RAW_LLM_RESPONSES', 'false').lower() ==
 # Please consider keeping this enabled to support the project and help others discover this free tool!
 # The attribution is non-intrusive and placed at the end of files. Thank you for your support!
 ATTRIBUTION_ENABLED = os.getenv('ATTRIBUTION_ENABLED', os.getenv('SIGNATURE_ENABLED', 'true')).lower() == 'true'
-GENERATOR_NAME = "TranslateBook with LLM (TBL)"
-GENERATOR_SOURCE = "https://github.com/hydropix/TranslateBookWithLLM"
+GENERATOR_NAME = "Scriptorium"
+# Fork source. The upstream credit remains in README.md.
+GENERATOR_SOURCE = "https://github.com/bellussi1/TranslateBooksWithLLMs"
 
 # When enabled, translated EPUBs get a short attribution page appended to the end
 # of the spine, in addition to the OPF metadata. Requires ATTRIBUTION_ENABLED:

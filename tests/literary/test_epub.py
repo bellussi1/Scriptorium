@@ -69,7 +69,7 @@ def test_update_opf_metadata_standardizes_series_tags_and_translator(tmp_path: P
         series_index=2,
         subjects=["Science Fiction", "Space Opera", "Brazilian Portuguese"],
         description="Descri??o editorial.",
-        translator="TranslateBook with LLM (TBL)",
+        translator="Scriptorium",
         title_sort="Titulo Padronizado",
         author_sort="Ruocchio, Christopher",
     )
@@ -83,7 +83,7 @@ def test_update_opf_metadata_standardizes_series_tags_and_translator(tmp_path: P
     assert "Science Fiction" in opf
     assert "Space Opera" in opf
     assert "Brazilian Portuguese" in opf
-    assert "TranslateBook with LLM (TBL)" in opf
+    assert "Scriptorium" in opf
     assert "marc:relators" in opf
     assert 'name="calibre:title_sort"' in opf
     assert 'name="calibre:author_sort"' in opf
@@ -107,7 +107,7 @@ def test_update_opf_metadata_keeps_epub2_packages_epub2(tmp_path: Path):
         language="pt-BR",
         series="The Sun Eater",
         series_index=2,
-        translator="TranslateBook with LLM (TBL)",
+        translator="Scriptorium",
         title_sort="Titulo",
         author_sort="Ruocchio, Christopher",
     )
@@ -134,7 +134,7 @@ def test_update_opf_metadata_uses_content_for_calibre_name_metas(tmp_path: Path)
         language="pt-BR",
         series="The Sun Eater",
         series_index=2,
-        translator="TranslateBook with LLM (TBL)",
+        translator="Scriptorium",
         title_sort="Titulo",
         author_sort="Ruocchio, Christopher",
     )

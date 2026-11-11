@@ -167,13 +167,13 @@ _JINJA_RE = re.compile(r"\{\{.*?\}\}|\{%.*?%\}", re.DOTALL)
 # "<text>", exact literal value as it appears stripped in the template).
 _HARDCODE_ALLOWLIST: set[tuple[str, str, str]] = {
     # --- brand / product identity ----------------------------------------
-    ("img", "alt", "TBL Logo"),
-    ("h2", "<text>", "TBL"),
+    ("img", "alt", "Scriptorium"),
+    ("h2", "<text>", "Scriptorium"),
     # `v` prefix in front of the Jinja-rendered app version (e.g. "v1.2.3").
     # Universal version-number convention, not user-translatable. Both
     # entries cover the visible content and the tooltip on #appVersion.
     ("span", "<text>", "v"),
-    ("span", "title", "TBL v"),
+    ("span", "title", "Scriptorium v"),
 
     # --- language autonyms in the fixed literary pair --------------------
     # The fork pins the translation pair to English -> Portuguese (Brazil);

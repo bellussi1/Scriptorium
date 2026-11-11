@@ -17,6 +17,7 @@ from typing import Any, Dict, List, Optional
 
 from .epub import read_epub, update_opf_metadata
 from .queue import QueueStore
+from ..config import GENERATOR_NAME
 
 
 def _safe(value: str) -> str:
@@ -142,7 +143,7 @@ def build_kindle_library(
             series_index=book.series_index if book.series else None,
             subjects=tags_for(book),
             description=_description(book.title),
-            translator="TranslateBook with LLM (TBL)",
+            translator=GENERATOR_NAME,
             title_sort=translated_title,
             author_sort=author_sort(author),
         )

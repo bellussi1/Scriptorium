@@ -80,7 +80,7 @@ def test_build_kindle_library_copies_and_standardizes(tmp_path: Path):
     assert "Science Fiction" not in opf
     assert "Brazilian Portuguese" in opf
     assert "Machine Translation" in opf
-    assert "TranslateBook with LLM (TBL)" in opf
+    assert "Scriptorium" in opf
     assert (root / "manifest.csv").exists()
     assert (root / "README.md").exists()
 

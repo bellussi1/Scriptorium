@@ -30,11 +30,11 @@ NAMESPACES = {
 
 def test_contributor_role_uses_epub3_refinement(tmp_path, monkeypatch):
     monkeypatch.setattr(translator, "ATTRIBUTION_ENABLED", True)
-    monkeypatch.setattr(translator, "GENERATOR_NAME", "TranslateBook with LLM (TBL)")
+    monkeypatch.setattr(translator, "GENERATOR_NAME", "Scriptorium")
     monkeypatch.setattr(
         translator,
         "GENERATOR_SOURCE",
-        "https://github.com/hydropix/TranslateBookWithLLM",
+        "https://github.com/bellussi1/TranslateBooksWithLLMs",
     )
 
     opf_path = tmp_path / "content.opf"
