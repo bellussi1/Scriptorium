@@ -588,7 +588,9 @@ def run_queue_book(
             "refined_output": str(refined_host),
         }
 
-    if output_host.exists():
+    # A resumable job can leave a partial output EPUB behind; the app's
+    # checkpoint writes into it. Only a fresh run must refuse to overwrite.
+    if output_host.exists() and not resume_id:
         raise FileExistsError(f"output already exists: {output_host}")
 
     RUN_DIR.mkdir(parents=True, exist_ok=True)

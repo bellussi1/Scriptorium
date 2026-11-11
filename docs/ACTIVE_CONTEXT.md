@@ -18,17 +18,22 @@ before acting on anything below.
 
 ## Runtime
 
-- Queue agent: **runner active**, but the last heartbeat and the translation log
-  are from **23:14 UTC**. At 00:52 UTC the job was still at **321/1074
-  chunks**, the GPU was at 95% and the model was 100% in VRAM. This is either a
-  long generation/retry or a stall; the new Translate-tab panel exposes it.
-- **Howling Dark** is translating with Index-Translate 9B, job 19,
-  `cli_c6f4be29`. If it does not advance, pause-now and resume from the saved
-  checkpoint; do not delete the partial.
-- One pass, refinement disabled (`--refine-limit 0`). This is the first Index
-  book at production chunk size; use the measured rate for the next books.
-- Main app on `:5000`, preview on `:5001`. The app container was restarted at
-  22:11 UTC to clear the `jobs.db` disk I/O error.
+- The previous run (job 19, `cli_c6f4be29`) died at 23:14 UTC. The app's
+  `data/jobs.db` was corrupted by SQLite WAL on the Windows bind mount: the
+  process reported `database disk image is malformed`, the progress JSON
+  claimed 1074/1074 while the real checkpoint was inconsistent, and the queue
+  status stayed stale. The old 321/1074 (30%) was not trustworthy.
+- Recovery: `data/jobs.db` was rebuilt with `VACUUM INTO`, WAL/SHM removed and
+  the journal switched to `DELETE` (`SQLITE_JOURNAL_MODE=DELETE` default in
+  `src/persistence/database.py`). Integrity is OK and the malformed errors are
+  gone. The old partial EPUB is archived at
+  `translated_files/archive/howling-dark-partial-2026-11-11/`; the old upload
+  is backed up. Queue job 19 was cleared.
+- **Howling Dark is now a fresh run**: job 20, `cli_bc71db89`, **3/1074
+  chunks** at 02:36 UTC, no malformed errors. The auto supervisor (pid 9528)
+  is running the queue directly; the host queue agent is dead. One pass,
+  refinement disabled.
+- Main app on `:5000`, preview on `:5001`.
 - The Translate tab now mirrors the active queue book: title, progress, ETA,
   last log line and a 30-line activity log. The panel is created dynamically so
   it works with the cached template and does not stop the translation. The
@@ -40,6 +45,11 @@ before acting on anything below.
 - **Sun Eater books 2-7 are now `ollama` / Index-Translate 9B**, one book at a
   time. Howling Dark is first. Its old Hy-MT2 output is archived at
   `translated_files/archive/howling-dark-hy-mt2-2026-11-10/`.
+- Howling Dark is now job 20 (`cli_bc71db89`), a fresh run after the jobs.db
+  corruption. The interrupted partial EPUB is archived at
+  `translated_files/archive/howling-dark-partial-2026-11-11/`; the old upload
+  `data/uploads/cli_c6f4be29` is backed up as `.bak-2026-11-11`. Job 19 was
+  cleared so no stale checkpoint can be mixed into the new run.
 - The Demon in White, Ashes of Man and Disquiet Gods partials were discarded;
   their checkpoint uploads were removed. Kingdoms of Death and Shadows Upon
   Time are pending on Index. The old Gemini partial is gone; no model mixing.

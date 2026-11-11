@@ -59,7 +59,15 @@ class Database:
                 timeout=30.0
             )
             conn.row_factory = sqlite3.Row
-            conn.execute("PRAGMA journal_mode=WAL")
+            # The jobs database lives on a Windows bind mount shared by the app
+            # container and the host queue tools. SQLite WAL uses shared memory
+            # files that are not reliable across that boundary and produced
+            # "disk I/O error" / "database disk image is malformed" failures.
+            # DELETE keeps the same durability without the shared-memory file.
+            journal_mode = os.getenv("SQLITE_JOURNAL_MODE", "DELETE").strip().upper()
+            if journal_mode not in {"DELETE", "TRUNCATE", "PERSIST", "MEMORY", "WAL", "OFF"}:
+                journal_mode = "DELETE"
+            conn.execute(f"PRAGMA journal_mode={journal_mode}")
             conn.execute("PRAGMA busy_timeout=30000")
             # SQLite scopes foreign_keys per connection, not per database, so it
             # must be enabled here (on every connection we hand out) rather than
