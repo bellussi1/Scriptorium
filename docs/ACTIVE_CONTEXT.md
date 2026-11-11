@@ -11,6 +11,15 @@ before acting on anything below.
 
 Entries below this section are historical. Where they conflict, this section wins.
 
+- **Fool's Errand** (book 4, calibre 334) PT-BR EPUB: five missing chapter
+  headings (V, X, XIV, XXI, XXVIII) inserted, three malformed title lines
+  capitalised, NCX relabelled to `Capítulo <ROMAN> <TÍTULO>` with the five
+  missing entries added (29 total). Pair gate passed, EPUBCheck 0/0/0. Backup:
+  `translated_files/Fool's Errand (pt-BR).refined.pre-chapters.epub`. Map:
+  `literary-resources/robin-hobb/tawny-man/chapter-titles/fools-errand.yaml`.
+  Open: body title "DUTIFUL" (chapter XXI) is still English; the
+  `--titles` CLI cannot run on this EPUB because its `<title>` elements carry
+  the book title, not `Chapter N: ...`.
 - **Kingdoms of Death** (book 11, job 24, translation `cli_bb4e0e4f`) is
   translating on Index-Translate 9B through `queue run --book-id 11
   --parallel 1`. It started 17:23 local, 862 chunks, and stops at
