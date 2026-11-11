@@ -17,9 +17,18 @@ Entries below this section are historical. Where they conflict, this section win
   least 4.5:1 and controls at least 3:1 on their surface. The duplicate `.queue-now-*`, status and
   progress rules in `literary-theme.css` and `ui-polish.css` were removed. English labels use Title
   Case with no em dashes. Verified against a mock harness that serves the branch's static files,
-  not the Docker app: the running container still serves the old static files until its image is
-  rebuilt, which must wait until the Kingdoms of Death run ends.
+  not the Docker app. The app container mounts `src` read-only, so the new static files are served
+  without a rebuild; checked in the browser at 127.0.0.1:5000 on 2026-11-11.
 
+- **Fool's Errand** (book 4, calibre 334) PT-BR EPUB: five missing chapter
+  headings (V, X, XIV, XXI, XXVIII) inserted, three malformed title lines
+  capitalised, NCX relabelled to `Capítulo <ROMAN> <TÍTULO>` with the five
+  missing entries added (29 total). Pair gate passed, EPUBCheck 0/0/0. Backup:
+  `translated_files/Fool's Errand (pt-BR).refined.pre-chapters.epub`. Map:
+  `literary-resources/robin-hobb/tawny-man/chapter-titles/fools-errand.yaml`.
+  Open: body title "DUTIFUL" (chapter XXI) is still English; the
+  `--titles` CLI cannot run on this EPUB because its `<title>` elements carry
+  the book title, not `Chapter N: ...`.
 - **Kingdoms of Death** (book 11, job 24, translation `cli_bb4e0e4f`) is
   translating on Index-Translate 9B through `queue run --book-id 11
   --parallel 1`. It started 17:23 local, 862 chunks, and stops at
