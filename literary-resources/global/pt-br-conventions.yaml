@@ -9,7 +9,12 @@ conventions:
   proper_nouns: >-
     Keep personal, place and invented names in the form established by the
     official Brazilian edition when one exists. The glossary is authoritative;
-    do not transliterate a name on the fly.
+    do not transliterate a name on the fly. Three tiers: keep opaque names and
+    in-world Latin or technical coinages; naturalize common nouns and titles
+    that have a Portuguese form; translate descriptive epithets whose meaning
+    carries the narrative. Never choose a form per occurrence: a new term is
+    frozen in the glossary before the book starts, and changing a frozen form
+    requires a series-wide pass, not a local edit.
   dialogue: >-
     Preserve the edition's dialogue punctuation. Brazilian literary prose often
     uses the travessão (—), but do not convert quotation marks mechanically if
