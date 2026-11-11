@@ -196,41 +196,63 @@ def target_present(expected: str, text: str) -> bool:
 
 _VOWEL_END_RE = re.compile(r"[aeiouáéíóúâêôãõà]$", re.IGNORECASE)
 _SINGLE_WORD_RE = re.compile(r"[^\W\d_]+")
+_ARTICLES = {"o", "a", "os", "as", "um", "uma", "uns", "umas"}
+
+
+def _plural_forms(term: str) -> set[str]:
+    """Regular plural of a single-word glossary target.
+
+    ``-ão`` nouns take ``-ões`` and ``-ãos``; ``-al`` takes ``-ais``; other
+    vowel endings take ``-s``; consonant endings take ``-es``.
+    """
+    lower = term.casefold()
+    if lower.endswith("ão"):
+        base = term[:-2]
+        return {base + "ões", base + "ãos"}
+    if lower.endswith("al"):
+        return {term[:-2] + "ais"}
+    if _VOWEL_END_RE.search(term):
+        return {term + "s"}
+    return {term + "es"}
 
 
 def _inflected_forms(term: str) -> set[str]:
-    """Regular plural and gender forms of a single-word glossary target.
-
-    ``-ão`` nouns take ``-ões`` and ``-ãos``; other vowel endings take ``-s``;
-    consonant endings take ``-es``; a final ``o``/``a`` also yields the other
-    gender, each with its plural.
-    """
-    if term.casefold().endswith("ão"):
-        base = term[:-2]
-        return {base + "ões", base + "ãos"}
-    forms = {term + ("s" if _VOWEL_END_RE.search(term) else "es")}
-    if term[-1].casefold() in {"o", "a"}:
+    """Plural forms, plus the other gender when the term ends in ``o``/``a``."""
+    forms = _plural_forms(term)
+    lower = term.casefold()
+    if lower[-1] in {"o", "a"} and not lower.endswith("ão"):
         stem = term[:-1]
         forms |= {stem + "o", stem + "a", stem + "os", stem + "as"}
     return forms
+
+
+def _article_head(expected: str) -> Optional[str]:
+    """Return ``Imortal`` for ``O Imortal``; None for any other target."""
+    parts = expected.split()
+    if len(parts) == 2 and parts[0].casefold() in _ARTICLES:
+        return parts[1]
+    return None
 
 
 def glossary_target_present(expected: str, text: str) -> bool:
     """Audit-side glossary check: ``target_present`` plus regular inflections.
 
     A single-word target also matches its plural and gender forms as whole
-    words, so ``Legião`` is found in ``Legiões``. Multi-word targets keep the
-    full-phrase rule. Translation-time guards keep ``target_present``; only the
-    audit's coverage measure uses this function.
+    words, so ``Legião`` is found in ``Legiões``. An article + noun target
+    (``O Imortal``) matches the plural of its noun without the article
+    (``dos Imortais``); the singular under another article is not accepted.
+    Other multi-word targets keep the full-phrase rule. Translation-time guards
+    keep ``target_present``; only the audit's coverage measure uses this.
     """
     expected = (expected or "").strip()
     if target_present(expected, text):
         return True
-    if len(expected) < 4 or not _SINGLE_WORD_RE.fullmatch(expected):
+    head = _article_head(expected)
+    word = head if head is not None else expected
+    if len(word) < 4 or not _SINGLE_WORD_RE.fullmatch(word):
         return False
-    alternatives = "|".join(
-        re.escape(form) for form in sorted(_inflected_forms(expected))
-    )
+    forms = _plural_forms(word) if head is not None else _inflected_forms(word)
+    alternatives = "|".join(re.escape(form) for form in sorted(forms))
     return re.search(rf"\b(?:{alternatives})\b", text or "", re.IGNORECASE) is not None
 
 
