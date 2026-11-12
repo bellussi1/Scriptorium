@@ -277,3 +277,18 @@ def test_nav_labels_follow_the_book_file_names():
     assert labels["01_Cover.xhtml"] == "Capa"
     assert labels["06_Contents.xhtml"] == "Sumário"
     assert labels["97_About_the_Author.xhtml"] == "Sobre o autor"
+
+
+def test_empty_paragraph_with_an_id_is_kept_as_an_anchor():
+    raw = '<body><p class="chapter" id="calibre_toc_2"/><p class="p4">Text.</p></body>'
+    repaired, _ = merge_split_paragraphs(raw)
+    assert 'id="calibre_toc_2"' in repaired
+    assert "Text." in repaired
+
+
+def test_empty_paragraphs_without_an_id_are_still_dropped():
+    raw = '<body><p class="x"/><p class="y"></p><p class="p4">Text.</p></body>'
+    repaired, _ = merge_split_paragraphs(raw)
+    assert 'class="x"' not in repaired
+    assert 'class="y"' not in repaired
+    assert "Text." in repaired

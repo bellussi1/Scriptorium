@@ -228,11 +228,15 @@ def merge_split_paragraphs(raw: str) -> Tuple[str, int]:
     """Join adjacent ``x04-Body-Text`` paragraphs split by a chunk boundary."""
     # The upstream writer sometimes leaves an empty self-closing paragraph at
     # a chunk seam.  It is not a real paragraph and confuses the matcher.
-    raw = re.sub(r"<p\b[^>]*/>\s*", "", raw or "", flags=re.IGNORECASE)
+    # An empty paragraph that carries an id is an anchor target (a contents link in
+    # Calibre books points at it), so it is kept.
+    raw = re.sub(r"<p\b(?![^>]*\sid\s*=)[^>]*/>\s*", "", raw or "", flags=re.IGNORECASE)
 
     def drop_empty(match: re.Match) -> str:
         inner = match.group("inner")
         if paragraph_text(inner):
+            return match.group(0)
+        if re.search(r"\sid\s*=", match.group("attrs") or ""):
             return match.group(0)
         if 'epub:type="pagebreak"' in inner or "<img" in inner.lower():
             return match.group(0)
