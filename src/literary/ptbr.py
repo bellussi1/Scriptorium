@@ -150,6 +150,47 @@ _RULES: List[_Rule] = [
         "Falta acento em 'há' (tempo decorrido).",
         "error",
     ),
+    # European Portuguese forms. A Brazilian edition uses the forms below. Rules
+    # with an empty replacement describe a change of verb person or tense: the
+    # model has to conjugate the whole clause, so no single-word suggestion is
+    # offered.
+    _rule(r"\bde facto\b", "de fato", "ptbr.pt_de_facto", "Português europeu: use 'de fato'.", "error"),
+    _rule(r"\bcontact(o|os)\b", r"contat\1", "ptbr.pt_contacto", "Português europeu: use 'contato'.", "error"),
+    _rule(r"\bdemónio(s?)\b", r"demônio\1", "ptbr.pt_demonio", "Português europeu: use 'demônio'.", "error"),
+    _rule(r"\bprémio(s?)\b", r"prêmio\1", "ptbr.pt_premio", "Português europeu: use 'prêmio'.", "error"),
+    _rule(r"\bconvosco\b", "com vocês", "ptbr.pt_convosco", "Português europeu: use 'com vocês'.", "error"),
+    _rule(r"\b(\w+)ámos\b", r"\1amos", "ptbr.pt_ammos", "Pretérito europeu: 'amos' sem acento.", "error"),
+    _rule(
+        r"\b(estou|estás|está|estamos|estão|estava|estavam) a (?=\w+r\b)",
+        "",
+        "ptbr.pt_estar_a",
+        "Português europeu 'estar a + infinitivo'. Use 'estar + gerúndio' (ex.: 'estamos construindo').",
+        "error",
+    ),
+    _rule(
+        r"\b(?!(?:este|deste|neste|oeste|leste|teste|peste|agreste|nordeste|sudeste)\b)\w+(?:aste|este|iste)\b",
+        "",
+        "ptbr.pt_tu_preterito",
+        "Segunda pessoa do português europeu. Troque por 'você' e conjugue o verbo na 3.ª pessoa do pretérito.",
+        "error",
+    ),
+    _rule(
+        r"\b\w+(?:irás|erás|arás)\b",
+        "",
+        "ptbr.pt_tu_futuro",
+        "Segunda pessoa do futuro. Troque por 'você' e use o futuro na 3.ª pessoa.",
+        "error",
+    ),
+    _rule(
+        r"\b(és|tens|queres|sabes|podes|vês|dizes|fazes|dás|vens)\b",
+        "",
+        "ptbr.pt_tu_presente",
+        "Segunda pessoa do presente do português europeu. Use 'você' e a 3.ª pessoa.",
+        "error",
+    ),
+    _rule(r"\btu\b", "você", "ptbr.pt_tu", "Português europeu: use 'você' e a 3.ª pessoa do verbo.", "error"),
+    _rule(r"\bteu(s?)\b", r"seu\1", "ptbr.pt_teu", "Possessivo de 'tu': use 'seu' com 'você'.", "error"),
+    _rule(r"\btua(s?)\b", r"sua\1", "ptbr.pt_tua", "Possessivo de 'tu': use 'sua' com 'você'.", "error"),
 ]
 
 _REPEATED_WORD = re.compile(r"\b([A-Za-zÀ-ÖØ-öø-ÿ]{3,})\s+\1\b", re.IGNORECASE | re.UNICODE)
@@ -180,7 +221,7 @@ def check_text(text: str) -> List[PtBrIssue]:
                     severity=rule.severity,
                     start=match.start(),
                     end=match.end(),
-                    suggestions=[suggestion],
+                    suggestions=[suggestion] if rule.replacement else [],
                 )
             )
 
