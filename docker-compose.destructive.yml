@@ -1,0 +1,66 @@
+# Dedicated app instance for the 24 h destructive window (prompt 4.4).
+#
+# Not started by any script. It never mounts the live data folder: the queue DB and the
+# outputs live in a scratch copy under data/tmp/destructive-window. Its port and container
+# name are different from the live app (127.0.0.1:5000, translatebook-literary-dev), so
+# restarting it does not touch the live queue. Run it only inside a window with the live
+# queue idle (see docs/project/DESTRUCTIVE_24H_RUNBOOK.md).
+services:
+  app-destructive:
+    build:
+      context: .
+      dockerfile: deployment/Dockerfile.dev
+    image: translatebook-literary:dev
+    container_name: translatebook-destructive
+    init: true
+    restart: "no"
+    ports:
+      - "127.0.0.1:5056:5000"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    env_file:
+      - .env
+    environment:
+      HOST: 0.0.0.0
+      PORT: 5000
+      DEBUG_MODE: "false"
+      OUTPUT_DIR: /app/data/tmp/destructive-window/outputs
+      OUTPUT_FILENAME_PATTERN: "{originalName} ({targetLang}).{ext}"
+      LLM_PROVIDER: ${LLM_PROVIDER:-ollama}
+      DEFAULT_MODEL: ${DEFAULT_MODEL:-translategemma:12b}
+      OLLAMA_API_ENDPOINT: ${DESTRUCTIVE_OLLAMA_ENDPOINT:-http://host.docker.internal:11434/api/generate}
+      OLLAMA_NUM_CTX: "8192"
+      DEFAULT_SOURCE_LANGUAGE: English
+      DEFAULT_TARGET_LANGUAGE: Portuguese (Brazil)
+      MAX_TOKENS_PER_CHUNK: "450"
+      PARALLEL_TRANSLATIONS: "1"
+      OLLAMA_PARALLEL_TRANSLATIONS: "2"
+      PYTHONPATH: /app:/app/src
+      JOBS_DB_PATH: /app/state/jobs.db
+      JOBS_MIRROR_PATH: /app/data/jobs.mirror.db
+      JOBS_MIRROR_INTERVAL: "30"
+    volumes:
+      - ./translate.py:/app/translate.py:ro
+      - ./src:/app/src:ro
+      - ./scripts:/app/scripts:ro
+      - ./literary-resources:/app/literary-resources:ro
+      - ./data/tmp/destructive-window/data:/app/data
+      - destructive_jobs_state:/app/state
+      - ./.env:/app/.env
+      - "${CALIBRE_LIBRARY_PATH:-C:/Users/Bellussi/Biblioteca do calibre}:/library:ro"
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+volumes:
+  destructive_jobs_state:

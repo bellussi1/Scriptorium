@@ -52,6 +52,70 @@ RECOVERY = ROOT / "tests" / "standalone" / "destructive_recovery.py"
 MOCK_PORT = 11555
 
 
+ACTIVE_STATES = {"preparing", "translating", "reviewing", "validating"}
+LIVE_DB = ROOT / "data" / "literary_queue.db"
+LIVE_RUNNER = ROOT / "data" / "literary_queue.runner.json"
+LIVE_CONTAINER = "translatebook-literary-dev"
+DEDICATED_COMPOSE = ROOT / "docker-compose.destructive.yml"
+EXIT_NOT_READY = 3
+
+
+def live_activity(active_books: List[str], runner_running: bool, container_top: str) -> List[str]:
+    """Reasons the live stack is busy. An empty list means it is idle."""
+    reasons = [f"book in an active state: {title}" for title in active_books]
+    if runner_running:
+        reasons.append("runner.json says a run is in progress")
+    if "translate.py" in container_top:
+        reasons.append(f"a translate.py process runs in {LIVE_CONTAINER}")
+    return reasons
+
+
+def _read_live_state() -> Dict[str, Any]:
+    active_books: List[str] = []
+    if LIVE_DB.exists():
+        conn = sqlite3.connect(f"file:{LIVE_DB.resolve().as_posix()}?mode=ro", uri=True)
+        try:
+            placeholders = ",".join("?" for _ in ACTIVE_STATES)
+            rows = conn.execute(
+                f"SELECT title FROM books WHERE status IN ({placeholders})", tuple(ACTIVE_STATES)
+            ).fetchall()
+            active_books = [str(row[0]) for row in rows]
+        finally:
+            conn.close()
+    runner_running = False
+    if LIVE_RUNNER.exists():
+        try:
+            runner_running = bool(json.loads(LIVE_RUNNER.read_text(encoding="utf-8")).get("running"))
+        except (OSError, ValueError):
+            runner_running = True  # unreadable means busy, never idle
+    container_top, container_error = "", False
+    try:
+        completed = subprocess.run(
+            ["docker", "top", LIVE_CONTAINER], capture_output=True, text=True, timeout=30
+        )
+        container_top = completed.stdout or ""
+        container_error = completed.returncode != 0
+    except (OSError, subprocess.SubprocessError):
+        container_error = True
+    return {
+        "active_books": active_books,
+        "runner_running": runner_running,
+        "container_top": container_top,
+        "container_error": container_error,
+    }
+
+
+def preflight(mode: str, compose: Optional[Path]) -> Dict[str, Any]:
+    """Read-only check. It never starts, stops or writes to the live stack."""
+    state = _read_live_state()
+    reasons = live_activity(state["active_books"], state["runner_running"], state["container_top"])
+    if state["container_error"]:
+        reasons.append(f"cannot inspect {LIVE_CONTAINER} (docker top failed)")
+    if mode == "window" and (compose is None or not compose.exists()):
+        reasons.append(f"dedicated compose file missing: {DEDICATED_COMPOSE.name}")
+    return {"mode": mode, "ready": not reasons, "reasons": reasons, "checked_at": _now()}
+
+
 def _now() -> str:
     return datetime.now(timezone.utc).isoformat(timespec="seconds")
 
@@ -436,9 +500,24 @@ def main() -> int:
     parser.add_argument("--app-restart", action="store_true")
     parser.add_argument("--confirm-window", action="store_true")
     parser.add_argument("--compose", default="")
+    parser.add_argument("--preflight", action="store_true", help="only report whether the live stack is idle")
     args = parser.parse_args()
+    compose = Path(args.compose) if args.compose else None
+    check = preflight(args.mode, compose)
+    print(json.dumps(check, ensure_ascii=False, indent=2))
+    if args.preflight:
+        return 0 if check["ready"] else EXIT_NOT_READY
+    if not check["ready"]:
+        print("not running: the live stack is busy or cannot be inspected", file=sys.stderr)
+        return EXIT_NOT_READY
     if args.mode == "window":
         return _run_window(args)
+    if args.app_restart:
+        print(
+            "--app-restart restarts the live container; it belongs to window mode on the dedicated instance",
+            file=sys.stderr,
+        )
+        return 2
 
     work = ROOT / "data" / "tmp" / f"destructive-24h-{_stamp()}"
     work.mkdir(parents=True, exist_ok=True)
