@@ -24,6 +24,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
 import shutil
 import sqlite3
 import subprocess
@@ -58,6 +59,7 @@ LIVE_RUNNER = ROOT / "data" / "literary_queue.runner.json"
 LIVE_CONTAINER = "translatebook-literary-dev"
 DEDICATED_COMPOSE = ROOT / "docker-compose.destructive.yml"
 EXIT_NOT_READY = 3
+CRITERIA_NAMES = ("no_state_without_checkpoint", "no_job_stuck_running", "no_duplicate_suffix")
 
 
 def live_activity(active_books: List[str], runner_running: bool, container_top: str) -> List[str]:
@@ -114,6 +116,59 @@ def preflight(mode: str, compose: Optional[Path]) -> Dict[str, Any]:
     if mode == "window" and (compose is None or not compose.exists()):
         reasons.append(f"dedicated compose file missing: {DEDICATED_COMPOSE.name}")
     return {"mode": mode, "ready": not reasons, "reasons": reasons, "checked_at": _now()}
+
+
+DUPLICATE_SUFFIX = re.compile(r" \(\d+\)\.epub$")
+
+
+def _checkpoint(raw_json: Any) -> Dict[str, Any]:
+    try:
+        return json.loads(raw_json) if raw_json else {}
+    except (TypeError, ValueError):
+        return {}
+
+
+def evaluate_criteria(db_path: Path, outputs_dir: Path) -> Dict[str, Any]:
+    """Acceptance criteria of prompt 4.4, read-only.
+
+    - no_state_without_checkpoint: every completed book has a checkpoint that reports all chunks done.
+    - no_job_stuck_running: no book in completed or needs_review has its latest job still active.
+    - no_duplicate_suffix: no output file ends with a " (n).epub" suffix.
+    """
+    result: Dict[str, Any] = {
+        "no_state_without_checkpoint": True,
+        "no_job_stuck_running": True,
+        "no_duplicate_suffix": True,
+        "details": [],
+    }
+    conn = sqlite3.connect(f"file:{db_path.resolve().as_posix()}?mode=ro", uri=True)
+    try:
+        rows = conn.execute(
+            """
+            SELECT j.book_id, j.id, j.state, j.checkpoint_json, b.status
+            FROM jobs j JOIN books b ON b.id = j.book_id
+            WHERE j.id IN (SELECT MAX(id) FROM jobs GROUP BY book_id)
+            """
+        ).fetchall()
+    finally:
+        conn.close()
+    for book_id, job_id, state, checkpoint_json, book_status in rows:
+        if book_status in ("completed", "needs_review") and state in ACTIVE_STATES:
+            result["no_job_stuck_running"] = False
+            result["details"].append(f"book {book_id} is {book_status} but job {job_id} is {state}")
+        if book_status == "completed":
+            checkpoint = _checkpoint(checkpoint_json)
+            done = checkpoint.get("upstream_completed_chunks")
+            total = checkpoint.get("upstream_total_chunks")
+            if done is None or total is None or int(done) < int(total):
+                result["no_state_without_checkpoint"] = False
+                result["details"].append(f"book {book_id} is completed without a full checkpoint")
+    if outputs_dir.exists():
+        duplicates = sorted(p.name for p in outputs_dir.glob("*.epub") if DUPLICATE_SUFFIX.search(p.name))
+        if duplicates:
+            result["no_duplicate_suffix"] = False
+            result["details"].append(f"duplicate outputs: {', '.join(duplicates)}")
+    return result
 
 
 def _now() -> str:
@@ -501,7 +556,13 @@ def main() -> int:
     parser.add_argument("--confirm-window", action="store_true")
     parser.add_argument("--compose", default="")
     parser.add_argument("--preflight", action="store_true", help="only report whether the live stack is idle")
+    parser.add_argument("--evaluate", type=Path, default=None, help="read-only: evaluate the criteria on a queue DB")
+    parser.add_argument("--outputs", type=Path, default=None, help="outputs folder for --evaluate")
     args = parser.parse_args()
+    if args.evaluate is not None:
+        verdict = evaluate_criteria(args.evaluate, args.outputs or args.evaluate.parent)
+        print(json.dumps(verdict, ensure_ascii=False, indent=2))
+        return 0 if all(verdict[name] for name in CRITERIA_NAMES) else 1
     compose = Path(args.compose) if args.compose else None
     check = preflight(args.mode, compose)
     print(json.dumps(check, ensure_ascii=False, indent=2))

@@ -64,3 +64,67 @@ def test_window_mode_needs_the_dedicated_compose(monkeypatch):
     result = destructive.preflight("window", None)
     assert result["ready"] is False
     assert any("dedicated compose" in reason for reason in result["reasons"])
+
+
+def _queue_with_one_book(tmp_path):
+    from src.literary.models import BookRecord
+    from src.literary.queue import QueueStore
+
+    db = tmp_path / "queue.db"
+    store = QueueStore(str(db))
+    try:
+        book_id = store.add_book(
+            BookRecord(calibre_id=1, title="Probe", author="Test", languages=["en"], epub_path=""),
+            priority=1,
+        )
+        job_id = store.create_job(book_id, total_chapters=6)
+    finally:
+        store.close()
+    return db, book_id, job_id
+
+
+def _set_state(db, book_id, job_id, book_status, job_state, checkpoint=None):
+    import sqlite3
+
+    conn = sqlite3.connect(db)
+    try:
+        conn.execute("UPDATE books SET status = ? WHERE id = ?", (book_status, book_id))
+        conn.execute(
+            "UPDATE jobs SET state = ?, checkpoint_json = ? WHERE id = ?", (job_state, checkpoint, job_id)
+        )
+        conn.commit()
+    finally:
+        conn.close()
+
+
+def test_completed_book_with_full_checkpoint_passes(tmp_path):
+    db, book_id, job_id = _queue_with_one_book(tmp_path)
+    _set_state(db, book_id, job_id, "completed", "completed",
+               '{"upstream_completed_chunks": 6, "upstream_total_chunks": 6}')
+    verdict = destructive.evaluate_criteria(db, tmp_path / "outputs")
+    assert verdict["no_state_without_checkpoint"] is True
+    assert verdict["no_job_stuck_running"] is True
+    assert verdict["no_duplicate_suffix"] is True
+
+
+def test_completed_book_without_checkpoint_fails(tmp_path):
+    db, book_id, job_id = _queue_with_one_book(tmp_path)
+    _set_state(db, book_id, job_id, "completed", "completed", "{}")
+    verdict = destructive.evaluate_criteria(db, tmp_path / "outputs")
+    assert verdict["no_state_without_checkpoint"] is False
+
+
+def test_review_book_with_an_active_job_is_stuck(tmp_path):
+    db, book_id, job_id = _queue_with_one_book(tmp_path)
+    _set_state(db, book_id, job_id, "needs_review", "translating", "{}")
+    verdict = destructive.evaluate_criteria(db, tmp_path / "outputs")
+    assert verdict["no_job_stuck_running"] is False
+
+
+def test_duplicate_suffix_is_reported(tmp_path):
+    db, book_id, job_id = _queue_with_one_book(tmp_path)
+    outputs = tmp_path / "outputs"
+    outputs.mkdir()
+    (outputs / "Probe (pt-BR) (1).epub").write_bytes(b"x")
+    verdict = destructive.evaluate_criteria(db, outputs)
+    assert verdict["no_duplicate_suffix"] is False
