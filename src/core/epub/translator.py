@@ -2126,6 +2126,10 @@ def _update_epub_metadata(
 ) -> None:
     """Update EPUB metadata with target language and translation signature."""
     opf_root = opf_tree.getroot()
+    # The package version decides the form of the translator role: EPUB 2 packages
+    # cannot carry meta refines/property (EPUBCheck RSC-005), so they get an opf:role
+    # attribute on the contributor instead.
+    is_epub3 = str(opf_root.get('version') or '').strip().startswith('3')
     metadata = opf_root.find('.//opf:metadata', namespaces=NAMESPACES)
     if metadata is not None:
         # Update language. dc:language must be an ISO 639-1 code; resolve it
@@ -2147,14 +2151,17 @@ def _update_epub_metadata(
             )
             contributor_el.text = GENERATOR_NAME
             contributor_el.set('id', 'tbl-translator')
-            role_el = etree.SubElement(
-                metadata,
-                '{http://www.idpf.org/2007/opf}meta'
-            )
-            role_el.set('refines', '#tbl-translator')
-            role_el.set('property', 'role')
-            role_el.set('scheme', 'marc:relators')
-            role_el.text = 'trl'
+            if is_epub3:
+                role_el = etree.SubElement(
+                    metadata,
+                    '{http://www.idpf.org/2007/opf}meta'
+                )
+                role_el.set('refines', '#tbl-translator')
+                role_el.set('property', 'role')
+                role_el.set('scheme', 'marc:relators')
+                role_el.text = 'trl'
+            else:
+                contributor_el.set('{http://www.idpf.org/2007/opf}role', 'trl')
 
             # Add or update description with signature
             desc_el = metadata.find('.//dc:description', namespaces=NAMESPACES)

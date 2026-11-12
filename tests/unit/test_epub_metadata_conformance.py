@@ -77,3 +77,33 @@ def test_attribution_disabled_does_not_add_contributor_or_role(tmp_path, monkeyp
     serialized = opf_path.read_text(encoding="utf-8")
     assert "ns0:role" not in serialized
     assert "opf:role" not in serialized
+
+
+EPUB2_OPF = OPF.replace('version="3.0"', 'version="2.0"')
+
+
+def test_epub2_package_gets_the_role_as_an_attribute(tmp_path, monkeypatch):
+    """EPUB 2 packages reject meta refines/property (EPUBCheck RSC-005). The role must be an
+    opf:role attribute on the contributor instead."""
+    monkeypatch.setattr(translator, "ATTRIBUTION_ENABLED", True)
+    monkeypatch.setattr(translator, "GENERATOR_NAME", "Scriptorium")
+    monkeypatch.setattr(
+        translator,
+        "GENERATOR_SOURCE",
+        "https://github.com/bellussi1/Scriptorium",
+    )
+
+    opf_path = tmp_path / "content.opf"
+    opf_path.write_text(EPUB2_OPF, encoding="utf-8")
+    tree = etree.parse(str(opf_path))
+
+    translator._update_epub_metadata(tree, str(opf_path), "Portuguese (Brazil)")
+
+    root = etree.parse(str(opf_path)).getroot()
+    assert root.find(".//opf:meta[@refines]", NAMESPACES) is None
+    assert root.find(".//opf:meta[@property]", NAMESPACES) is None
+    contributors = root.findall(".//dc:contributor", NAMESPACES)
+    assert contributors, "attribution contributor was not written"
+    contributor = contributors[-1]
+    assert contributor.get("id") == "tbl-translator"
+    assert contributor.get("{http://www.idpf.org/2007/opf}role") == "trl"
