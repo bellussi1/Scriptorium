@@ -609,3 +609,20 @@ stay. Dalibre: restart OpenCode so the MCP reconnects with `DALIBRE_TOKEN`.
   chapter 50 was edited.
 - All three refined books: title, TOC, NCX, body title and body number agree for
   every chapter (Demon 87, Howling 80, Kingdoms 51). Re-audit not run for Demon or Howling.
+
+## Single writer for the literary queue (2026-11-11)
+
+- The app no longer writes `literary_queue.db`. Queue changes are spool files next
+  to the database; the host agent (`scripts/queue_runner_agent.py`) ingests them and
+  applies them in order, one transaction each. Design:
+  `docs/project/reviews/single-writer-design-2026-11-11.md`.
+- Decision: queue changes need the host agent running (AGENTS.md already says so).
+  With no agent online the route answers 202 at once and the change waits in the
+  spool. Start the agent before using the Queue tab.
+- The agent keeps applying changes while a translation runs (every 0.5 s).
+- Queue UI: an action returns at once; pending changes show in the status line
+  ("Aguardando o runner: n alteração(ões)"), and the outcome is reported when the
+  runner applies or refuses them. No global busy lock while a change waits.
+- Stress (100 operations, host writer, `--skip-9p`), twice: 0 5xx, 0 lock errors,
+  0 timeouts, integrity ok, 0 inconsistencies.
+- Open: UI reads still cross the bind mount (design section 9).
