@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import json
 import sqlite3
+import time
 from pathlib import Path
 
 from flask import Flask
@@ -698,3 +699,13 @@ def test_intent_route_returns_404_for_unknown_tokens(tmp_path: Path, monkeypatch
 
     assert client.get("/api/literary/queue/intents/" + "a" * 32).status_code == 404
     assert client.get("/api/literary/queue/intents/not-a-token").status_code == 404
+
+
+def test_await_intent_does_not_hold_the_request_when_runner_is_offline(tmp_path: Path, monkeypatch):
+    from src.api.blueprints import literary_queue_routes
+
+    monkeypatch.setenv("LITERARY_INTENT_WAIT_S", "30")
+    started = time.monotonic()
+
+    assert literary_queue_routes._await_intent(tmp_path / "literary_queue.db", "a" * 32) is None
+    assert time.monotonic() - started < 5

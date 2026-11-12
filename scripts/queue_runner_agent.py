@@ -262,20 +262,26 @@ def _process_request(db: Path, request: dict, *, dry_run: bool) -> int:
     )
     print(f"run: started PID {process.pid}; log={log_path}", flush=True)
 
+    # Queue changes from the UI keep being applied while the translation runs;
+    # only the heartbeat waits for DEFAULT_INTERVAL.
+    last_heartbeat = 0.0
     while process.poll() is None:
-        _publish(
-            db,
-            running=True,
-            runner_pid=process.pid,
-            mode=mode,
-            book_id=pending.id,
-            title=pending.title,
-            log_path=str(log_path),
-            message="runner active",
-            last_request=request,
-            command=command,
-        )
-        time.sleep(DEFAULT_INTERVAL)
+        _apply_intents(db)
+        if time.monotonic() - last_heartbeat >= DEFAULT_INTERVAL:
+            _publish(
+                db,
+                running=True,
+                runner_pid=process.pid,
+                mode=mode,
+                book_id=pending.id,
+                title=pending.title,
+                log_path=str(log_path),
+                message="runner active",
+                last_request=request,
+                command=command,
+            )
+            last_heartbeat = time.monotonic()
+        time.sleep(INTENT_INTERVAL)
 
     exit_code = int(process.returncode or 0)
     finished_at = _now()

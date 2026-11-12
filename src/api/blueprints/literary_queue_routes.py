@@ -442,6 +442,9 @@ def _await_intent(db_path: Path, token: str) -> Optional[Dict[str, Any]]:
 
     Reads only: the app never writes the queue database.
     """
+    # No runner online: nothing can apply the change, so answer 202 at once.
+    if not read_agent_status(db_path).get("online"):
+        return None
     deadline = time.monotonic() + _intent_wait_seconds()
     while True:
         state = queue_intents.read_intent(db_path, token)
