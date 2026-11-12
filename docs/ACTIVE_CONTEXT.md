@@ -626,3 +626,19 @@ stay. Dalibre: restart OpenCode so the MCP reconnects with `DALIBRE_TOKEN`.
 - Stress (100 operations, host writer, `--skip-9p`), twice: 0 5xx, 0 lock errors,
   0 timeouts, integrity ok, 0 inconsistencies.
 - Open: UI reads still cross the bind mount (design section 9).
+
+## Prompt library pass (2026-11-12)
+
+- 5.4 single writer merged; queue UI tracks pending changes without blocking; the
+  agent drains changes during a run. Live agent running from the main checkout.
+- Kingdoms of Death: post-pass applied (titles from the map, body titles and numbers,
+  pt-PT forms, 19 `fugue` → `fuga`, Also-by accent). Audit against the run report
+  (refined file): one chapter below 0.8 glossary coverage (chapter 15: `legionários`
+  for `Legion`, unmarked `Sollan`). Not approved; glossary policy decision open.
+- Ashes of Man (book 7): translation running (job 25) since 2026-11-11 21:12 local,
+  from a Run request that was already queued. Refine is enabled for it.
+- Prompts 6.1, 6.2 (partial), 6.3, 7.1–7.3 documented in `docs/project/reviews/`
+  and `docs/project/onboarding-checklist.md`.
+- Open: reader-repair rules still in code: Howling sentence fixes and copyright
+  (`global_text_fixes`), the series Also-by string, `EN_RUNNING_HEADER` in
+  `chapter_headings.py`, and the Chantry metric in the Queue UI.
