@@ -1,6 +1,12 @@
 // Glossary, style and NER editor styles, kept between the base stylesheets
 // and the literary theme so the cascade order is unchanged.
 
+/* Narrow panes: the glossary table keeps its column widths and scrolls
+   inside its inset container instead of spilling past the card. */
+#glossaryListContainer {
+    overflow-x: auto;
+}
+
 /* Glossary/Style tables: fixed layout + full width + identical
    horizontal padding on th and td so column titles sit directly
    above their content. */

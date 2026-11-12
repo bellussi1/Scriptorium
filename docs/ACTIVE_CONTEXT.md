@@ -48,9 +48,13 @@ with `git status` and `git log` before acting. Older handoffs are in git history
 - **UI pass (buttons, tabs, completed translations):** merged into `main` by fast-forward (2026-11-12, tip
   `4eae8b6`); not pushed. Verified on a test instance at 127.0.0.1:5055
   (queue DB copy in `data/ui-check/`, gitignored): tab ARIA and arrow/Home/End keys,
-  light and dark, mobile wrap, history rows. Open: at 375 px the seven tabs take three
-  rows; `#glossaryListTable` is about 490 px and overflows panes under ~520 px (predates
-  this pass); one 400 on a model-list request at page load is not yet identified.
+  light and dark, mobile wrap, history rows. Fixed 2026-11-12 at 375 px (checked in the
+  browser on the live app): the tab row scrolls sideways instead of wrapping to three rows,
+  the glossary table scrolls inside its container, card headers and the app header wrap
+  instead of overflowing (the page no longer scrolls sideways). Rules are in the
+  `max-width: 480px` block of `_ui-polish.scss` and `#glossaryListContainer` in `_editors.scss`.
+  Open: one 400 on a model-list request at page load is not yet identified; the language
+  and status pill text is tight at 375 px.
 
 - **Front-end pass (2026-11-11, merged into `main`):** stylesheets are SCSS partials in `src/web/static/scss`,
   compiled with `npm run build:css` into `src/web/static/css/app.css`; spacing and radius
@@ -171,9 +175,10 @@ documents). Do not re-run it on finals; see
    (human review on any confirmed candidate) stays the recommendation; it needs a blind run first.
 3. **Imperium vs Império.** The freeze is merged; Demon and Howling keep
    "Império" by owner decision.
-4. **Per-book code still to move** (`docs/project/reviews/per-book-hacks-2026-11-12.md`):
-   Howling sentence fixes and copyright line in `global_text_fixes`, the series
-   Also-by string, `EN_RUNNING_HEADER`, and the Chantry metric in the Queue UI.
+4. **Resolved 2026-11-12.** The per-book rules are data now (`reader-repairs.yaml`:
+   `book_text_fixes`, `labels`, `reader_terms`; `running_header` in the Ship of Magic spec;
+   `forbidden_forms` metric). Still in code by design: the copyright lines and the Sun Eater
+   series gate in `polish.py`.
 5. **Owner confirmations:** the "Scriptorium" name; upstream issue #333 is open.
 
 ## Model policy and evidence

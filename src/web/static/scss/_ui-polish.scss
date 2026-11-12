@@ -663,6 +663,36 @@ pre.queue-quality-log {
     font-weight: 600;
 }
 
+/* Narrow screens: one scrollable row instead of three wrapped rows. The
+   selected tab is brought into view by the browser on focus; keyboard arrows
+   already move between tabs. */
+@media (max-width: 480px) {
+    .tab-nav {
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        overscroll-behavior-x: contain;
+        scrollbar-width: thin;
+    }
+
+    .tab-nav .tab-btn {
+        flex: 0 0 auto;
+    }
+
+    /* Card headers wrap their actions (for example "Novo glossário") instead
+       of pushing them past the card edge. */
+    .card-header {
+        flex-wrap: wrap;
+        gap: var(--space-2);
+    }
+
+    /* The app header wraps its status and language controls under the title
+       instead of pushing the page wider than the screen. */
+    .header {
+        flex-wrap: wrap;
+        row-gap: var(--space-2);
+    }
+}
+
 /* ---- Completed translations (Translate tab) ----------------------------- */
 
 .history-header {
