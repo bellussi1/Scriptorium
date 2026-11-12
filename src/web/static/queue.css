@@ -110,7 +110,7 @@
 }
 
 .queue-table-wrap {
-    overflow-x: auto;
+    overflow-x: hidden;
     border: 1px solid var(--border-light);
     border-radius: 10px;
 }
@@ -130,7 +130,7 @@
     font-weight: 700;
     letter-spacing: 0.06em;
     text-transform: uppercase;
-    white-space: nowrap;
+    white-space: normal;
 }
 
 .queue-table td {
@@ -325,7 +325,11 @@
 
 .queue-actions-cell {
     text-align: center;
-    white-space: nowrap;
+    white-space: normal;
+}
+
+.queue-actions-cell > * {
+    margin: 2px;
 }
 
 .queue-move-btn {
@@ -1292,11 +1296,20 @@ html.dark {
 
 .queue-table th:nth-child(3),
 .queue-table td:nth-child(3) {
-    white-space: nowrap;
+    white-space: normal;
 }
 
 .queue-table {
-    min-width: 820px;
+    min-width: 0;
+    table-layout: auto;
+}
+
+.queue-table .queue-progress--compact {
+    width: 96px;
+}
+
+.queue-table .queue-progress-text {
+    white-space: normal;
 }
 
 @media (max-width: 1100px) {

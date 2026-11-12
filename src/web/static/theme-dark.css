@@ -1,0 +1,104 @@
+/* Dark theme palette: neutral, low-chroma and sober, in the spirit of shadcn/ui
+   (zinc surfaces, one restrained blue accent, rings instead of shadows).
+
+   Loaded after every other stylesheet, so these tokens win over the earlier
+   dark blocks. Everything here is scoped to html.dark: the light theme does not
+   change. Status colours keep their meaning (success, warning, danger, info) and
+   carry a tint background, so a state is never shown by colour alone. */
+
+html.dark {
+    color-scheme: dark;
+
+    /* Surfaces */
+    --paper: #09090b;
+    --surface: #111113;
+    --surface-strong: #18181b;
+    --rule: #27272a;
+    --rule-strong: #3f3f46;
+
+    /* Text */
+    --ink: #fafafa;
+    --ink-soft: #d4d4d8;
+    --muted: #a1a1aa;
+
+    /* Accent: one blue for primary actions, links and focus */
+    --data-accent: #60a5fa;
+    --data-accent-soft: rgba(59, 130, 246, 0.14);
+    --primary-light: #2563eb;
+
+    /* Legacy token set used by the older components */
+    --background-light: #09090b;
+    --background-outer: #111113;
+    --text-dark: #fafafa;
+    --text-muted-light: #a1a1aa;
+    --border-light: #27272a;
+
+    --success-light: #4ade80;
+    --success-light-bg: rgba(34, 197, 94, 0.12);
+    --info-light: #60a5fa;
+    --info-light-bg: rgba(59, 130, 246, 0.12);
+    --danger-light: #b91c1c;
+    --danger-light-hover: #991b1b;
+    --danger-light-border: #b91c1c;
+    --danger-light-bg: rgba(239, 68, 68, 0.12);
+    --danger-light-text: #fca5a5;
+    --warning-light: #f59e0b;
+    --warning-light-bg: rgba(245, 158, 11, 0.12);
+    --warning-light-border: #f59e0b;
+    --warning-light-text: #fcd34d;
+
+    /* No soft shadows: depth comes from a 1px ring */
+    --shadow-dark: transparent;
+    --shadow-light: transparent;
+    --option-chip-bg: transparent;
+    --option-chip-fg: var(--text-dark);
+    --option-chip-border: var(--border-light);
+    --llm-chip-bg: #27272a;
+    --llm-chip-fg: #fafafa;
+
+    /* Queue tokens (the Queue tab and the Translate hero) */
+    --q-surface: #111113;
+    --q-surface-inset: #09090b;
+    --q-shadow-dark: transparent;
+    --q-shadow-light: transparent;
+    --q-scrim: rgba(0, 0, 0, 0.6);
+    --q-ink: #fafafa;
+    --q-ink-muted: #a1a1aa;
+    --q-border: #27272a;
+    --q-accent: #2563eb;
+    --q-accent-ink: #93c5fd;
+    --q-on-accent: #ffffff;
+    --q-focus: #60a5fa;
+    --q-danger-ink: #fca5a5;
+    --q-tone-info-fg: #93c5fd;
+    --q-tone-info-bg: rgba(59, 130, 246, 0.14);
+    --q-tone-success-fg: #86efac;
+    --q-tone-success-bg: rgba(34, 197, 94, 0.14);
+    --q-tone-warning-fg: #fcd34d;
+    --q-tone-warning-bg: rgba(245, 158, 11, 0.14);
+    --q-tone-danger-fg: #fca5a5;
+    --q-tone-danger-bg: rgba(239, 68, 68, 0.14);
+    --q-tone-neutral-fg: #a1a1aa;
+    --q-tone-neutral-bg: #27272a;
+    --q-shadow-raised: 0 0 0 1px var(--q-border);
+    --q-shadow-raised-hover: 0 0 0 1px #3f3f46;
+    --q-shadow-inset: inset 0 0 0 1px var(--q-border);
+}
+
+/* Plain page and card surfaces; no decorative gradients in dark mode */
+html.dark body {
+    background: var(--paper);
+    color: var(--ink);
+}
+
+html.dark .header {
+    background: transparent;
+}
+
+html.dark .queue-table th {
+    background: var(--surface-strong);
+}
+
+html.dark .queue-table tbody tr:hover {
+    background: var(--surface-strong);
+}
