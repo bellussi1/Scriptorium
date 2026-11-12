@@ -234,6 +234,21 @@ def _top(items: Sequence[Dict[str, Any]], key: str, limit: int = 10) -> List[Dic
     return sorted(items, key=lambda item: item.get(key) or 0, reverse=True)[:limit]
 
 
+def _forbidden_occurrences(text: str, forbidden: str, source: str = "") -> int:
+    """Count hits of one forbidden form.
+
+    A forbidden form that starts with a capital and is not the English source term is a
+    proper-noun rendering (for example Cantaria). A lowercase occurrence of the same letters
+    is an ordinary word ('would sing') and is not counted. The English source term (Chantry)
+    is always matched case-insensitively, so a lowercase English leak still counts.
+    """
+    matches = re.findall(rf"\b{re.escape(forbidden)}\b", text, flags=re.IGNORECASE)
+    is_english_source = forbidden.lower() == source.lower()
+    if forbidden[:1].isupper() and not is_english_source:
+        matches = [match for match in matches if match[:1].isupper()]
+    return len(matches)
+
+
 def scan_book(
     source_epub: str | Path,
     target_epub: str | Path,
@@ -301,9 +316,7 @@ def scan_book(
         forbidden_hits = []
         for view in views:
             for forbidden in view["forbidden"]:
-                count = len(
-                    re.findall(rf"\b{re.escape(forbidden)}\b", text, flags=re.IGNORECASE)
-                )
+                count = _forbidden_occurrences(text, forbidden, view["source"])
                 if count:
                     hit = {
                         "file": name,
