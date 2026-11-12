@@ -97,6 +97,12 @@ documents). Do not re-run it on finals; see
 - Post-passes: `src/literary/chapter_titles.py` (titles from the map; `--relabel`
   with `--titles` for translated titles), `src/literary/chapter_headings.py` (Ship
   aligner; not for files that already have headings).
+- Front-end TypeScript: sources are `.ts` next to the modules they replace; `npm run build`
+  emits the `.js` files the browser loads (no bundler, same ES module graph). Check with
+  `npm run typecheck` (strict). Commit the generated `.js` with the `.ts`. Migrated so far:
+  `translation/progress-title`. Next: `queue/queue-manager.js` (2,035 lines; strict run gives
+  264 errors: ~100 untyped parameters, ~80 DOM property accesses on `HTMLElement`, 20 `catch`
+  blocks with `unknown`). Then the rest of `translation/`.
 - Container `translatebook-literary-dev` (127.0.0.1:5000) mounts `src` read-only:
   restart it to load Python changes; no rebuild needed.
 - Tests: `venv\Scripts\python.exe -m pytest -q tests/unit tests/literary tests/test_frontend_i18n.py`.

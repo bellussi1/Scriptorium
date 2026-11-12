@@ -4,9 +4,14 @@
   "private": true,
   "description": "Front-end build tooling for the Scriptorium web interface",
   "scripts": {
-    "build:css": "sass --style=expanded --no-source-map src/web/static/scss/main.scss src/web/static/css/app.css"
+    "build:css": "sass --style=expanded --no-source-map src/web/static/scss/main.scss src/web/static/css/app.css",
+    "build:js": "node scripts/build-js.mjs",
+    "typecheck": "tsc -p tsconfig.json",
+    "build": "npm run build:css && npm run build:js"
   },
   "devDependencies": {
-    "sass": "^1.108.2"
+    "esbuild": "^0.28.2",
+    "sass": "^1.108.2",
+    "typescript": "^7.0.2"
   }
 }
