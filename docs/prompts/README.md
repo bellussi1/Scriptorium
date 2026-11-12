@@ -7,6 +7,19 @@ unless a later commit says so.
 Written in English to match the repository language policy; replies follow the
 language of the conversation.
 
+## Status (2026-11-12)
+
+- Done and merged: 5.3 (baseline), 5.4 (single writer), 6.1 (inventory in
+  `docs/project/reviews/per-book-hacks-2026-11-12.md`), 6.3 (checklist in
+  `docs/project/onboarding-checklist.md`), 7.1–7.3 (`docs/project/reviews/local-model-ceiling-2026-11-12.md`).
+- Partial: 6.2 — terms and per-book headings are data; Howling sentence fixes,
+  the series Also-by string, `EN_RUNNING_HEADER` and the Chantry UI metric remain
+  in code.
+- Edit prompts landed earlier: 1.3–1.5, 2.2, 2.3, 3.2, 3.3, 4.2 (see git log).
+- Open: 4.4 (24 h destructive window) not run; 3.4 (meaning gate) waits for the
+  owner's labels; 5.2 design is in `docs/project/reviews/single-writer-design-2026-11-11.md`.
+- Not started: 6.2 remainder, 7.x decisions are documented but not implemented.
+
 ## How to use
 
 - One prompt per session. Do not chain two prompts that both edit files.

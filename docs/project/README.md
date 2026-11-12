@@ -5,12 +5,12 @@ branch, runtime, queue and the next decision. This directory is the project
 dossier (diagnosis, architecture, benchmarks, decisions); it is not rewritten
 every session.
 
-As of 2026-11-10: phases 1–6 are complete, the Fase D benchmark is finished with
-Index-Translate 9B ahead locally, and the Sun Eater model decision selects Gemini
-3.8 Flash, with Claude Haiku 5.5 as the cheaper cloud fallback and Index as the
-free local fallback. Three books went end to end (Ship of Magic, Howling Dark,
-Fool's Errand). Every translation still passes the review gate; no model is
-approved for unattended production.
+As of 2026-11-12: the production model is the local Index-Translate 9B for Sun
+Eater and Realm (Hy-MT2 Q4 is the fallback; cloud only if funded). Howling Dark
+and Demon in White are translated; Kingdoms of Death is in review; Ashes of Man
+is translating. Ship of Magic and Fool's Errand were translated with Hy-MT2 and
+are queued again on Index. No model is approved for unattended production.
+Current state and open decisions are in `docs/ACTIVE_CONTEXT.md`.
 
 Environment: Ollama is tuned for the 8 GB card; the Lote A/B/C cleanup is
 applied (C: ~301 GB free, active container preserved). Docker VHDX compaction

@@ -6,7 +6,7 @@ run was active; nothing here is deployed to the running app container.
 
 ## 1. Problem
 
-The 5.3 baseline ([concurrency-baseline-2026-11-11.md](concurrency-baseline-2026-11-11.md))
+The 5.3 baseline (numbers in the table below)
 measured 24% 5xx on the 100-operation run (73% on an earlier run), a
 `database disk image is malformed` end state, index inconsistencies, and a
 30.2 s stall while a host process held a write transaction.
