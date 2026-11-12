@@ -15,8 +15,9 @@ with `git status` and `git log` before acting. Older handoffs are in git history
   `data/tmp/disquiet-gods-superseded-2026-11-12/`. When it finishes: check the gate
   (job state `needs_review`), apply the progressive repair to its output, then review.
   Shadows Upon Time (book 13) is pending. Book 9 keeps the EPUB 2.0 hash in `books.source_hash`.
-- **Reviewed and approved 2026-11-12:** Ashes of Man (book 7) and Kingdoms of Death
-  (book 11), both `completed`. The previous refined files are `*.refined.pre-review.epub`.
+- **Approved 2026-11-12:** Ashes of Man (book 7), `completed`. Kingdoms of Death (book 11) was
+  reopened the same day as `needs_review` until its pt-BR model stage is done. The previous
+  refined files are `*.refined.pre-review.epub`.
 - **Sun Eater terms follow the official pt-BR edition** (Império do Silêncio): peoples and
   species in lower case (cielcin, mericanii, aeta, ...), titles mid-sentence in lower case
   (lorde, sir, imperador, comandante, ...). Books 2 to 5 were rewritten; the previous files
@@ -66,7 +67,7 @@ with `git status` and `git log` before acting. Older handoffs are in git history
 | --- | --- | --- | --- |
 | Demon in White (Sun Eater 3) | 8, completed | refined, post-passed | Titles, body headings, series metadata and Lexicon done. Audit: `Imperium` drift (owner accepted "Império"). Word swaps done 2026-11-12; model stage pending. |
 | Howling Dark (Sun Eater 2) | 10, completed | refined, post-passed | Approved in the Queue UI. Headings and titles consistent (80). Chapter 50 title and "“ELA" fixed 2026-11-12. Word swaps done 2026-11-12; model stage pending. |
-| Kingdoms of Death (Sun Eater 4) | 11, completed | refined, post-passed | Approved in the queue 2026-11-12, before the model stage of the pt-BR revision. Reopen if the owner wants the revision first. |
+| Kingdoms of Death (Sun Eater 4) | 11, needs_review | refined, post-passed | Reopened 2026-11-12 by owner decision: approve again only after the model stage of the pt-BR revision. Queue row edited directly (backup `data/tmp/queue-backups/literary_queue-before-kingdoms-reopen-2026-11-12.db`). It leaves the Kindle export until approved. |
 | Ashes of Man (Sun Eater 5) | 7, completed | refined, post-passed | Approved 2026-11-12. OPF scheme warning fixed (EPUBCheck 0/0/0). No chapter-title map yet. |
 | Disquiet Gods (Sun Eater 6) | 9, running | re-translation from EPUB 3.0 | Started 2026-11-12 16:43 local. Then: progressive repair, gate, review. |
 | Shadows Upon Time | 13, pending | — | After Disquiet Gods. |
