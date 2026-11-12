@@ -21,8 +21,9 @@ language of the conversation.
   the Chantry metric became a count of forbidden forms. Demon in White's reader output is
   unchanged, except its four back-matter titles, which now have Portuguese labels.
 - Edit prompts landed earlier: 1.3, 1.5, 2.2, 2.3, 3.2, 3.3 (see git log).
-- Open: 4.4 (24 h destructive window) not run. The container-kill test restarts the app container, which
-  stops any translation running in it, so it waits for a window with no translation. 3.4 waits for the owner's labels.
+- Prepared, not run: 4.4 (24 h destructive window). Preflight, dedicated compose and runbook are in place
+  (`docs/project/DESTRUCTIVE_24H_RUNBOOK.md`); the window phases and the soak are not written yet.
+- Open: 3.4 waits for the owner's labels.
 - Planning prompts with a written result in `docs/project/reviews/` (2026-11-12): 1.1 (fork-coupling-2026-11-12.md),
   1.2 (agpl-compliance-2026-11-12.md), 2.1 and 2.4 (status-diagnosis-2026-11-12.md), 3.1 (gate-coverage-2026-11-12.md),
   4.1 (failure-modes-2026-11-12.md), 4.3 (two-minute-review-design-2026-11-12.md), 5.1 (queue-db-write-map-2026-11-12.md).
