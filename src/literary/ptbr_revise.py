@@ -309,7 +309,7 @@ def _ollama_generate(model: str, endpoint: str) -> Callable[[List[Dict[str, str]
                 "messages": messages,
                 "stream": False,
                 "think": False,
-                "options": {"temperature": 0.0, "num_predict": 800, "num_ctx": 8192},
+                "options": {"temperature": 0.0, "num_predict": 800, "num_ctx": 4096},
             },
             timeout=900,
         )
