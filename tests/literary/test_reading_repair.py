@@ -1,12 +1,15 @@
 """Tests for the reader-facing EPUB repair pass."""
 from __future__ import annotations
 
+import re
 import zipfile
 from pathlib import Path
 
 from src.literary.reading_repair import (
+    _build_contents_page,
     _localise_nav,
     _localise_ncx,
+    _nav_labels,
     _normalise_package_language,
     _package_title,
     _replace_terms_in_text,
@@ -244,3 +247,33 @@ def test_fugue_is_repaired_in_any_case():
     assert "fugue" not in repaired.lower()
     assert repaired.count("fuga") == 2
 
+
+def test_contents_page_links_only_documents_that_exist():
+    names = [
+        "94_Dramatis_Personae_The.xhtml",
+        "95_Index_of_Worlds.xhtml",
+        "96_Lexicon.xhtml",
+        "97_About_the_Author.xhtml",
+        "05_Dedication.xhtml",
+        "07_Chapter_1_Behold_a_Pa.xhtml",
+    ]
+    page = _build_contents_page(
+        "<html><body><p>old</p></body></html>",
+        {"07_Chapter_1_Behold_a_Pa.xhtml": "Behold a Pale Horse"},
+        names,
+    )
+    hrefs = re.findall(r'href="([^"]+)"', page)
+    assert set(hrefs) <= set(names)
+    assert "88_Dramatis_Personae.xhtml" not in hrefs
+    assert "94_Dramatis_Personae_The.xhtml" in hrefs
+    assert "07_Chapter_1_Behold_a_Pa.xhtml" in hrefs
+
+
+def test_nav_labels_follow_the_book_file_names():
+    labels = _nav_labels(
+        {}, ["94_Dramatis_Personae_The.xhtml", "01_Cover.xhtml", "06_Contents.xhtml", "97_About_the_Author.xhtml"]
+    )
+    assert labels["94_Dramatis_Personae_The.xhtml"] == "Personagens principais"
+    assert labels["01_Cover.xhtml"] == "Capa"
+    assert labels["06_Contents.xhtml"] == "Sumário"
+    assert labels["97_About_the_Author.xhtml"] == "Sobre o autor"

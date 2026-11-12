@@ -1044,20 +1044,53 @@ def _localise_ncx(ncx: str, labels: Dict[str, str], book_title: str = "") -> str
     return ncx
 
 
-def _build_contents_page(original: str, chapter_titles: Dict[str, str]) -> str:
-    front = [
-        ("02_Also_by_Christopher_R.xhtml", "Outros livros de Christopher Ruocchio"),
-        ("03_Title_Page.xhtml", "Página de título"),
-        ("04_Copyright.xhtml", "Direitos autorais"),
-        ("05_Dedication.xhtml", "Dedicação"),
-        ("07_Acknowledgments.xhtml", "Agradecimentos"),
-    ]
-    back = [
-        ("88_Dramatis_Personae.xhtml", "Personagens principais"),
-        ("89_Index_of_Worlds.xhtml", "Índice de mundos"),
-        ("91_Lexicon.xhtml", "Léxico"),
-        ("93_About_the_Author.xhtml", "Sobre o autor"),
-    ]
+# Front and back matter, matched by a keyword in the file name, so each book's own
+# numbering works. Chapter files never match (see _matched_document).
+FRONT_MATTER = [
+    ("Also_by", "Outros livros de Christopher Ruocchio"),
+    ("Title_Page", "Página de título"),
+    ("Copyright", "Direitos autorais"),
+    ("Dedication", "Dedicação"),
+    ("Acknowledgments", "Agradecimentos"),
+]
+BACK_MATTER = [
+    ("Dramatis_Personae", "Personagens principais"),
+    ("Index_of_Worlds", "Índice de mundos"),
+    ("Lexicon", "Léxico"),
+    ("About_the_Author", "Sobre o autor"),
+]
+EXTRA_LABELS = [
+    ("Cover", "Capa"),
+    ("Contents", "Sumário"),
+    ("90_Table", "Índice de mundos"),
+    ("92_Table", "Léxico"),
+    ("next-reads", "Descubra seu próximo livro"),
+    ("tbl-attribution", "Tradução"),
+]
+
+
+def _matched_document(names: Sequence[str], keyword: str) -> Optional[str]:
+    for name in names:
+        if "_chapter_" not in name.lower() and keyword.lower() in name.lower():
+            return name
+    return None
+
+
+def _matched_entries(names: Sequence[str], table: Sequence[Tuple[str, str]]) -> List[Tuple[str, str]]:
+    entries: List[Tuple[str, str]] = []
+    for keyword, label in table:
+        name = _matched_document(names, keyword)
+        if name is not None:
+            entries.append((name, label))
+    return entries
+
+
+def _build_contents_page(
+    original: str, chapter_titles: Dict[str, str], document_names: Iterable[str]
+) -> str:
+    names = list(document_names)
+    front = _matched_entries(names, FRONT_MATTER)
+    back = _matched_entries(names, BACK_MATTER)
     lines = ['<div>', '<h1 class="x01-FM-Head">SUMÁRIO</h1>']
     for href, label in front:
         lines.append(
@@ -1139,6 +1172,12 @@ def repair_reading_epub(
 
     headings = _reader_repairs().get("headings", {}).get(queue_title, {})
     chapter_titles = _read_chapter_titles(source_path, headings)
+    with zipfile.ZipFile(source_path, "r") as probe:
+        document_names = [
+            os.path.basename(name)
+            for name in probe.namelist()
+            if name.lower().endswith((".xhtml", ".html", ".htm"))
+        ]
     book_title = _package_title(source_path)
     report = RepairReport(source=source_path, output=output_path)
     term_counts: Dict[str, int] = {}
@@ -1154,11 +1193,11 @@ def repair_reading_epub(
                 name = item.filename
                 if name.endswith("_nav.xhtml"):
                     nav = data.decode("utf-8", "replace")
-                    labels = _nav_labels(chapter_titles)
+                    labels = _nav_labels(chapter_titles, document_names)
                     data = _localise_nav(nav, labels, book_title).encode("utf-8")
                 elif name.lower().endswith(".ncx"):
                     ncx = data.decode("utf-8", "replace")
-                    labels = _nav_labels(chapter_titles)
+                    labels = _nav_labels(chapter_titles, document_names)
                     data = _localise_ncx(ncx, labels, book_title).encode("utf-8")
                 elif name.lower().endswith(".opf"):
                     opf = data.decode("utf-8", "replace")
@@ -1185,7 +1224,7 @@ def repair_reading_epub(
                     report.heading_changes.extend(heading_changes)
                     raw = localise_document_title(raw, name, chapter_titles)
                     if name.endswith("06_Contents.xhtml"):
-                        raw = _build_contents_page(raw, chapter_titles)
+                        raw = _build_contents_page(raw, chapter_titles, document_names)
                     if "[" in strip_tags(raw):
                         report.warnings.append(f"unresolved '[' in {name}")
                     data = raw.encode("utf-8")
@@ -1202,24 +1241,15 @@ def repair_reading_epub(
     return report.to_dict()
 
 
-def _nav_labels(chapter_titles: Dict[str, str]) -> Dict[str, str]:
-    labels = {
-        "01_Cover.xhtml": "Capa",
-        "02_Also_by_Christopher_R.xhtml": "Outros livros de Christopher Ruocchio",
-        "03_Title_Page.xhtml": "Página de título",
-        "04_Copyright.xhtml": "Direitos autorais",
-        "05_Dedication.xhtml": "Dedicação",
-        "06_Contents.xhtml": "Sumário",
-        "07_Acknowledgments.xhtml": "Agradecimentos",
-        "88_Dramatis_Personae.xhtml": "Personagens principais",
-        "89_Index_of_Worlds.xhtml": "Índice de mundos",
-        "90_Table.xhtml": "Índice de mundos",
-        "91_Lexicon.xhtml": "Léxico",
-        "92_Table.xhtml": "Léxico",
-        "93_About_the_Author.xhtml": "Sobre o autor",
-        "next-reads.xhtml": "Descubra seu próximo livro",
-        "tbl-attribution.xhtml": "Tradução",
-    }
+def _nav_labels(
+    chapter_titles: Dict[str, str], document_names: Iterable[str] = ()
+) -> Dict[str, str]:
+    names = list(document_names)
+    labels: Dict[str, str] = {}
+    for keyword, label in FRONT_MATTER + BACK_MATTER + EXTRA_LABELS:
+        name = _matched_document(names, keyword)
+        if name is not None:
+            labels[name] = label
     for filename, title in chapter_titles.items():
         match = re.search(r"_Chapter_(\d+)_", filename)
         if match:
