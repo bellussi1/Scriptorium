@@ -85,3 +85,14 @@ again.
 - The dedicated compose file was validated with `docker compose config` only; it has not
   been started.
 - The window phases and the soak are not written, so this runbook cannot be completed yet.
+
+## Criteria check (read-only, usable any time)
+
+```bash
+python tests/standalone/destructive_24h.py --evaluate data/tmp/destructive-window/data/literary_queue.db \
+    --outputs data/tmp/destructive-window/outputs
+```
+
+It reads the queue database (read-only) and the outputs folder, and prints the three
+criteria with the details of any failure. Exit `0` means all three hold. It is used on the
+scratch database, not on the live one.

@@ -20,7 +20,10 @@ language of the conversation.
   `literary-resources` (`book_text_fixes`, `labels`, the Ship of Magic `running_header`);
   the Chantry metric became a count of forbidden forms. Demon in White's reader output is
   unchanged, except its four back-matter titles, which now have Portuguese labels.
-- Edit prompts landed earlier: 1.3, 1.5, 2.2, 2.3, 3.2, 3.3 (see git log).
+- Edit prompts landed earlier and checked on 2026-11-12: 1.3 (name, GENERATOR, Kindle translator), 1.5 (local build
+  notes in README and DOCKER.md), 2.2 (`queue status --json`, tests in `tests/literary/test_queue_status.py`),
+  2.3 (plugin reads the canonical command), 3.2 (100% of files, 3.9 s, see `docs/project/reviews/deterministic-coverage-2026-11-12.md`),
+  3.3 (golden set in `tests/literary/test_golden_set.py`).
 - Prepared, not run: 4.4 (24 h destructive window). Preflight, dedicated compose and runbook are in place
   (`docs/project/DESTRUCTIVE_24H_RUNBOOK.md`); the window phases and the soak are not written yet.
 - Open: 3.4 waits for the owner's labels.
