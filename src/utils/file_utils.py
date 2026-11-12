@@ -39,6 +39,18 @@ def find_partial_output_paths(output_path):
             if entry.is_file() and pattern.match(entry.name)]
 
 
+def resolve_output_path(output_path, is_resume):
+    """Output path for a run.
+
+    A resume rebuilds the document from its checkpoint, so it writes into the file the
+    interrupted run left behind. Only a new run gets a free name; otherwise a resumed
+    job leaves a stale "(1)" copy next to the real output.
+    """
+    if is_resume:
+        return output_path
+    return get_unique_output_path(output_path)
+
+
 def get_unique_output_path(output_path):
     """
     Generate a unique output path by adding a number suffix if the file already exists.

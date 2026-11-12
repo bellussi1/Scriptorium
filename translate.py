@@ -16,7 +16,7 @@ ensure_utf8_stdio()
 logging.getLogger('httpx').setLevel(logging.WARNING)
 
 from src.config import DEFAULT_MODEL, API_ENDPOINT, LLM_PROVIDER, GEMINI_API_KEY, OPENAI_API_KEY, OPENROUTER_API_KEY, MISTRAL_API_KEY, DEEPSEEK_API_KEY, POE_API_KEY, NIM_API_KEY, DEFAULT_SOURCE_LANGUAGE, DEFAULT_TARGET_LANGUAGE, PARALLEL_TRANSLATIONS
-from src.utils.file_utils import get_unique_output_path, generate_tts_for_translation
+from src.utils.file_utils import resolve_output_path, generate_tts_for_translation
 from src.utils.unified_logger import setup_cli_logger, LogType
 from src.tts.tts_config import TTSConfig, TTS_ENABLED, TTS_VOICE, TTS_RATE, TTS_BITRATE, TTS_OUTPUT_FORMAT
 from src.persistence.checkpoint_manager import CheckpointManager
@@ -306,8 +306,9 @@ if __name__ == "__main__":
         else:
             args.output = f"{base} ({args.target_lang}){output_ext}"
 
-    # Ensure output path is unique (add number suffix if file exists)
-    args.output = get_unique_output_path(args.output)
+    # A new run gets a free file name; a resume (--translation-id) keeps the path it writes into.
+    is_resume = bool((getattr(args, "translation_id", "") or "").strip())
+    args.output = resolve_output_path(args.output, is_resume)
 
     # Determine file type
     if args.input.lower().endswith('.epub'):

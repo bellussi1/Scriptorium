@@ -180,6 +180,21 @@ documents). Do not re-run it on finals; see
    `forbidden_forms` metric). Still in code by design: the copyright lines and the Sun Eater
    series gate in `polish.py`.
 5. **Owner confirmations:** the "Scriptorium" name; upstream issue #333 is open.
+6. **Resume duplicate `(1)`: fixed 2026-11-12.** `translate.py` applied a free name even on a
+   `--translation-id` resume, so the partial output got a stale copy. `resolve_output_path`
+   (`src/utils/file_utils.py`) keeps the path on a resume. Tests: `tests/unit/test_output_path_resume.py`.
+   Not reproduced: a job left `running` after a complete resume. It needs a live case to trace.
+7. **Watchdog: keep monitor-only.** Killing a translation from the watchdog is destructive
+   (a container restart already kills the job with exit 137). Monitoring is enough for now.
+8. **Queue UI reads across the bind mount (design §9): deferred.** No user-visible failure
+   recorded; it is an architecture change.
+9. **Disquiet Gods description (4,405 characters): stays in English.** It is the publisher's
+   back-cover copy, and the pipeline's 4,000-character limit is a product choice, not a bug.
+   Translating it in parts with the local model is possible but untested; decide later.
+10. **Malazan glossary: not queued.** Building it means deciding pt-BR policy for hundreds of
+    invented names; it needs the owner's naming decisions first.
+11. **24 h destructive test: blocked** until the queue is idle and the dedicated app is up.
+    Run it after Disquiet Gods and the model stage of the Sun Eater revision.
 
 ## Model policy and evidence
 
