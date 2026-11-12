@@ -90,6 +90,11 @@ documents). Do not re-run it on finals; see
 
 ## Queue runtime
 
+- **Never restart the app container while a translation runs.** The runner executes
+  the translation through a `docker compose exec` it owns on the host; a container
+  restart closes that exec and the job dies with exit 137 (seen three times on
+  2026-11-11 at 22:51, 22:59 and 23:26). Wait for the job to stop, or pause it first.
+
 - Single writer: the app spools each change to `data/literary_queue.intents/`;
   the host agent applies them in order (every 0.5 s, also during a run). Design:
   `docs/project/reviews/single-writer-design-2026-11-11.md`.
