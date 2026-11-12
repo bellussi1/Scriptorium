@@ -2,12 +2,14 @@
   "name": "scriptorium-web",
   "version": "1.0.0",
   "private": true,
+  "type": "module",
   "description": "Front-end build tooling for the Scriptorium web interface",
   "scripts": {
     "build:css": "sass --style=expanded --no-source-map src/web/static/scss/main.scss src/web/static/css/app.css",
     "build:js": "node scripts/build-js.mjs",
     "typecheck": "tsc -p tsconfig.json",
-    "build": "npm run build:css && npm run build:js"
+    "build": "npm run build:css && npm run build:js",
+    "test:js": "node --test tests/frontend/html.test.mjs"
   },
   "devDependencies": {
     "esbuild": "^0.28.2",

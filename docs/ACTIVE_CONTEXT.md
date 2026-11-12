@@ -103,6 +103,11 @@ documents). Do not re-run it on finals; see
   `translation/progress-title`. Next: `queue/queue-manager.js` (2,035 lines; strict run gives
   264 errors: ~100 untyped parameters, ~80 DOM property accesses on `HTMLElement`, 20 `catch`
   blocks with `unknown`). Then the rest of `translation/`.
+- UI load baseline during a real run (Ashes, 2026-11-12, live page, 30-40 s windows):
+  0 long tasks over 50 ms; 3.3 DOM mutations/s; 9-12 `/api/` requests per 30-40 s (queue,
+  log, control, about every 10 s); API median 38-39 ms, one outlier 770-820 ms. After the
+  `ui/html` helper in `renderSummary` and `renderEvents`: unchanged. Rule: no new polling;
+  re-measure with the same script before changing render paths in `queue-manager`.
 - Container `translatebook-literary-dev` (127.0.0.1:5000) mounts `src` read-only:
   restart it to load Python changes; no rebuild needed.
 - Tests: `venv\Scripts\python.exe -m pytest -q tests/unit tests/literary tests/test_frontend_i18n.py`.

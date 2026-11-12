@@ -10,6 +10,7 @@
 
 import { t } from '../i18n/i18n.js';
 import { toast } from '../ui/toast.js';
+import { html, raw } from '../ui/html.js';
 
 const QUEUE_URL = '/api/literary/queue';
 const LIBRARY_URL = '/api/literary/library';
@@ -296,10 +297,10 @@ function renderSummary(data) {
         [t('queue:needs_review'), formatNumber(byStatus.needs_review || 0)],
     ];
     byId('queueSummary').innerHTML = cards
-        .map(([label, value]) => `
+        .map(([label, value]) => html`
             <div class="queue-stat">
-                <span class="queue-stat-value">${escapeHtml(value)}</span>
-                <span class="queue-stat-label">${escapeHtml(label)}</span>
+                <span class="queue-stat-value">${value}</span>
+                <span class="queue-stat-label">${label}</span>
             </div>
         `)
         .join('');
@@ -847,10 +848,10 @@ function renderEvents(data) {
         return;
     }
     list.innerHTML = events
-        .map((event) => `
-            <li class="queue-event queue-event-${escapeHtml(event.level || 'info')}">
-                <span class="queue-event-time">${formatDate(event.created_at)}</span>
-                <span>${escapeHtml(event.message || '')}</span>
+        .map((event) => html`
+            <li class="queue-event queue-event-${event.level || 'info'}">
+                <span class="queue-event-time">${raw(formatDate(event.created_at))}</span>
+                <span>${event.message || ''}</span>
             </li>
         `)
         .join('');
