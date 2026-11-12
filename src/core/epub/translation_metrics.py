@@ -104,6 +104,16 @@ class TranslationMetrics:
     this and would need explicit synchronisation.
     """
 
+    # === Per-chunk fallback records (chunk checkpoint) ===
+    chunk_fallbacks: Dict[int, Dict] = field(default_factory=dict)
+    """Map of chunk_index -> {"reason", "attempts", "causes"} for each chunk that
+    left the normal path in this pass (reasons: xhtml_translation_state.FALLBACK_REASONS).
+
+    Same contract as chunk_outcomes: file-local, not in to_dict(), not merged.
+    The durable copy is XHTMLTranslationState.chunk_fallbacks, which the chunk
+    loop writes from this map for every chunk that is still a fallback.
+    """
+
     def record_success(self, attempt: int, chunk_size: int) -> None:
         """Record successful translation.
 
@@ -160,6 +170,21 @@ class TranslationMetrics:
             return
         self.chunk_outcomes[chunk_index] = status
 
+    def record_chunk_fallback(self, chunk_index: Optional[int], reason: str,
+                              attempts: int, causes: list) -> None:
+        """Record why a chunk fell back and how many LLM calls it took.
+
+        A later attempt on the same chunk overwrites the record. chunk_index None
+        is a no-op, as for record_chunk_outcome.
+        """
+        if chunk_index is None:
+            return
+        self.chunk_fallbacks[chunk_index] = {
+            "reason": reason,
+            "attempts": int(attempts),
+            "causes": list(causes),
+        }
+
     def record_processed(self) -> None:
         """Record that a chunk has been fully processed (success or failure).
         
@@ -208,7 +233,8 @@ class TranslationMetrics:
         return self.successful_first_try / self.total_chunks
 
     # === Quality warning thresholds (aggressive: warn early) ===
-    _QUALITY_MIN_PROCESSED = 5
+    # Per XHTML file, so one bad chunk out of 5 swings the rate by 20 points.
+    _QUALITY_MIN_PROCESSED = 20
     _QUALITY_RETRY_RATE_THRESHOLD = 0.30
     _QUALITY_FALLBACK_RATE_THRESHOLD = 0.10
     _QUALITY_AVG_ERRORS_THRESHOLD = 1.0

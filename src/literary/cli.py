@@ -690,6 +690,98 @@ def cmd_queue_job_state(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_queue_retranslate_fallbacks(args: argparse.Namespace) -> int:
+    """List the chunks that fell back, or re-translate them through the normal path.
+
+    Dry run by default: prints the flagged chunks and changes nothing. With
+    --apply it resumes the book's checkpoint with --retry-token-aligned, so the
+    translator re-translates exactly the flagged chunks and rebuilds the EPUB.
+    The queue state is not changed; review, refine and approve as usual after.
+    """
+    import subprocess
+
+    from src.literary import fallback_repair
+    from src.literary.queue_runner import (
+        ROOT,
+        _compile_assets,
+        _translation_command,
+        output_name,
+        resolve_model,
+    )
+    from src.persistence.checkpoint_manager import CheckpointManager
+
+    store = QueueStore(args.db)
+    try:
+        book = store.get_book(args.book_id)
+        latest = store.latest_job(args.book_id) if book else None
+    finally:
+        store.close()
+    if not book:
+        _print_json({"error": f"book {args.book_id} not found"})
+        return 1
+    latest = latest or {}
+    translation_id = str(latest.get("translation_id") or "").strip()
+    if not translation_id:
+        _print_json({"error": f"book {args.book_id} has no translation job"})
+        return 1
+
+    manager = CheckpointManager(db_path=os.getenv("JOBS_DB_PATH", "data/jobs.db"))
+    progress = (manager.get_job(translation_id) or {}).get("progress") or {}
+    entries = fallback_repair.collect_fallback_entries(progress)
+    unfinished = progress.get("epub_unfinished_units") or {}
+    refusal = fallback_repair.repair_refusal(str(book.status), str(latest.get("state") or ""))
+    report: Dict[str, Any] = {
+        "book_id": book.id,
+        "title": book.title,
+        "book_status": book.status,
+        "job_state": latest.get("state"),
+        "translation_id": translation_id,
+        "flagged": fallback_repair.summarize_fallbacks(entries),
+        "unfinished_chunks": sum(len(v or []) for v in unfinished.values()),
+        "chunks": [
+            {
+                "file": entry.href,
+                "chunk": entry.index,
+                "reason": entry.reason,
+                "attempts": entry.attempts,
+                "causes": list(entry.causes),
+                "degraded": entry.degraded,
+            }
+            for entry in entries
+        ],
+        "refusal": refusal,
+    }
+    if not args.apply:
+        report["dry_run"] = True
+        report["next"] = f"re-run with --apply to re-translate the flagged chunks of book {book.id}"
+        _print_json(report)
+        return 0
+    if refusal:
+        report["error"] = refusal
+        _print_json(report)
+        return 2
+    if not entries:
+        report["message"] = "no flagged chunks; nothing to repair"
+        _print_json(report)
+        return 0
+
+    assets = _compile_assets(book, args.resources_root)
+    model = resolve_model(book.model)
+    provider = (book.provider or "ollama").strip().lower()
+    command = _translation_command(
+        book,
+        model,
+        provider,
+        assets,
+        output_name(book),
+        parallel_workers=args.parallel,
+        translation_id=translation_id,
+    )
+    _print_json(report)
+    print(f"Repairing {len(entries)} chunk(s) of book {book.id} through translation {translation_id}")
+    return fallback_repair.run_repair(command, runner=subprocess.run, cwd=ROOT)
+
+
 def cmd_refine(args: argparse.Namespace) -> int:
     with open(args.source, "r", encoding="utf-8") as handle:
         source_text = handle.read()
@@ -1053,6 +1145,23 @@ def build_parser() -> argparse.ArgumentParser:
     state_parser.add_argument("--state", required=True)
     state_parser.add_argument("--message", default="")
     state_parser.set_defaults(func=cmd_queue_state)
+    retranslate_parser = queue_sub.add_parser(
+        "retranslate-fallbacks",
+        help="List, or with --apply re-translate, the chunks that fell back "
+             "(placeholder, raw, api). Dry run unless --apply.",
+    )
+    retranslate_parser.add_argument("--book-id", type=int, required=True)
+    retranslate_parser.add_argument(
+        "--apply",
+        action="store_true",
+        help="Re-translate the flagged chunks and rebuild the EPUB. Without it only the report is printed.",
+    )
+    retranslate_parser.add_argument(
+        "--parallel", type=int, default=0, metavar="N",
+        help="Concurrent chunks for the repair run (0 = the translator default).",
+    )
+    retranslate_parser.add_argument("--resources-root", default="literary-resources")
+    retranslate_parser.set_defaults(func=cmd_queue_retranslate_fallbacks)
     reset_parser = queue_sub.add_parser("reset")
     reset_parser.add_argument("--db", default="data/literary_queue.db")
     reset_parser.set_defaults(func=cmd_queue_reset)

@@ -10,6 +10,8 @@ from dataclasses import dataclass
 from typing import Iterable, List, Optional, Union
 import httpx
 
+from .failure import LLMFailure
+
 from src import __version__
 from src.config import GENERATOR_NAME, TRANSLATE_TAG_IN, TRANSLATE_TAG_OUT, REQUEST_TIMEOUT
 from src.core.llm.utils.extraction import TranslationExtractor
@@ -63,6 +65,10 @@ def is_output_limit_finish(finish_reason: Optional[str]) -> bool:
 
 class LLMProvider(ABC):
     """Abstract base class for LLM providers"""
+
+    # Why the last request returned None. Set by providers that catch transport
+    # errors (see LLMFailure); None when unknown or when the last call succeeded.
+    last_failure: Optional[LLMFailure] = None
 
     def __init__(
         self,

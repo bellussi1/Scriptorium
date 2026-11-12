@@ -1193,6 +1193,15 @@ async def _process_all_content_files(
     # its counters honest after a repair, where the accumulated
     # `token_alignment_used` counter stays positive forever.
     degraded_units: Dict[str, List[int]] = {}
+    # Job-level chunk checkpoint of the fallbacks: {file_href: {str(index): record}}.
+    # Kept after a file completes (its partial state is deleted then), so a
+    # finished book still says why each chunk fell back.
+    fallback_units: Dict[str, Dict[str, Dict]] = {}
+    if resume_from_index > 0:
+        listed_fallbacks = job_progress.get('epub_fallback_units')
+        if isinstance(listed_fallbacks, dict):
+            fallback_units = {str(href): dict(records or {})
+                              for href, records in listed_fallbacks.items()}
     retry_tickets: Dict[str, List[int]] = {}
     if resume_from_index > 0:
         listed_units = job_progress.get('epub_unfinished_units')
@@ -1444,6 +1453,7 @@ async def _process_all_content_files(
         file_unfinished: List[int] = []
         file_untranslated: List[int] = []
         file_degraded: List[int] = []
+        file_fallbacks: Dict[str, Dict] = {}
         if checkpoint_manager and translation_id:
             try:
                 state_after = checkpoint_manager.load_xhtml_partial_state(
@@ -1460,6 +1470,12 @@ async def _process_all_content_files(
                 file_unfinished = unfinished_chunk_indices(statuses_after)
                 file_untranslated = untranslated_chunk_indices(statuses_after)
                 file_degraded = token_aligned_chunk_indices(statuses_after)
+                fallback_records = state_after.chunk_fallbacks or {}
+                file_fallbacks = {
+                    str(index): dict(fallback_records[str(index)])
+                    for index in set(file_degraded) | set(file_untranslated)
+                    if str(index) in fallback_records
+                }
 
         if file_unfinished:
             unfinished_units[content_href] = file_unfinished
@@ -1475,6 +1491,11 @@ async def _process_all_content_files(
             degraded_units[content_href] = file_degraded
         else:
             degraded_units.pop(content_href, None)
+
+        if file_fallbacks:
+            fallback_units[content_href] = file_fallbacks
+        else:
+            fallback_units.pop(content_href, None)
 
         # Report stats if callback provided
         if stats_callback and file_stats:
@@ -1515,7 +1536,8 @@ async def _process_all_content_files(
                 unfinished_units=unfinished_units,
                 file_unfinished=file_unfinished,
                 degraded_units=degraded_units,
-                file_degraded=file_degraded
+                file_degraded=file_degraded,
+                fallback_units=fallback_units,
             )
 
     # Final progress
@@ -1664,7 +1686,8 @@ async def _save_checkpoint(
     unfinished_units: Optional[Dict[str, List[int]]] = None,
     file_unfinished: Optional[List[int]] = None,
     degraded_units: Optional[Dict[str, List[int]]] = None,
-    file_degraded: Optional[List[int]] = None
+    file_degraded: Optional[List[int]] = None,
+    fallback_units: Optional[Dict[str, Dict]] = None,
 ) -> None:
     """Save checkpoint for a translated file.
 
@@ -1756,7 +1779,8 @@ async def _save_checkpoint(
                 failed_chunks=failed_chunks,
                 epub_accumulated_stats=epub_accumulated_stats,
                 unfinished_units=unfinished_units,
-                degraded_units=degraded_units
+                degraded_units=degraded_units,
+                fallback_units=fallback_units
             )
 
             if log_callback:

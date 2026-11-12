@@ -398,6 +398,7 @@ class Database:
         epub_accumulated_stats: Optional[Dict[str, Any]] = None,
         unfinished_units: Optional[Dict[str, List[int]]] = None,
         degraded_units: Optional[Dict[str, List[int]]] = None,
+        fallback_units: Optional[Dict[str, Dict[str, Any]]] = None,
     ) -> bool:
         """Persist a chunk/file row and its progress counters in one transaction.
 
@@ -458,6 +459,8 @@ class Database:
                     progress['epub_unfinished_units'] = unfinished_units
                 if degraded_units is not None:
                     progress['epub_degraded_units'] = degraded_units
+                if fallback_units is not None:
+                    progress['epub_fallback_units'] = fallback_units
                 conn.execute(
                     "UPDATE translation_jobs SET progress = ?, updated_at = CURRENT_TIMESTAMP "
                     "WHERE translation_id = ?",

@@ -60,11 +60,18 @@ class LLMClient:
             LLMResponse with content and token usage info, or None if failed
         """
         provider = self._get_provider()
+        # Forget the previous call's failure: last_failure must describe this call only.
+        provider.last_failure = None
 
         if timeout:
             return await provider.generate(prompt, timeout, system_prompt=system_prompt)
         else:
             return await provider.generate(prompt, system_prompt=system_prompt)
+
+    @property
+    def last_failure(self):
+        """Why the last generate() call returned None, or None if unknown."""
+        return self._provider.last_failure if self._provider else None
 
     async def make_request(self, prompt: str, model: Optional[str] = None,
                     timeout: int = None, system_prompt: Optional[str] = None) -> Optional[LLMResponse]:

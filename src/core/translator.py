@@ -14,6 +14,7 @@ from src.prompts.prompts import generate_translation_prompt, generate_subtitle_b
 from src.prompts.examples import ensure_example_ready, has_example_for_pair, PLACEHOLDER_EXAMPLES
 from .llm_client import default_client, LLMClient, create_llm_client, LLMResponse
 from .llm import ContextOverflowError, RepetitionLoopError, RateLimitError
+from .llm.failure import LLMFailure
 from .post_processor import clean_translated_text
 from .context_optimizer import (
     AdaptiveContextManager,
@@ -186,6 +187,32 @@ def split_chunk_for_retry(main_content: str, target_ratio: float = 0.5) -> Tuple
 
 
 
+def _note_attempt(attempt_info: Optional[dict], cause: Optional[str] = None,
+                  detail: Optional[str] = None, raw_used: bool = False) -> None:
+    """Record why one LLM call produced no usable translation.
+
+    ``attempt_info`` is an out-parameter owned by the caller. The causes are
+    "api" (the provider failed or returned nothing), "extraction" (the reply had
+    no translation block), "empty", "truncated", "prompt_echo", "repetition" and
+    "context". ``raw_used`` marks that the raw reply was accepted as the text.
+    """
+    if attempt_info is None:
+        return
+    if cause is not None:
+        attempt_info["cause"] = cause
+        attempt_info["detail"] = detail or ""
+    if raw_used:
+        attempt_info["raw_used"] = True
+
+
+def _provider_failure_detail(client) -> str:
+    """The provider's recorded exception, or a plain statement that none was kept."""
+    failure = getattr(client, "last_failure", None)
+    if isinstance(failure, LLMFailure):
+        return failure.describe()
+    return "provider returned no response and recorded no cause"
+
+
 async def _make_llm_request_with_adaptive_context(
     main_content: str,
     context_before: str,
@@ -202,6 +229,7 @@ async def _make_llm_request_with_adaptive_context(
     placeholder_format: Optional[Tuple[str, str]] = None,
     runtime_state: Optional[dict] = None,
     raw_response_callback: Optional[Callable[[LLMResponse], None]] = None,
+    attempt_info: Optional[dict] = None,
 ) -> Tuple[Optional[str], str, Optional[LLMResponse]]:
     """
     Make LLM request with adaptive context sizing.
@@ -288,6 +316,7 @@ async def _make_llm_request_with_adaptive_context(
             execution_time = time.time() - start_time
 
             if not llm_response:
+                _note_attempt(attempt_info, "api", _provider_failure_detail(client))
                 return None, main_content, None
 
             last_response = llm_response
@@ -302,6 +331,7 @@ async def _make_llm_request_with_adaptive_context(
                             f"Could not record raw LLM response: {record_error}")
 
             if not full_raw_response or not full_raw_response.strip():
+                _note_attempt(attempt_info, "empty", "the model returned an empty reply")
                 # Empty/null content: the model returned nothing. This is almost
                 # always a refusal or a provider-side moderation/policy block on
                 # sensitive content (not a truncation), so retrying with a larger
@@ -348,6 +378,8 @@ async def _make_llm_request_with_adaptive_context(
                         f"(finish_reason: {llm_response.finish_reason}). The chunk is marked "
                         f"failed instead of being saved half-translated. If this keeps "
                         f"happening, lower the chunk size or disable reasoning for this model.")
+                _note_attempt(attempt_info, "truncated",
+                              f"output token limit reached (finish_reason: {llm_response.finish_reason})")
                 return None, main_content, last_response
 
             # Extract translation
@@ -379,6 +411,7 @@ async def _make_llm_request_with_adaptive_context(
                         log_callback("unclosed_translation_tag",
                             "⚠️ Response opened the translation tag but never closed it: "
                             "the output was cut off. Chunk marked failed.")
+                    _note_attempt(attempt_info, "truncated", "translation tag opened but never closed")
                     return None, main_content, last_response
 
                 # For EPUB with placeholders, failing to extract is CRITICAL
@@ -387,6 +420,8 @@ async def _make_llm_request_with_adaptive_context(
                     if log_callback:
                         log_callback("epub_extraction_critical_fail",
                             "CRITICAL: Cannot use raw response for EPUB (would corrupt HTML structure)")
+                    _note_attempt(attempt_info, "extraction",
+                                  "the reply had no translation block (tags not found or malformed)")
                     return None, main_content, last_response
 
                 # For plain text, try fallback to raw response (legacy behavior)
@@ -395,6 +430,7 @@ async def _make_llm_request_with_adaptive_context(
                         log_callback("using_raw_response_fallback",
                             "Using raw response as fallback (plain text mode)")
                     all_translations.append(full_raw_response.strip())
+                    _note_attempt(attempt_info, raw_used=True)
                     if last_response:
                         last_response.was_fallback = True
                 else:
@@ -402,6 +438,7 @@ async def _make_llm_request_with_adaptive_context(
                     if log_callback:
                         log_callback("llm_prompt_in_response_warning",
                             "WARNING: LLM response seems to contain input. Discarded.")
+                    _note_attempt(attempt_info, "prompt_echo", "the reply repeated the input")
                     return None, main_content, last_response
 
             # If we had remaining content from a previous split, translate it
@@ -446,6 +483,7 @@ async def _make_llm_request_with_adaptive_context(
                     f"Try manually increasing OLLAMA_NUM_CTX. Error: {e}")
             else:
                 tqdm.write(f"\n⚠️ Repetition loop detected - increase OLLAMA_NUM_CTX")
+            _note_attempt(attempt_info, "repetition", "repetition loop not resolved by a larger context")
             return None, main_content, last_response
 
         except ContextOverflowError as e:
@@ -463,6 +501,7 @@ async def _make_llm_request_with_adaptive_context(
                         f"exceeded. Original error: {e}")
                 else:
                     tqdm.write(f"\n⚠️ Context overflow after {MAX_CHUNK_REDUCTION_ATTEMPTS} reduction attempts")
+                _note_attempt(attempt_info, "context", "context overflow after chunk reduction attempts")
                 return None, main_content, last_response
 
             # Calculate new reduction factor
@@ -483,6 +522,7 @@ async def _make_llm_request_with_adaptive_context(
                 if log_callback:
                     log_callback("context_overflow_fatal",
                         f"⚠️ Cannot reduce chunk further (min size: {MIN_CHUNK_CHARACTERS} chars)")
+                _note_attempt(attempt_info, "context", "chunk too small to reduce further")
                 return None, main_content, last_response
 
             current_content = first_part
@@ -501,7 +541,8 @@ async def generate_translation_request(main_content, context_before, context_aft
                                        llm_client=None, log_callback=None, has_placeholders=False,
                                        prompt_options=None, context_manager: AdaptiveContextManager = None,
                                        placeholder_format: Optional[Tuple[str, str]] = None,
-                                       raw_response_callback: Optional[Callable[[LLMResponse], None]] = None):
+                                       raw_response_callback: Optional[Callable[[LLMResponse], None]] = None,
+                                       attempt_info: Optional[dict] = None):
     """
     Generate translation request to LLM API with automatic context overflow handling.
 
@@ -534,6 +575,8 @@ async def generate_translation_request(main_content, context_before, context_aft
 
     # Use the adaptive context handler. Each chunk gets its own context growth
     # budget, and a chunk that still fails gives back what it grew.
+    if attempt_info is None:
+        attempt_info = {}
     if context_manager:
         context_manager.begin_request()
     try:
@@ -552,6 +595,7 @@ async def generate_translation_request(main_content, context_before, context_aft
             context_manager=context_manager,
             placeholder_format=placeholder_format,
             raw_response_callback=raw_response_callback,
+            attempt_info=attempt_info,
         )
     except BaseException:
         if context_manager:
@@ -562,13 +606,19 @@ async def generate_translation_request(main_content, context_before, context_aft
 
     if translated_text:
         return translated_text
+    # Name the real cause: a provider failure is "API failed" with its exception;
+    # anything else (extraction, truncation, ...) is a reply that had no text.
+    cause = attempt_info.get("cause", "unknown")
+    detail = attempt_info.get("detail") or "no cause recorded"
+    if cause == "api":
+        err_msg = f"ERROR: LLM API request failed: {detail}"
     else:
-        err_msg = "ERROR: LLM API request failed"
-        if log_callback:
-            log_callback("llm_api_error", err_msg)
-        else:
-            tqdm.write(f"\n{err_msg}")
-        return None
+        err_msg = f"ERROR: LLM call returned no translation ({cause}): {detail}"
+    if log_callback:
+        log_callback("llm_api_error", err_msg)
+    else:
+        tqdm.write(f"\n{err_msg}")
+    return None
 
 
 

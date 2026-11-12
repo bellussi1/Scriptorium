@@ -207,6 +207,10 @@ if __name__ == "__main__":
     parser.add_argument("--nim_api_key", default=NIM_API_KEY, help="NVIDIA NIM API key (required if using nim provider). Get your key at https://build.nvidia.com/")
     parser.add_argument("--parallel", type=int, default=PARALLEL_TRANSLATIONS, metavar="N", help=f"Number of chunks translated concurrently (default: {PARALLEL_TRANSLATIONS}). Only cloud providers benefit by default; Ollama needs OLLAMA_PARALLEL_TRANSLATIONS and enough server slots. Values > 1 drop cross-chunk context chaining.")
     parser.add_argument("--translation-id", default="", help="Resume the checkpoint stored under this translation ID instead of creating a new one.")
+    parser.add_argument(
+        "--retry-token-aligned", action="store_true", dest="retry_token_aligned",
+        help="EPUB repair: with --translation-id, re-translate the chunks token alignment "
+             "repaired (and any unfinished chunk). Used by 'queue retranslate-fallbacks'.")
     parser.add_argument("--no-color", action="store_true", help="Disable colored output.")
 
     # Prompt options (optional system prompt instructions)
@@ -526,7 +530,8 @@ if __name__ == "__main__":
                 poe_api_key=args.poe_api_key,
                 nim_api_key=args.nim_api_key,
                 prompt_options=prompt_options,
-                parallel_workers=args.parallel
+                parallel_workers=args.parallel,
+                retry_token_aligned=bool(getattr(args, "retry_token_aligned", False)),
             ))
 
             logger.info("Translation Completed Successfully", LogType.TRANSLATION_END, {
