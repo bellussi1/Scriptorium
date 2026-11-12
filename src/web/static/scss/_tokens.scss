@@ -1,0 +1,38 @@
+// Design tokens. Source of truth for spacing, radius and icon sizes.
+// Each token is also published as a CSS custom property so runtime code can read it.
+
+// Spacing: 4px base, used for padding, margin and gap.
+$space-1: 4px;
+$space-2: 8px;
+$space-3: 12px;
+$space-4: 16px;
+$space-5: 24px;
+$space-6: 32px;
+$space-7: 48px;
+
+// Radius.
+$radius-sm: 4px;
+$radius-md: 8px;
+$radius-lg: 12px;
+$radius-xl: 16px;
+$radius-pill: 999px;
+$radius-circle: 50%;
+
+// Icon sizes for Material Symbols.
+$icon-sm: 16px;
+$icon-md: 20px;
+$icon-lg: 24px;
+
+:root {
+  --space-1: #{$space-1};
+  --space-2: #{$space-2};
+  --space-3: #{$space-3};
+  --space-4: #{$space-4};
+  --space-5: #{$space-5};
+  --space-6: #{$space-6};
+  --space-7: #{$space-7};
+  --radius-sm: #{$radius-sm};
+  --radius-md: #{$radius-md};
+  --radius-lg: #{$radius-lg};
+  --radius-xl: #{$radius-xl};
+}

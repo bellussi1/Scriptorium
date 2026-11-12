@@ -1,3 +1,5 @@
+@use 'tokens' as *;
+
 /* ========================================
    UI polish
    Small cross-cutting improvements layered on top of style.css.
@@ -101,8 +103,8 @@ html.dark .form-control::placeholder {
 .upload-zone-grid {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 1rem;
-    margin: 1.5rem 0;
+    gap: $space-4;
+    margin: $space-5 0;
     align-items: stretch;
 }
 
@@ -112,7 +114,7 @@ html.dark .form-control::placeholder {
 
 .upload-zone-grid > #fileUpload.file-upload {
     grid-column: 1 / -1;
-    padding: 2.5rem 2rem;
+    padding: $space-6 $space-6;
     border-radius: 2.25rem;
 }
 
@@ -133,14 +135,14 @@ html.dark .form-control::placeholder {
     display: flex;
     flex-direction: column;
     justify-content: center;
-    padding: 1.5rem 1.25rem;
+    padding: $space-5 $space-4;
     border-radius: 1.5rem;
 }
 
 .upload-zone-grid > .file-upload-secondary .upload-icon {
     width: 2.75rem;
     height: 2.75rem;
-    margin-bottom: 0.75rem;
+    margin-bottom: $space-3;
 }
 
 .upload-zone-grid > .file-upload-secondary .upload-icon .material-symbols-outlined {
@@ -149,7 +151,7 @@ html.dark .form-control::placeholder {
 
 .upload-zone-grid > .file-upload-secondary h4 {
     font-size: 1rem;
-    margin-bottom: 0.375rem;
+    margin-bottom: $space-1;
 }
 
 .upload-zone-grid > .file-upload-secondary p {
@@ -157,12 +159,6 @@ html.dark .form-control::placeholder {
     line-height: 1.45;
     max-width: 32ch;
     margin: 0 auto;
-}
-
-@media (max-width: 560px) {
-    .language-pair {
-        grid-template-columns: minmax(0, 1fr) !important;
-    }
 }
 
 /* ----------------------------------------
@@ -174,8 +170,8 @@ html.dark .form-control::placeholder {
 .fixed-language-pair {
     display: flex;
     align-items: flex-end;
-    gap: 1rem;
-    margin-bottom: 15px;
+    gap: $space-4;
+    margin-bottom: $space-4;
 }
 
 .glossary-meta-row {
@@ -189,7 +185,7 @@ html.dark .form-control::placeholder {
 
 .fixed-language-pair__label {
     display: block;
-    margin-bottom: 6px;
+    margin-bottom: $space-1;
     color: var(--text-muted-light);
     font-size: 0.75rem;
     font-weight: 700;
@@ -201,47 +197,19 @@ html.dark .form-control::placeholder {
     display: flex;
     align-items: center;
     min-height: 44px;
-    padding: 0.5rem 0.75rem;
+    padding: $space-2 $space-3;
     background: var(--background-light);
     border: 1px solid var(--border-light);
-    border-radius: 8px;
+    border-radius: $radius-md;
     color: var(--text-dark);
     font-weight: 600;
 }
 
 .fixed-language-pair__arrow {
-    margin-bottom: 0.75rem;
+    margin-bottom: $space-3;
     color: var(--text-muted-light);
     font-size: 1.25rem;
     line-height: 1;
-}
-
-@media (max-width: 560px) {
-    .fixed-language-pair {
-        flex-direction: column;
-        align-items: stretch;
-        gap: 0.5rem;
-    }
-
-    .fixed-language-pair__arrow {
-        display: none;
-    }
-}
-
-@media (max-width: 760px) {
-    .upload-zone-grid {
-        grid-template-columns: minmax(0, 1fr);
-        gap: 0.75rem;
-    }
-
-    .upload-zone-grid > #fileUpload.file-upload {
-        grid-column: auto;
-        padding: 2rem 1.25rem;
-    }
-
-    .upload-zone-grid > .file-upload-secondary p {
-        max-width: none;
-    }
 }
 
 /* ----------------------------------------
@@ -252,7 +220,7 @@ html.dark .form-control::placeholder {
     display: flex;
     gap: 2px;
     height: 8px;
-    margin: -2px 0 14px;
+    margin: -2px 0 $space-3;
     background: var(--border-light);
     border-radius: 999px;
     overflow: hidden;
@@ -293,39 +261,6 @@ html.dark .form-control::placeholder {
     min-width: 170px;
 }
 
-@media (max-width: 900px) {
-    .queue-table {
-        min-width: 0;
-    }
-
-    .queue-table .queue-model-col,
-    .queue-table .queue-updated-col {
-        display: none;
-    }
-
-    .queue-table th,
-    .queue-table td {
-        padding: 8px 7px;
-    }
-
-    .queue-table {
-        font-size: 0.8rem;
-    }
-}
-
-@media (max-width: 640px) {
-    .queue-table .queue-series-col,
-    .queue-table .queue-position,
-    .queue-table th:first-child {
-        display: none;
-    }
-
-    .queue-table .queue-move-btn {
-        width: 28px;
-        height: 28px;
-    }
-}
-
 /* ----------------------------------------
    Files: scrollable table, wrapping toolbar, artifact badges
    ---------------------------------------- */
@@ -341,7 +276,7 @@ html.dark .form-control::placeholder {
 .file-name-cell {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: $space-2;
     min-width: 0;
 }
 
@@ -359,7 +294,7 @@ html.dark .form-control::placeholder {
     display: inline-flex;
     align-items: center;
     flex: 0 0 auto;
-    padding: 1px 7px;
+    padding: 1px $space-2;
     border: 1px solid transparent;
     border-radius: 999px;
     font-size: 0.66rem;
@@ -398,95 +333,29 @@ html.dark .form-control::placeholder {
 .file-artifact-toggle {
     display: inline-flex;
     align-items: center;
-    gap: 5px;
+    gap: $space-1;
     cursor: pointer;
     font-size: 0.8rem;
     color: var(--text-muted-light);
 }
 
 .file-filter-status {
-    margin: 0 0 8px;
+    margin: 0 0 $space-2;
     font-size: 0.78rem;
     color: var(--text-muted-light);
 }
 
 .file-artifact-help {
-    margin: 0 0 14px;
+    margin: 0 0 $space-3;
     max-width: 78ch;
     font-size: 0.78rem;
     line-height: 1.5;
     color: var(--text-muted-light);
 }
 
-@media (max-width: 760px) {
-    #tab-files .card-header {
-        flex-wrap: wrap;
-        gap: 0.75rem;
-    }
-
-    #tab-files .card-header > div {
-        margin-left: 0 !important;
-        width: 100%;
-    }
-
-    .file-actions {
-        flex-wrap: wrap;
-    }
-
-    .file-actions label {
-        margin-left: 0 !important;
-    }
-
-    .file-table {
-        min-width: 0;
-    }
-
-    /* Filenames carry the artifact badge; let it wrap under the name instead
-       of clipping at the fixed-layout cell edge. */
-    .file-name-cell {
-        flex-wrap: wrap;
-        row-gap: 3px;
-    }
-
-    .file-name-cell > .clickable-filename {
-        flex: 1 1 140px;
-    }
-
-    .file-table .filename-text {
-        flex: 1 1 0;
-        min-width: 0;
-    }
-
-    /* Reveal-in-folder and audiobook generation are desktop actions. */
-    .file-action-btn.reveal,
-    .file-action-btn.audiobook {
-        display: none;
-    }
-
-    .file-row-actions {
-        width: 96px;
-    }
-}
-
 /* ----------------------------------------
    Settings on narrow screens
    ---------------------------------------- */
-
-@media (max-width: 600px) {
-    #providerRow {
-        grid-template-columns: minmax(0, 1fr) !important;
-    }
-
-    .sample-params {
-        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-    }
-
-    .sample-params > button {
-        grid-column: 1 / -1;
-        justify-content: center;
-        width: 100%;
-    }
-}
 
 /* ----------------------------------------
    Collapsible settings headers
@@ -543,6 +412,14 @@ pre.queue-quality-log {
 .dark .logo-img--light { display: none; }
 .dark .logo-img--dark { display: block; }
 
+.logo-wordmark {
+    font-family: var(--font-display);
+    font-size: 1.125rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    color: var(--ink);
+}
+
 /* ==========================================================================
    Design system: buttons, tabs, history rows and states
    One definition per control. Heights, radius, focus ring and motion come from
@@ -552,12 +429,6 @@ pre.queue-quality-log {
    ========================================================================== */
 
 :root {
-    --space-1: 4px;
-    --space-2: 8px;
-    --space-3: 12px;
-    --space-4: 16px;
-    --space-5: 24px;
-    --space-6: 32px;
     --control-h: var(--ui-control-h, 36px);
     --control-h-sm: 32px;
     --control-radius: 8px;
@@ -883,13 +754,33 @@ pre.queue-quality-log {
     color: var(--danger-light-text);
 }
 
-@media (max-width: 640px) {
-    .history-row {
-        grid-template-columns: minmax(0, 1fr) auto;
-    }
 
-    .history-row__actions {
-        grid-column: 1 / -1;
-        justify-content: flex-start;
-    }
+/* Nested surfaces: inside a card, containers use a tint instead of a border or
+   shadow, so the card edge is the only outline and boxes do not stack. */
+.main-card :is(.stat-card, .log-container, .progress-bar-container, .fixed-language-pair, .preflight-panel, .summary-chip, .summary-llm-part) {
+  border: 0;
+  box-shadow: none;
+  background: var(--surface-strong);
+}
+
+/* Icons: Material Symbols on one size scale. Use the icon--sm and icon--lg
+   modifiers instead of inline font-size. */
+.material-symbols-outlined {
+  flex-shrink: 0;
+  font-size: $icon-md;
+  line-height: 1;
+  user-select: none;
+  vertical-align: middle;
+}
+
+.material-symbols-outlined.icon--sm {
+  font-size: $icon-sm;
+}
+
+.material-symbols-outlined.icon--lg {
+  font-size: $icon-lg;
+}
+
+.material-symbols-outlined.icon--rotate-180 {
+  transform: rotate(180deg);
 }

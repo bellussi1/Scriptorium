@@ -1,0 +1,96 @@
+// Glossary, style and NER editor styles, kept between the base stylesheets
+// and the literary theme so the cascade order is unchanged.
+
+/* Glossary/Style tables: fixed layout + full width + identical
+   horizontal padding on th and td so column titles sit directly
+   above their content. */
+#glossaryListTable,
+#glossaryTermsTable,
+#styleListTable {
+    table-layout: fixed;
+    width: 100%;
+    display: table;
+}
+/* .file-table normally splits thead and tbody into independent
+   display:table blocks (to make tbody scrollable). That breaks
+   <colgroup> column widths because each row computes its own
+   layout. Restore the standard rendering for these tables. */
+#glossaryListTable thead,
+#glossaryTermsTable thead,
+#styleListTable thead {
+    display: table-header-group;
+}
+#glossaryListTable tbody,
+#glossaryTermsTable tbody,
+#styleListTable tbody {
+    display: table-row-group;
+    max-height: none;
+    overflow-y: visible;
+}
+#glossaryListTable tbody tr,
+#glossaryTermsTable tbody tr,
+#styleListTable tbody tr {
+    display: table-row;
+    width: auto;
+}
+#glossaryListTable th,
+#glossaryListTable td,
+#glossaryTermsTable th,
+#glossaryTermsTable td,
+#styleListTable th,
+#styleListTable td {
+    padding: 0.75rem 0.75rem;
+    box-sizing: border-box;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+#glossaryListTable td,
+#glossaryTermsTable td,
+#styleListTable td {
+    padding: 0.6rem 0.75rem;
+}
+#glossaryListTable .col-center,
+#glossaryListTable td.col-center,
+#glossaryTermsTable .col-center,
+#glossaryTermsTable td.col-center,
+#styleListTable .col-center,
+#styleListTable td.col-center {
+    text-align: center;
+}
+#glossaryListTable .col-right,
+#glossaryListTable td.col-right,
+#glossaryTermsTable .col-right,
+#glossaryTermsTable td.col-right,
+#styleListTable .col-right,
+#styleListTable td.col-right {
+    text-align: right;
+}
+.glossary-cell-input {
+    width: 100%;
+    border: 0;
+    background: transparent;
+    padding: 6px 0;
+    font-size: 0.9rem;
+    color: var(--text-dark);
+    border-radius: 0;
+    font-family: inherit;
+    box-shadow: inset 0 -1px 0 transparent;
+    transition: box-shadow 0.15s, background 0.15s;
+}
+.glossary-cell-input:hover {
+    box-shadow: inset 0 -1px 0 var(--border-light);
+}
+.glossary-cell-input:focus {
+    outline: none;
+    box-shadow: inset 0 -2px 0 var(--primary-light);
+}
+.glossary-row-deleted { opacity: 0.3; pointer-events: none; }
+#ner-modal .modal-content { max-width: 800px; }
+#ner-candidates-table th, #ner-candidates-table td { padding: 6px 8px; font-size: 0.85rem; }
+#ner-warnings {
+    color: var(--text-dark);
+    background: var(--info-light-bg);
+    border-left: 3px solid var(--info-light);
+    font-size: 0.85rem;
+}

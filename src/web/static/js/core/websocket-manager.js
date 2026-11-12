@@ -97,7 +97,6 @@ export const WebSocketManager = {
         }
         eventHandlers.get(eventName).push(handler);
 
-        // Return unsubscribe function
         return () => this.off(eventName, handler);
     },
 

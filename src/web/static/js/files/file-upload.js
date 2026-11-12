@@ -444,7 +444,6 @@ export const FileUpload = {
         // Get current files from state
         const filesToProcess = StateManager.getState('files.toProcess') || [];
 
-        // Check for duplicates
         if (filesToProcess.find(f => f.name === file.name)) {
             MessageLogger.showMessage(t('translation:file_duplicate', { name: file.name }), 'info');
             return;
@@ -477,7 +476,6 @@ export const FileUpload = {
                 : TARGET_LANGUAGE;
             const initialTargetLanguage = TARGET_LANGUAGE;
 
-            // Create file object
             const fileObject = {
                 name: file.name,
                 filePath: uploadResult.file_path,
@@ -496,7 +494,6 @@ export const FileUpload = {
                 refineAfter: false
             };
 
-            // Add to state
             const updatedFiles = [...filesToProcess, fileObject];
             StateManager.setState('files.toProcess', updatedFiles);
 
@@ -522,7 +519,6 @@ export const FileUpload = {
 
         if (!fileListContainer) return;
 
-        // Clear existing list
         fileListContainer.innerHTML = '';
 
         if (filesToProcess.length > 0) {
@@ -554,7 +550,6 @@ export const FileUpload = {
                 iconContainer.className = 'file-icon';
 
                 if (file.fileType === 'epub' && file.thumbnail) {
-                    // Show thumbnail
                     const img = document.createElement('img');
                     img.src = `/api/thumbnails/${encodeURIComponent(file.thumbnail)}`;
                     img.alt = 'Cover';
@@ -632,7 +627,6 @@ export const FileUpload = {
                     header.appendChild(testBtn);
                 }
 
-                // Remove button
                 const removeBtn = document.createElement('button');
                 removeBtn.className = 'file-remove-btn';
                 removeBtn.title = t('translation:remove_file_title');
@@ -682,7 +676,6 @@ export const FileUpload = {
             // Hide file info section
             DomHelpers.hide(fileInfo);
 
-            // Disable translate button
             if (translateBtn) {
                 translateBtn.disabled = true;
             }
@@ -765,7 +758,6 @@ export const FileUpload = {
      * Notify that file list has changed (triggers UI update)
      */
     notifyFileListChanged() {
-        // Update display immediately
         this.updateFileDisplay();
 
         // Persist to localStorage

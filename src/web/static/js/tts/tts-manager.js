@@ -39,10 +39,8 @@ export const TTSManager = {
         // Set up event listeners
         this.setupEventListeners();
 
-        // Load providers info
         await this.loadProvidersInfo();
 
-        // Load GPU status
         await this.loadGPUStatus();
 
         // Load available voice prompts
@@ -130,7 +128,6 @@ export const TTSManager = {
         // Show/hide provider-specific options
         this.updateProviderOptions(selectedProvider);
 
-        // Update voice selector
         this.updateVoiceSelector(selectedProvider);
 
         MessageLogger.addLog(t('tts:tts_provider_changed_log', { provider: selectedProvider }));
@@ -330,7 +327,6 @@ export const TTSManager = {
             dropdown.remove(1);
         }
 
-        // Add voice prompts
         TTSState.voicePrompts.forEach(prompt => {
             const option = document.createElement('option');
             option.value = prompt.path;
@@ -390,7 +386,6 @@ export const TTSManager = {
                 uploadBtn.disabled = false;
                 uploadBtn.textContent = t('tts:voice_prompt_upload_btn');
             }
-            // Reset file input
             event.target.value = '';
         }
     },
@@ -434,7 +429,6 @@ export const TTSManager = {
             tts_bitrate: DomHelpers.getValue('ttsBitrate') || '64k',
         };
 
-        // Add Chatterbox-specific options
         if (provider === 'chatterbox') {
             config.tts_voice_prompt_path = DomHelpers.getValue('voicePromptSelect') || '';
             config.tts_exaggeration = parseFloat(DomHelpers.getValue('ttsExaggeration') || '0.5');

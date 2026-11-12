@@ -331,7 +331,6 @@ export const ProviderManager = {
     toggleProviderSettings(loadModels = true) {
         const provider = DomHelpers.getValue('llmProvider');
 
-        // Update state
         StateManager.setState('ui.currentProvider', provider);
 
         // Get provider settings elements

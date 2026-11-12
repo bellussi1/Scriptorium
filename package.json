@@ -1,0 +1,12 @@
+{
+  "name": "scriptorium-web",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Front-end build tooling for the Scriptorium web interface",
+  "scripts": {
+    "build:css": "sass --style=expanded --no-source-map src/web/static/scss/main.scss src/web/static/css/app.css"
+  },
+  "devDependencies": {
+    "sass": "^1.108.2"
+  }
+}

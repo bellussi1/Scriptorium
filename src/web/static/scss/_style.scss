@@ -1,3 +1,5 @@
+@use 'tokens' as *;
+
 /* ========================================
    Neumorphic Design System
    Light Mode - Inspired by reference design
@@ -235,7 +237,7 @@ body {
     min-height: 100vh;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    padding: 20px;
+    padding: $space-4;
     transition: background-color 0.3s ease, color 0.3s ease;
 }
 
@@ -254,7 +256,7 @@ body {
     background: #ffffff;
     box-shadow: inset 0 0 0 1px var(--border-light);
     border: 2px solid rgba(54, 118, 216, 0.15);
-    border-radius: 1rem;
+    border-radius: $radius-xl;
     transition: all 0.3s ease;
 }
 
@@ -285,8 +287,8 @@ body {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 1.5rem 3rem;
-    margin-bottom: 3rem;
+    padding: $space-5 $space-7;
+    margin-bottom: $space-7;
     background: rgba(240, 242, 245, 0.9);
     position: sticky;
     top: 0;
@@ -318,7 +320,7 @@ body {
 .header .logo-section {
     display: flex;
     align-items: center;
-    gap: 1rem;
+    gap: $space-4;
 }
 
 .header .logo-icon {
@@ -349,7 +351,7 @@ body {
     color: var(--text-muted-light);
     font-size: 0.75rem;
     font-weight: 500;
-    margin-top: 0.25rem;
+    margin-top: $space-1;
 }
 
 .header .logo-text .app-version {
@@ -357,21 +359,21 @@ body {
     font-size: 0.7rem;
     font-weight: 600;
     letter-spacing: 0;
-    margin-left: 0.35rem;
+    margin-left: $space-1;
     vertical-align: middle;
 }
 
 .header .status-section {
     display: flex;
     align-items: center;
-    gap: 0.6rem;
+    gap: $space-2;
 }
 
 .header .status-indicator {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
-    padding: 0.4rem 0.9rem;
+    gap: $space-2;
+    padding: $space-2 $space-4;
     height: 2.25rem;
     background: var(--background-light);
     box-shadow: inset 0 0 0 1px var(--border-light);
@@ -383,8 +385,8 @@ body {
     position: relative;
     display: inline-flex;
     align-items: center;
-    gap: 0.35rem;
-    padding: 0 0.55rem 0 0.7rem;
+    gap: $space-1;
+    padding: 0 $space-2 0 $space-3;
     height: 2.25rem;
     background: transparent;
     border: 1px solid var(--border-light);
@@ -453,7 +455,7 @@ body {
     color: var(--text-dark);
     background: var(--background-light);
     font-size: 0.9rem;
-    padding: 0.4rem 0.6rem;
+    padding: $space-2 $space-2;
 }
 
 .header .status-indicator .status-dot {
@@ -507,15 +509,15 @@ body {
     border: 1px solid var(--border-light);
     border-radius: 2.5rem;
     overflow: hidden;
-    margin-bottom: 2rem;
+    margin-bottom: $space-6;
 }
 
 .card-header {
     background: var(--background-light);
-    padding: 2rem;
+    padding: $space-6;
     display: flex;
     align-items: center;
-    gap: 1rem;
+    gap: $space-4;
     border-bottom: 1px solid var(--border-light);
 }
 
@@ -532,7 +534,7 @@ body {
 }
 
 .card-body {
-    padding: 2rem;
+    padding: $space-6;
     color: var(--text-dark);
 }
 
@@ -543,7 +545,7 @@ body {
 .form-group {
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
+    gap: $space-2;
 }
 
 .form-group label {
@@ -552,13 +554,13 @@ body {
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.1em;
-    padding-left: 0.25rem;
+    padding-left: $space-1;
 }
 
 /* Prompt-options checkbox rows: shared layout for all toggles
    (Polish, Bilingual, Plain Text Mode, Text Cleanup, Disable Auto-Pause). */
 .option-item {
-    margin-bottom: 15px;
+    margin-bottom: $space-4;
 }
 
 .option-item:last-child {
@@ -568,7 +570,7 @@ body {
 .option-item__label {
     display: flex;
     align-items: flex-start;
-    gap: 10px;
+    gap: $space-2;
     cursor: pointer;
     /* Reset inherited form-group label styling so titles/descriptions stay
        in normal case at a readable, uniform size. */
@@ -590,7 +592,7 @@ body {
 }
 
 .option-item__description {
-    margin: 4px 0 0 0;
+    margin: $space-1 0 0 0;
     font-size: 0.75rem;
     line-height: 1.4;
     color: var(--text-muted-light);
@@ -609,11 +611,11 @@ body {
     height: 2.75rem;
     min-height: 2.75rem;
     max-height: 2.75rem;
-    padding: 0 1.25rem;
+    padding: 0 $space-4;
     margin: 0;
     background: #ffffff;
     border: none;
-    border-radius: 1rem;
+    border-radius: $radius-xl;
     color: #1a1a1a;
     font-size: 1rem;
     font-family: var(--font-text);
@@ -631,12 +633,12 @@ select.form-control {
     min-height: 2.75rem;
     max-height: 2.75rem;
     line-height: 2.75rem;
-    padding: 0 1.25rem;
+    padding: 0 $space-4;
 }
 
 .neu-inset-light .form-control {
     background: #ffffff;
-    border-radius: 1rem;
+    border-radius: $radius-xl;
 }
 
 /* The single-line geometry of .form-control (fixed 2.75rem height and
@@ -648,7 +650,7 @@ textarea.form-control {
     min-height: 4.5rem;
     max-height: none;
     line-height: 1.5;
-    padding: 0.75rem 1.25rem;
+    padding: $space-3 $space-4;
     resize: vertical;
 }
 
@@ -669,7 +671,7 @@ select.form-control {
     background-repeat: no-repeat;
     background-position: right 1rem center;
     background-size: 1.2em;
-    padding-right: 3rem;
+    padding-right: $space-7;
 }
 
 /* ========================================
@@ -686,7 +688,7 @@ select.form-control {
    ======================================== */
 
 .file-upload {
-    margin: 2rem 0;
+    margin: $space-6 0;
     padding: 4rem;
     border: 2px dashed rgba(54, 118, 216, 0.3);
     border-radius: 3rem;
@@ -716,7 +718,7 @@ select.form-control {
     display: flex;
     align-items: center;
     justify-content: center;
-    margin: 0 auto 1.5rem;
+    margin: 0 auto $space-5;
     transition: transform 0.3s;
 }
 
@@ -733,7 +735,7 @@ select.form-control {
     color: var(--text-dark);
     font-size: 1.5rem;
     font-weight: 900;
-    margin-bottom: 0.5rem;
+    margin-bottom: $space-2;
 }
 
 .file-upload p {
@@ -742,8 +744,8 @@ select.form-control {
 }
 
 .file-upload .browse-btn {
-    margin-top: 1rem;
-    padding: 0.75rem 2rem;
+    margin-top: $space-4;
+    padding: $space-3 $space-6;
     background: var(--primary-light);
     color: white;
     border-radius: 9999px;
@@ -755,15 +757,15 @@ select.form-control {
 
 /* Secondary (refinement) drop zone — same elevated rendering as the primary, just more compact */
 .file-upload-secondary {
-    margin: 0.75rem 0 1rem;
-    padding: 2rem;
+    margin: $space-3 0 $space-4;
+    padding: $space-6;
     border-radius: 2rem;
 }
 
 .file-upload-secondary .upload-icon {
     width: 3.5rem;
     height: 3.5rem;
-    margin: 0 auto 1rem;
+    margin: 0 auto $space-4;
 }
 
 .file-upload-secondary .upload-icon .material-symbols-outlined {
@@ -774,7 +776,7 @@ select.form-control {
     color: var(--text-dark);
     font-size: 1.125rem;
     font-weight: 900;
-    margin-bottom: 0.25rem;
+    margin-bottom: $space-1;
 }
 
 .file-upload-secondary p {
@@ -791,11 +793,11 @@ select.form-control {
 /* Per-file controls (language dropdown, refine-after toggle) */
 .file-item-controls {
     display: flex;
-    gap: 0.75rem;
+    gap: $space-3;
     align-items: center;
     flex-wrap: wrap;
-    margin-top: 0.5rem;
-    padding-top: 0.5rem;
+    margin-top: $space-2;
+    padding-top: $space-2;
     border-top: 1px dashed var(--border-light);
 }
 
@@ -804,15 +806,15 @@ select.form-control {
     color: var(--text-muted-light);
     display: flex;
     align-items: center;
-    gap: 0.35rem;
+    gap: $space-1;
     margin: 0;
 }
 
 .file-item-controls select {
     font-size: 0.8125rem;
-    padding: 0.25rem 0.5rem;
+    padding: $space-1 $space-2;
     border: 1px solid var(--border-light);
-    border-radius: 0.5rem;
+    border-radius: $radius-md;
     background: var(--background-light);
     color: var(--text-dark);
 }
@@ -822,8 +824,8 @@ select.form-control {
     font-weight: 700;
     letter-spacing: 0.05em;
     text-transform: uppercase;
-    padding: 0.15rem 0.5rem;
-    border-radius: 0.5rem;
+    padding: 0.15rem $space-2;
+    border-radius: $radius-md;
 }
 
 .file-item-controls .file-op-badge.op-translate {
@@ -843,8 +845,8 @@ select.form-control {
 
 /* Term fix rules panel (shown while the queue holds term-fix files) */
 .term-fix-panel {
-    margin: 0 0 1rem;
-    padding: 1.25rem 1.5rem;
+    margin: 0 0 $space-4;
+    padding: $space-4 $space-5;
     border: 1px solid var(--border-light);
     border-radius: 1.25rem;
 }
@@ -853,13 +855,13 @@ select.form-control {
     color: var(--text-dark);
     font-size: 1rem;
     font-weight: 800;
-    margin-bottom: 0.25rem;
+    margin-bottom: $space-1;
 }
 
 .term-fix-panel .term-fix-help {
     color: var(--text-muted-light);
     font-size: 0.8125rem;
-    margin-bottom: 0.5rem;
+    margin-bottom: $space-2;
 }
 
 .term-fix-panel .term-fix-rules {
@@ -873,8 +875,8 @@ select.form-control {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: 0.5rem 0.75rem;
-    margin-top: 0.75rem;
+    gap: $space-2 $space-3;
+    margin-top: $space-3;
 }
 
 .term-fix-panel .term-fix-row label {
@@ -890,7 +892,7 @@ select.form-control {
 .term-fix-panel .term-fix-scan-btn {
     display: inline-flex;
     align-items: center;
-    gap: 0.35rem;
+    gap: $space-1;
 }
 
 .term-fix-results:empty {
@@ -898,18 +900,18 @@ select.form-control {
 }
 
 .term-fix-results {
-    margin-top: 0.75rem;
+    margin-top: $space-3;
     font-size: 0.875rem;
     color: var(--text-dark);
 }
 
 .term-fix-results .term-fix-file {
-    margin-top: 0.5rem;
+    margin-top: $space-2;
     font-weight: 700;
 }
 
 .term-fix-results .term-fix-rule {
-    margin: 0.25rem 0 0 0.75rem;
+    margin: $space-1 0 0 $space-3;
 }
 
 .term-fix-results .term-fix-zero {
@@ -917,7 +919,7 @@ select.form-control {
 }
 
 .term-fix-results .term-fix-sample {
-    margin: 0.15rem 0 0 1.5rem;
+    margin: 0.15rem 0 0 $space-5;
     color: var(--text-muted-light);
     font-style: italic;
     overflow-wrap: anywhere;
@@ -932,8 +934,8 @@ select.form-control {
    ======================================== */
 
 .progress-section {
-    margin-top: 2rem;
-    padding: 2rem;
+    margin-top: $space-6;
+    padding: $space-6;
     background: var(--background-light);
     box-shadow: 0 0 0 1px var(--border-light);
     border: 1px solid var(--border-light);
@@ -944,10 +946,10 @@ select.form-control {
     color: var(--text-dark);
     font-size: 1.25rem;
     font-weight: 700;
-    margin-bottom: 1.5rem;
+    margin-bottom: $space-5;
     display: flex;
     align-items: center;
-    gap: 0.75rem;
+    gap: $space-3;
 }
 
 .progress-bar-container {
@@ -957,7 +959,7 @@ select.form-control {
     border: 1px solid var(--border-light);
     border-radius: 1.25rem;
     overflow: hidden;
-    margin: 1.5rem 0;
+    margin: $space-5 0;
 }
 
 .progress-bar {
@@ -979,16 +981,16 @@ select.form-control {
 .stats-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
-    gap: 0.5rem;
-    margin: 1.5rem 0;
+    gap: $space-2;
+    margin: $space-5 0;
 }
 
 .stat-card {
-    padding: 0.5rem 0.25rem;
+    padding: $space-2 $space-1;
     background: var(--background-light);
     box-shadow: 0 0 0 1px var(--border-light);
     border: 1px solid var(--border-light);
-    border-radius: 1rem;
+    border-radius: $radius-xl;
     text-align: center;
     transition: transform 0.3s;
     display: flex;
@@ -1053,11 +1055,11 @@ select.form-control {
    stay visually paired with the .stat-card-critical above. Informational —
    keeps the destructive red palette free for actually destructive actions. */
 .recommendation-panel {
-    margin: 0.75rem 0 1rem;
-    padding: 0.875rem 1rem;
+    margin: $space-3 0 $space-4;
+    padding: $space-3 $space-4;
     background: var(--primary-light);
     border: 1px solid var(--primary-light);
-    border-radius: 8px;
+    border-radius: $radius-md;
     color: white;
     font-size: 0.85rem;
     line-height: 1.5;
@@ -1066,15 +1068,15 @@ select.form-control {
 .recommendation-panel[hidden] { display: none; }
 .recommendation-panel strong {
     display: block;
-    margin-bottom: 0.5rem;
+    margin-bottom: $space-2;
     color: white;
 }
 .recommendation-list {
     margin: 0;
-    padding-left: 1.25rem;
+    padding-left: $space-4;
 }
 .recommendation-list li + li {
-    margin-top: 0.25rem;
+    margin-top: $space-1;
 }
 .recommendation-link {
     color: white;
@@ -1095,7 +1097,7 @@ select.form-control {
    treatment #settingsSummary already gets inline, so as long as no advice
    or warning is present the wrapped zone is pixel-identical to today. */
 .preflight-zone {
-    margin-top: 12px;
+    margin-top: $space-3;
     text-align: center;
     font-size: 0.8125rem;
     color: var(--text-muted-light);
@@ -1127,8 +1129,8 @@ select.form-control {
     flex-wrap: wrap;
     align-items: center;
     justify-content: center;
-    gap: 6px;
-    margin-top: 8px;
+    gap: $space-1;
+    margin-top: $space-2;
 }
 .preflight-advice[hidden] { display: none; }
 
@@ -1150,8 +1152,8 @@ select.form-control {
 .preflight-chip {
     display: inline-flex;
     align-items: center;
-    gap: 4px;
-    padding: 2px 10px;
+    gap: $space-1;
+    padding: 2px $space-2;
     border-radius: 999px;
     font-size: 0.75rem;
     font-weight: 600;
@@ -1232,8 +1234,8 @@ select.form-control {
 .preflight-warnings {
     display: flex;
     flex-direction: column;
-    gap: 6px;
-    margin-top: 8px;
+    gap: $space-1;
+    margin-top: $space-2;
 }
 .preflight-warnings[hidden] { display: none; }
 
@@ -1242,11 +1244,11 @@ select.form-control {
    defined in :root / html.dark instead of the literal #f59e0b / #92400e
    those two rules use inline. */
 .preflight-warning {
-    padding: 10px 14px;
+    padding: $space-2 $space-3;
     text-align: left;
     background: var(--warning-light-bg);
     border-left: 3px solid var(--warning-light-border);
-    border-radius: 0.5rem;
+    border-radius: $radius-md;
     color: var(--warning-light-text);
     font-size: 0.8125rem;
     line-height: 1.5;
@@ -1263,7 +1265,7 @@ select.form-control {
 
 .preflight-warning__action {
     display: inline;
-    margin-left: 4px;
+    margin-left: $space-1;
     padding: 0;
     border: none;
     background: none;
@@ -1290,9 +1292,9 @@ select.form-control {
     align-items: center;
     justify-content: flex-end;
     gap: 2px;
-    margin-top: 6px;
+    margin-top: $space-1;
     margin-left: auto;
-    padding: 4px 2px;
+    padding: $space-1 2px;
     border: none;
     background: none;
     font-size: 0.75rem;
@@ -1324,18 +1326,18 @@ select.form-control {
    rule's literal #ffffff / #222222, so it reads as one more inner surface of
    the same card rather than a new floating card. */
 .preflight-panel {
-    margin-top: 10px;
-    padding: 1.25rem 1.5rem;
+    margin-top: $space-2;
+    padding: $space-4 $space-5;
     text-align: left;
     background: var(--background-outer);
     box-shadow: inset 0 0 0 1px var(--border-light);
     border: 2px solid color-mix(in srgb, var(--primary-light) 15%, transparent);
-    border-radius: 1rem;
+    border-radius: $radius-xl;
 }
 .preflight-panel[hidden] { display: none; }
 
 .preflight-panel__help {
-    margin-top: 0.75rem;
+    margin-top: $space-3;
     font-size: 0.75rem;
     color: var(--text-muted-light);
     line-height: 1.5;
@@ -1344,7 +1346,7 @@ select.form-control {
 .preflight-dismissed-link {
     display: inline-flex;
     align-items: center;
-    margin-top: 0.75rem;
+    margin-top: $space-3;
     padding: 0;
     border: none;
     background: none;
@@ -1379,7 +1381,7 @@ select.form-control {
 }
 
 .preflight-modal__intro {
-    margin: 0 0 1rem 0;
+    margin: 0 0 $space-4 0;
     color: var(--text-muted-light);
     font-size: 0.9rem;
     line-height: 1.55;
@@ -1388,7 +1390,7 @@ select.form-control {
 .preflight-modal__list {
     display: flex;
     flex-direction: column;
-    gap: 0.75rem;
+    gap: $space-3;
     margin: 0;
     padding: 0;
     list-style: none;
@@ -1407,12 +1409,12 @@ select.form-control {
     display: flex;
     flex-direction: column;
     align-items: stretch;
-    gap: 0.5rem;
-    padding: 0.75rem 1rem;
+    gap: $space-2;
+    padding: $space-3 $space-4;
     text-align: left;
     background: var(--background-outer);
     border-left: 3px solid var(--primary-light);
-    border-radius: 0.75rem;
+    border-radius: $radius-lg;
 }
 
 /* Escalated variant for the one rule that is a genuine risk rather than a
@@ -1448,7 +1450,7 @@ select.form-control {
     align-items: center;
     justify-content: flex-end;
     flex-wrap: wrap;
-    gap: 0.5rem;
+    gap: $space-2;
 }
 
 
@@ -1464,11 +1466,11 @@ select.form-control {
     box-shadow: inset 0 0 0 1px var(--border-light);
     border: 1px solid var(--border-light);
     border-radius: 2rem;
-    padding: 2rem;
-    padding-right: 1.5rem; /* Réduit pour faire de la place à la scrollbar */
+    padding: $space-6;
+    padding-right: $space-5; /* Réduit pour faire de la place à la scrollbar */
     font-family: 'Monaco', 'Consolas', 'Courier New', monospace;
     font-size: 0.875rem;
-    margin-top: 1rem;
+    margin-top: $space-4;
 }
 
 /* Last Translation Preview - Dynamic height based on MAX_TOKENS_PER_CHUNK */
@@ -1485,12 +1487,12 @@ select.form-control {
 
 .log-container::-webkit-scrollbar-track {
     background: transparent;
-    margin: 1rem 0; /* Décale la scrollbar pour éviter les coins arrondis */
+    margin: $space-4 0; /* Décale la scrollbar pour éviter les coins arrondis */
 }
 
 .log-container::-webkit-scrollbar-thumb {
     background: var(--shadow-dark);
-    border-radius: 4px;
+    border-radius: $radius-sm;
     transition: background 0.3s ease;
 }
 
@@ -1505,9 +1507,9 @@ select.form-control {
 }
 
 .log-entry {
-    margin-bottom: 0.75rem;
+    margin-bottom: $space-3;
     display: flex;
-    gap: 1rem;
+    gap: $space-4;
 }
 
 .log-timestamp {
@@ -1526,10 +1528,10 @@ select.form-control {
 .log-entry.log-summary {
     background: var(--success-light-bg);
     border-left: 3px solid var(--success-light);
-    padding: 0.75rem;
-    border-radius: 6px;
+    padding: $space-3;
+    border-radius: $radius-sm;
     display: block;
-    margin: 1rem 0;
+    margin: $space-4 0;
     line-height: 1.6;
 }
 
@@ -1538,10 +1540,10 @@ select.form-control {
     background: var(--bg-light);
     border: 1px solid var(--border-color);
     border-left: 4px solid var(--primary);
-    padding: 1rem;
-    border-radius: 6px;
+    padding: $space-4;
+    border-radius: $radius-sm;
     display: block;
-    margin: 1rem 0;
+    margin: $space-4 0;
     line-height: 1.8;
     font-family: 'Courier New', monospace;
     font-size: 0.9rem;
@@ -1603,12 +1605,12 @@ select.form-control {
 
 .prompt-options-toggle {
     cursor: pointer;
-    padding: 1rem 1.5rem;
+    padding: $space-4 $space-5;
     background: var(--background-light);
     box-shadow: 0 0 0 1px var(--border-light);
     border: 1px solid var(--border-light);
-    border-radius: 1rem;
-    margin-bottom: 1rem;
+    border-radius: $radius-xl;
+    margin-bottom: $space-4;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -1645,13 +1647,13 @@ select.form-control {
 }
 
 .prompt-options-toggle + div:not(.hidden) {
-    padding: 1.5rem;
+    padding: $space-5;
     background: var(--background-light);
     border: 1px solid var(--border-light);
     border-top: none;
     border-bottom-left-radius: 1rem;
     border-bottom-right-radius: 1rem;
-    margin-bottom: 1rem;
+    margin-bottom: $space-4;
     box-shadow: 0 0 0 1px var(--border-light);
 }
 
@@ -1699,7 +1701,7 @@ input[type="checkbox"] {
 
 /* Compact table header */
 .file-table thead th {
-    padding: 0.75rem 0.5rem;
+    padding: $space-3 $space-2;
 }
 
 .file-table tbody::-webkit-scrollbar {
@@ -1724,7 +1726,7 @@ input[type="checkbox"] {
 }
 
 .file-table th {
-    padding: 1rem;
+    padding: $space-4;
     text-align: left;
     color: var(--text-muted-light);
     font-weight: 700;
@@ -1743,7 +1745,7 @@ input[type="checkbox"] {
 }
 
 .file-table td {
-    padding: 0.5rem;
+    padding: $space-2;
     color: var(--text-dark);
     font-size: 0.875rem;
     vertical-align: middle;
@@ -1753,7 +1755,7 @@ input[type="checkbox"] {
 .file-table .file-icon-cell {
     font-size: 1.125rem;
     vertical-align: middle;
-    margin-right: 0.5rem;
+    margin-right: $space-2;
     flex-shrink: 0;
 }
 
@@ -1786,7 +1788,7 @@ input[type="checkbox"] {
     box-shadow: 0 0 0 1px var(--border-light);
     border: 1px solid var(--border-light);
     color: var(--text-dark);
-    border-radius: 0.375rem;
+    border-radius: $radius-sm;
     cursor: pointer;
     font-size: 1rem;
     font-weight: 600;
@@ -1838,14 +1840,14 @@ input[type="checkbox"] {
 .file-action-group--labeled {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.5rem;
+    gap: $space-2;
 }
 
 .file-row-actions {
     width: 160px;
     text-align: center;
     white-space: nowrap;
-    padding: 0.5rem;
+    padding: $space-2;
 }
 
 /* ========================================
@@ -1854,9 +1856,9 @@ input[type="checkbox"] {
 
 .message {
     position: relative;
-    padding: 1rem 2.75rem 1rem 1.5rem;
-    border-radius: 1rem;
-    margin: 1rem 0;
+    padding: $space-4 $space-7 $space-4 $space-5;
+    border-radius: $radius-xl;
+    margin: $space-4 0;
     font-weight: 600;
     box-shadow: 0 0 0 1px var(--border-light);
 }
@@ -1869,8 +1871,8 @@ input[type="checkbox"] {
     background: transparent;
     color: inherit;
     cursor: pointer;
-    padding: 0.25rem 0.5rem;
-    border-radius: 0.5rem;
+    padding: $space-1 $space-2;
+    border-radius: $radius-md;
     font-size: 1.25rem;
     line-height: 1;
     font-weight: 700;
@@ -1905,8 +1907,8 @@ input[type="checkbox"] {
    ======================================== */
 
 .app-footer {
-    padding: 1.5rem 2rem;
-    margin-top: 3rem;
+    padding: $space-5 $space-6;
+    margin-top: $space-7;
     border-top: 1px solid var(--border-light);
     border-radius: 2rem;
 }
@@ -1916,13 +1918,13 @@ input[type="checkbox"] {
     justify-content: center;
     align-items: center;
     flex-wrap: wrap;
-    gap: 0.5rem 1.5rem;
+    gap: $space-2 $space-5;
 }
 
 .footer-links a {
     display: inline-flex;
     align-items: center;
-    gap: 0.4rem;
+    gap: $space-2;
     color: var(--text-muted-light);
     text-decoration: none;
     font-size: 0.8125rem;
@@ -1954,8 +1956,8 @@ input[type="checkbox"] {
    ======================================== */
 
 #ttsOptions {
-    margin-top: 1rem;
-    padding: 1.5rem;
+    margin-top: $space-4;
+    padding: $space-5;
     background: linear-gradient(135deg, rgba(34, 197, 94, 0.1) 0%, rgba(34, 197, 94, 0.05) 100%);
     border: 1px solid rgba(34, 197, 94, 0.3);
     border-radius: 1.5rem;
@@ -1964,9 +1966,9 @@ input[type="checkbox"] {
 .gpu-status {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
-    padding: 0.75rem 1rem;
-    border-radius: 1rem;
+    gap: $space-3;
+    padding: $space-3 $space-4;
+    border-radius: $radius-xl;
     font-size: 0.875rem;
     transition: all 0.3s ease;
 }
@@ -2024,12 +2026,12 @@ input[type="checkbox"] {
     appearance: none;
     width: 100%;
     height: 8px;
-    border-radius: 4px;
+    border-radius: $radius-sm;
     background: var(--background-light);
     box-shadow: inset 0 0 0 1px var(--border-light);
     outline: none;
     cursor: pointer;
-    margin-top: 0.5rem;
+    margin-top: $space-2;
 }
 
 .tts-slider::-webkit-slider-thumb {
@@ -2070,8 +2072,8 @@ input[type="checkbox"] {
 .key-status {
     font-size: 0.75rem;
     font-weight: 600;
-    margin-left: 0.5rem;
-    padding: 0.25rem 0.75rem;
+    margin-left: $space-2;
+    padding: $space-1 $space-3;
     border-radius: 9999px;
     vertical-align: middle;
 }
@@ -2117,7 +2119,7 @@ input[type="checkbox"] {
 
 .modal-header {
     background: var(--background-light);
-    padding: 1.5rem 2rem;
+    padding: $space-5 $space-6;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -2131,16 +2133,16 @@ input[type="checkbox"] {
 }
 
 .modal-body {
-    padding: 2rem;
+    padding: $space-6;
 }
 
 .modal-footer {
-    padding: 1.5rem 2rem;
+    padding: $space-5 $space-6;
     background: var(--background-light);
     border-top: 1px solid var(--border-light);
     display: flex;
     justify-content: flex-end;
-    gap: 1rem;
+    gap: $space-4;
 }
 
 .close-btn {
@@ -2167,24 +2169,24 @@ input[type="checkbox"] {
    ======================================== */
 
 .completion-card {
-    margin-top: 1.25rem;
-    margin-bottom: 1rem;
-    padding: 1.25rem 1.5rem;
+    margin-top: $space-4;
+    margin-bottom: $space-4;
+    padding: $space-4 $space-5;
     background: var(--background-light);
     border: 1px solid var(--success-light);
     border-left: 4px solid var(--success-light);
-    border-radius: 1rem;
+    border-radius: $radius-xl;
     box-shadow: 0 0 0 1px var(--border-light);
     display: flex;
     flex-direction: column;
-    gap: 0.85rem;
+    gap: $space-3;
     overflow: hidden;
 }
 
 .completion-card__top {
     display: flex;
     align-items: flex-start;
-    gap: 1rem;
+    gap: $space-4;
     min-width: 0;
 }
 
@@ -2214,13 +2216,13 @@ input[type="checkbox"] {
     min-width: 0;
     display: flex;
     flex-direction: column;
-    gap: 0.55rem;
+    gap: $space-2;
 }
 
 .completion-card__header {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
+    gap: $space-3;
 }
 
 .completion-card__title {
@@ -2228,7 +2230,7 @@ input[type="checkbox"] {
     color: var(--text-dark);
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: $space-2;
     margin: 0;
     font-size: 1rem;
     min-width: 0;
@@ -2246,8 +2248,8 @@ input[type="checkbox"] {
     border: none;
     color: var(--text-muted-light);
     cursor: pointer;
-    padding: 0.25rem;
-    border-radius: 0.5rem;
+    padding: $space-1;
+    border-radius: $radius-md;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -2273,12 +2275,12 @@ input[type="checkbox"] {
 .completion-card__actions {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.5rem;
+    gap: $space-2;
     margin-top: 0.1rem;
 }
 
 .completion-card__actions .btn {
-    padding: 0.5rem 0.9rem;
+    padding: $space-2 $space-4;
     font-size: 0.875rem;
 }
 
@@ -2307,19 +2309,19 @@ input[type="checkbox"] {
    advice surfaces stay visually paired. */
 .completion-card__warning {
     background: var(--primary-light);
-    border-radius: 8px;
-    padding: 0.75rem 1rem;
+    border-radius: $radius-md;
+    padding: $space-3 $space-4;
     color: white;
     font-size: 0.85rem;
     line-height: 1.5;
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
+    gap: $space-2;
 }
 .completion-card__warning-heading {
     display: flex;
     align-items: center;
-    gap: 0.4rem;
+    gap: $space-2;
     font-weight: 600;
 }
 .completion-card__warning-heading .material-symbols-outlined {
@@ -2331,15 +2333,15 @@ input[type="checkbox"] {
 }
 .completion-card__warning-recommendations strong {
     display: block;
-    margin-bottom: 0.4rem;
+    margin-bottom: $space-2;
     color: white;
 }
 .completion-card__warning-recommendations .recommendation-list {
     margin: 0;
-    padding-left: 1.25rem;
+    padding-left: $space-4;
 }
 .completion-card__warning-recommendations .recommendation-list li + li {
-    margin-top: 0.25rem;
+    margin-top: $space-1;
 }
 .completion-card__warning-recommendations .recommendation-link {
     color: white;
@@ -2355,7 +2357,7 @@ input[type="checkbox"] {
 /* Expert-level note appended under the recommendations (Phase 2 tag alignment
    trade-off). Deliberately quieter than the tips above it. */
 .completion-card__warning-note {
-    margin: 0.5rem 0 0;
+    margin: $space-2 0 0;
     font-size: 0.8rem;
     opacity: 0.9;
 }
@@ -2366,11 +2368,11 @@ input[type="checkbox"] {
     align-self: flex-start;
     display: inline-flex;
     align-items: center;
-    gap: 0.3rem;
+    gap: $space-1;
     background: rgba(255, 255, 255, 0.15);
     border: 1px solid rgba(255, 255, 255, 0.45);
-    border-radius: 6px;
-    padding: 0.3rem 0.6rem;
+    border-radius: $radius-sm;
+    padding: $space-1 $space-2;
     color: white;
     font-family: inherit;
     font-size: 0.8rem;
@@ -2397,19 +2399,19 @@ input[type="checkbox"] {
    ======================================== */
 
 .model-override-panel {
-    margin-top: 15px;
-    padding-top: 15px;
+    margin-top: $space-4;
+    padding-top: $space-4;
     border-top: 1px solid #e5e7eb;
 }
 
 .model-override-panel__original {
     font-size: 12px;
     color: #6b7280;
-    margin-bottom: 10px;
+    margin-bottom: $space-2;
 }
 
 .model-override-panel__actions {
-    margin-top: 12px;
+    margin-top: $space-3;
 }
 
 /* Shown only once the chosen model diverges from the one the job started on.
@@ -2417,10 +2419,10 @@ input[type="checkbox"] {
    than the literals this markup used to carry inline, so it stays readable in
    both themes. */
 .model-override-panel .resume-style-warning {
-    margin-top: 10px;
-    padding: 8px;
+    margin-top: $space-2;
+    padding: $space-2;
     border: 1px solid var(--warning-light-border);
-    border-radius: 6px;
+    border-radius: $radius-sm;
     background: var(--warning-light-bg);
     color: var(--warning-light-text);
     font-size: 12px;
@@ -2436,10 +2438,10 @@ input[type="checkbox"] {
    styles expect. Every control then renders exactly as it does elsewhere in the
    app, and dark mode follows for free because html.dark redefines these vars. */
 .completion-card__warning .model-override-panel {
-    margin-top: 0.85rem;
-    padding: 0.9rem 1rem 1rem;
+    margin-top: $space-3;
+    padding: $space-4 $space-4 $space-4;
     border-top: none;
-    border-radius: 10px;
+    border-radius: $radius-md;
     background: var(--background-light);
     color: var(--text-dark);
 }
@@ -2509,7 +2511,7 @@ input[type="range"]::-moz-range-thumb {
 
 #fileListContainer {
     list-style: none;
-    padding: 1rem;
+    padding: $space-4;
     margin: 0;
     background: var(--background-light);
     box-shadow: inset 0 0 0 1px var(--border-light);
@@ -2521,12 +2523,12 @@ input[type="range"]::-moz-range-thumb {
     display: flex;
     flex-direction: column;
     align-items: stretch;
-    gap: 8px;
-    padding: 12px;
-    margin-bottom: 8px;
+    gap: $space-2;
+    padding: $space-3;
+    margin-bottom: $space-2;
     background: var(--background-light);
     border: 1px solid var(--border-light);
-    border-radius: 0.75rem;
+    border-radius: $radius-lg;
     transition: all 0.2s ease;
     position: relative;
     overflow: hidden;
@@ -2535,12 +2537,12 @@ input[type="range"]::-moz-range-thumb {
 .file-item-header {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: $space-3;
 }
 
 .file-cost-badge {
     margin-top: 0;
-    margin-left: 36px;
+    margin-left: $space-6;
 }
 
 /* Clickable file items (Queued status) */
@@ -2574,22 +2576,22 @@ input[type="range"]::-moz-range-thumb {
     bottom: 0;
     width: 4px;
     background: var(--primary-light);
-    border-radius: 0.75rem 0 0 0.75rem;
+    border-radius: $radius-lg 0 0 $radius-lg;
 }
 
 .file-active-badge {
     display: inline-flex;
     align-items: center;
-    gap: 4px;
-    padding: 2px 8px;
+    gap: $space-1;
+    padding: 2px $space-2;
     font-size: 0.7rem;
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.5px;
     color: var(--primary-light);
     background: rgba(54, 118, 216, 0.1);
-    border-radius: 4px;
-    margin-left: 8px;
+    border-radius: $radius-sm;
+    margin-left: $space-2;
 }
 
 .file-icon {
@@ -2600,7 +2602,7 @@ input[type="range"]::-moz-range-thumb {
     align-items: center;
     justify-content: center;
     overflow: hidden;
-    border-radius: 4px;
+    border-radius: $radius-sm;
     background: rgba(54, 118, 216, 0.05);
     font-size: 2rem;
 }
@@ -2609,7 +2611,7 @@ input[type="range"]::-moz-range-thumb {
     width: 48px;
     height: 64px;
     object-fit: cover;
-    border-radius: 4px;
+    border-radius: $radius-sm;
     box-shadow: 0 0 0 1px var(--border-light);
 }
 
@@ -2632,12 +2634,12 @@ input[type="range"]::-moz-range-thumb {
 
 .file-remove-btn {
     margin-left: auto;
-    padding: 4px;
+    padding: $space-1;
     border: none;
     background: transparent;
     color: var(--text-muted-light);
     cursor: pointer;
-    border-radius: 4px;
+    border-radius: $radius-sm;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -2686,9 +2688,9 @@ html.dark .file-info {
 
 .resumable-job-card {
     border: 1px solid var(--border-light) !important;
-    padding: 20px;
-    margin-bottom: 15px;
-    border-radius: 1rem !important;
+    padding: $space-4;
+    margin-bottom: $space-4;
+    border-radius: $radius-xl !important;
     background: var(--background-light) !important;
     box-shadow: 0 0 0 1px var(--border-light);
     transition: transform 0.2s ease, box-shadow 0.2s ease;
@@ -2700,7 +2702,7 @@ html.dark .file-info {
 }
 
 #resumableJobsList {
-    padding: 1rem;
+    padding: $space-4;
     background: var(--background-light);
     box-shadow: inset 0 0 0 1px var(--border-light);
     border: 1px solid var(--border-light);
@@ -2710,26 +2712,6 @@ html.dark .file-info {
 /* ========================================
    Responsive Design
    ======================================== */
-
-@media (max-width: 768px) {
-    body {
-        padding: 1rem;
-    }
-
-    .header {
-        flex-direction: column;
-        gap: 1rem;
-        padding: 1rem;
-    }
-
-    .card-body {
-        padding: 1.5rem;
-    }
-
-    .file-upload {
-        padding: 2rem;
-    }
-}
 
 /* ========================================
    Searchable Select Component
@@ -2744,8 +2726,8 @@ html.dark .file-info {
 .searchable-select-display {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
-    padding: 0.75rem 1rem;
+    gap: $space-2;
+    padding: $space-3 $space-4;
     background: transparent;
     border: none;
     cursor: pointer;
@@ -2781,7 +2763,7 @@ html.dark .file-info {
 .searchable-select-badge {
     font-size: 0.7rem;
     font-weight: 600;
-    padding: 0.2rem 0.5rem;
+    padding: 0.2rem $space-2;
     background: rgba(54, 118, 216, 0.12);
     color: var(--primary-light);
     border-radius: 9999px;
@@ -2807,7 +2789,7 @@ html.dark .file-info {
     z-index: 12000;
     background: var(--background-light);
     border: 2px solid var(--primary-light);
-    border-radius: 1rem;
+    border-radius: $radius-xl;
     box-shadow: 0 0 0 1px var(--border-light);
     max-height: 0;
     overflow: hidden;
@@ -2830,8 +2812,8 @@ html.dark .file-info {
 .searchable-select-search {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
-    padding: 0.75rem 1rem;
+    gap: $space-2;
+    padding: $space-3 $space-4;
     border-bottom: 1px solid var(--border-light);
     background: rgba(54, 118, 216, 0.03);
     flex: 0 0 auto; /* never shrink when dropdown height is tight */
@@ -2849,7 +2831,7 @@ html.dark .file-info {
     font-size: 0.9rem;
     color: var(--text-dark);
     outline: none;
-    padding: 0.25rem 0;
+    padding: $space-1 0;
 }
 
 .searchable-select-input::placeholder {
@@ -2862,7 +2844,7 @@ html.dark .file-info {
     justify-content: center;
     background: none;
     border: none;
-    padding: 0.25rem;
+    padding: $space-1;
     cursor: pointer;
     color: var(--text-muted-light);
     border-radius: 50%;
@@ -2882,7 +2864,7 @@ html.dark .file-info {
 .searchable-select-options {
     list-style: none;
     margin: 0;
-    padding: 0.5rem 0;
+    padding: $space-2 0;
     /* Fill the remaining dropdown height (after the search header) and scroll.
        min-height:0 lets the flex item shrink below its content size. */
     flex: 1 1 auto;
@@ -2891,11 +2873,11 @@ html.dark .file-info {
 }
 
 .searchable-select-option {
-    padding: 0.625rem 1rem;
+    padding: $space-2 $space-4;
     cursor: pointer;
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: $space-2;
     transition: background 0.15s;
 }
 
@@ -2949,7 +2931,7 @@ html.dark .file-info {
 
 /* Group headers - sticky with opaque background */
 .searchable-select-group {
-    padding: 0.625rem 1rem 0.375rem;
+    padding: $space-2 $space-4 $space-1;
     font-size: 0.7rem;
     font-weight: 700;
     text-transform: uppercase;
@@ -2968,14 +2950,14 @@ html.dark .file-info {
 
 /* No results */
 .searchable-select-no-results {
-    padding: 1.5rem 1rem;
+    padding: $space-5 $space-4;
     text-align: center;
     color: var(--text-muted-light);
     font-size: 0.875rem;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 0.5rem;
+    gap: $space-2;
 }
 
 .searchable-select-no-results .material-symbols-outlined {
@@ -2998,7 +2980,7 @@ html.dark .file-info {
 
 .searchable-select-options::-webkit-scrollbar-thumb {
     background: var(--border-light);
-    border-radius: 4px;
+    border-radius: $radius-sm;
 }
 
 .searchable-select-options::-webkit-scrollbar-thumb:hover {
@@ -3050,14 +3032,14 @@ html.dark .searchable-select-group {
 .provider-option {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: $space-2;
 }
 
 .provider-logo {
     width: 20px;
     height: 20px;
     flex-shrink: 0;
-    border-radius: 4px;
+    border-radius: $radius-sm;
     object-fit: contain;
 }
 
@@ -3090,9 +3072,9 @@ html.dark .searchable-select-group {
 .app-toast {
     display: flex;
     align-items: flex-start;
-    gap: 0.55rem;
-    padding: 0.7rem 0.9rem 0.7rem 0.85rem;
-    border-radius: 0.65rem;
+    gap: $space-2;
+    padding: $space-3 $space-4 $space-3 $space-3;
+    border-radius: $radius-lg;
     background: var(--background-outer);
     color: var(--text-dark);
     border: 1px solid var(--border-light);
@@ -3128,11 +3110,11 @@ html.dark .searchable-select-group {
     border: 0;
     cursor: pointer;
     padding: 0;
-    margin-left: 0.25rem;
+    margin-left: $space-1;
     color: var(--text-muted-light);
     display: flex;
     align-items: center;
-    border-radius: 4px;
+    border-radius: $radius-sm;
 }
 .app-toast .app-toast-close:hover {
     color: var(--text-dark);
@@ -3176,7 +3158,7 @@ html.dark .searchable-select-group {
     display: inline-flex;
     align-items: center;
     gap: 0.2rem;
-    margin-left: 0.5rem;
+    margin-left: $space-2;
     font-size: 0.75rem;
     color: var(--success-light);
     opacity: 0;
@@ -3198,15 +3180,15 @@ html.dark .searchable-select-group {
 .glossary-search-row {
     display: flex;
     align-items: center;
-    gap: 0.6rem;
-    margin-bottom: 0.6rem;
+    gap: $space-2;
+    margin-bottom: $space-2;
 }
 .glossary-search-row input {
     flex: 1;
-    padding: 0.45rem 0.7rem;
+    padding: $space-2 $space-3;
     background: var(--background-outer);
     border: 1px solid var(--border-light);
-    border-radius: 0.5rem;
+    border-radius: $radius-md;
     color: var(--text-dark);
     font-size: 0.875rem;
 }
@@ -3225,10 +3207,10 @@ html.dark .searchable-select-group {
 .glossary-hint {
     display: flex;
     align-items: flex-start;
-    gap: 0.5rem;
-    margin: 0.75rem 0 0.75rem;
-    padding: 0.55rem 0.75rem;
-    border-radius: 6px;
+    gap: $space-2;
+    margin: $space-3 0 $space-3;
+    padding: $space-2 $space-3;
+    border-radius: $radius-sm;
     background: var(--background-light);
     border: 1px solid var(--border-light);
     color: var(--text-dark);
@@ -3242,7 +3224,7 @@ html.dark .searchable-select-group {
     flex-shrink: 0;
 }
 .glossary-hint code {
-    padding: 1px 5px;
+    padding: 1px $space-1;
     border-radius: 3px;
     background: rgba(0, 0, 0, 0.05);
     font-size: 0.85em;
@@ -3274,12 +3256,12 @@ html.dark .glossary-hint code {
 .glossary-bulk-bar {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
-    padding: 0.55rem 0.75rem;
-    margin-bottom: 0.6rem;
+    gap: $space-2;
+    padding: $space-2 $space-3;
+    margin-bottom: $space-2;
     background: var(--info-light-bg);
     border: 1px solid var(--info-light);
-    border-radius: 0.55rem;
+    border-radius: $radius-md;
     font-size: 0.85rem;
 }
 .glossary-bulk-bar .glossary-bulk-count {
@@ -3287,10 +3269,10 @@ html.dark .glossary-hint code {
     color: var(--text-dark);
 }
 .glossary-bulk-bar select {
-    padding: 0.3rem 0.5rem;
+    padding: $space-1 $space-2;
     background: var(--background-outer);
     border: 1px solid var(--border-light);
-    border-radius: 0.35rem;
+    border-radius: $radius-sm;
     color: var(--text-dark);
     font-size: 0.85rem;
 }
@@ -3300,16 +3282,16 @@ html.dark .glossary-hint code {
 
 /* Translate-tab glossary info card */
 .glossary-info-card {
-    margin-top: 0.6rem;
-    padding: 0.6rem 0.8rem;
+    margin-top: $space-2;
+    padding: $space-2 $space-3;
     background: var(--background-light);
     border: 1px solid var(--border-light);
-    border-radius: 0.55rem;
+    border-radius: $radius-md;
     font-size: 0.85rem;
     color: var(--text-dark);
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: $space-2;
     flex-wrap: wrap;
 }
 .glossary-info-card .glossary-info-meta {
@@ -3342,7 +3324,7 @@ html.dark .glossary-hint code {
     color: #b45309;
     display: inline-flex;
     align-items: center;
-    gap: 0.3rem;
+    gap: $space-1;
 }
 html.dark .glossary-info-card.is-warning {
     background: rgba(245, 158, 11, 0.13);
@@ -3365,7 +3347,7 @@ html.dark .glossary-info-card .glossary-info-warn {
 .glossary-ner-loading {
     display: inline-flex;
     align-items: center;
-    gap: 0.3rem;
+    gap: $space-1;
 }
 .glossary-ner-loading .dot {
     width: 6px;
@@ -3386,11 +3368,11 @@ html.dark .glossary-info-card .glossary-info-warn {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 0.5rem;
-    padding: 1.4rem 1rem;
+    gap: $space-2;
+    padding: $space-5 $space-4;
     background: var(--background-light);
     border: 1px dashed var(--border-light);
-    border-radius: 0.6rem;
+    border-radius: $radius-md;
     color: var(--text-muted-light);
     transition: background 0.15s, border-color 0.15s;
     text-align: center;
@@ -3402,7 +3384,7 @@ html.dark .glossary-info-card .glossary-info-warn {
 .glossary-ner-dropzone .ner-dropzone-primary {
     display: flex;
     align-items: center;
-    gap: 0.6rem;
+    gap: $space-2;
 }
 .glossary-ner-dropzone .ner-dropzone-or {
     font-size: 0.85rem;
@@ -3447,7 +3429,7 @@ html.dark .glossary-info-card .glossary-info-warn {
    live in their own row below. */
 .style-editor-header {
     flex-wrap: wrap;
-    padding: 1.25rem 2rem;
+    padding: $space-4 $space-6;
     /* The toolbar row right below shares the same background and carries the
        separator, so the header must not draw a second rule between them. */
     border-bottom: none;
@@ -3459,7 +3441,7 @@ html.dark .glossary-info-card .glossary-info-warn {
 }
 
 .style-editor-header .style-editor-back {
-    padding: 0.5rem;
+    padding: $space-2;
 }
 
 .style-editor-header .style-editor-name {
@@ -3470,14 +3452,14 @@ html.dark .glossary-info-card .glossary-info-warn {
     min-height: 2.25rem;
     max-height: 2.25rem;
     line-height: 2.25rem;
-    padding: 0 0.75rem;
+    padding: 0 $space-3;
     font-size: 0.95rem;
     border: 1px solid var(--border-light);
 }
 
 .style-editor-header .style-editor-mode {
     width: auto;
-    padding: 0.25rem 0.5rem;
+    padding: $space-1 $space-2;
     font-size: 0.85rem;
 }
 
@@ -3485,8 +3467,8 @@ html.dark .glossary-info-card .glossary-info-warn {
     display: flex;
     flex-wrap: wrap;
     justify-content: flex-end;
-    gap: 0.5rem;
-    padding: 0.75rem 2rem;
+    gap: $space-2;
+    padding: $space-3 $space-6;
     background: var(--background-light);
     border-bottom: 1px solid var(--border-light);
 }
@@ -3502,30 +3484,30 @@ html.dark .glossary-info-card .glossary-info-warn {
 .style-rule-list {
     display: flex;
     flex-direction: column;
-    gap: 0.6rem;
-    margin-bottom: 1.25rem;
+    gap: $space-2;
+    margin-bottom: $space-4;
 }
 
 .style-rule-card {
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
-    padding: 0.75rem 0.85rem;
+    gap: $space-2;
+    padding: $space-3 $space-3;
     background: var(--background-light);
     border: 1px solid var(--border-light);
-    border-radius: 0.6rem;
+    border-radius: $radius-md;
     transition: opacity 0.15s, border-color 0.15s;
 }
 
 .style-rule-card-head {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: $space-2;
     flex-wrap: wrap;
 }
 
 .style-rule-dimension-badge {
-    padding: 0.15rem 0.55rem;
+    padding: 0.15rem $space-2;
     background: var(--background-outer);
     border: 1px solid var(--border-light);
     border-radius: 999px;
@@ -3563,7 +3545,7 @@ html.dark .glossary-info-card .glossary-info-warn {
    written into a preset. */
 .style-rule-evidence {
     margin: 0;
-    padding-left: 0.6rem;
+    padding-left: $space-2;
     border-left: 2px solid var(--border-light);
     color: var(--text-muted-light);
     font-size: 0.8rem;
@@ -3574,8 +3556,8 @@ html.dark .glossary-info-card .glossary-info-warn {
 .style-rule-selectall {
     display: inline-flex;
     align-items: center;
-    gap: 0.45rem;
-    margin-bottom: 0.6rem;
+    gap: $space-2;
+    margin-bottom: $space-2;
     color: var(--text-muted-light);
     font-size: 0.85rem;
     cursor: pointer;
@@ -3588,7 +3570,7 @@ html.dark .glossary-info-card .glossary-info-warn {
 .style-rule-card-head .style-rule-dimension {
     width: auto;
     min-width: 11rem;
-    padding: 0.25rem 0.5rem;
+    padding: $space-1 $space-2;
     font-size: 0.85rem;
 }
 
@@ -3596,12 +3578,12 @@ html.dark .glossary-info-card .glossary-info-warn {
 .glossary-ner-file-pill {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
-    margin-top: 0.55rem;
-    padding: 0.5rem 0.65rem;
+    gap: $space-2;
+    margin-top: $space-2;
+    padding: $space-2 $space-3;
     background: var(--background-light);
     border: 1px solid var(--border-light);
-    border-radius: 0.5rem;
+    border-radius: $radius-md;
     font-size: 0.85rem;
 }
 .glossary-ner-file-pill .ner-file-pill-name {
@@ -3622,7 +3604,7 @@ html.dark .glossary-info-card .glossary-info-warn {
     color: var(--text-muted-light);
     cursor: pointer;
     padding: 0.15rem;
-    border-radius: 0.3rem;
+    border-radius: $radius-sm;
     line-height: 0;
 }
 .glossary-ner-file-pill .ner-file-clear-btn:hover {
@@ -3635,8 +3617,8 @@ html.dark .glossary-info-card .glossary-info-warn {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 0.7rem;
-    padding: 2.2rem 1rem;
+    gap: $space-3;
+    padding: $space-6 $space-4;
 }
 .glossary-empty-cta p {
     color: var(--text-muted-light);
@@ -3644,7 +3626,7 @@ html.dark .glossary-info-card .glossary-info-warn {
 }
 .glossary-empty-cta-actions {
     display: flex;
-    gap: 0.5rem;
+    gap: $space-2;
     flex-wrap: wrap;
     justify-content: center;
 }
@@ -3654,8 +3636,8 @@ html.dark .glossary-info-card .glossary-info-warn {
     white-space: pre-wrap;
     background: var(--background-light);
     border: 1px solid var(--border-light);
-    border-radius: 0.5rem;
-    padding: 0.7rem 0.9rem;
+    border-radius: $radius-md;
+    padding: $space-3 $space-4;
     font-family: 'Courier New', monospace;
     font-size: 0.8rem;
     color: var(--text-dark);
@@ -3672,7 +3654,7 @@ html.dark .glossary-info-card .glossary-info-warn {
 .ner-modal-title {
     display: flex;
     align-items: center;
-    gap: 0.6rem;
+    gap: $space-2;
     margin: 0;
     color: var(--text-dark);
     font-weight: 700;
@@ -3682,7 +3664,7 @@ html.dark .glossary-info-card .glossary-info-warn {
     font-size: 1.4rem;
 }
 .ner-modal-intro {
-    margin: 0 0 1.25rem 0;
+    margin: 0 0 $space-4 0;
     color: var(--text-muted-light);
     font-size: 0.9rem;
     line-height: 1.55;
@@ -3696,14 +3678,14 @@ html.dark .glossary-info-card .glossary-info-warn {
 .ner-settings-row {
     display: flex;
     align-items: flex-end;
-    gap: 1.25rem;
-    margin-top: 1.1rem;
+    gap: $space-4;
+    margin-top: $space-4;
     flex-wrap: wrap;
 }
 .ner-settings-field {
     display: flex;
     flex-direction: column;
-    gap: 0.35rem;
+    gap: $space-1;
 }
 .ner-settings-label {
     font-size: 0.72rem;
@@ -3714,10 +3696,10 @@ html.dark .glossary-info-card .glossary-info-warn {
 }
 .ner-settings-input {
     width: 110px;
-    padding: 0.5rem 0.75rem;
+    padding: $space-2 $space-3;
     background: var(--background-light);
     border: 1px solid var(--border-light);
-    border-radius: 0.5rem;
+    border-radius: $radius-md;
     color: var(--text-dark);
     font-size: 0.9rem;
     font-variant-numeric: tabular-nums;
@@ -3749,11 +3731,11 @@ html.dark .glossary-info-card .glossary-info-warn {
 
 /* Results step */
 .ner-warnings {
-    margin-bottom: 1rem;
-    padding: 0.7rem 1rem;
+    margin-bottom: $space-4;
+    padding: $space-3 $space-4;
     background: rgba(245, 158, 11, 0.12);
     border: 1px solid rgba(245, 158, 11, 0.35);
-    border-radius: 0.55rem;
+    border-radius: $radius-md;
     color: var(--text-dark);
     font-size: 0.85rem;
     line-height: 1.4;
@@ -3765,17 +3747,17 @@ html.dark .ner-warnings {
 }
 .ner-warnings ul {
     margin: 0;
-    padding-left: 1.2rem;
+    padding-left: $space-4;
 }
 .ner-warnings li + li {
-    margin-top: 0.25rem;
+    margin-top: $space-1;
 }
 .ner-results-header {
     display: flex;
     align-items: baseline;
     justify-content: space-between;
-    gap: 1rem;
-    margin-bottom: 0.85rem;
+    gap: $space-4;
+    margin-bottom: $space-3;
     flex-wrap: wrap;
 }
 .ner-results-count-label {
@@ -3786,12 +3768,12 @@ html.dark .ner-warnings {
     color: var(--primary-light);
     font-size: 1.05rem;
     font-weight: 700;
-    margin-right: 0.25rem;
+    margin-right: $space-1;
 }
 .ner-results-new-count {
     color: var(--text-muted-light);
     font-weight: 400;
-    margin-left: 0.35rem;
+    margin-left: $space-1;
 }
 .ner-results-hint {
     font-size: 0.8rem;
@@ -3802,7 +3784,7 @@ html.dark .ner-warnings {
     max-height: 380px;
     overflow-y: auto;
     border: 1px solid var(--border-light);
-    border-radius: 0.6rem;
+    border-radius: $radius-md;
     background: var(--background-light);
 }
 .ner-results-table-wrap #ner-candidates-table {
@@ -3812,7 +3794,7 @@ html.dark .ner-warnings {
 /* Footer button icons inside the NER modal */
 #ner-modal .modal-footer .btn .material-symbols-outlined {
     font-size: 1rem;
-    margin-right: 0.25rem;
+    margin-right: $space-1;
     vertical-align: -2px;
 }
 
@@ -3822,10 +3804,10 @@ html.dark .ner-warnings {
 .cost-badge {
     display: none;
     align-items: center;
-    gap: 0.5rem;
-    margin-top: 0.6rem;
-    padding: 0.45rem 0.75rem;
-    border-radius: 0.6rem;
+    gap: $space-2;
+    margin-top: $space-2;
+    padding: $space-2 $space-3;
+    border-radius: $radius-md;
     background: var(--background-light);
     color: var(--text-dark);
     font-size: 0.85rem;
@@ -3850,8 +3832,8 @@ html.dark .ner-warnings {
     background: transparent;
     border: 1px solid var(--border-light);
     color: var(--primary-light);
-    padding: 0.15rem 0.55rem;
-    border-radius: 0.4rem;
+    padding: 0.15rem $space-2;
+    border-radius: $radius-md;
     font-size: 0.75rem;
     font-weight: 600;
     cursor: pointer;
@@ -3897,7 +3879,7 @@ html.dark .cost-badge.cost-error {
     max-width: 480px;
 }
 .cost-pricing-subtitle {
-    margin: 0 0 0.5rem 0;
+    margin: 0 0 $space-2 0;
     color: var(--text-muted-light);
     font-size: 0.9rem;
 }
@@ -3906,7 +3888,7 @@ html.dark .cost-badge.cost-error {
     font-weight: 600;
 }
 .cost-pricing-help {
-    margin: 0 0 1rem 0;
+    margin: 0 0 $space-4 0;
     color: var(--text-muted-light);
     font-size: 0.8125rem;
     line-height: 1.5;
@@ -3914,14 +3896,14 @@ html.dark .cost-badge.cost-error {
 .cost-pricing-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 1rem;
+    gap: $space-4;
 }
 .cost-pricing-note {
-    margin: 1rem 0 0 0;
-    padding: 0.5rem 0.75rem;
+    margin: $space-4 0 0 0;
+    padding: $space-2 $space-3;
     background: var(--info-light-bg);
     color: var(--info-light);
-    border-radius: 0.5rem;
+    border-radius: $radius-md;
     font-size: 0.8125rem;
 }
 
@@ -3932,12 +3914,12 @@ html.dark .cost-badge.cost-error {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 1rem;
-    margin: 0 0 1rem 0;
-    padding: 0.75rem 1rem;
+    gap: $space-4;
+    margin: 0 0 $space-4 0;
+    padding: $space-3 $space-4;
     background: var(--info-light-bg);
     border: 1px solid var(--info-light);
-    border-radius: 0.75rem;
+    border-radius: $radius-lg;
     color: var(--text-dark);
     font-size: 0.9rem;
     box-shadow: 0 0 0 1px var(--border-light);
@@ -3948,22 +3930,22 @@ html.dark .cost-badge.cost-error {
 .update-banner__actions {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: $space-2;
     flex: 0 0 auto;
 }
 .update-banner__actions .btn {
-    padding: 0.45rem 0.85rem;
+    padding: $space-2 $space-3;
     font-size: 0.85rem;
     font-weight: 600;
-    border-radius: 0.5rem;
+    border-radius: $radius-md;
 }
 .update-banner__close {
     background: transparent;
     border: none;
     color: var(--text-muted-light);
     cursor: pointer;
-    padding: 0.25rem;
-    border-radius: 0.4rem;
+    padding: $space-1;
+    border-radius: $radius-md;
     display: inline-flex;
     align-items: center;
     line-height: 1;
@@ -3985,26 +3967,26 @@ html.dark .update-banner__close:hover {
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 1.5rem;
+    padding: $space-5;
 }
 .update-overlay.hidden { display: none; }
 .update-overlay__panel {
     background: var(--background-outer);
     color: var(--text-dark);
-    border-radius: 1rem;
-    padding: 1.5rem 1.75rem;
+    border-radius: $radius-xl;
+    padding: $space-5 $space-5;
     max-width: 640px;
     width: 100%;
     box-shadow: 0 0 0 1px var(--border-light);
     border: 1px solid var(--border-light);
 }
 .update-overlay__title {
-    margin: 0 0 0.5rem 0;
+    margin: 0 0 $space-2 0;
     font-size: 1.15rem;
     font-weight: 700;
 }
 .update-overlay__step {
-    margin: 0 0 1rem 0;
+    margin: 0 0 $space-4 0;
     color: var(--text-muted-light);
     font-size: 0.9rem;
 }
@@ -4013,8 +3995,8 @@ html.dark .update-banner__close:hover {
     overflow-y: auto;
     background: var(--background-light);
     border: 1px solid var(--border-light);
-    border-radius: 0.5rem;
-    padding: 0.75rem;
+    border-radius: $radius-md;
+    padding: $space-3;
     font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
     font-size: 0.78rem;
     line-height: 1.45;
@@ -4023,17 +4005,17 @@ html.dark .update-banner__close:hover {
     word-break: break-word;
 }
 .update-overlay__actions {
-    margin-top: 1rem;
+    margin-top: $space-4;
     display: flex;
     justify-content: flex-end;
-    gap: 0.5rem;
+    gap: $space-2;
 }
 .update-overlay__error {
-    margin: 0.5rem 0;
-    padding: 0.5rem 0.75rem;
+    margin: $space-2 0;
+    padding: $space-2 $space-3;
     background: rgba(220, 38, 38, 0.12);
     color: #dc2626;
-    border-radius: 0.5rem;
+    border-radius: $radius-md;
     font-size: 0.85rem;
 }
 html.dark .update-overlay__error { color: #fca5a5; }
@@ -4043,7 +4025,7 @@ html.dark .update-overlay__error { color: #fca5a5; }
    ======================================== */
 
 .sample-mode-btn {
-    padding: 0.5rem 1rem;
+    padding: $space-2 $space-4;
 }
 .sample-mode-btn-active {
     background: var(--primary-light);
@@ -4077,7 +4059,7 @@ html.dark .sample-column-card {
 .sample-column-card .sample-glossary-select {
     background: var(--background-outer);
     border: 1px solid var(--border-light);
-    border-radius: 0.75rem;
+    border-radius: $radius-lg;
 }
 .sample-column-card .sample-endpoint-input,
 .sample-column-card .sample-instructions-select,
@@ -4093,12 +4075,12 @@ html.dark .sample-column-card .sample-glossary-select {
 }
 
 .sample-warning {
-    padding: 8px 12px;
-    margin-bottom: 6px;
+    padding: $space-2 $space-3;
+    margin-bottom: $space-1;
     background: rgba(245, 158, 11, 0.12);
     color: #92400e;
     border-left: 3px solid #f59e0b;
-    border-radius: 0.5rem;
+    border-radius: $radius-md;
     font-size: 0.875rem;
 }
 html.dark .sample-warning {
@@ -4136,16 +4118,16 @@ html.dark .sample-warning-info {
 .sample-cards {
     display: flex;
     flex-direction: column;
-    gap: 18px;
+    gap: $space-4;
 }
 .sample-card {
     background: var(--background-outer);
-    border-radius: 0.9rem;
-    padding: 16px;
+    border-radius: $radius-xl;
+    padding: $space-4;
     box-shadow: 0 0 0 1px var(--border-light);
     display: flex;
     flex-direction: column;
-    gap: 14px;
+    gap: $space-3;
     position: relative;
 }
 html.dark .sample-card {
@@ -4154,9 +4136,9 @@ html.dark .sample-card {
 }
 
 .sample-card-source {
-    padding: 12px 14px;
-    padding-right: 42px;
-    border-radius: 0.6rem;
+    padding: $space-3 $space-3;
+    padding-right: $space-7;
+    border-radius: $radius-md;
     background: var(--background-light);
     box-shadow: inset 0 0 0 1px var(--border-light);
     position: relative;
@@ -4164,12 +4146,12 @@ html.dark .sample-card {
 .sample-file-card {
     display: flex;
     align-items: center;
-    gap: 16px;
-    padding: 14px 16px;
-    margin: 12px 0;
+    gap: $space-4;
+    padding: $space-3 $space-4;
+    margin: $space-3 0;
     background: var(--background-light);
     border: 1px solid var(--border-light);
-    border-radius: 0.85rem;
+    border-radius: $radius-lg;
     box-shadow: 0 0 0 1px var(--border-light);
     position: relative;
 }
@@ -4180,7 +4162,7 @@ html.dark .sample-card {
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: 6px;
+    border-radius: $radius-sm;
     background: var(--background-outer);
     box-shadow: inset 0 0 0 1px var(--border-light);
     color: var(--primary-light);
@@ -4200,7 +4182,7 @@ html.dark .sample-card {
     min-width: 0;
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: $space-1;
 }
 .sample-file-label {
     font-size: 0.6875rem;
@@ -4273,19 +4255,19 @@ html.dark .sample-card {
 .sample-add-row {
     display: flex;
     justify-content: center;
-    margin-top: 18px;
+    margin-top: $space-4;
 }
 .sample-empty {
     text-align: center;
     color: var(--text-muted-light);
     font-style: italic;
-    padding: 18px;
+    padding: $space-4;
 }
 .sample-card-source-meta {
     display: flex;
     align-items: center;
-    gap: 8px;
-    margin-bottom: 6px;
+    gap: $space-2;
+    margin-bottom: $space-1;
     flex-wrap: wrap;
 }
 .sample-card-source-index {
@@ -4310,23 +4292,23 @@ html.dark .sample-card {
 .sample-card-results {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: $space-3;
 }
 .sample-llm-block {
-    padding: 12px 14px;
-    border-radius: 0.6rem;
+    padding: $space-3 $space-3;
+    border-radius: $radius-md;
     border: 1px solid var(--border-light);
     background: var(--background-outer);
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: $space-2;
 }
 .sample-llm-header {
     display: flex;
     align-items: baseline;
-    gap: 10px;
+    gap: $space-2;
     flex-wrap: wrap;
-    padding-bottom: 6px;
+    padding-bottom: $space-1;
     border-bottom: 1px dashed var(--border-light);
 }
 .sample-llm-index {
@@ -4353,12 +4335,12 @@ html.dark .sample-card {
 .sample-llm-content {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: $space-3;
 }
 .sample-phase {
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: $space-1;
 }
 .sample-phase-label {
     font-size: 0.6875rem;
@@ -4399,9 +4381,9 @@ html.dark .sample-output-diff:hover del {
 
 .sample-phase-error {
     border-left: 3px solid var(--danger-light);
-    padding-left: 8px;
+    padding-left: $space-2;
     background: rgba(239, 68, 68, 0.06);
-    border-radius: 0.25rem;
+    border-radius: $radius-sm;
 }
 .sample-error-text {
     color: var(--danger-light);
@@ -4413,16 +4395,16 @@ html.dark .sample-output-diff:hover del {
     font-size: 0.75rem;
     color: var(--text-muted-light);
     border-top: 1px dashed var(--border-light);
-    padding-top: 6px;
+    padding-top: $space-1;
     display: flex;
     flex-wrap: wrap;
-    gap: 6px;
+    gap: $space-1;
     align-items: center;
 }
 
 .sample-badge {
     display: inline-block;
-    padding: 2px 8px;
+    padding: 2px $space-2;
     border-radius: 999px;
     font-size: 0.6875rem;
     font-weight: 600;
@@ -4450,7 +4432,7 @@ html.dark .sample-badge-fallback {
 
 .sample-cell-skeleton {
     height: 56px;
-    border-radius: 0.5rem;
+    border-radius: $radius-md;
     background: linear-gradient(
         90deg,
         var(--border-light) 0%,
@@ -4462,8 +4444,8 @@ html.dark .sample-badge-fallback {
 }
 .sample-cell-pending {
     min-height: 56px;
-    border-radius: 0.5rem;
-    padding: 14px 16px;
+    border-radius: $radius-md;
+    padding: $space-3 $space-4;
     background: var(--background-light);
     color: var(--text-muted-light);
     font-size: 0.8125rem;
@@ -4503,7 +4485,7 @@ html.dark .sample-badge-fallback {
 /* Flask pill on each Selected-Files row (icon + label), grouped with remove. */
 .file-test-btn {
     margin-left: auto;
-    padding: 4px 10px 4px 8px;
+    padding: $space-1 $space-2 $space-1 $space-2;
     border: 1px solid rgba(99, 102, 241, 0.35);
     background: rgba(99, 102, 241, 0.10);
     color: #4f46e5;
@@ -4511,7 +4493,7 @@ html.dark .sample-badge-fallback {
     border-radius: 999px;
     display: inline-flex;
     align-items: center;
-    gap: 4px;
+    gap: $space-1;
     font-size: 0.75rem;
     font-weight: 600;
     line-height: 1.4;
@@ -4532,13 +4514,13 @@ html.dark .file-test-btn { color: #a5b4fc; }
 .quick-test-header-titles {
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: $space-1;
     min-width: 0;
 }
 .quick-test-compare-link {
     display: inline-flex;
     align-items: center;
-    gap: 5px;
+    gap: $space-1;
     align-self: flex-start;
     padding: 0;
     border: none;
@@ -4555,16 +4537,16 @@ html.dark .file-test-btn { color: #a5b4fc; }
 .quick-test-compare-link:hover .quick-test-compare-arrow { transform: translateX(3px); }
 
 .quick-test-intro {
-    margin: 0 0 1rem;
+    margin: 0 0 $space-4;
     color: var(--text-muted-light);
     font-size: 0.9rem;
 }
 
 .quick-test-summary {
-    margin-bottom: 1rem;
-    padding: 0.75rem 1rem;
+    margin-bottom: $space-4;
+    padding: $space-3 $space-4;
     border: 1px solid var(--border-light);
-    border-radius: 0.75rem;
+    border-radius: $radius-lg;
     background: var(--background-outer);
 }
 .quick-test-summary-llm {
@@ -4573,19 +4555,19 @@ html.dark .file-test-btn { color: #a5b4fc; }
     display: flex;
     align-items: center;
     flex-wrap: wrap;
-    gap: 4px;
+    gap: $space-1;
 }
 .quick-test-summary-sep { opacity: 0.5; }
 .quick-test-chips {
-    margin-top: 8px;
+    margin-top: $space-2;
     display: flex;
     flex-wrap: wrap;
-    gap: 6px;
+    gap: $space-1;
 }
 .quick-test-chip {
     display: inline-flex;
     align-items: center;
-    padding: 2px 10px;
+    padding: 2px $space-2;
     border-radius: 999px;
     font-size: 0.75rem;
     font-weight: 600;
@@ -4597,20 +4579,20 @@ html.dark .file-test-btn { color: #a5b4fc; }
 .quick-test-cards {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: $space-3;
 }
 .quick-test-card {
     border: 1px solid var(--border-light);
-    border-radius: 0.75rem;
-    padding: 12px 14px;
+    border-radius: $radius-lg;
+    padding: $space-3 $space-3;
     background: var(--background-light);
 }
 .quick-test-source {
     color: var(--text-muted-light);
     font-size: 0.85rem;
     font-style: italic;
-    padding-bottom: 8px;
-    margin-bottom: 8px;
+    padding-bottom: $space-2;
+    margin-bottom: $space-2;
     border-bottom: 1px dashed var(--border-light);
     white-space: pre-wrap;
 }
@@ -4618,7 +4600,7 @@ html.dark .file-test-btn { color: #a5b4fc; }
 
 .quick-test-loading,
 .quick-test-error {
-    padding: 1.5rem;
+    padding: $space-5;
     text-align: center;
     color: var(--text-muted-light);
     font-size: 0.9rem;
@@ -4634,7 +4616,7 @@ html.dark .file-test-btn { color: #a5b4fc; }
     display: inline-block;
     width: 14px;
     height: 14px;
-    margin-left: 6px;
+    margin-left: $space-1;
     border: 2px solid var(--border-light);
     border-top-color: #4f46e5;
     border-radius: 50%;

@@ -231,7 +231,6 @@ export const ResumeManager = {
             const hasActiveTranslation = StateManager.getState('translation.hasActive') || false;
             const activeJobs = StateManager.getState('translation.activeJobs') || [];
 
-            // Hide loading
             if (loading) loading.style.display = 'none';
 
             if (jobs.length === 0) {
@@ -248,7 +247,6 @@ export const ResumeManager = {
             // Build warning banner if active translation exists
             const warningBanner = createWarningBanner(hasActiveTranslation ? activeJobs : null);
 
-            // Build jobs HTML
             const jobsHtml = jobs.map(job => formatJobCard(job, hasActiveTranslation, activeJobs)).join('');
 
             if (!listContainer) {
@@ -353,7 +351,6 @@ export const ResumeManager = {
             // computed from another job's chunk timings.
             ProgressManager.reset();
 
-            // Show progress section
             ProgressManager.show();
             const progressSection = DomHelpers.getElement('progressSection');
             if (progressSection) {
@@ -370,10 +367,8 @@ export const ResumeManager = {
                 ? t('translation:resuming_file_with_model', { name: fileName, model: modelLabel })
                 : t('translation:resuming_file', { name: fileName }));
 
-            // Show stats grid
             DomHelpers.show('statsGrid');
 
-            // Show interrupt button
             const interruptBtn = DomHelpers.getElement('interruptBtn');
             if (interruptBtn) {
                 DomHelpers.show('interruptBtn');

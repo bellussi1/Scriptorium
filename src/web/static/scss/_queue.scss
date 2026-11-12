@@ -1,8 +1,10 @@
+@use 'tokens' as *;
+
 /* Read-only persistent literary queue. Uses the existing design tokens so it
    follows the light and dark themes without duplicating the palette. */
 
 .queue-intro {
-    margin: 0 0 14px;
+    margin: 0 0 $space-3;
     color: var(--text-muted-light);
     font-size: 0.9rem;
     line-height: 1.5;
@@ -14,15 +16,15 @@
     color: var(--text-dark);
     background: var(--background-light);
     border: 1px solid var(--border-light);
-    border-radius: 4px;
-    padding: 1px 4px;
+    border-radius: $radius-sm;
+    padding: 1px $space-1;
 }
 
 .queue-summary {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
-    gap: 10px;
-    margin-bottom: 14px;
+    gap: $space-2;
+    margin-bottom: $space-3;
 }
 
 .queue-stat {
@@ -30,10 +32,10 @@
     flex-direction: column;
     align-items: center;
     gap: 3px;
-    padding: 12px 10px;
+    padding: $space-3 $space-2;
     background: var(--background-light);
     border: 1px solid var(--border-light);
-    border-radius: 10px;
+    border-radius: $radius-md;
 }
 
 .queue-stat-value {
@@ -54,9 +56,9 @@
 .queue-toolbar {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: $space-2;
     flex-wrap: wrap;
-    margin-bottom: 12px;
+    margin-bottom: $space-3;
 }
 
 .queue-updated {
@@ -82,7 +84,7 @@
 .queue-runner-status {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
+    gap: $space-1;
     font-size: 0.75rem;
     color: var(--text-muted-light);
     white-space: nowrap;
@@ -112,7 +114,7 @@
 .queue-table-wrap {
     overflow-x: hidden;
     border: 1px solid var(--border-light);
-    border-radius: 10px;
+    border-radius: $radius-md;
 }
 
 .queue-table {
@@ -123,7 +125,7 @@
 
 .queue-table th {
     text-align: left;
-    padding: 10px;
+    padding: $space-2;
     background: var(--background-light);
     color: var(--text-muted-light);
     font-size: 0.7rem;
@@ -134,7 +136,7 @@
 }
 
 .queue-table td {
-    padding: 10px;
+    padding: $space-2;
     border-top: 1px solid var(--border-light);
     vertical-align: middle;
     color: var(--text-dark);
@@ -174,7 +176,7 @@
 }
 
 .queue-empty {
-    padding: 28px 12px;
+    padding: $space-5 $space-3;
     text-align: center;
     color: var(--text-muted-light);
     font-size: 0.88rem;
@@ -186,17 +188,17 @@
 }
 
 .queue-error {
-    margin-bottom: 12px;
-    padding: 10px 12px;
+    margin-bottom: $space-3;
+    padding: $space-2 $space-3;
     border: 1px solid var(--danger-light-border);
-    border-radius: 8px;
+    border-radius: $radius-md;
     background: var(--danger-light-bg);
     color: var(--danger-light-text);
     font-size: 0.85rem;
 }
 
 .queue-events-title {
-    margin: 18px 0 8px;
+    margin: $space-4 0 $space-2;
     color: var(--text-muted-light);
     font-size: 0.72rem;
     font-weight: 700;
@@ -214,8 +216,8 @@
 
 .queue-event {
     display: flex;
-    gap: 10px;
-    padding: 6px 0;
+    gap: $space-2;
+    padding: $space-1 0;
     border-top: 1px solid var(--border-light);
     font-size: 0.8rem;
     color: var(--text-dark);
@@ -243,14 +245,14 @@
 /* Library picker and reorder controls */
 
 .queue-library-card {
-    margin-bottom: 18px;
+    margin-bottom: $space-4;
 }
 
 .queue-library-search {
     display: flex;
     align-items: center;
-    gap: 8px;
-    margin-bottom: 10px;
+    gap: $space-2;
+    margin-bottom: $space-2;
 }
 
 .queue-library-search .material-symbols-outlined {
@@ -261,9 +263,9 @@
 .queue-library-search input {
     flex: 1;
     min-width: 0;
-    padding: 9px 12px;
+    padding: $space-2 $space-3;
     border: 1px solid var(--border-light);
-    border-radius: 8px;
+    border-radius: $radius-md;
     background: var(--background-light);
     color: var(--text-dark);
     font: inherit;
@@ -278,9 +280,9 @@
 .queue-library-select {
     width: 100%;
     min-height: 170px;
-    padding: 6px;
+    padding: $space-1;
     border: 1px solid var(--border-light);
-    border-radius: 10px;
+    border-radius: $radius-md;
     background: var(--background-light);
     color: var(--text-dark);
     font: inherit;
@@ -293,8 +295,8 @@
 }
 
 .queue-library-select option {
-    padding: 6px 8px;
-    border-radius: 6px;
+    padding: $space-1 $space-2;
+    border-radius: $radius-sm;
 }
 
 .queue-library-select option:checked {
@@ -305,9 +307,9 @@
 .queue-library-actions {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: $space-3;
     flex-wrap: wrap;
-    margin-top: 10px;
+    margin-top: $space-2;
 }
 
 .queue-action-status {
@@ -340,7 +342,7 @@
     height: 28px;
     margin: 0 2px;
     border: 1px solid var(--border-light);
-    border-radius: 6px;
+    border-radius: $radius-sm;
     background: transparent;
     color: var(--text-dark);
     cursor: pointer;
@@ -368,13 +370,13 @@
 }
 
 .queue-model-book {
-    margin: 0 0 14px;
+    margin: 0 0 $space-3;
     font-weight: 600;
     color: var(--text-dark);
 }
 
 .queue-model-modal .form-group {
-    margin-bottom: 14px;
+    margin-bottom: $space-3;
 }
 
 .queue-model-modal .form-control {
@@ -382,7 +384,7 @@
 }
 
 .queue-hint {
-    margin: 0 0 12px;
+    margin: 0 0 $space-3;
     font-size: 0.78rem;
     line-height: 1.45;
     color: var(--text-muted-light);
@@ -393,9 +395,9 @@
 .queue-model-select {
     width: 100%;
     max-width: 220px;
-    padding: 5px 8px;
+    padding: $space-1 $space-2;
     border: 1px solid var(--border-light);
-    border-radius: 6px;
+    border-radius: $radius-sm;
     background: var(--background-light);
     color: var(--text-dark);
     font: inherit;
@@ -940,68 +942,6 @@ html.dark {
     margin-top: var(--q-space-2);
 }
 
-@media (max-width: 900px) {
-    .queue-metrics {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-}
-
-@media (max-width: 760px) {
-    .queue-now-body {
-        grid-template-columns: minmax(0, 1fr);
-    }
-
-    .queue-now-actions {
-        flex-direction: row;
-        flex-wrap: wrap;
-        min-width: 0;
-    }
-
-    .queue-now-actions .queue-btn {
-        flex: 1 1 auto;
-    }
-}
-
-@media (max-width: 640px) {
-    .queue-progress--compact {
-        max-width: 110px;
-    }
-
-    /* Wrapped meta lines would end in a dangling separator; the gap carries the rhythm. */
-    .queue-meta__sep {
-        display: none;
-    }
-
-    .queue-card {
-        padding: var(--q-space-4);
-        border-radius: 16px;
-    }
-
-    .translate-hero__top {
-        flex-direction: column;
-        gap: var(--q-space-3);
-    }
-
-    .translate-hero__readout {
-        flex-direction: row;
-        align-items: baseline;
-        justify-content: space-between;
-        width: 100%;
-    }
-
-    .translate-hero__percent {
-        font-size: 2.4rem;
-    }
-
-    .translate-hero__actions {
-        flex-direction: column;
-    }
-
-    .translate-hero__actions .queue-btn {
-        width: 100%;
-    }
-}
-
 @media (prefers-reduced-motion: reduce) {
     .queue-btn,
     .queue-progress__fill {
@@ -1012,20 +952,20 @@ html.dark {
 .queue-filters {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: $space-2;
     flex-wrap: wrap;
-    margin-bottom: 14px;
+    margin-bottom: $space-3;
 }
 
 .queue-filter-chips {
     display: flex;
     align-items: center;
-    gap: 5px;
+    gap: $space-1;
     flex-wrap: wrap;
 }
 
 .queue-chip {
-    padding: 5px 10px;
+    padding: $space-1 $space-2;
     border: 1px solid var(--border-light);
     border-radius: 999px;
     background: transparent;
@@ -1049,9 +989,9 @@ html.dark {
 
 .queue-filter-select,
 .queue-filter-search {
-    padding: 6px 9px;
+    padding: $space-1 $space-2;
     border: 1px solid var(--border-light);
-    border-radius: 7px;
+    border-radius: $radius-md;
     background: var(--background-light);
     color: var(--text-dark);
     font: inherit;
@@ -1079,8 +1019,8 @@ html.dark {
 
 .queue-next-badge {
     display: inline-block;
-    margin-left: 5px;
-    padding: 1px 6px;
+    margin-left: $space-1;
+    padding: 1px $space-1;
     border-radius: 999px;
     background: var(--primary-light);
     color: var(--paper);
@@ -1146,15 +1086,15 @@ html.dark {
 }
 
 .queue-drawer-body {
-    padding: 16px;
+    padding: $space-4;
 }
 
 .queue-quality-heading {
     display: flex;
     justify-content: space-between;
-    gap: 12px;
+    gap: $space-3;
     align-items: flex-start;
-    margin-bottom: 16px;
+    margin-bottom: $space-4;
 }
 
 .queue-quality-heading h4 {
@@ -1170,11 +1110,11 @@ html.dark {
 }
 
 .queue-quality-section {
-    margin: 18px 0;
+    margin: $space-4 0;
 }
 
 .queue-quality-section h5 {
-    margin: 0 0 8px;
+    margin: 0 0 $space-2;
     color: var(--text-muted-light);
     font-size: 0.7rem;
     font-weight: 700;
@@ -1185,10 +1125,10 @@ html.dark {
 .queue-quality-artifact {
     display: flex;
     justify-content: space-between;
-    gap: 10px;
-    padding: 10px;
+    gap: $space-2;
+    padding: $space-2;
     border: 1px solid var(--border-light);
-    border-radius: 8px;
+    border-radius: $radius-md;
     color: var(--text-muted-light);
     font-size: 0.76rem;
 }
@@ -1201,16 +1141,16 @@ html.dark {
 .queue-quality-grid {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 7px;
+    gap: $space-2;
 }
 
 .queue-quality-metric {
     display: flex;
     justify-content: space-between;
-    gap: 8px;
-    padding: 7px 9px;
+    gap: $space-2;
+    padding: $space-2 $space-2;
     border: 1px solid var(--border-light);
-    border-radius: 7px;
+    border-radius: $radius-md;
     font-size: 0.76rem;
 }
 
@@ -1227,7 +1167,7 @@ html.dark {
 .queue-quality-issues,
 .queue-quality-report {
     margin: 0;
-    padding-left: 18px;
+    padding-left: $space-4;
     font-size: 0.78rem;
     line-height: 1.5;
 }
@@ -1249,12 +1189,12 @@ html.dark {
 .queue-quality-flags {
     display: flex;
     flex-wrap: wrap;
-    gap: 5px;
-    margin-top: 8px;
+    gap: $space-1;
+    margin-top: $space-2;
 }
 
 .queue-quality-flags span {
-    padding: 2px 7px;
+    padding: 2px $space-2;
     border-radius: 999px;
     background: var(--warning-light-bg);
     color: var(--warning-light-text);
@@ -1276,22 +1216,8 @@ html.dark {
 .queue-quality-actions {
     display: flex;
     flex-wrap: wrap;
-    gap: 8px;
-    margin: 20px 0 8px;
-}
-
-@media (max-width: 760px) {
-    .queue-drawer {
-        width: 100%;
-    }
-
-    .queue-quality-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .queue-quality-artifact {
-        flex-direction: column;
-    }
+    gap: $space-2;
+    margin: $space-4 0 $space-2;
 }
 
 .queue-table th:nth-child(3),
@@ -1312,8 +1238,3 @@ html.dark {
     white-space: normal;
 }
 
-@media (max-width: 1100px) {
-    .queue-updated-col {
-        display: none;
-    }
-}

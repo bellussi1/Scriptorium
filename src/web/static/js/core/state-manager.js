@@ -97,7 +97,6 @@ export const StateManager = {
         }
         subscribers.get(key).push(callback);
 
-        // Return unsubscribe function
         return () => {
             const callbacks = subscribers.get(key);
             if (callbacks) {
@@ -166,7 +165,6 @@ export const StateManager = {
      */
     reset(key) {
         if (!key) {
-            // Reset entire state
             state.files = { toProcess: [], selected: new Set(), managed: [] };
             state.translation = { currentJob: null, isBatchActive: false, activeJobs: [], hasActive: false, ownedJobIds: [] };
             state.ui = { currentProvider: 'ollama', currentModel: null, isAdvancedOpen: false, messages: [] };

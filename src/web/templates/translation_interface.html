@@ -71,107 +71,8 @@
     <!-- Google Material Icons -->
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
 
-    <!-- Custom Styles -->
-    <link rel="stylesheet" href="/static/style.css">
-    <link rel="stylesheet" href="/static/queue.css">
-    <link rel="stylesheet" href="/static/ui-polish.css">
-    <style>
-        /* Glossary/Style tables: fixed layout + full width + identical
-           horizontal padding on th and td so column titles sit directly
-           above their content. */
-        #glossaryListTable,
-        #glossaryTermsTable,
-        #styleListTable {
-            table-layout: fixed;
-            width: 100%;
-            display: table;
-        }
-        /* .file-table normally splits thead and tbody into independent
-           display:table blocks (to make tbody scrollable). That breaks
-           <colgroup> column widths because each row computes its own
-           layout. Restore the standard rendering for these tables. */
-        #glossaryListTable thead,
-        #glossaryTermsTable thead,
-        #styleListTable thead {
-            display: table-header-group;
-        }
-        #glossaryListTable tbody,
-        #glossaryTermsTable tbody,
-        #styleListTable tbody {
-            display: table-row-group;
-            max-height: none;
-            overflow-y: visible;
-        }
-        #glossaryListTable tbody tr,
-        #glossaryTermsTable tbody tr,
-        #styleListTable tbody tr {
-            display: table-row;
-            width: auto;
-        }
-        #glossaryListTable th,
-        #glossaryListTable td,
-        #glossaryTermsTable th,
-        #glossaryTermsTable td,
-        #styleListTable th,
-        #styleListTable td {
-            padding: 0.75rem 0.75rem;
-            box-sizing: border-box;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
-        #glossaryListTable td,
-        #glossaryTermsTable td,
-        #styleListTable td {
-            padding: 0.6rem 0.75rem;
-        }
-        #glossaryListTable .col-center,
-        #glossaryListTable td.col-center,
-        #glossaryTermsTable .col-center,
-        #glossaryTermsTable td.col-center,
-        #styleListTable .col-center,
-        #styleListTable td.col-center {
-            text-align: center;
-        }
-        #glossaryListTable .col-right,
-        #glossaryListTable td.col-right,
-        #glossaryTermsTable .col-right,
-        #glossaryTermsTable td.col-right,
-        #styleListTable .col-right,
-        #styleListTable td.col-right {
-            text-align: right;
-        }
-        .glossary-cell-input {
-            width: 100%;
-            border: 0;
-            background: transparent;
-            padding: 6px 0;
-            font-size: 0.9rem;
-            color: var(--text-dark);
-            border-radius: 0;
-            font-family: inherit;
-            box-shadow: inset 0 -1px 0 transparent;
-            transition: box-shadow 0.15s, background 0.15s;
-        }
-        .glossary-cell-input:hover {
-            box-shadow: inset 0 -1px 0 var(--border-light);
-        }
-        .glossary-cell-input:focus {
-            outline: none;
-            box-shadow: inset 0 -2px 0 var(--primary-light);
-        }
-        .glossary-row-deleted { opacity: 0.3; pointer-events: none; }
-        #ner-modal .modal-content { max-width: 800px; }
-        #ner-candidates-table th, #ner-candidates-table td { padding: 6px 8px; font-size: 0.85rem; }
-        #ner-warnings {
-            color: var(--text-dark);
-            background: var(--info-light-bg);
-            border-left: 3px solid var(--info-light);
-            font-size: 0.85rem;
-        }
-    </style>
-    <link rel="stylesheet" href="/static/literary-theme.css">
-    <link rel="stylesheet" href="/static/theme-dark.css">
+    <!-- Application styles, compiled from src/web/static/scss -->
+    <link rel="stylesheet" href="/static/css/app.css">
 </head>
 <body>
     <div class="container">
@@ -181,7 +82,8 @@
                 <div class="logo-icon">
                     <img class="logo-img logo-img--light" src="/static/img/scriptorium-icon-light.svg" alt="Scriptorium" width="40" height="40">
                     <img class="logo-img logo-img--dark" src="/static/img/scriptorium-icon-dark.svg" alt="Scriptorium" width="40" height="40">
-                </div>
+            </div>
+                <span class="logo-wordmark" data-i18n="common:app_name">Scriptorium</span>
             </div>
 
             <div class="status-section">
@@ -213,11 +115,11 @@
             </div>
             <div class="update-banner__actions">
                 <button type="button" id="updateBannerInstallBtn" class="btn btn-primary">
-                    <span class="material-symbols-outlined" style="font-size: 1rem; vertical-align: middle;">download</span>
+                    <span class="material-symbols-outlined icon--sm">download</span>
                     <span data-i18n="common:update_now">Update now</span>
                 </button>
                 <button type="button" id="updateBannerCloseBtn" class="update-banner__close" data-i18n-attr="title:common:update_dismiss" title="Dismiss">
-                    <span class="material-symbols-outlined" style="font-size: 1.1rem;">close</span>
+                    <span class="material-symbols-outlined">close</span>
                 </button>
             </div>
         </div>
@@ -459,7 +361,7 @@
                                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/></svg>
                                 </button>
                                 <button type="button" id="glossaryManageBtn" class="btn btn-sm" data-i18n-attr="title:settings:glossary_manage_title" style="padding: 6px 10px; background: var(--background-light); border: 1px solid var(--border-light); border-radius: 6px; cursor: pointer;" title="Manage glossaries">
-                                    <span class="material-symbols-outlined" style="font-size: 16px;">settings</span>
+                                    <span class="material-symbols-outlined icon--sm">settings</span>
                                 </button>
                             </div>
                             <div id="glossaryInfoCard" class="glossary-info-card" style="display: none;"></div>
@@ -485,7 +387,7 @@
                                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/></svg>
                                 </button>
                                 <button type="button" id="customInstructionsManageBtn" class="btn btn-sm" data-i18n-attr="title:settings:custom_instructions_manage_title" style="padding: 6px 10px; background: var(--background-light); border: 1px solid var(--border-light); border-radius: 6px; cursor: pointer;" title="Manage styles">
-                                    <span class="material-symbols-outlined" style="font-size: 16px;">settings</span>
+                                    <span class="material-symbols-outlined icon--sm">settings</span>
                                 </button>
                             </div>
                             <p data-i18n-html="settings:custom_instructions_help" style="margin: 5px 0 0 0; font-size: 0.8125rem; color: var(--text-muted-light);">
@@ -538,7 +440,7 @@
                         <div class="stat-card" id="fallbackStatCard" data-i18n-attr="title:translation:stat_fallbacks_tooltip" title="Phase 2 (token alignment) + Phase 3 (untranslated) chunks. Indicates the LLM struggled with placeholders." aria-expanded="false">
                             <h3 id="fallbackChunks">0</h3>
                             <p data-i18n="translation:stat_fallbacks">Fallbacks</p>
-                            <span class="stat-card-chevron material-symbols-outlined" aria-hidden="true">expand_more</span>
+                            <span class="material-symbols-outlined stat-card-chevron" aria-hidden="true">expand_more</span>
                         </div>
                         <div class="stat-card">
                             <h3 id="elapsedTime">0s</h3>
@@ -570,7 +472,7 @@
                     <!-- Last Translation Preview -->
                     <div id="lastTranslationPreviewSection" style="margin-top: 20px; display: block !important;">
                         <h4 style="margin: 0 0 10px 0; color: var(--text-dark); font-weight: 700; display: flex; align-items: center; gap: 0.5rem;">
-                            <span class="material-symbols-outlined" style="vertical-align: middle; font-size: 1.25rem;">description</span>
+                            <span class="material-symbols-outlined">description</span>
                             <span data-i18n="translation:last_translation_preview">Last Translation Preview</span>
                             <span id="previewLanguages" style="font-weight: 400; font-size: 0.85rem; color: var(--text-muted-light); margin-left: 0.5rem;"></span>
                         </h4>
@@ -607,7 +509,7 @@
                 <div id="activityLogSection" class="hidden">
                     <div style="display: flex; justify-content: flex-end; margin-bottom: 10px;">
                         <button class="btn btn-secondary" onclick="clearActivityLog()" style="font-size: 0.75rem; padding: 0.5rem 1rem;">
-                            <span class="material-symbols-outlined" style="font-size: 1rem;">delete</span>
+                            <span class="material-symbols-outlined icon--sm">delete</span>
                             <span data-i18n="common:activity_log_clear">Clear Log</span>
                         </button>
                     </div>
@@ -751,7 +653,7 @@
                                 data-i18n-attr="title:sample:update_samples_title"
                                 title="Apply N and Max chars: re-sample the document, keeping existing translations where possible"
                                 style="height: 2.75rem; padding: 0 1.1rem; font-size: 0.875rem; gap: 6px;">
-                            <span class="material-symbols-outlined" style="font-size: 1.125rem;">refresh</span>
+                            <span class="material-symbols-outlined">refresh</span>
                             <span data-i18n="sample:update_samples">Update samples</span>
                         </button>
                     </div>
@@ -761,7 +663,7 @@
                     <div style="display: flex; align-items: center; justify-content: space-between; margin: 22px 0 10px 0;">
                         <label style="font-weight: 600; margin: 0;" data-i18n="sample:llms_label">LLMs to compare</label>
                         <button type="button" class="btn btn-secondary" id="sampleAddColumnBtn" style="padding: 0.4rem 0.8rem; font-size: 0.8125rem;">
-                            <span class="material-symbols-outlined" style="font-size: 1rem;">add</span>
+                            <span class="material-symbols-outlined icon--sm">add</span>
                             <span data-i18n="sample:add_llm">Add an LLM</span>
                         </button>
                     </div>
@@ -804,7 +706,7 @@
                         <span class="material-symbols-outlined">tune</span>
                         <span data-i18n="settings:provider_and_defaults">Provider &amp; Defaults</span>
                     </span>
-                    <span id="settingsOptionsIcon" class="material-symbols-outlined" style="transform: rotate(180deg);">expand_more</span>
+                    <span id="settingsOptionsIcon" class="material-symbols-outlined icon--rotate-180">expand_more</span>
                 </div>
 
                 <div id="settingsOptionsSection">
@@ -836,7 +738,7 @@
                             <div class="neu-inset-light" style="display: flex; gap: 8px;">
                                 <input type="text" class="form-control" id="apiEndpoint" value="http://localhost:11434/api/generate" style="flex: 1;">
                                 <button type="button" id="resetApiEndpointBtn" class="btn btn-secondary" data-i18n-attr="title:settings:reset_endpoint_title" style="display: none; padding: 8px 12px; white-space: nowrap;" title="Reset to server configuration">
-                                    <span class="material-symbols-outlined" style="font-size: 18px;">restart_alt</span>
+                                    <span class="material-symbols-outlined">restart_alt</span>
                                 </button>
                             </div>
                         </div>
@@ -927,7 +829,7 @@
                             <div class="neu-inset-light" style="display: flex; gap: 8px;">
                                 <input type="text" class="form-control" id="openaiEndpoint" value="https://api.openai.com/v1/chat/completions" placeholder="https://api.openai.com/v1/chat/completions" style="flex: 1;">
                                 <button type="button" id="resetOpenaiEndpointBtn" class="btn btn-secondary" data-i18n-attr="title:settings:reset_endpoint_title" style="display: none; padding: 8px 12px; white-space: nowrap;" title="Reset to server configuration">
-                                    <span class="material-symbols-outlined" style="font-size: 18px;">restart_alt</span>
+                                    <span class="material-symbols-outlined">restart_alt</span>
                                 </button>
                             </div>
                             <small data-i18n="settings:openai_local_servers_hint" style="color: var(--text-muted-light); font-size: 0.75rem; margin-top: 0.5rem; display: block;">Local servers: llama.cpp (8080), LM Studio (1234), vLLM, etc.</small>
@@ -1109,7 +1011,7 @@
                         </p>
                         <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
                             <button type="button" class="btn btn-primary" onclick="saveSettings()" style="padding: 0.6rem 1.2rem;">
-                                <span class="material-symbols-outlined" style="font-size: 1.1rem; vertical-align: middle;">save</span>
+                                <span class="material-symbols-outlined">save</span>
                                 <span data-i18n="common:save">Save</span>
                             </button>
                             <div class="neu-inset-light" style="min-width: 160px;">
@@ -1120,7 +1022,7 @@
                                 </select>
                             </div>
                             <button type="button" id="notifyTestBtn" class="btn btn-secondary" onclick="testNotification()" style="padding: 0.6rem 1.2rem;">
-                                <span class="material-symbols-outlined" style="font-size: 1.1rem; vertical-align: middle;">send</span>
+                                <span class="material-symbols-outlined">send</span>
                                 <span data-i18n="settings:notifications_send_test">Send test</span>
                             </button>
                             <span id="notifyTestResult" style="font-size: 0.8125rem; color: var(--text-muted-light);"></span>
@@ -1220,7 +1122,7 @@
                     <span class="material-symbols-outlined">menu_book</span>
                     <h2 data-i18n="glossary:title">Glossaries</h2>
                     <button type="button" class="btn btn-primary" id="glossaryNewBtn" style="margin-left: auto; padding: 0.5rem 1rem;">
-                        <span class="material-symbols-outlined" style="font-size: 1rem;">add</span>
+                        <span class="material-symbols-outlined icon--sm">add</span>
                         <span data-i18n="glossary:new_glossary">New glossary</span>
                     </button>
                 </div>
@@ -1446,20 +1348,20 @@
                         <button type="button" id="queueRunBtn" class="btn btn-primary"
                                 data-i18n-attr="title:queue:run_next_title"
                                 title="Start the next pending book and stop at the review gate">
-                            <span class="material-symbols-outlined" style="font-size: 18px; vertical-align: middle;">play_arrow</span>
+                            <span class="material-symbols-outlined">play_arrow</span>
                             <span data-i18n="queue:run_next">Run next</span>
                         </button>
                         <button type="button" id="queueRefreshBtn" class="btn btn-secondary">
-                            <span class="material-symbols-outlined" style="font-size: 18px; vertical-align: middle;">refresh</span>
+                            <span class="material-symbols-outlined">refresh</span>
                             <span data-i18n="queue:refresh">Refresh</span>
                         </button>
                         <button type="button" id="queueKindleZipBtn" class="btn btn-secondary">
-                            <span class="material-symbols-outlined" style="font-size: 18px; vertical-align: middle;">archive</span>
+                            <span class="material-symbols-outlined">archive</span>
                             <span data-i18n="queue:kindle_zip">Download Kindle (.zip)</span>
                         </button>
                         <button type="button" id="queuePauseBtn" class="btn btn-secondary queue-pause-btn"
                                 aria-pressed="false">
-                            <span id="queuePauseIcon" class="material-symbols-outlined" style="font-size: 18px; vertical-align: middle;" aria-hidden="true">pause_circle</span>
+                            <span id="queuePauseIcon" class="material-symbols-outlined" aria-hidden="true">pause_circle</span>
                             <span id="queuePauseLabel" data-i18n="queue:pause_after_book">Pause after current book</span>
                         </button>
                         <span id="queueControlStatus" class="queue-control-status" aria-live="polite"></span>
@@ -1963,7 +1865,7 @@
         <div class="modal-content" style="max-width: 760px;">
             <div class="modal-header">
                 <h3 style="margin: 0;">
-                    <span class="material-symbols-outlined" style="vertical-align: middle;">visibility</span>
+                    <span class="material-symbols-outlined">visibility</span>
                     <span data-i18n="glossary:preview_modal_title">Preview prompt block</span>
                 </h3>
                 <button class="close-btn" id="glossary-preview-close" data-i18n-attr="aria-label:common:close" style="background: none; border: none; font-size: 1.5rem; cursor: pointer;">&times;</button>
@@ -1994,7 +1896,7 @@
             <div class="modal-header">
                 <div class="quick-test-header-titles">
                     <h3 style="margin: 0;">
-                        <span class="material-symbols-outlined" style="vertical-align: middle;">science</span>
+                        <span class="material-symbols-outlined">science</span>
                         <span data-i18n="translation:quicktest_title">Quick LLM test</span>
                         <span id="quickTestSpinner" class="quick-test-spinner hidden" aria-hidden="true"></span>
                     </h3>
@@ -2037,7 +1939,7 @@
         <div class="modal-content preflight-modal__content">
             <div class="modal-header">
                 <h3 style="margin: 0;">
-                    <span class="material-symbols-outlined" style="vertical-align: middle;" aria-hidden="true">checklist</span>
+                    <span class="material-symbols-outlined" aria-hidden="true">checklist</span>
                     <span id="preflightModalTitle" data-i18n="translation:preflight_panel_title">Before launching</span>
                 </h3>
                 <button class="close-btn" id="preflightModalClose" data-i18n-attr="aria-label:common:close" aria-label="Close">&times;</button>

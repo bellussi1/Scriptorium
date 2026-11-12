@@ -95,7 +95,6 @@ export const FileManager = {
             // Clear existing table rows
             tableBody.innerHTML = '';
 
-            // Clear selected files
             StateManager.setState('files.selected', new Set());
 
             // Reset "Select All" checkbox
@@ -166,11 +165,9 @@ export const FileManager = {
                     });
             }
 
-            // Update totals
             DomHelpers.setText('totalFileCount', data.total_files);
             DomHelpers.setText('totalFileSize', `${data.total_size_mb} MB`);
 
-            // Store in state
             StateManager.setState('files.managed', data.files);
 
         } catch (error) {
@@ -395,7 +392,6 @@ export const FileManager = {
         const selectedFiles = StateManager.getState('files.selected');
         const hasSelection = selectedFiles.size > 0;
 
-        // Update button states
         DomHelpers.setDisabled('batchDownloadBtn', !hasSelection);
         DomHelpers.setDisabled('batchDeleteBtn', !hasSelection);
 

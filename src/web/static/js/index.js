@@ -605,7 +605,6 @@ window.deleteVoicePrompt = TTSManager.deleteVoicePrompt.bind(TTSManager);
  * @param {string} filepath - Full path to the file
  */
 window.createAudiobook = async function(filename, filepath) {
-    // Show TTS modal
     showTTSModal(filename, filepath);
 };
 
@@ -863,7 +862,6 @@ async function showTTSModal(filename, filepath) {
     // Add modal to DOM
     document.body.insertAdjacentHTML('beforeend', modalHtml);
 
-    // Get modal elements
     const modal = document.getElementById('ttsModal');
     const closeBtn = document.getElementById('ttsModalClose');
     const cancelBtn = document.getElementById('ttsModalCancel');

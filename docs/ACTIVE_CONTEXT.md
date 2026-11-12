@@ -30,6 +30,15 @@ with `git status` and `git log` before acting. Older handoffs are in git history
   rows; `#glossaryListTable` is about 490 px and overflows panes under ~520 px (predates
   this pass); one 400 on a model-list request at page load is not yet identified.
 
+- **Front-end pass (2026-11-11):** stylesheets are SCSS partials in `src/web/static/scss`,
+  compiled with `npm run build:css` into `src/web/static/css/app.css`; spacing and radius
+  tokens are in `_tokens.scss`. Mobile media queries are gone (desktop-first).
+  **Deploy step pending:** the running container still serves its cached template,
+  which links the five legacy stylesheets (`style.css`, `queue.css`, `ui-polish.css`,
+  `literary-theme.css`, `theme-dark.css`). Those files are untracked copies of HEAD
+  kept on disk; delete them after the container restarts (after Ashes finishes).
+  Not done: JS comment sweep beyond narration lines; TypeScript and HTML-generation decisions.
+
 ## Books
 
 | Book | Queue | State | Notes |

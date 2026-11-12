@@ -363,7 +363,6 @@ export const MessageLogger = {
     bufferSummaryMessage(message) {
         this.summaryBuffer.push(message);
 
-        // Clear existing timeout
         if (this.summaryTimeout) {
             clearTimeout(this.summaryTimeout);
         }
@@ -395,7 +394,6 @@ export const MessageLogger = {
         const fileNameMatch = firstMessage.match(/^\[([^\]]+)\]/);
         const fileName = fileNameMatch ? fileNameMatch[1] : null;
 
-        // Build consolidated summary
         const timestamp = new Date().toLocaleTimeString();
         let summaryHtml = `<span class="log-timestamp">[${timestamp}]</span> `;
 
@@ -422,10 +420,8 @@ export const MessageLogger = {
             }
         }
 
-        // Build compact summary
         const parts = [];
 
-        // Add completion message
         if (completion.length > 0) {
             const mainCompletion = completion.find(m => m.includes('Translation completed in')) || completion[0];
             parts.push(`<span style="margin-left: 10px;">${DomHelpers.escapeHtml(mainCompletion)}</span>`);
@@ -461,7 +457,6 @@ export const MessageLogger = {
         logContainer.appendChild(logEntry);
         logContainer.scrollTop = logContainer.scrollHeight;
 
-        // Clear buffer
         this.summaryBuffer = [];
         this.summaryTimeout = null;
     },
@@ -512,7 +507,6 @@ export const MessageLogger = {
 
         DomHelpers.setHtml(previewElement, previewHtml);
 
-        // Update language indicator
         const languagesElement = DomHelpers.getElement('previewLanguages');
         if (languagesElement) {
             const sourceLang = DomHelpers.getValue('sourceLang');
@@ -532,7 +526,6 @@ export const MessageLogger = {
             const placeholderHtml = `<div style="color: var(--text-muted-light); font-style: italic; padding: 10px;">${t('translation:no_translation_yet')}</div>`;
             DomHelpers.setHtml(previewElement, placeholderHtml);
         }
-        // Clear language indicator
         const languagesElement = DomHelpers.getElement('previewLanguages');
         if (languagesElement) {
             languagesElement.textContent = '';

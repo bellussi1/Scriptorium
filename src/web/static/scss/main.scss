@@ -1,0 +1,11 @@
+// Entry point for the web interface stylesheet.
+// Compile with `npm run build:css`; the output is src/web/static/css/app.css.
+// Load order matters: later partials override earlier ones.
+
+@use 'tokens' as *;
+@use 'style';
+@use 'queue';
+@use 'ui-polish';
+@use 'editors';
+@use 'literary-theme';
+@use 'theme-dark';

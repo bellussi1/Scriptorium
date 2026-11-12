@@ -66,7 +66,6 @@ export const StatusManager = {
 
         currentStatus = status;
 
-        // Update text
         const statusText = DomHelpers.getElement('providerStatusText');
         if (statusText) {
             const text = customText || t(statusInfo.textKey);
@@ -77,7 +76,6 @@ export const StatusManager = {
             statusText.title = text;
         }
 
-        // Update dot
         const statusDot = document.querySelector('.header .status-indicator .status-dot');
         if (statusDot) {
             // Remove all status classes

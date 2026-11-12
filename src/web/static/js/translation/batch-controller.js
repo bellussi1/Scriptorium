@@ -82,7 +82,6 @@ function getTranslationConfig(file) {
         promptOptions.glossary_id = parseInt(glossaryId, 10);
     }
 
-    // Get TTS configuration
     const ttsEnabled = DomHelpers.getElement('ttsEnabled')?.checked || false;
 
     const config = {
@@ -228,7 +227,6 @@ export const BatchController = {
 
         const queuedFilesCount = filesToProcess.filter(f => f.status === 'Queued').length;
 
-        // Update UI
         const translateBtn = DomHelpers.getElement('translateBtn');
         if (translateBtn) {
             translateBtn.disabled = true;
@@ -308,7 +306,6 @@ export const BatchController = {
             return;
         }
 
-        // Validate file path
         if (!fileToTranslate.filePath && !fileToTranslate.content) {
             MessageLogger.addLog(t('translation:critical_no_path_log', { name: fileToTranslate.name }));
             MessageLogger.showMessage(t('translation:critical_no_path_msg', { name: fileToTranslate.name }), 'error');

@@ -65,7 +65,6 @@ export const FormManager = {
             });
         }
 
-        // Reset button
         const resetBtn = DomHelpers.getElement('resetBtn');
         if (resetBtn) {
             resetBtn.addEventListener('click', () => {
@@ -126,7 +125,6 @@ export const FormManager = {
         const isHidden = section.classList.toggle('hidden');
         icon.style.transform = isHidden ? 'rotate(0deg)' : 'rotate(180deg)';
 
-        // Update state
         StateManager.setState('ui.isSettingsOptionsOpen', !isHidden);
     },
 
@@ -142,7 +140,6 @@ export const FormManager = {
         const isHidden = section.classList.toggle('hidden');
         icon.style.transform = isHidden ? 'rotate(0deg)' : 'rotate(180deg)';
 
-        // Update state
         StateManager.setState('ui.isActivityLogOpen', !isHidden);
     },
 
@@ -383,7 +380,6 @@ export const FormManager = {
             .filter(file => file.filePath)
             .map(file => file.filePath);
 
-        // Clear client-side state
         StateManager.setState('files.toProcess', []);
         StateManager.setState('translation.currentJob', null);
         StateManager.setState('translation.isBatchActive', false);
@@ -393,19 +389,15 @@ export const FormManager = {
             TranslationTracker.clearTranslationState();
         }
 
-        // Reset file input
         DomHelpers.setValue('fileInput', '');
 
-        // Hide progress section
         DomHelpers.hide('progressSection');
 
-        // Reset buttons
         DomHelpers.setText('translateBtn', t('translation:start_batch_with_icon'));
         DomHelpers.setDisabled('translateBtn', true);
         DomHelpers.hide('interruptBtn');
         DomHelpers.setDisabled('interruptBtn', false);
 
-        // Reset language selectors
         DomHelpers.getElement('sourceLang').selectedIndex = 0;
         DomHelpers.getElement('targetLang').selectedIndex = 0;
 
@@ -472,7 +464,6 @@ export const FormManager = {
         const openaiApiKey = provider === 'openai' ? ApiKeyUtils.getValue('openaiApiKey') : '';
         const openrouterApiKey = provider === 'openrouter' ? ApiKeyUtils.getValue('openrouterApiKey') : '';
 
-        // Get TTS configuration
         const ttsEnabled = DomHelpers.getElement('ttsEnabled')?.checked || false;
 
         const ciValue = DomHelpers.getValue('customInstructionSelect') || '';

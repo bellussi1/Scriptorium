@@ -60,7 +60,6 @@ export function renderTranslationTitle(file) {
     const titleElement = DomHelpers.getElement('currentFileProgressTitle');
     if (!titleElement) return;
 
-    // Clear existing content
     titleElement.innerHTML = '';
 
     // Create main container with vertical layout
@@ -101,7 +100,6 @@ export function renderTranslationTitle(file) {
     iconContainer.style.fontSize = '24px';
 
     if (file.fileType === 'epub' && file.thumbnail) {
-        // Show thumbnail
         const img = document.createElement('img');
         img.src = `/api/thumbnails/${encodeURIComponent(file.thumbnail)}`;
         img.alt = 'Cover';

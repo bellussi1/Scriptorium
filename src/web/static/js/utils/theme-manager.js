@@ -23,7 +23,6 @@ export class ThemeManager {
         if (savedTheme) {
             this.setTheme(savedTheme);
         } else {
-            // Check system preference
             const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
             this.setTheme(prefersDark ? 'dark' : 'light');
         }
@@ -67,7 +66,6 @@ export class ThemeManager {
         // Keep native controls and scrollbars in the same palette as the page.
         this.htmlElement.style.colorScheme = theme;
 
-        // Save preference
         localStorage.setItem(this.STORAGE_KEY, theme);
     }
 

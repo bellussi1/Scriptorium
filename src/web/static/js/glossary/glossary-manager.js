@@ -1936,11 +1936,9 @@ function wireEditorView() {
     const autoExtractBtn = $('glossaryAutoExtractBtn');
     if (autoExtractBtn) autoExtractBtn.addEventListener('click', openNerModal);
 
-    // Filter
     const filterInput = $('glossaryTermsFilter');
     if (filterInput) filterInput.addEventListener('input', handleFilterInput);
 
-    // Sort headers
     document.querySelectorAll('#glossaryTermsTable th.sortable').forEach((th) => {
         th.addEventListener('click', () => handleHeaderSortClick(th));
     });

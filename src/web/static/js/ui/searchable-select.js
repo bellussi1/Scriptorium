@@ -72,7 +72,6 @@ export class SearchableSelect {
             }, 100);
         }
 
-        // Hide original select
         this.originalSelect.style.display = 'none';
     }
 
@@ -173,7 +172,6 @@ export class SearchableSelect {
         this.searchInput.addEventListener('input', () => this._onInput());
         this.searchInput.addEventListener('keydown', (e) => this._onKeyDown(e));
 
-        // Clear button
         this.clearBtn.addEventListener('click', (e) => {
             e.preventDefault();
             e.stopPropagation();
@@ -390,7 +388,6 @@ export class SearchableSelect {
             opt.selected = (opt.value === option.value);
         });
 
-        // Update original select
         this.originalSelect.value = option.value;
         this.originalSelect.dispatchEvent(new Event('change', { bubbles: true }));
 
@@ -579,7 +576,6 @@ export class SearchableSelect {
                 return; // Skip loading/placeholder
             }
 
-            // Check for optgroup
             if (opt.parentElement && opt.parentElement.tagName === 'OPTGROUP') {
                 currentGroup = opt.parentElement.label;
             } else {

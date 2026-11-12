@@ -45,7 +45,6 @@ const SYNCED_PREF_KEYS = [
 function validatePreferences(data) {
     if (!data || typeof data !== 'object') return false;
 
-    // Check version
     if (!('version' in data)) return false;
 
     // Validate types for known fields (non-exhaustive, just critical ones)
@@ -216,12 +215,10 @@ export const SettingsManager = {
     _triggerAutoSave() {
         if (isInitializing) return;
 
-        // Clear existing timer
         if (autoSaveTimer) {
             clearTimeout(autoSaveTimer);
         }
 
-        // Set new timer
         autoSaveTimer = setTimeout(async () => {
             await this._performAutoSave();
         }, AUTO_SAVE_DELAY);
@@ -251,14 +248,12 @@ export const SettingsManager = {
 
             const parsed = JSON.parse(stored);
 
-            // Validate structure
             if (!validatePreferences(parsed)) {
                 console.warn('Invalid preferences structure, resetting to defaults');
                 localStorage.removeItem(STORAGE_KEY);
                 return {};
             }
 
-            // Check version compatibility
             if (parsed.version !== STORAGE_VERSION) {
                 console.warn(`Preferences version mismatch (found ${parsed.version}, expected ${STORAGE_VERSION})`);
                 // Could implement migration here in the future
@@ -541,7 +536,6 @@ export const SettingsManager = {
      * @returns {Promise<Object>} Result with success status
      */
     async saveAllSettings(includeApiKeys = false) {
-        // Save local preferences
         this.saveCurrentState();
 
         if (includeApiKeys) {
@@ -791,16 +785,13 @@ export const SettingsManager = {
         const key = endpointType === 'openai' ? 'openaiEndpointCustomized' : 'apiEndpointCustomized';
         const storageKey = endpointType === 'openai' ? 'lastOpenaiEndpoint' : 'lastApiEndpoint';
         
-        // Update input field
         DomHelpers.setValue(inputId, serverValue);
         
-        // Clear customized flag
         const prefs = this.getLocalPreferences();
         delete prefs[key];
         delete prefs[storageKey];
         this.saveLocalPreferences(prefs);
         
-        // Update badge
         this.updateEndpointBadge(endpointType, false);
         
         // Reload models with new endpoint
@@ -840,7 +831,6 @@ export const SettingsManager = {
     initializeEndpointBadges(serverConfig) {
         const prefs = this.getLocalPreferences();
         
-        // Check Ollama endpoint
         if (prefs.apiEndpointCustomized && prefs.lastApiEndpoint) {
             const serverEndpoint = serverConfig.ollama_api_endpoint || serverConfig.api_endpoint;
             if (prefs.lastApiEndpoint !== serverEndpoint) {
@@ -848,7 +838,6 @@ export const SettingsManager = {
             }
         }
         
-        // Check OpenAI endpoint
         if (prefs.openaiEndpointCustomized && prefs.lastOpenaiEndpoint) {
             const serverEndpoint = serverConfig.openai_api_endpoint;
             if (prefs.lastOpenaiEndpoint !== serverEndpoint) {

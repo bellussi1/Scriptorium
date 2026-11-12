@@ -45,14 +45,12 @@ const FOREIGN_DISCOVERY_DELAY_MS = 1000;
 function validateTranslationState(data) {
     if (!data || typeof data !== 'object') return false;
 
-    // Check required fields
     if (!('version' in data)) return false;
     if (!('currentJob' in data)) return false;
     if (!('isBatchActive' in data)) return false;
     if (!('activeJobs' in data)) return false;
     if (!('hasActive' in data)) return false;
 
-    // Validate types
     if (typeof data.isBatchActive !== 'boolean') return false;
     if (typeof data.hasActive !== 'boolean') return false;
     if (!Array.isArray(data.activeJobs)) return false;
@@ -321,7 +319,6 @@ export const TranslationTracker = {
      * Save translation state to localStorage (debounced)
      */
     saveTranslationState() {
-        // Clear existing timer
         if (this._saveStateTimer) {
             clearTimeout(this._saveStateTimer);
         }
@@ -696,7 +693,6 @@ export const TranslationTracker = {
             DomHelpers.setText(fileListItem, `(${newStatus})`);
         }
 
-        // Update in state
         const filesToProcess = StateManager.getState('files.toProcess');
         const fileObj = filesToProcess.find(f => f.name === fileName);
         if (fileObj) {
@@ -1538,7 +1534,6 @@ export const TranslationTracker = {
             }
         });
 
-        // Update warning banner
         this.updateResumableJobsWarningBanner();
     },
 
