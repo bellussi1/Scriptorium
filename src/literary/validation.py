@@ -247,6 +247,9 @@ def glossary_target_present(expected: str, text: str) -> bool:
     expected = (expected or "").strip()
     if target_present(expected, text):
         return True
+    # All-caps headings and title lists print a target in capitals.
+    if expected and expected.casefold() in (text or "").casefold():
+        return True
     head = _article_head(expected)
     word = head if head is not None else expected
     if len(word) < 4 or not _SINGLE_WORD_RE.fullmatch(word):

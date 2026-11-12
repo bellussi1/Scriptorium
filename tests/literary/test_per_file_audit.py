@@ -230,6 +230,10 @@ def test_audit_matcher_accepts_regular_inflections(target: str, text: str):
     assert glossary_target_present(target, text)
 
 
+def test_audit_matcher_ignores_case_for_capitalised_titles():
+    assert glossary_target_present("Império do Silêncio", "IMPÉRIO DO SILÊNCIO")
+
+
 @pytest.mark.parametrize(
     ("target", "text"),
     [
