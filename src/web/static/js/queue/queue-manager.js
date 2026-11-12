@@ -1577,7 +1577,8 @@ function intentLabel(kind) {
 }
 
 function renderPendingIntents() {
-    const count = pendingIntents.size || Number(lastSnapshot.intents?.pending || 0);
+    // Changes from before a reload are not tracked here, but the snapshot counts them.
+    const count = Math.max(pendingIntents.size, Number(lastSnapshot.intents?.pending || 0));
     if (!count) return;
     const text = t('queue:intent_pending', { count });
     const offline = lastSnapshot.agent?.online === false;
