@@ -924,6 +924,7 @@ def run_queue_book(
                 str(reader_input),
                 str(reader_temp),
                 apply_terms=True,
+                queue_title=book.title,
             )
             reader_validation = validate_epub_pair(
                 str(host_source(book)), str(reader_temp), expected_language="pt-BR"

@@ -1,0 +1,96 @@
+# Reader-pass repairs for the Sun Eater series (prompt 6.2).
+#
+# phrases: [old, new, label], run first; labels are kept in the repair report.
+# terms:   [old, new], run after the phrases.
+# casing:  [old, new], common nouns that stay lower case in the official edition.
+# headings: chapter headings keyed by book title, then by XHTML file name.
+#           Only the book with that title gets them.
+phrases:
+- - Balmungconstruído pelos Sollan
+  - Balmung, construído pelos sollanos
+  - Balmung
+- - nobre Sollan
+  - nobre sollana
+  - Sollan
+- - palatinos de Sollan
+  - palatinos sollanos
+  - Sollan
+- - Meidua Red Company
+  - Companhia Vermelha de Meidua
+  - Red Company
+- - Hadrian Halfmortal
+  - Hadrian, o Semimortal
+  - Halfmortal
+- - History of the Jaddian Wars
+  - História das Guerras Jaddianas
+  - Jaddian
+- - O comentarista concordou
+  - O escoliasta concordou
+  - comentarista
+- - talento do comentarista
+  - talento do escoliasta
+  - comentarista
+- - punhos do comentarista
+  - punhos do escoliasta
+  - comentarista
+- - Escuridão Ululante
+  - Escuridão Uivante
+  - título
+- - FEITO EM EUA
+  - FEITO NOS EUA
+  - copyright
+- - IMPRESSO EM EUA
+  - IMPRESSO NOS EUA
+  - copyright
+terms:
+- - Chantry
+  - Chantria
+- - Mericanii
+  - mericanii
+- - Jaddiana
+  - jaddiana
+- - Jaddiano
+  - jaddiano
+- - Jaddian
+  - jaddiano
+- - Normanda
+  - normanda
+- - Normando
+  - normando
+- - Homúnculos
+  - homúnculos
+- - Homúnculo
+  - homúnculo
+- - Homunculus
+  - homúnculo
+- - Halfmortal
+  - Semimortal
+- - Fugue
+  - fuga
+- - fugue
+  - fuga
+- - Red Company
+  - Companhia Vermelha
+- - Painted Man
+  - Homem Pintado
+casing:
+- - Cielcin
+  - cielcin
+- - Escoliasta
+  - escoliasta
+headings:
+  Howling Dark:
+    09_Chapter_2_Suspended_a.xhtml: SUSPENSOS E MORTOS-VIVOS
+    10_Chapter_3_The_Sunken_.xhtml: A CIDADE SUBMERSA
+    16_Chapter_9_Absent_Frie.xhtml: AMIGOS AUSENTES
+    18_Chapter_11_Your_Radia.xhtml: SUA RADIÂNCIA
+    27_Chapter_20_The_Bonecu.xhtml: O CORTADOR DE OSSOS
+    25_Chapter_18_The_Other_.xhtml: A OUTRA MARGEM
+    35_Chapter_28_The_Dark_W.xhtml: O MUNDO SOMBRIO
+    37_Chapter_30_The_Suppli.xhtml: OS SUPLICANTES
+    51_Chapter_44_Understand.xhtml: COMPREENSÃO
+    56_Chapter_49_Two_Treaso.xhtml: DUAS TRAIÇÕES
+    62_Chapter_55_The_Verge_.xhtml: À BEIRA DA HISTÓRIA
+    73_Chapter_66_A_Bloody_S.xhtml: UMA ESTRELA SANGRENTA
+    80_Chapter_73_Broken.xhtml: DESTRUÍDO
+    87_Chapter_80_Halfmortal.xhtml: SEMIMORTAL

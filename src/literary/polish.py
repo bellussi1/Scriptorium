@@ -71,7 +71,9 @@ def polish_book(
     if temp.exists():
         temp.unlink()
     try:
-        repair = repair_reading_epub(str(artifact), str(temp), apply_terms=True)
+        repair = repair_reading_epub(
+            str(artifact), str(temp), apply_terms=True, queue_title=book.title
+        )
         issues = validate_epub_structure(str(temp))
         blocking = [
             issue.to_dict()

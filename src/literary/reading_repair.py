@@ -14,7 +14,7 @@ without retranslating:
 
 It is deliberately conservative.  It never rewrites a whole sentence, and the
 only book-specific rules live in :data:`SUN_EATER_TERMS` and the small
-``HEADING_FIXES``/``JOIN_OVERRIDES`` tables.
+``reader-repairs.yaml`` (headings) and the ``JOIN_OVERRIDES`` table.
 """
 from __future__ import annotations
 
@@ -24,9 +24,24 @@ import re
 import tempfile
 import zipfile
 from dataclasses import dataclass, field
-from typing import Dict, Iterable, List, Optional, Sequence, Tuple
+from functools import lru_cache
+from pathlib import Path
+from typing import Any, Dict, Iterable, List, Optional, Sequence, Tuple
+
+import yaml
 
 from .epub import iter_spine_documents
+
+READER_REPAIRS_PATH = (
+    Path(__file__).resolve().parents[2]
+    / "literary-resources" / "christopher-ruocchio" / "sun-eater" / "reader-repairs.yaml"
+)
+
+
+@lru_cache(maxsize=1)
+def _reader_repairs() -> Dict[str, Any]:
+    """Series-level repairs kept as data, not as code."""
+    return yaml.safe_load(READER_REPAIRS_PATH.read_text(encoding="utf-8")) or {}
 
 TAG_RE = re.compile(r"<[^>]+>", re.DOTALL)
 P_RE = re.compile(r"<p\b(?P<attrs>[^>]*)>(?P<inner>.*?)</p\s*>", re.IGNORECASE | re.DOTALL)
@@ -656,47 +671,19 @@ def _replace_text_nodes(raw: str, transform) -> Tuple[str, int]:
 def _replace_terms_in_text(text: str, counts: Dict[str, int]) -> str:
     # Targeted phrases first: generic replacements would destroy the context
     # needed to resolve them.
-    for old, new, label in (
-        ("Balmungconstruído pelos Sollan", "Balmung, construído pelos sollanos", "Balmung"),
-        ("nobre Sollan", "nobre sollana", "Sollan"),
-        ("palatinos de Sollan", "palatinos sollanos", "Sollan"),
-        ("Meidua Red Company", "Companhia Vermelha de Meidua", "Red Company"),
-        ("Hadrian Halfmortal", "Hadrian, o Semimortal", "Halfmortal"),
-        ("History of the Jaddian Wars", "História das Guerras Jaddianas", "Jaddian"),
-        ("O comentarista concordou", "O escoliasta concordou", "comentarista"),
-        ("talento do comentarista", "talento do escoliasta", "comentarista"),
-        ("punhos do comentarista", "punhos do escoliasta", "comentarista"),
-        ("Escuridão Ululante", "Escuridão Uivante", "título"),
-        ("FEITO EM EUA", "FEITO NOS EUA", "copyright"),
-        ("IMPRESSO EM EUA", "IMPRESSO NOS EUA", "copyright"),
-    ):
+    for old, new, label in _reader_repairs()["phrases"]:
         count = text.count(old)
         if count:
             text = text.replace(old, new)
             counts[label] = counts.get(label, 0) + count
 
-    for old, new in (
-        ("Chantry", "Chantria"),
-        ("Mericanii", "mericanii"),
-        ("Jaddiana", "jaddiana"),
-        ("Jaddiano", "jaddiano"),
-        ("Jaddian", "jaddiano"),
-        ("Normanda", "normanda"),
-        ("Normando", "normando"),
-        ("Homúnculos", "homúnculos"),
-        ("Homúnculo", "homúnculo"),
-        ("Homunculus", "homúnculo"),
-        ("Halfmortal", "Semimortal"),
-        ("Fugue", "fuga"),
-        ("Red Company", "Companhia Vermelha"),
-        ("Painted Man", "Homem Pintado"),
-    ):
+    for old, new in _reader_repairs()["terms"]:
         count = text.count(old)
         if count:
             text = text.replace(old, new)
             counts[f"{old}→{new}"] = counts.get(f"{old}→{new}", 0) + count
     # Cielcin / Escoliasta are common nouns in the official Brazilian edition.
-    for old, new in (("Cielcin", "cielcin"), ("Escoliasta", "escoliasta")):
+    for old, new in _reader_repairs()["casing"]:
         count = text.count(old)
         if count:
             text = text.replace(old, new)
@@ -796,29 +783,17 @@ def clean_artefacts(raw: str, counts: Dict[str, int]) -> Tuple[str, int]:
     return raw, changes
 
 
-HEADING_FIXES: Dict[str, str] = {
-    "09_Chapter_2_Suspended_a.xhtml": "SUSPENSOS E MORTOS-VIVOS",
-    "10_Chapter_3_The_Sunken_.xhtml": "A CIDADE SUBMERSA",
-    "16_Chapter_9_Absent_Frie.xhtml": "AMIGOS AUSENTES",
-    "18_Chapter_11_Your_Radia.xhtml": "SUA RADIÂNCIA",
-    "27_Chapter_20_The_Bonecu.xhtml": "O CORTADOR DE OSSOS",
-    "25_Chapter_18_The_Other_.xhtml": "A OUTRA MARGEM",
-    "35_Chapter_28_The_Dark_W.xhtml": "O MUNDO SOMBRIO",
-    "37_Chapter_30_The_Suppli.xhtml": "OS SUPLICANTES",
-    "51_Chapter_44_Understand.xhtml": "COMPREENSÃO",
-    "56_Chapter_49_Two_Treaso.xhtml": "DUAS TRAIÇÕES",
-    "62_Chapter_55_The_Verge_.xhtml": "À BEIRA DA HISTÓRIA",
-    "73_Chapter_66_A_Bloody_S.xhtml": "UMA ESTRELA SANGRENTA",
-    "80_Chapter_73_Broken.xhtml": "DESTRUÍDO",
-    "87_Chapter_80_Halfmortal.xhtml": "SEMIMORTAL",
-}
+# Chapter headings per book live in reader-repairs.yaml, under "headings".
 
 JOIN_OVERRIDES: Sequence[Tuple[str, str]] = (
     ("seguia o design", "Parei"),
 )
 
 
-def fix_headings(raw: str, href: str) -> Tuple[str, List[str]]:
+def fix_headings(
+    raw: str, href: str, headings: Optional[Dict[str, str]] = None
+) -> Tuple[str, List[str]]:
+    headings = headings or {}
     changes: List[str] = []
     filename = href.rsplit("/", 1)[-1]
 
@@ -826,8 +801,8 @@ def fix_headings(raw: str, href: str) -> Tuple[str, List[str]]:
         opening, inner, closing = match.group(1), match.group(2), match.group(3)
         text = re.sub(r"\s+", " ", strip_tags(inner)).strip()
         text = re.sub(r"^[–—-]\s*", "", text)
-        if filename in HEADING_FIXES:
-            text = HEADING_FIXES[filename]
+        if filename in headings:
+            text = headings[filename]
         elif text == "O MUNDO SOMBrio":
             text = "O MUNDO SOMBRIO"
         elif text == "DESTRUIDO":
@@ -954,7 +929,9 @@ def _package_title(source_path: str) -> str:
     return ""
 
 
-def _read_chapter_titles(source_path: str) -> Dict[str, str]:
+def _read_chapter_titles(
+    source_path: str, headings: Optional[Dict[str, str]] = None
+) -> Dict[str, str]:
     titles: Dict[str, str] = {}
     with zipfile.ZipFile(source_path) as archive:
         for name in archive.namelist():
@@ -970,7 +947,7 @@ def _read_chapter_titles(source_path: str) -> Dict[str, str]:
                 continue
             heading = re.sub(r"\s+", " ", strip_tags(match.group(1))).strip()
             heading = re.sub(r"^[–—-]\s*", "", heading)
-            heading = HEADING_FIXES.get(name.rsplit("/", 1)[-1], heading)
+            heading = (headings or {}).get(name.rsplit("/", 1)[-1], heading)
             if heading == "O MUNDO SOMBrio":
                 heading = "O MUNDO SOMBRIO"
             if heading == "DESTRUIDO":
@@ -1145,8 +1122,14 @@ def repair_reading_epub(
     output_path: str,
     *,
     apply_terms: bool = True,
+    queue_title: str = "",
 ) -> Dict[str, object]:
-    """Write a reader-repaired copy of ``source_path``."""
+    """Write a reader-repaired copy of ``source_path``.
+
+    ``queue_title`` is the book's English title in the queue. It selects the
+    book's chapter headings in ``reader-repairs.yaml``; the EPUB's own title is
+    already translated, so it cannot be used for that.
+    """
     source_path = os.path.abspath(source_path)
     output_path = os.path.abspath(output_path)
     if source_path == output_path:
@@ -1154,7 +1137,8 @@ def repair_reading_epub(
     output_dir = os.path.dirname(output_path) or "."
     os.makedirs(output_dir, exist_ok=True)
 
-    chapter_titles = _read_chapter_titles(source_path)
+    headings = _reader_repairs().get("headings", {}).get(queue_title, {})
+    chapter_titles = _read_chapter_titles(source_path, headings)
     book_title = _package_title(source_path)
     report = RepairReport(source=source_path, output=output_path)
     term_counts: Dict[str, int] = {}
@@ -1197,7 +1181,7 @@ def repair_reading_epub(
                         raw, _ = apply_sun_eater_terms(raw, term_counts)
                     raw, _ = clean_artefacts(raw, report.artefact_changes)
                     raw = global_text_fixes(raw)
-                    raw, heading_changes = fix_headings(raw, name)
+                    raw, heading_changes = fix_headings(raw, name, headings)
                     report.heading_changes.extend(heading_changes)
                     raw = localise_document_title(raw, name, chapter_titles)
                     if name.endswith("06_Contents.xhtml"):

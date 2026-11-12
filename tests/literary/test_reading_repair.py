@@ -216,3 +216,31 @@ def test_repair_reading_epub_writes_a_valid_copy(tmp_path: Path):
         assert "— Morto? — murmurei." in html
         assert "TBL reader layout" in archive.read("OEBPS/style.css").decode("utf-8")
         assert archive.read("OEBPS/other.txt") == b"unchanged"
+
+
+def test_reader_headings_are_keyed_by_book_title():
+    from src.literary.reading_repair import _reader_repairs
+
+    headings = _reader_repairs()["headings"]
+    assert set(headings) == {"Howling Dark"}
+    assert headings["Howling Dark"]["87_Chapter_80_Halfmortal.xhtml"] == "SEMIMORTAL"
+
+
+def test_fix_headings_applies_only_the_map_it_is_given():
+    raw = '<h1 class="x03-Chapter-Title">Algo</h1>'
+    href = "OEBPS/xhtml/87_Chapter_80_Halfmortal.xhtml"
+
+    untouched, _ = fix_headings(raw, href, {})
+    assert "SEMIMORTAL" not in untouched
+
+    fixed, _ = fix_headings(raw, href, {"87_Chapter_80_Halfmortal.xhtml": "SEMIMORTAL"})
+    assert "SEMIMORTAL" in fixed
+
+
+def test_fugue_is_repaired_in_any_case():
+    from src.literary.reading_repair import apply_sun_eater_terms
+
+    repaired, _ = apply_sun_eater_terms("<p>creches de fugue, Fugue</p>", {})
+    assert "fugue" not in repaired.lower()
+    assert repaired.count("fuga") == 2
+
