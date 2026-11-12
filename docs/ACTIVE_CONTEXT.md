@@ -9,10 +9,18 @@ with `git status` and `git log` before acting. Older handoffs are in git history
 
 - **Queue agent** runs from the main checkout (`scripts/queue_runner_agent.py`).
   Queue changes from the UI need it; start `start-queue-agent.bat` if it is down.
-- **Running:** Ashes of Man (book 7, job 25) resumed from checkpoint 354/845 at
-  23:00 as the only runner (`queue run --book-id 7`); about 522/845 at 23:38. It died twice with exit 137
-  (22:51 and 22:59) while revision jobs were using Ollama; the cause is not
-  confirmed. Keep revisions paused until Ashes finishes.
+- **Running:** Disquiet Gods (Sun Eater 6, book 9, job 26) since 09:42 on 2026-11-12;
+  about 36% at 11:06. When it finishes, apply the official-case pass to its refined
+  file and review it. Shadows Upon Time (book 13) is pending.
+- **Reviewed and approved 2026-11-12:** Ashes of Man (book 7) and Kingdoms of Death
+  (book 11), both `completed`. The previous refined files are `*.refined.pre-review.epub`.
+- **Sun Eater terms follow the official pt-BR edition** (Império do Silêncio): peoples and
+  species in lower case (cielcin, mericanii, aeta, ...), titles mid-sentence in lower case
+  (lorde, sir, imperador, comandante, ...). Books 2 to 5 were rewritten; the previous files
+  are `*.pre-official-case.epub`.
+- **Open:** "estamos a" + verb in Kingdoms and Ashes (needs the local model); title of
+  Kingdoms chapter 40 ("Que Altar Verde") needs translation review; the Kindle export of
+  books 2 to 5 is stale until the next export.
 - **Sun Eater pt-BR revision: paused.** Demon in White was rerun with the corrected
   prompt and guard, but that run was stopped; its output was discarded. Run
   Demon, Howling and Kingdoms again, in order, after Ashes. Use `--num-ctx 4096`
