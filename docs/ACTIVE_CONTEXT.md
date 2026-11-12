@@ -23,14 +23,14 @@ with `git status` and `git log` before acting. Older handoffs are in git history
 - **Branches:** every local branch is merged or equivalent in `main`. Two
   remote copies of merged branches remain on `origin` (`fix/epub-contributor-role`,
   `fix/glossary-forbidden`); delete them on request.
-- **UI pass (buttons, tabs, completed translations):** committed as `0aec978` on
-  `feat/ui-design-system`, not pushed. Verified on a test instance at 127.0.0.1:5055
+- **UI pass (buttons, tabs, completed translations):** merged into `main` by fast-forward (2026-11-12, tip
+  `4eae8b6`); not pushed. Verified on a test instance at 127.0.0.1:5055
   (queue DB copy in `data/ui-check/`, gitignored): tab ARIA and arrow/Home/End keys,
   light and dark, mobile wrap, history rows. Open: at 375 px the seven tabs take three
   rows; `#glossaryListTable` is about 490 px and overflows panes under ~520 px (predates
   this pass); one 400 on a model-list request at page load is not yet identified.
 
-- **Front-end pass (2026-11-11):** stylesheets are SCSS partials in `src/web/static/scss`,
+- **Front-end pass (2026-11-11, merged into `main`):** stylesheets are SCSS partials in `src/web/static/scss`,
   compiled with `npm run build:css` into `src/web/static/css/app.css`; spacing and radius
   tokens are in `_tokens.scss`. Mobile media queries are gone (desktop-first).
   **Deploy step pending:** the running container still serves its cached template,
