@@ -49,9 +49,14 @@ no edit.
 3. Costs are not measured per detector. They are seconds on CPU; EPUBCheck is the slowest
    part (a docker run).
 
-## Next steps (not done)
+## Next steps
 
-- Add a phrase-level detector for untranslated English runs in all caps (case of
-  `caron_ch24`).
-- Add a dropcap-aware check for glossary terms split by markup (case of `chantry_ch76`).
+- Status: the two known escapes are covered. `caron_ch24` is a truncated Portuguese term
+  (`CARON` for `CARONTE`), caught by the `truncated_term` rule; `chantry_ch76` is caught by
+  `forbidden_rendering` (case-insensitive, so `CHANTRY` counts). Both pass in
+  `tests/literary/test_golden_set.py`. The first draft of this review said no detector saw
+  them; that was true before commit c2a7fbc.
+- Proper-noun forbidden forms (for example `Cantaria`) no longer count lowercase ordinary
+  words such as the verb `cantaria`; see `_forbidden_occurrences` in
+  `src/literary/per_file_audit.py` and `tests/literary/test_forbidden_case.py`.
 - Raise the meaning sample size only when labels exist (see prompt 3.4).

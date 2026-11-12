@@ -16,7 +16,7 @@ language of the conversation.
   repository when enabled; User-Agent with the new name; no upstream Referer). 4.2
   (`scripts/auto_queue.py`: bounded restarts with backoff, gate hold, restart reason in
   the status file; `tests/literary/test_auto_supervisor.py` and `test_auto_queue_gate.py` pass).
-- Done on branch `refactor/prompt-6-2-data`, not merged: 6.2. Book rules moved to
+- Done and merged (`refactor/prompt-6-2-data`): 6.2. Book rules moved to
   `literary-resources` (`book_text_fixes`, `labels`, the Ship of Magic `running_header`);
   the Chantry metric became a count of forbidden forms. Demon in White's reader output is
   unchanged, except its four back-matter titles, which now have Portuguese labels.
