@@ -983,6 +983,7 @@ function applySnapshot(data) {
         agent: data.agent || {},
         runner: data.runner || {},
         run_request: data.run_request || null,
+        intents: data.intents || {},
     };
     lastBooks = lastSnapshot.books;
     renderSummary(data);
@@ -1185,16 +1186,9 @@ async function addSelectedBooks() {
             headers: { ...apiHeaders(), 'Content-Type': 'application/json' },
             body: JSON.stringify({ calibre_ids: ids }),
         });
-        const data = await settleQueueResponse(response);
+        const data = await settleQueueResponse(response, 'add', (result) => setActionStatus(addSummary(result)));
         applySnapshot(data);
-        const parts = [t('queue:added', { count: (data.added || []).length })];
-        if ((data.duplicates || []).length) {
-            parts.push(t('queue:duplicates', { count: data.duplicates.length }));
-        }
-        if ((data.not_found || []).length) {
-            parts.push(t('queue:not_found', { count: data.not_found.length }));
-        }
-        setActionStatus(parts.join(' '));
+        if (!data.queued) setActionStatus(addSummary(data));
         await loadLibrary();
     } catch (error) {
         setActionStatus(t('queue:action_error', { message: error.message || String(error) }), true);
@@ -1294,7 +1288,7 @@ async function patchBookModel(bookId, model, provider) {
         headers: { ...apiHeaders(), 'Content-Type': 'application/json' },
         body: JSON.stringify({ model, provider }),
     });
-    const data = await settleQueueResponse(response);
+    const data = await settleQueueResponse(response, 'update_model');
     return data;
 }
 
@@ -1316,7 +1310,7 @@ async function saveModel() {
         const data = await patchBookModel(editingBookId, model, provider);
         applySnapshot(data);
         closeModelModal();
-        setActionStatus(t('queue:model_updated'));
+        if (!data.queued) setActionStatus(t('queue:model_updated'));
     } catch (error) {
         showModelError(t('queue:model_error', { message: error.message || String(error) }));
     } finally {
@@ -1338,7 +1332,7 @@ async function changeBookModel(bookId, model) {
     try {
         const data = await patchBookModel(bookId, model, provider);
         applySnapshot(data);
-        setActionStatus(t('queue:model_updated'));
+        if (!data.queued) setActionStatus(t('queue:model_updated'));
     } catch (error) {
         if (select) select.value = String(book.model || '');
         setActionStatus(t('queue:model_error', { message: error.message || String(error) }), true);
@@ -1551,44 +1545,101 @@ function closeQuality() {
 }
 
 const INTENT_URL = '/api/literary/queue/intents';
-const INTENT_POLL_MS = 400;
-const INTENT_TIMEOUT_MS = 60000;
+const INTENT_POLL_MS = 1000;
+// Changes the host runner has not applied yet, keyed by intent token.
+const pendingIntents = new Map();
+let intentTimer = null;
+let polling = false;
 
-// The host runner applies queue changes. A 202 carrying an intent means the
-// runner has not applied it yet: poll until it has, then return the snapshot.
-async function awaitQueueIntent(accepted) {
-    const token = accepted.intent.token;
-    setActionStatus(t('queue:intent_waiting'));
-    const deadline = Date.now() + INTENT_TIMEOUT_MS;
-    while (Date.now() < deadline) {
-        await new Promise((resolve) => setTimeout(resolve, INTENT_POLL_MS));
-        const response = await fetch(`${INTENT_URL}/${encodeURIComponent(token)}`, {
-            headers: apiHeaders(),
-            cache: 'no-store',
-        });
-        const state = await response.json().catch(() => ({}));
-        if (!response.ok) throw new Error(state.error || `HTTP ${response.status}`);
-        if (state.state !== 'applied') continue;
-        if (state.error) throw new Error(state.error);
-        const snapshotResponse = await fetch(QUEUE_URL, {
-            headers: apiHeaders(),
-            cache: 'no-store',
-        });
-        const snapshot = await snapshotResponse.json();
-        return { ...accepted, ...snapshot, ...(state.result || {}) };
-    }
-    throw new Error(t('queue:intent_timeout'));
-}
-
-async function settleQueueResponse(response) {
+// The runner applies queue changes. A 202 with an intent means the change is
+// queued: the request returns at once, the change is tracked until the runner
+// applies or refuses it, and the rest of the queue stays usable meanwhile.
+async function settleQueueResponse(response, kind, onApplied) {
     const data = await response.json().catch(() => ({}));
     if (response.status === 202 && data.intent?.token) {
-        return awaitQueueIntent(data);
+        trackIntent(data.intent.token, kind, onApplied, data);
+        return { ...data, queued: true };
     }
     if (!response.ok || data.status === 'error') {
         throw new Error(data.error || `HTTP ${response.status}`);
     }
     return data;
+}
+
+function trackIntent(token, kind, onApplied, body) {
+    pendingIntents.set(token, { kind, onApplied, body });
+    renderPendingIntents();
+    if (!intentTimer) intentTimer = setInterval(pollPendingIntents, INTENT_POLL_MS);
+}
+
+function intentLabel(kind) {
+    return t(`queue:intent_kind_${kind}`);
+}
+
+function renderPendingIntents() {
+    const count = pendingIntents.size || Number(lastSnapshot.intents?.pending || 0);
+    if (!count) return;
+    const text = t('queue:intent_pending', { count });
+    const offline = lastSnapshot.agent?.online === false;
+    setActionStatus(offline ? `${text} ${t('queue:intent_agent_offline')}` : text);
+}
+
+async function pollPendingIntents() {
+    if (polling) return;
+    polling = true;
+    try {
+        for (const [token, entry] of [...pendingIntents]) {
+            const state = await readIntentState(token);
+            if (!state || state.state !== 'applied') continue;
+            pendingIntents.delete(token);
+            if (state.error) {
+                setActionStatus(
+                    t('queue:intent_refused', { label: intentLabel(entry.kind), message: state.error }),
+                    true,
+                );
+            } else if (entry.onApplied) {
+                entry.onApplied({ ...entry.body, ...(state.result || {}) });
+            } else {
+                setActionStatus(t('queue:intent_applied', { label: intentLabel(entry.kind) }));
+            }
+            refresh();
+        }
+    } finally {
+        polling = false;
+    }
+    if (pendingIntents.size) {
+        renderPendingIntents();
+    } else if (intentTimer) {
+        clearInterval(intentTimer);
+        intentTimer = null;
+    }
+}
+
+// Returns the intent state, or null when the check should simply run again.
+async function readIntentState(token) {
+    try {
+        const response = await fetch(`${INTENT_URL}/${encodeURIComponent(token)}`, {
+            headers: apiHeaders(),
+            cache: 'no-store',
+        });
+        if (response.status >= 500) return null;
+        const state = await response.json().catch(() => ({}));
+        if (response.ok) return state;
+        return { state: 'applied', error: state.error || `HTTP ${response.status}` };
+    } catch (error) {
+        return null;
+    }
+}
+
+function addSummary(result) {
+    const parts = [t('queue:added', { count: (result.added || []).length })];
+    if ((result.duplicates || []).length) {
+        parts.push(t('queue:duplicates', { count: result.duplicates.length }));
+    }
+    if ((result.not_found || []).length) {
+        parts.push(t('queue:not_found', { count: result.not_found.length }));
+    }
+    return parts.join(' ');
 }
 
 async function approveBook(bookId) {
@@ -1598,9 +1649,9 @@ async function approveBook(bookId) {
             method: 'POST',
             headers: apiHeaders(),
         });
-        const data = await settleQueueResponse(response);
+        const data = await settleQueueResponse(response, 'approve');
         applySnapshot(data);
-        setActionStatus(t('queue:approved'));
+        if (!data.queued) setActionStatus(t('queue:approved'));
         closeQuality();
     } catch (error) {
         setActionStatus(t('queue:action_approve_error', { message: error.message || String(error) }), true);
@@ -1654,9 +1705,9 @@ async function retryBook(bookId) {
             method: 'POST',
             headers: apiHeaders(),
         });
-        const data = await settleQueueResponse(response);
+        const data = await settleQueueResponse(response, 'retry');
         applySnapshot(data);
-        setActionStatus(t('queue:retried'));
+        if (!data.queued) setActionStatus(t('queue:retried'));
         closeQuality();
     } catch (error) {
         setActionStatus(t('queue:action_retry_error', { message: error.message || String(error) }), true);
@@ -1675,10 +1726,10 @@ async function removeBook(bookId) {
             method: 'DELETE',
             headers: apiHeaders(),
         });
-        const data = await settleQueueResponse(response);
+        const data = await settleQueueResponse(response, 'remove', () => toast.success(t('queue:removed', { title })));
         applySnapshot(data);
         loadLibrary();
-        toast.success(t('queue:removed', { title }));
+        if (!data.queued) toast.success(t('queue:removed', { title }));
     } catch (error) {
         toast.error(t('queue:action_remove_error', {
             message: error.message || String(error),
@@ -1727,9 +1778,9 @@ async function moveBook(bookId, direction) {
             headers: { ...apiHeaders(), 'Content-Type': 'application/json' },
             body: JSON.stringify({ direction }),
         });
-        const data = await settleQueueResponse(response);
+        const data = await settleQueueResponse(response, 'move');
         applySnapshot(data);
-        setActionStatus(t('queue:moved'));
+        if (!data.queued) setActionStatus(t('queue:moved'));
     } catch (error) {
         setActionStatus(t('queue:move_error', { message: error.message || String(error) }), true);
     } finally {
