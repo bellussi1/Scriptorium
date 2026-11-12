@@ -12,8 +12,7 @@ with `git status` and `git log` before acting. Older handoffs are in git history
 - **Running:** Ashes of Man (book 7, job 25, Index, refine on), about one chapter
   a minute (89 of 845 at 22:15). When it stops at `needs_review`, the next run
   must be started by hand (`--max-books 1`).
-- **Sun Eater pt-BR revision in progress:** Demon in White (see the procedure
-  below). Howling Dark and Kingdoms of Death follow.
+- **Sun Eater pt-BR revision:** Demon in White is running (PID 5980, started 22:19). A background chain (`scratchpad/revise/chain.sh`) runs Howling Dark and then Kingdoms after it, writing `*-full.epub` and `*-full.json` to the scratchpad. Gate them before replacing any refined file.
 - **Queued on Index:** Ship of Magic (2), Fool's Errand (4), Ship of Destiny (1),
   The Golden Fool (6), Fool's Fate (5). Their Hy-MT2 outputs are in
   `translated_files/archive-hy-mt2-2026-11-12/`.
@@ -24,7 +23,7 @@ with `git status` and `git log` before acting. Older handoffs are in git history
 | --- | --- | --- | --- |
 | Demon in White (Sun Eater 3) | 8, completed | refined, post-passed | Titles, body headings, series metadata and Lexicon done. Audit: `Imperium` drift (owner accepted "Império"). Revision running. |
 | Howling Dark (Sun Eater 2) | 10, completed | refined, post-passed | Approved in the Queue UI. Headings and titles consistent (80). Chapter 50 title and "“ELA" fixed 2026-11-12. Revision pending. |
-| Kingdoms of Death (Sun Eater 4) | 11, needs_review | refined, post-passed | Not approved. Audit fails one file (chapter 15, see Open). Revision pending. |
+| Kingdoms of Death (Sun Eater 4) | 11, needs_review | refined, post-passed | Deterministic audit passes (2026-11-12). Not approved until the pt-BR revision is done. |
 | Ashes of Man (Sun Eater 5) | 7, translating | — | Job 25. No chapter-title map yet. |
 | Disquiet Gods, Shadows Upon Time | 9, 13, pending | — | Index. |
 | Ship of Magic (Realm 1) | 2, pending | to be re-translated | Was Hy-MT2 + repair. Post-pass (`chapter_headings`) was aligned to Hy-MT2 residue; redo it. |
@@ -95,10 +94,7 @@ documents). Do not re-run it on finals; see
 
 ## Open decisions
 
-1. **Kingdoms, chapter 15.** `Legion` is rendered as `legionário(s)` where the
-   glossary says `Legião`, and `Sollan` appears unmarked as an adjective. Both are
-   glossary policy. Recommendation: accept the derived form `legionário` for
-   `Legião`; use `sollano/sollana` for the adjective. Not implemented.
+1. **Resolved 2026-11-12.** Kingdoms chapter 15: derived forms of a glossary target are data (`accepted_targets`; Legião accepts legionário(s)); `Sollan` used as an adjective is now sollana/sollano. The audit passes.
 2. **Meaning gate (Howling).** Calibrated; the two confirmed notes look like
    false positives. Choose: approve by hand, add a stronger adjudicator, or
    raise the threshold to 2.
