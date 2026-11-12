@@ -9,18 +9,30 @@ with `git status` and `git log` before acting. Older handoffs are in git history
 
 - **Queue agent** runs from the main checkout (`scripts/queue_runner_agent.py`).
   Queue changes from the UI need it; start `start-queue-agent.bat` if it is down.
-- **Running:** Disquiet Gods (Sun Eater 6, book 9, job 26) since 09:42 on 2026-11-12;
-  about 36% at 11:06. When it finishes, apply the official-case pass to its refined
-  file and review it. Shadows Upon Time (book 13) is pending.
+- **Running:** Disquiet Gods (Sun Eater 6, book 9) re-translated from the EPUB 3.0 library
+  source, started 2026-11-12 16:43 local (about 4 h on the local GPU). The old output was
+  built from the superseded EPUB 2.0 source and moved to
+  `data/tmp/disquiet-gods-superseded-2026-11-12/`. When it finishes: check the gate
+  (job state `needs_review`), apply the progressive repair to its output, then review.
+  Shadows Upon Time (book 13) is pending. Book 9 keeps the EPUB 2.0 hash in `books.source_hash`.
 - **Reviewed and approved 2026-11-12:** Ashes of Man (book 7) and Kingdoms of Death
   (book 11), both `completed`. The previous refined files are `*.refined.pre-review.epub`.
 - **Sun Eater terms follow the official pt-BR edition** (Império do Silêncio): peoples and
   species in lower case (cielcin, mericanii, aeta, ...), titles mid-sentence in lower case
   (lorde, sir, imperador, comandante, ...). Books 2 to 5 were rewritten; the previous files
   are `*.pre-official-case.epub`.
-- **Open:** "estamos a" + verb in Kingdoms and Ashes (needs the local model); title of
-  Kingdoms chapter 40 ("Que Altar Verde") needs translation review; the Kindle export of
-  books 2 to 5 is stale until the next export.
+- **pt-PT progressive ("estar a" + infinitive → "estar" + gerund):** `src/literary/progressive_repair.py`
+  rewrites only the verbs listed in `PROGRESSIVE_GERUNDS` (nouns such as "dor" and "favor" are
+  left alone). Applied to the refined files of Howling Dark, Demon in White, Kingdoms and
+  Ashes (EPUBCheck 0 errors; backups in `data/tmp/progressive-repair-backup-2026-11-12/`).
+  Kindle folder rebuilt. Wired into the queue run after the id repair (from this change on).
+  Left for review: "despregar" (Ashes, pt-PT lexicon); two cases split by markup (Demon
+  "estava</i> a brincar", Ashes "estava a <a id/>gritar").
+- **Open:** title of Kingdoms chapter 40 ("Que Altar Verde") is an editorial choice in
+  `literary-resources/.../chapter-titles/kingdoms-of-death.yaml`; no official pt-BR chapter list
+  was found online. Needs the owner's decision.
+- **Glossary:** `eali` (Jaddian ruling caste) added as `policy: keep`, provisional, not yet
+  approved. Uncommitted, with the progressive repair and its tests.
 - **Sun Eater pt-BR revision: paused.** Demon in White was rerun with the corrected
   prompt and guard, but that run was stopped; its output was discarded. Run
   Demon, Howling and Kingdoms again, in order, after Ashes. Use `--num-ctx 4096`

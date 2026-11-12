@@ -40,6 +40,7 @@ except Exception:
     pass
 from .reading_repair import repair_reading_epub
 from .epub import update_opf_metadata
+from .progressive_repair import repair_progressive_in_epub
 from .repair import repair_doc_roles_in_epub, repair_dropcaps_in_epub, repair_invalid_ids_in_epub
 from .resources import (
     write_glossary_json,
@@ -903,6 +904,10 @@ def run_queue_book(
     ids_host = v2_host.with_name(f".{v2_host.stem}.ids.tmp.epub")
     id_repair = repair_invalid_ids_in_epub(str(v2_host), str(ids_host))
     os.replace(ids_host, v2_host)
+    log(book.title, "rewriting pt-PT progressive periphrasis as pt-BR gerunds")
+    progressive_host = v2_host.with_name(f".{v2_host.stem}.progressive.tmp.epub")
+    progressive_repair = repair_progressive_in_epub(str(v2_host), str(progressive_host))
+    os.replace(progressive_host, v2_host)
     validation = validate_epub_pair(str(host_source(book)), str(v2_host), expected_language="pt-BR")
     log(book.title, f"validation passed={validation.get('passed')} blocking={validation.get('blocking')}")
     epubcheck = _epubcheck(v2_host)
@@ -1058,6 +1063,11 @@ def run_queue_book(
         "role_repair": {
             "total_changes": roles.get("total_changes"),
             "changed_files": [item["file"] for item in roles.get("changed_files", [])],
+        },
+        "progressive_repair": {
+            "total_changes": progressive_repair.get("total_changes"),
+            "by_verb": progressive_repair.get("by_verb"),
+            "unconverted": progressive_repair.get("unconverted"),
         },
         "id_repair": {
             "total_changes": id_repair.get("total_changes"),
