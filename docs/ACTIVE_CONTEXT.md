@@ -108,6 +108,12 @@ documents). Do not re-run it on finals; see
   log, control, about every 10 s); API median 38-39 ms, one outlier 770-820 ms. After the
   `ui/html` helper in `renderSummary` and `renderEvents`: unchanged. Rule: no new polling;
   re-measure with the same script before changing render paths in `queue-manager`.
+- Targeted repair (branch `feat/chunk-quality-gates`, not merged): `src/literary/targeted_fix.py`
+  repairs paragraphs of a finished EPUB that carry a forbidden glossary form or a blocking pt-PT
+  form. Model call only for flagged paragraphs; accepted only when the failure is gone and the
+  guard passes. Howling Dark (refined): 12 of 7,650 paragraphs flagged, 5 of them with inline
+  markup (skipped). The repair is not run on the deliverable; it needs the GPU, which the Ashes
+  run holds.
 - Container `translatebook-literary-dev` (127.0.0.1:5000) mounts `src` read-only:
   restart it to load Python changes; no rebuild needed.
 - Tests: `venv\Scripts\python.exe -m pytest -q tests/unit tests/literary tests/test_frontend_i18n.py`.
