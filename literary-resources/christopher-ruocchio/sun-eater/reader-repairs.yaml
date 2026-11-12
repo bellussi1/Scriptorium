@@ -1,11 +1,11 @@
 # Reader-pass repairs for the Sun Eater series (prompt 6.2).
 #
-# phrases: [old, new, label], run first; labels are kept in the repair report.
-# terms:   [old, new], run after the phrases.
-# casing:  [old, new], common nouns that stay lower case in the official edition.
+# reader_phrases: [old, new, label], run first; labels are kept in the repair report.
+# reader_terms:  [old, new], run after the phrases.
+# reader_casing: [old, new], common nouns that stay lower case in the official edition.
 # headings: chapter headings keyed by book title, then by XHTML file name.
 #           Only the book with that title gets them.
-phrases:
+reader_phrases:
 - - Balmungconstruído pelos Sollan
   - Balmung, construído pelos sollanos
   - Balmung
@@ -42,7 +42,7 @@ phrases:
 - - IMPRESSO EM EUA
   - IMPRESSO NOS EUA
   - copyright
-terms:
+reader_terms:
 - - Chantry
   - Chantria
 - - Mericanii
@@ -73,7 +73,7 @@ terms:
   - Companhia Vermelha
 - - Painted Man
   - Homem Pintado
-casing:
+reader_casing:
 - - Cielcin
   - cielcin
 - - Escoliasta

@@ -671,19 +671,19 @@ def _replace_text_nodes(raw: str, transform) -> Tuple[str, int]:
 def _replace_terms_in_text(text: str, counts: Dict[str, int]) -> str:
     # Targeted phrases first: generic replacements would destroy the context
     # needed to resolve them.
-    for old, new, label in _reader_repairs()["phrases"]:
+    for old, new, label in _reader_repairs()["reader_phrases"]:
         count = text.count(old)
         if count:
             text = text.replace(old, new)
             counts[label] = counts.get(label, 0) + count
 
-    for old, new in _reader_repairs()["terms"]:
+    for old, new in _reader_repairs()["reader_terms"]:
         count = text.count(old)
         if count:
             text = text.replace(old, new)
             counts[f"{old}→{new}"] = counts.get(f"{old}→{new}", 0) + count
     # Cielcin / Escoliasta are common nouns in the official Brazilian edition.
-    for old, new in _reader_repairs()["casing"]:
+    for old, new in _reader_repairs()["reader_casing"]:
         count = text.count(old)
         if count:
             text = text.replace(old, new)
