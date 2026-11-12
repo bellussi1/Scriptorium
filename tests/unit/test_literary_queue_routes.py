@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import json
 import sqlite3
+import time
 from pathlib import Path
 
 from flask import Flask
@@ -636,3 +637,75 @@ def test_approve_route_accepts_an_unreviewed_completed_book(tmp_path: Path, monk
     assert book["state"] == "completed"
     assert book["reviewed"] is True
     assert book["reviewed_at"]
+
+
+def _runner_behind(monkeypatch) -> None:
+    """The host runner has not applied anything yet: the route must answer 202."""
+    from src.api.blueprints import literary_queue_routes as routes
+
+    monkeypatch.setattr(routes, "_await_intent", lambda db_path, token: None)
+
+
+def test_mutations_answer_202_and_the_intent_is_readable_until_applied(tmp_path: Path, monkeypatch):
+    from src.literary import queue_intents
+
+    app = _client(tmp_path, monkeypatch, rows=[])
+    _seed_book(tmp_path, 29, "Head Of Queue")
+    book_id = _seed_book(tmp_path, 30, "Queued Later")
+    db = tmp_path / "queue.db"
+    _runner_behind(monkeypatch)
+    client = app.test_client()
+
+    response = client.post(f"/api/literary/queue/books/{book_id}/move", json={"direction": "up"})
+
+    assert response.status_code == 202
+    accepted = response.get_json()
+    token = accepted["intent"]["token"]
+    assert accepted["intent"]["state"] == "queued"
+    assert accepted["intent"]["kind"] == "move"
+    assert accepted["intents"]["pending"] == 1
+    assert client.get(f"/api/literary/queue/intents/{token}").get_json()["state"] == "queued"
+
+    queue_intents.drain(db)
+
+    applied = client.get(f"/api/literary/queue/intents/{token}").get_json()
+    assert applied["state"] == "applied" and applied["error"] == ""
+    assert applied["result"]["moved"] == {"book_id": book_id, "direction": "up"}
+
+
+def test_the_app_routes_never_write_the_queue_database(tmp_path: Path, monkeypatch):
+    app = _client(tmp_path, monkeypatch, rows=[])
+    first = _seed_book(tmp_path, 31, "First")
+    second = _seed_book(tmp_path, 32, "Second")
+    db = tmp_path / "queue.db"
+    _runner_behind(monkeypatch)
+    before = db.read_bytes()
+    client = app.test_client()
+
+    assert client.post(f"/api/literary/queue/books/{first}/move", json={"direction": "down"}).status_code == 202
+    client.post(f"/api/literary/queue/books/{second}/approve")  # any status: no write
+    assert client.patch(
+        f"/api/literary/queue/books/{first}", json={"model": "m", "provider": "ollama"}
+    ).status_code == 202
+    assert client.delete(f"/api/literary/queue/books/{second}").status_code == 202
+    assert client.post("/api/literary/queue/run", json={"mode": "next"}).status_code == 202
+
+    assert db.read_bytes() == before
+
+
+def test_intent_route_returns_404_for_unknown_tokens(tmp_path: Path, monkeypatch):
+    app = _client(tmp_path, monkeypatch, rows=[])
+    client = app.test_client()
+
+    assert client.get("/api/literary/queue/intents/" + "a" * 32).status_code == 404
+    assert client.get("/api/literary/queue/intents/not-a-token").status_code == 404
+
+
+def test_await_intent_does_not_hold_the_request_when_runner_is_offline(tmp_path: Path, monkeypatch):
+    from src.api.blueprints import literary_queue_routes
+
+    monkeypatch.setenv("LITERARY_INTENT_WAIT_S", "30")
+    started = time.monotonic()
+
+    assert literary_queue_routes._await_intent(tmp_path / "literary_queue.db", "a" * 32) is None
+    assert time.monotonic() - started < 5

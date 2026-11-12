@@ -183,5 +183,15 @@
   "run_error": "Não foi possível solicitar uma execução: {{message}}",
   "runner_online": "Agente executor online",
   "runner_offline": "Agente executor offline",
-  "runner_running": "Executor da fila ativo"
+  "runner_running": "Executor da fila ativo",
+  "intent_kind_add": "Inclusão de livros",
+  "intent_kind_approve": "Aprovação",
+  "intent_kind_retry": "Nova tentativa",
+  "intent_kind_move": "Mudança de ordem",
+  "intent_kind_remove": "Remoção",
+  "intent_kind_update_model": "Troca de modelo",
+  "intent_pending": "Aguardando o runner: {{count}} alteração(ões).",
+  "intent_agent_offline": "O runner está offline; as mudanças são aplicadas quando ele iniciar.",
+  "intent_applied": "Mudança aplicada: {{label}}.",
+  "intent_refused": "Mudança não aplicada ({{label}}): {{message}}"
 }

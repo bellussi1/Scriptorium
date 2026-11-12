@@ -183,5 +183,15 @@
   "run_error": "Could not request a run: {{message}}",
   "runner_online": "Runner agent online",
   "runner_offline": "Runner agent offline",
-  "runner_running": "Queue runner active"
+  "runner_running": "Queue runner active",
+  "intent_kind_add": "Add books",
+  "intent_kind_approve": "Approval",
+  "intent_kind_retry": "Retry",
+  "intent_kind_move": "Move",
+  "intent_kind_remove": "Removal",
+  "intent_kind_update_model": "Model change",
+  "intent_pending": "Waiting for the runner: {{count}} change(s).",
+  "intent_agent_offline": "The runner is offline; changes apply when it starts.",
+  "intent_applied": "Change applied: {{label}}.",
+  "intent_refused": "Change not applied ({{label}}): {{message}}"
 }
