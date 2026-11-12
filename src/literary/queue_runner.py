@@ -515,6 +515,20 @@ def _sync(book: Any) -> Dict[str, Any]:
         store.close()
 
 
+_EPUBCHECK_SUMMARY = re.compile(
+    r"Messages:\s*(\d+)\s+fatals?\s*/\s*(\d+)\s+errors?\s*/\s*(\d+)\s+warnings?"
+)
+
+
+def parse_epubcheck_counts(text: str) -> Dict[str, Optional[int]]:
+    """Read EPUBCheck's summary line, which prints '1 warning' in the singular."""
+    match = _EPUBCHECK_SUMMARY.search(text)
+    if match is None:
+        return {"fatals": None, "errors": None, "warnings": None}
+    fatals, errors, warnings = (int(group) for group in match.groups())
+    return {"fatals": fatals, "errors": errors, "warnings": warnings}
+
+
 def _epubcheck(path: Path) -> Dict[str, Any]:
     command = [
         "docker",
@@ -537,12 +551,9 @@ def _epubcheck(path: Path) -> Dict[str, Any]:
     except Exception as exc:
         return {"error": str(exc)}
     text = (completed.stdout or "") + (completed.stderr or "")
-    match = re.search(r"Messages:\s*(\d+)\s+fatals\s*/\s*(\d+)\s+errors\s*/\s*(\d+)\s+warnings", text)
     return {
         "returncode": completed.returncode,
-        "fatals": int(match.group(1)) if match else None,
-        "errors": int(match.group(2)) if match else None,
-        "warnings": int(match.group(3)) if match else None,
+        **parse_epubcheck_counts(text),
         "tail": "\n".join(text.strip().splitlines()[-8:]),
     }
 
