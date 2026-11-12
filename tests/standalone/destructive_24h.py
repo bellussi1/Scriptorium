@@ -33,7 +33,7 @@ import time
 import urllib.request
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Callable, Dict, List, Optional
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
@@ -494,14 +494,14 @@ def _pause_control_phase(work: Path) -> Dict[str, Any]:
     }
 
 
-def _app_health() -> str:
+def _app_health(container: str = LIVE_CONTAINER) -> str:
     completed = _run(
         [
             "docker",
             "inspect",
             "--format",
             "{{.State.Health.Status}}",
-            "translatebook-literary-dev",
+            container,
         ],
         timeout=30,
     )
@@ -528,6 +528,186 @@ def _app_restart_phase() -> Dict[str, Any]:
     }
 
 
+WINDOW_ROOT = ROOT / "data" / "tmp" / "destructive-window"
+WINDOW_SERVICE = "app-destructive"
+WINDOW_CONTAINER = "translatebook-destructive"
+WINDOW_RESTART_TIMEOUT = 180.0
+
+
+def scratch_path(path: Path, root: Path = WINDOW_ROOT) -> Path:
+    """Return the resolved path if it lies inside the window scratch area, otherwise refuse.
+
+    The live queue database is refused explicitly, so a window phase cannot touch it even if
+    the root is misconfigured to contain it.
+    """
+    resolved = path.resolve()
+    if resolved == LIVE_DB.resolve() or root.resolve() not in resolved.parents:
+        raise ValueError(f"refusing to touch {resolved}: it is outside the window scratch area")
+    return resolved
+
+
+def _outputs_snapshot(outputs: Path) -> List[str]:
+    if not outputs.exists():
+        return []
+    return sorted(path.name for path in outputs.glob("*.epub"))
+
+
+def scratch_snapshot(db: Path, outputs: Path) -> Dict[str, Any]:
+    """Read-only view of the scratch queue: whether a job is translating, and the criteria."""
+    conn = sqlite3.connect(f"file:{db.resolve().as_posix()}?mode=ro", uri=True)
+    try:
+        translating = conn.execute(
+            "SELECT COUNT(*) FROM jobs WHERE state = 'translating'"
+        ).fetchone()[0]
+    finally:
+        conn.close()
+    verdict = evaluate_criteria(db, outputs)
+    return {
+        "translating": int(translating) > 0,
+        "criteria": {name: bool(verdict[name]) for name in CRITERIA_NAMES},
+        "details": verdict["details"],
+    }
+
+
+def window_restart_phase(
+    *,
+    snapshot: Callable[[], Dict[str, Any]],
+    run: Callable[..., Any] = _run,
+    health: Callable[[str], str] = _app_health,
+    sleep: Callable[[float], None] = time.sleep,
+    now: Callable[[], float] = time.time,
+    timeout: float = WINDOW_RESTART_TIMEOUT,
+) -> Dict[str, Any]:
+    """Restart the dedicated app while a translation is running in it.
+
+    Passes only when a job was translating at the restart, the restart succeeded, the container
+    is healthy again and the criteria still hold afterwards. A restart with nothing running does
+    not test the phase, so it fails.
+    """
+    before = snapshot()
+    started = now()
+    restart = run(
+        ["docker", "compose", "-f", str(DEDICATED_COMPOSE), "restart", WINDOW_SERVICE],
+        timeout=120,
+    )
+    status = ""
+    while now() - started < timeout:
+        status = health(WINDOW_CONTAINER)
+        if status == "healthy":
+            break
+        sleep(2)
+    after = snapshot()
+    was_translating = bool(before.get("translating"))
+    criteria_ok = all(after["criteria"].get(name) for name in CRITERIA_NAMES)
+    return {
+        "was_translating": was_translating,
+        "restart_exit_code": restart.returncode,
+        "status": status,
+        "healthy_seconds": round(now() - started, 1),
+        "criteria_after": after["criteria"],
+        "passed": was_translating and restart.returncode == 0 and status == "healthy" and criteria_ok,
+    }
+
+
+def window_corruption_phase(db: Path, outputs: Path, *, root: Path = WINDOW_ROOT) -> Dict[str, Any]:
+    """Damage the scratch queue DB, check the damage is loud and adds no output, then restore
+    the copy taken first and check the criteria hold again.
+
+    The probe is a plain SQLite read, so this covers the database layer. How the app reacts to
+    the damage is read from its logs during the window.
+    """
+    target = scratch_path(db, root)
+    backup = target.with_name(f"{target.stem}.pre-corruption{target.suffix}")
+    shutil.copy2(target, backup)
+    outputs_before = _outputs_snapshot(outputs)
+    failed_loudly = False
+    try:
+        with target.open("r+b") as handle:
+            handle.write(b"\x00" * 128)
+        try:
+            probe = sqlite3.connect(f"file:{target.as_posix()}?mode=ro", uri=True)
+            try:
+                probe.execute("SELECT COUNT(*) FROM books").fetchone()
+            finally:
+                probe.close()
+        except sqlite3.DatabaseError:
+            failed_loudly = True
+        outputs_during = _outputs_snapshot(outputs)
+    finally:
+        shutil.copy2(backup, target)
+    restored = evaluate_criteria(target, outputs)
+    restored_criteria = {name: bool(restored[name]) for name in CRITERIA_NAMES}
+    new_outputs = sorted(set(outputs_during) - set(outputs_before))
+    return {
+        "failed_loudly": failed_loudly,
+        "new_outputs": new_outputs,
+        "restored_criteria": restored_criteria,
+        "backup": str(backup),
+        "passed": failed_loudly and not new_outputs and all(restored_criteria.values()),
+    }
+
+
+def window_soak_phase(
+    *,
+    hours: float,
+    interval: float,
+    sample: Callable[[], Dict[str, Any]],
+    now: Callable[[], float] = time.time,
+    sleep: Callable[[float], None] = time.sleep,
+) -> Dict[str, Any]:
+    """Sample the criteria every `interval` seconds for `hours`; stop at the first failure."""
+    started = now()
+    end = started + hours * 3600
+    samples = 0
+    failures: List[Dict[str, Any]] = []
+    while True:
+        verdict = sample()
+        samples += 1
+        failed = [name for name in CRITERIA_NAMES if not verdict.get(name)]
+        if failed:
+            failures.append(
+                {"at": _now(), "failed": failed, "details": list(verdict.get("details", []))[:5]}
+            )
+            break
+        if now() >= end:
+            break
+        sleep(interval)
+    elapsed = now() - started
+    return {
+        "hours_requested": hours,
+        "elapsed_seconds": round(elapsed, 1),
+        "samples": samples,
+        "failures": failures,
+        "passed": not failures and elapsed >= hours * 3600,
+    }
+
+
+def _write_window_report(work: Path, report: Dict[str, Any]) -> None:
+    (work / "report.json").write_text(
+        json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8"
+    )
+    lines = [
+        "# Destructive 24 h — window run",
+        "",
+        f"- Work dir: `{report['work_dir']}`",
+        f"- Scratch queue DB: `{report['scratch_db']}`",
+        f"- Started: {report['started_at']}",
+        f"- Finished: {report['finished_at']}",
+        f"- Soak requested: {report['soak_hours']} h",
+        "",
+        "## Phases",
+        "",
+        "| Phase | Result |",
+        "| --- | --- |",
+    ]
+    for name, phase in report["phases"].items():
+        lines.append(f"| {name} | {'PASS' if phase.get('passed') else 'FAIL'} |")
+    lines.extend(["", "## Criteria at the end", "", "| Criterion | Result |", "| --- | --- |"])
+    for name, value in report["criteria"].items():
+        lines.append(f"| {name} | {'PASS' if value else 'FAIL'} |")
+    (work / "report.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
+
+
 def _run_window(args: argparse.Namespace) -> int:
     if not args.confirm_window:
         print("refusing window mode without --confirm-window", file=sys.stderr)
@@ -540,13 +720,74 @@ def _run_window(args: argparse.Namespace) -> int:
             file=sys.stderr,
         )
         return 2
-    print(
-        "window mode is a 24 h runbook: real queue, dedicated app instance, "
-        "pause/resume, app restart mid-run and soak. "
-        "This runner does not start it without the dedicated services.",
-        file=sys.stderr,
+    if args.soak_hours <= 0 or args.soak_interval <= 0:
+        print("--soak-hours and --soak-interval must be positive", file=sys.stderr)
+        return 2
+    scratch_db = scratch_path(WINDOW_ROOT / "data" / "literary_queue.db")
+    outputs = scratch_path(WINDOW_ROOT / "outputs")
+    if not scratch_db.exists():
+        print(f"scratch queue DB missing: {scratch_db} (runbook step B.1)", file=sys.stderr)
+        return 2
+    health = _app_health(WINDOW_CONTAINER)
+    if health != "healthy":
+        print(
+            f"{WINDOW_CONTAINER} is '{health or 'absent'}': start the dedicated app first "
+            "(runbook step B.2)",
+            file=sys.stderr,
+        )
+        return 2
+
+    work = ROOT / "data" / "tmp" / f"destructive-24h-{_stamp()}"
+    work.mkdir(parents=True, exist_ok=True)
+    print(f"window work dir: {work}")
+    report: Dict[str, Any] = {
+        "schema": "literary.destructive-24h",
+        "schema_version": "1.0",
+        "mode": "window",
+        "started_at": _now(),
+        "work_dir": str(work),
+        "scratch_db": str(scratch_db),
+        "soak_hours": args.soak_hours,
+        "phases": {},
+        "criteria": {},
+    }
+
+    def snapshot() -> Dict[str, Any]:
+        return scratch_snapshot(scratch_db, outputs)
+
+    steps = [
+        # Runs on its own synthetic DB inside the work dir, not on the scratch queue.
+        ("pause_control", lambda: _pause_control_phase(work)),
+        ("app_restart", lambda: window_restart_phase(snapshot=snapshot)),
+        ("db_corruption", lambda: window_corruption_phase(scratch_db, outputs)),
+        (
+            "soak",
+            lambda: window_soak_phase(
+                hours=args.soak_hours,
+                interval=args.soak_interval,
+                sample=lambda: evaluate_criteria(scratch_db, outputs),
+            ),
+        ),
+    ]
+    for name, step in steps:
+        try:
+            report["phases"][name] = step()
+        except Exception as exc:  # a phase error is a failed phase, not a crash of the run
+            report["phases"][name] = {"passed": False, "error": str(exc)}
+
+    try:
+        verdict = evaluate_criteria(scratch_db, outputs)
+        report["criteria"] = {name: bool(verdict[name]) for name in CRITERIA_NAMES}
+    except (sqlite3.Error, OSError) as exc:
+        report["criteria"] = {name: False for name in CRITERIA_NAMES}
+        report["criteria_error"] = str(exc)
+    report["finished_at"] = _now()
+    _write_window_report(work, report)
+    print((work / "report.md").read_text(encoding="utf-8"))
+    ok = all(phase.get("passed") for phase in report["phases"].values()) and all(
+        report["criteria"].values()
     )
-    return 2
+    return 0 if ok else 1
 
 
 def main() -> int:
@@ -555,6 +796,8 @@ def main() -> int:
     parser.add_argument("--app-restart", action="store_true")
     parser.add_argument("--confirm-window", action="store_true")
     parser.add_argument("--compose", default="")
+    parser.add_argument("--soak-hours", type=float, default=24.0, help="window soak length in hours")
+    parser.add_argument("--soak-interval", type=float, default=300.0, help="seconds between soak samples")
     parser.add_argument("--preflight", action="store_true", help="only report whether the live stack is idle")
     parser.add_argument("--evaluate", type=Path, default=None, help="read-only: evaluate the criteria on a queue DB")
     parser.add_argument("--outputs", type=Path, default=None, help="outputs folder for --evaluate")

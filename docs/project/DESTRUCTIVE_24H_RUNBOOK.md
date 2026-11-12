@@ -1,9 +1,8 @@
 # 24 h destructive window: runbook (prompt 4.4)
 
-Status: **prepared, not run.** The preflight, the dedicated compose file and the short
-mode are ready. The window phases (pause/resume on the dedicated app, app restart mid-run,
-queue DB corruption on the scratch copy, the 24 h soak) are **not implemented yet**;
-`--mode window` refuses to run. Write them before the window.
+Status: **prepared, not run.** The preflight, the dedicated compose file, the short mode and
+the window phases are written and mock-tested (`tests/unit/test_destructive_window.py`).
+Nothing has run live. The window needs the live queue idle and the dedicated app healthy.
 
 Why the window is needed: the container-kill test stops the app container, and a
 translation running in it stops with it (exit 137). The live queue must be idle first.
@@ -58,11 +57,31 @@ database. `--app-restart` is refused in short mode.
    curl -f http://127.0.0.1:5056/api/health
    ```
 
-3. Run the window phases (to be written): queue-level pause and resume with a real
-   translation; app restart mid-translation on `app-destructive`; corruption of the scratch
-   queue database (not the live one); resume with the target EPUB already present.
-4. The 24 h soak: one real translation of a copy of a book, for 24 hours, with the real model.
-   Set `DESTRUCTIVE_OLLAMA_ENDPOINT` if the endpoint differs from the default.
+3. Start a real translation against the dedicated app (see "Not verified" below), then run the
+   window phases:
+
+   ```bash
+   python tests/standalone/destructive_24h.py --mode window --confirm-window \
+       --compose docker-compose.destructive.yml --soak-hours 24 --soak-interval 300
+   ```
+
+   It refuses to run unless the live stack is idle, `translatebook-destructive` is healthy and
+   the scratch queue DB exists (`data/tmp/destructive-window/data/literary_queue.db`). The phases
+   run in this order:
+
+   - `pause_control`: pause-now request and honor on a synthetic queue DB in the report folder.
+     It does not use the scratch copy or a real translation.
+   - `app_restart`: restarts `app-destructive` while a job is `translating` in the scratch queue.
+     It fails when no job is translating at the restart.
+   - `db_corruption`: damages the scratch queue DB, checks that the damage raises a SQLite error
+     and adds no output file, then restores the copy taken before the damage.
+   - `soak`: samples the criteria on the scratch queue every `--soak-interval` seconds for
+     `--soak-hours`, and stops at the first failure.
+
+   Exit `0` means every phase passed and the criteria hold at the end. Exit `1` means a phase or
+   a criterion failed. Exit `2` means the window did not start.
+4. The soak model endpoint is `DESTRUCTIVE_OLLAMA_ENDPOINT` in `.env` when it differs from the
+   default.
 
 **Criteria** (all must hold):
 
@@ -84,7 +103,13 @@ again.
 
 - The dedicated compose file was validated with `docker compose config` only; it has not
   been started.
-- The window phases and the soak are not written, so this runbook cannot be completed yet.
+- The window phases were tested with fakes (Docker, clock, criteria). They have not run
+  against Docker or a live translation.
+- The runner does not start a real translation in `app-destructive`, and it does not write
+  how the operator should drive one into the scratch queue. Until that is written, the
+  `app_restart` phase fails by design and the soak only samples an idle queue.
+- "Resume with the target EPUB already present" is covered only in short mode
+  (`kill_resume`), not in window mode.
 
 ## Criteria check (read-only, usable any time)
 

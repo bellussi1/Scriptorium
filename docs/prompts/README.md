@@ -24,8 +24,9 @@ language of the conversation.
   notes in README and DOCKER.md), 2.2 (`queue status --json`, tests in `tests/literary/test_queue_status.py`),
   2.3 (plugin reads the canonical command), 3.2 (100% of files, 3.9 s, see `docs/project/reviews/deterministic-coverage-2026-11-12.md`),
   3.3 (golden set in `tests/literary/test_golden_set.py`).
-- Prepared, not run: 4.4 (24 h destructive window). Preflight, dedicated compose and runbook are in place
-  (`docs/project/DESTRUCTIVE_24H_RUNBOOK.md`); the window phases and the soak are not written yet.
+- Prepared, not run: 4.4 (24 h destructive window). Preflight, dedicated compose, runbook and the window phases
+  (restart mid-run, scratch queue DB damage, pause control, soak) are in place; the phases are mock-tested
+  (`tests/unit/test_destructive_window.py`) and have not run live. See `docs/project/DESTRUCTIVE_24H_RUNBOOK.md`.
 - Open: 3.4 waits for the owner's labels.
 - Planning prompts with a written result in `docs/project/reviews/` (2026-11-12): 1.1 (fork-coupling-2026-11-12.md),
   1.2 (agpl-compliance-2026-11-12.md), 2.1 and 2.4 (status-diagnosis-2026-11-12.md), 3.1 (gate-coverage-2026-11-12.md),
