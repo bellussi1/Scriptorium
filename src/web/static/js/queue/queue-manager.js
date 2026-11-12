@@ -1407,14 +1407,7 @@ function renderQuality(payload) {
     const refine = report.refine || {};
     const reader = report.reader_repair || {};
     const termRows = [
-        [t('queue:quality_chantry'), metrics.chantry],
-        [t('queue:quality_chantria'), metrics.chantria],
-        [t('queue:quality_cielcin_upper'), metrics.cielcin_upper],
-        [t('queue:quality_cielcin_lower'), metrics.cielcin_lower],
-        [t('queue:quality_mericanii_upper'), metrics.mericanii_upper],
-        [t('queue:quality_mericanii_lower'), metrics.mericanii_lower],
-        [t('queue:quality_halfmortal'), metrics.halfmortal],
-        [t('queue:quality_semimortal'), metrics.semimortal],
+        [t('queue:quality_forbidden'), metrics.forbidden_forms],
     ];
     const reportLines = [];
     if (validation.passed != null) {

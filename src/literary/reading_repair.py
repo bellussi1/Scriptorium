@@ -712,41 +712,41 @@ def _replace_case_preserving(text: str, old: str, new: str) -> str:
     return re.sub(rf"\b{re.escape(old)}\b", replace, text, flags=re.IGNORECASE)
 
 
-def global_text_fixes(raw: str) -> str:
-    """Simple text-node fixes that also apply to front/back matter."""
+COPYRIGHT_PAIRS = [
+    ("FEITO EM EUA", "FEITO NOS EUA"),
+    ("IMPRESSO EM EUA", "IMPRESSO NOS EUA"),
+]
+
+
+def _book_text_fixes(queue_title: str) -> Dict[str, Any]:
+    """Book-specific text fixes, keyed by the queue title in reader-repairs.yaml."""
+    return _reader_repairs().get("book_text_fixes", {}).get(queue_title, {}) or {}
+
+
+def global_text_fixes(raw: str, book_fixes: Optional[Dict[str, Any]] = None) -> str:
+    """Simple text-node fixes that also apply to front/back matter.
+
+    The copyright lines hold for every book. Book-specific pairs come from
+    ``book_text_fixes`` in reader-repairs.yaml; generic term casing comes from
+    ``reader_terms``.
+    """
+    fixes = book_fixes or {}
+    text_pairs = list(COPYRIGHT_PAIRS) + [tuple(p) for p in fixes.get("text", [])]
 
     def transform(text: str) -> str:
-        return (
-            text.replace("Escuridão Ululante", "Escuridão Uivante")
-            .replace("FEITO EM EUA", "FEITO NOS EUA")
-            .replace("IMPRESSO EM EUA", "IMPRESSO NOS EUA")
-            .replace("VALKA CORREU NA DIREÇÃO DELE", "Valka correu na direção dele")
-        )
+        for old, new in text_pairs:
+            text = text.replace(old, new)
+        return text
 
     raw = _map_text_nodes(raw, transform)
-    raw = _map_text_nodes(
-        raw, lambda text: _replace_case_preserving(text, "Chantry", "Chantria")
-    )
-    raw = raw.replace(
-        "VALKA CORREU NA DIREÇÃO</span> DELE",
-        "Valka correu na direção</span> dele",
-    )
-    raw = re.sub(
-        r"VALKA CORREU NA DIREÇÃO",
-        "Valka correu na direção",
-        raw,
-        flags=re.IGNORECASE,
-    )
-    raw = re.sub(
-        r"VALKA CORREU NA DIREÇÃO DELE\.?",
-        "Valka correu na direção dele.",
-        raw,
-        flags=re.IGNORECASE,
-    )
-    raw = raw.replace(
-        "Valka correu na direção dele. Assim que Yume",
-        "Valka correu na direção dele assim que Yume",
-    )
+    for old, new in _reader_repairs().get("reader_terms", []):
+        raw = _map_text_nodes(raw, lambda text, o=old, n=new: _replace_case_preserving(text, o, n))
+    for old, new in fixes.get("raw", []):
+        raw = raw.replace(old, new)
+    for pattern, repl in fixes.get("raw_regex", []):
+        raw = re.sub(pattern, repl, raw, flags=re.IGNORECASE)
+    for old, new in fixes.get("raw_after", []):
+        raw = raw.replace(old, new)
     return raw
 
 
@@ -864,6 +864,16 @@ def _chapter_number(raw: str) -> str:
     return match.group(1) if match else ""
 
 
+def _label_for_document(filename: str) -> Optional[str]:
+    """Front, back and extra matter label for a document, matched by its file name keyword."""
+    if "_chapter_" in filename.lower():
+        return None
+    for keyword, label in FRONT_MATTER + BACK_MATTER + EXTRA_LABELS:
+        if keyword.lower() in filename.lower():
+            return label
+    return None
+
+
 def localise_document_title(raw: str, href: str, chapter_titles: Dict[str, str]) -> str:
     filename = href.rsplit("/", 1)[-1]
     label = None
@@ -871,24 +881,7 @@ def localise_document_title(raw: str, href: str, chapter_titles: Dict[str, str])
         number = _chapter_number(raw)
         label = f"Capítulo {number}: {chapter_titles[filename]}" if number else chapter_titles[filename]
     else:
-        labels = {
-            "01_Cover.xhtml": "Capa",
-            "02_Also_by_Christopher_R.xhtml": "Outros livros de Christopher Ruocchio",
-            "03_Title_Page.xhtml": "Página de título",
-            "04_Copyright.xhtml": "Direitos autorais",
-            "05_Dedication.xhtml": "Dedicação",
-            "06_Contents.xhtml": "Sumário",
-            "07_Acknowledgments.xhtml": "Agradecimentos",
-            "88_Dramatis_Personae.xhtml": "Personagens principais",
-            "89_Index_of_Worlds.xhtml": "Índice de mundos",
-            "90_Table.xhtml": "Índice de mundos",
-            "91_Lexicon.xhtml": "Léxico",
-            "92_Table.xhtml": "Léxico",
-            "93_About_the_Author.xhtml": "Sobre o autor",
-            "next-reads.xhtml": "Descubra seu próximo livro",
-            "tbl-attribution.xhtml": "Tradução",
-        }
-        label = labels.get(filename)
+        label = _label_for_document(filename)
     if not label:
         return raw
     match = TITLE_RE.search(raw)
@@ -1046,27 +1039,9 @@ def _localise_ncx(ncx: str, labels: Dict[str, str], book_title: str = "") -> str
 
 # Front and back matter, matched by a keyword in the file name, so each book's own
 # numbering works. Chapter files never match (see _matched_document).
-FRONT_MATTER = [
-    ("Also_by", "Outros livros de Christopher Ruocchio"),
-    ("Title_Page", "Página de título"),
-    ("Copyright", "Direitos autorais"),
-    ("Dedication", "Dedicação"),
-    ("Acknowledgments", "Agradecimentos"),
-]
-BACK_MATTER = [
-    ("Dramatis_Personae", "Personagens principais"),
-    ("Index_of_Worlds", "Índice de mundos"),
-    ("Lexicon", "Léxico"),
-    ("About_the_Author", "Sobre o autor"),
-]
-EXTRA_LABELS = [
-    ("Cover", "Capa"),
-    ("Contents", "Sumário"),
-    ("90_Table", "Índice de mundos"),
-    ("92_Table", "Léxico"),
-    ("next-reads", "Descubra seu próximo livro"),
-    ("tbl-attribution", "Tradução"),
-]
+FRONT_MATTER = [tuple(p) for p in _reader_repairs().get("labels", {}).get("front", [])]
+BACK_MATTER = [tuple(p) for p in _reader_repairs().get("labels", {}).get("back", [])]
+EXTRA_LABELS = [tuple(p) for p in _reader_repairs().get("labels", {}).get("extra", [])]
 
 
 def _matched_document(names: Sequence[str], keyword: str) -> Optional[str]:
@@ -1219,7 +1194,7 @@ def repair_reading_epub(
                     if apply_terms:
                         raw, _ = apply_sun_eater_terms(raw, term_counts)
                     raw, _ = clean_artefacts(raw, report.artefact_changes)
-                    raw = global_text_fixes(raw)
+                    raw = global_text_fixes(raw, _book_text_fixes(queue_title))
                     raw, heading_changes = fix_headings(raw, name, headings)
                     report.heading_changes.extend(heading_changes)
                     raw = localise_document_title(raw, name, chapter_titles)

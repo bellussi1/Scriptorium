@@ -101,6 +101,16 @@ def _issue_list(issues: Iterable[Any]) -> List[Dict[str, Any]]:
     return result
 
 
+def forbidden_form_count(text: str) -> int:
+    """Count the source forms the reader must replace (terms and casing) that still appear."""
+    from .reading_repair import _reader_repairs
+
+    data = _reader_repairs()
+    sources = [old for old, _new in data.get("reader_terms", [])]
+    sources += [old for old, _new in data.get("reader_casing", [])]
+    return sum(len(re.findall(r"(?<!\w)" + re.escape(form) + r"(?!\w)", text)) for form in sources)
+
+
 def epub_metrics(path: str | Path) -> Dict[str, Any]:
     """Compute the small set of metrics that matter for a reading copy."""
     path = Path(path)
@@ -125,24 +135,11 @@ def epub_metrics(path: str | Path) -> Dict[str, Any]:
         "straight_quotes": text.count('"'),
         "brackets": text.count("[") + text.count("]"),
         "em_dashes": text.count("—"),
-        "chantry": len(re.findall(r"\bChantry\b", text)),
-        "chantria": len(re.findall(r"\bChantria\b", text)),
-        "cielcin_upper": len(re.findall(r"\bCielcin\b", text)),
-        "cielcin_lower": len(re.findall(r"\bcielcin\b", text)),
-        "mericanii_upper": len(re.findall(r"\bMericanii\b", text)),
-        "mericanii_lower": len(re.findall(r"\bmericanii\b", text)),
-        "halfmortal": len(re.findall(r"\bHalfmortal\b", text)),
-        "semimortal": len(re.findall(r"\bSemimortal\b", text)),
+        "forbidden_forms": forbidden_form_count(text),
     }
     flags = []
-    if metrics["chantry"]:
-        flags.append("chantry_remaining")
-    if metrics["cielcin_upper"]:
-        flags.append("cielcin_capitalized")
-    if metrics["mericanii_upper"]:
-        flags.append("mericanii_capitalized")
-    if metrics["halfmortal"]:
-        flags.append("halfmortal_remaining")
+    if metrics["forbidden_forms"]:
+        flags.append("forbidden_forms_remaining")
     if metrics["brackets"]:
         flags.append("brackets_remaining")
     if metrics["straight_quotes"]:

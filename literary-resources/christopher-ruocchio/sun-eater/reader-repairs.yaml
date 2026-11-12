@@ -94,3 +94,35 @@ headings:
     73_Chapter_66_A_Bloody_S.xhtml: UMA ESTRELA SANGRENTA
     80_Chapter_73_Broken.xhtml: DESTRUÍDO
     87_Chapter_80_Halfmortal.xhtml: SEMIMORTAL
+
+labels:
+  front:
+  - [Also_by, "Outros livros de Christopher Ruocchio"]
+  - [Title_Page, "Página de título"]
+  - [Copyright, "Direitos autorais"]
+  - [Dedication, "Dedicação"]
+  - [Acknowledgments, "Agradecimentos"]
+  back:
+  - [Dramatis_Personae, "Personagens principais"]
+  - [Index_of_Worlds, "Índice de mundos"]
+  - [Lexicon, "Léxico"]
+  - [About_the_Author, "Sobre o autor"]
+  extra:
+  - [Cover, "Capa"]
+  - [Contents, "Sumário"]
+  - [90_Table, "Índice de mundos"]
+  - [92_Table, "Léxico"]
+  - [next-reads, "Descubra seu próximo livro"]
+  - [tbl-attribution, "Tradução"]
+book_text_fixes:
+  Howling Dark:
+    text:
+    - ["Escuridão Ululante", "Escuridão Uivante"]
+    - ["VALKA CORREU NA DIREÇÃO DELE", "Valka correu na direção dele"]
+    raw:
+    - ["VALKA CORREU NA DIREÇÃO</span> DELE", "Valka correu na direção</span> dele"]
+    raw_regex:
+    - ['VALKA CORREU NA DIREÇÃO', "Valka correu na direção"]
+    - ['VALKA CORREU NA DIREÇÃO DELE\.?', "Valka correu na direção dele."]
+    raw_after:
+    - ["Valka correu na direção dele. Assim que Yume", "Valka correu na direção dele assim que Yume"]

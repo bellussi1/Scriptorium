@@ -55,7 +55,7 @@ def test_epub_metrics_reads_the_artifact(tmp_path: Path):
     assert metrics["metrics"]["chapters"] == 2
     assert metrics["metrics"]["paragraphs"] == 3
     assert metrics["metrics"]["brackets"] == 0
-    assert metrics["metrics"]["chantry"] == 0
+    assert metrics["metrics"]["forbidden_forms"] == 0
     assert not metrics["quality_flags"]
 
 

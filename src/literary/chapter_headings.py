@@ -44,7 +44,6 @@ PARAGRAPH = re.compile(r"<p(?:\s[^>]*)?>(.*?)</p>", re.DOTALL)
 TOKEN = re.compile(r"<[^>]+>|&#?\w+;|.", re.DOTALL)
 TAG = re.compile(r"<[^>]+>")
 FOOTER = re.compile(r"\(\d+ of \d+\)\s*\d{1,2}/\d{1,2}/\d{4}(\s*\d{1,2}:\d{2}:\d{2})?")
-EN_RUNNING_HEADER = "Hobb, Robin - Ship of Magic"
 EN_CHAPTER_LINE = re.compile(r"^CHAPTER\s+([A-Z-]+)\b")
 SENTENCE_BREAK = re.compile(r"(?<=[.!?…])[\"”’')\]]*\s+(?=[\"“‘'(\[—–-]?[A-ZÀ-Þ(“—\"'‘])")
 END_PUNCT = re.compile(r"[.!?…][\"”’')\]]*\s*$")
@@ -297,6 +296,7 @@ def english_structure(
     A heading is the ``CHAPTER`` line plus the bold continuation lines after it. The heading's English
     title must equal the title map's ``en``; numbers are checked against the map's order.
     """
+    running_header = str(spec.get("running_header") or "")
     parts_en = {_norm_title(part["en"]): part for part in spec["parts"]}
     chapters = iter(spec["chapters"])
     started = False
@@ -314,7 +314,7 @@ def english_structure(
                 started = _norm_title(plain) == _norm_title(spec["body_start"]["en"])
                 index += 1
                 continue
-            if not plain or plain == EN_RUNNING_HEADER or plain.startswith("file:///"):
+            if not plain or (running_header and plain == running_header) or plain.startswith("file:///"):
                 index += 1
                 continue
             if _norm_title(plain) in parts_en:
