@@ -16,7 +16,7 @@
   "translating": "Traduzindo",
   "needs_review": "Precisa de revisão",
   "chunks": "{{current}}/{{total}} trechos",
-  "empty_html": "Nenhuma entrada na fila ainda. Use <code>python -m src.literary.cli queue add ...</code> para planejar uma execução.",
+  "empty_html": "Nenhum livro na fila ainda. Adicione livros pela Biblioteca abaixo para planejar uma execução.",
   "no_events": "Nenhum evento ainda.",
   "events_title": "Eventos recentes",
   "load_error": "Não foi possível carregar a fila: {{message}}",

@@ -553,3 +553,33 @@ html.dark .btn-danger:hover {
         transform: none;
     }
 }
+
+/* Solid, readable states and logs. Replaces the glow and blur treatments. */
+.queue-action-status.is-error,
+.queue-control-status.is-error {
+    background: var(--danger-light-bg);
+    border-left: 3px solid var(--danger-light-border);
+    color: var(--danger-light-text);
+}
+
+.queue-log__value,
+.queue-quality-log,
+pre.queue-quality-log {
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    font-family: ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", monospace;
+    line-height: 1.5;
+    max-height: 18rem;
+    overflow: auto;
+}
+
+.logo-img {
+    display: block;
+    width: 40px;
+    height: 40px;
+    object-fit: contain;
+}
+
+.logo-img--dark { display: none; }
+.dark .logo-img--light { display: none; }
+.dark .logo-img--dark { display: block; }

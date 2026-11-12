@@ -16,7 +16,7 @@
   "translating": "Translating",
   "needs_review": "Needs Review",
   "chunks": "{{current}}/{{total}} chunks",
-  "empty_html": "No queue entries yet. Use <code>python -m src.literary.cli queue add ...</code> to plan a run.",
+  "empty_html": "No books in the queue yet. Add books from the Library below to plan a run.",
   "no_events": "No events yet.",
   "events_title": "Recent events",
   "load_error": "Could not load the queue: {{message}}",

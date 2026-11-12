@@ -245,14 +245,14 @@ body {
 
 .neu-card-light {
     background: var(--background-light);
-    box-shadow: 5px 5px 10px var(--shadow-dark), -5px -5px 10px var(--shadow-light);
+    box-shadow: 0 0 0 1px var(--border-light);
     border: 1px solid var(--border-light);
     border-radius: 2rem;
 }
 
 .neu-inset-light {
     background: #ffffff;
-    box-shadow: inset 3px 3px 6px var(--shadow-dark), inset -3px -3px 6px var(--shadow-light);
+    box-shadow: inset 0 0 0 1px var(--border-light);
     border: 2px solid rgba(54, 118, 216, 0.15);
     border-radius: 1rem;
     transition: all 0.3s ease;
@@ -260,12 +260,12 @@ body {
 
 .neu-inset-light:hover {
     border-color: rgba(54, 118, 216, 0.35);
-    box-shadow: inset 4px 4px 8px var(--shadow-dark), inset -4px -4px 8px var(--shadow-light);
+    box-shadow: inset 0 0 0 1px var(--border-light);
 }
 
 .neu-inset-light:focus-within {
     border-color: var(--primary-light);
-    box-shadow: inset 3px 3px 6px var(--shadow-dark), inset -3px -3px 6px var(--shadow-light), 0 0 0 3px rgba(54, 118, 216, 0.1);
+    box-shadow: inset 0 0 0 1px var(--border-light);
 }
 
 /* ========================================
@@ -288,7 +288,6 @@ body {
     padding: 1.5rem 3rem;
     margin-bottom: 3rem;
     background: rgba(240, 242, 245, 0.9);
-    backdrop-filter: blur(30px);
     position: sticky;
     top: 0;
     z-index: 50;
@@ -375,7 +374,7 @@ body {
     padding: 0.4rem 0.9rem;
     height: 2.25rem;
     background: var(--background-light);
-    box-shadow: inset 3px 3px 6px var(--shadow-dark), inset -3px -3px 6px var(--shadow-light);
+    box-shadow: inset 0 0 0 1px var(--border-light);
     border: 1px solid var(--border-light);
     border-radius: 9999px;
 }
@@ -468,27 +467,22 @@ body {
 /* Status dot states */
 .header .status-indicator .status-dot.checking {
     background-color: #6b7280;
-    animation: pulse-gray 2s infinite;
 }
 
 .header .status-indicator .status-dot.connected {
     background-color: #22c55e;
-    animation: pulse-green 2s infinite;
 }
 
 .header .status-indicator .status-dot.disconnected {
     background-color: #dc2626;
-    animation: pulse-red 2s infinite;
 }
 
 .header .status-indicator .status-dot.error {
     background-color: #f59e0b;
-    animation: pulse-orange 2s infinite;
 }
 
 .header .status-indicator .status-dot.waiting {
     background-color: #6b7280;
-    animation: pulse-gray 2s infinite;
 }
 
 .header .status-indicator span {
@@ -509,7 +503,7 @@ body {
 
 .main-card {
     background: var(--background-light);
-    box-shadow: 5px 5px 10px var(--shadow-dark), -5px -5px 10px var(--shadow-light);
+    box-shadow: 0 0 0 1px var(--border-light);
     border: 1px solid var(--border-light);
     border-radius: 2.5rem;
     overflow: hidden;
@@ -700,11 +694,11 @@ select.form-control {
 .btn-primary {
     background: var(--primary-light);
     color: white;
-    box-shadow: 0 8px 20px rgba(54, 118, 216, 0.25);
+    box-shadow: 0 0 0 2px var(--primary-light);
 }
 
 .btn-primary:hover {
-    box-shadow: 0 12px 30px rgba(54, 118, 216, 0.35);
+    box-shadow: 0 0 0 2px var(--primary-light);
     transform: scale(1.02);
 }
 
@@ -721,24 +715,24 @@ select.form-control {
 .btn-secondary {
     background: var(--background-light);
     color: var(--text-dark);
-    box-shadow: 5px 5px 10px var(--shadow-dark), -5px -5px 10px var(--shadow-light);
+    box-shadow: 0 0 0 1px var(--border-light);
     border: 1px solid var(--border-light);
 }
 
 .btn-secondary:hover {
     transform: translateY(-1px);
-    box-shadow: 6px 6px 12px var(--shadow-dark), -6px -6px 12px var(--shadow-light);
+    box-shadow: 0 0 0 1px var(--border-light);
 }
 
 .btn-danger {
     background: var(--danger-light);
     color: white;
-    box-shadow: 0 8px 20px rgba(239, 68, 68, 0.25);
+    box-shadow: 0 0 0 2px var(--danger-light);
 }
 
 .btn-danger:hover {
     background: var(--danger-light-hover);
-    box-shadow: 0 12px 30px rgba(239, 68, 68, 0.35);
+    box-shadow: 0 0 0 2px var(--danger-light);
 }
 
 /* Compact variant, for buttons that sit inside a row of text rather than in a
@@ -763,7 +757,7 @@ select.form-control {
     border: 2px dashed rgba(54, 118, 216, 0.3);
     border-radius: 3rem;
     background: var(--background-light);
-    box-shadow: 5px 5px 10px var(--shadow-dark), -5px -5px 10px var(--shadow-light);
+    box-shadow: 0 0 0 1px var(--border-light);
     text-align: center;
     cursor: pointer;
     transition: all 0.3s;
@@ -1007,7 +1001,7 @@ select.form-control {
     margin-top: 2rem;
     padding: 2rem;
     background: var(--background-light);
-    box-shadow: 5px 5px 10px var(--shadow-dark), -5px -5px 10px var(--shadow-light);
+    box-shadow: 0 0 0 1px var(--border-light);
     border: 1px solid var(--border-light);
     border-radius: 2rem;
 }
@@ -1025,7 +1019,7 @@ select.form-control {
 .progress-bar-container {
     height: 2.5rem;
     background: var(--background-light);
-    box-shadow: inset 3px 3px 6px var(--shadow-dark), inset -3px -3px 6px var(--shadow-light);
+    box-shadow: inset 0 0 0 1px var(--border-light);
     border: 1px solid var(--border-light);
     border-radius: 1.25rem;
     overflow: hidden;
@@ -1058,7 +1052,7 @@ select.form-control {
 .stat-card {
     padding: 0.5rem 0.25rem;
     background: var(--background-light);
-    box-shadow: 5px 5px 10px var(--shadow-dark), -5px -5px 10px var(--shadow-light);
+    box-shadow: 0 0 0 1px var(--border-light);
     border: 1px solid var(--border-light);
     border-radius: 1rem;
     text-align: center;
@@ -1400,7 +1394,7 @@ select.form-control {
     padding: 1.25rem 1.5rem;
     text-align: left;
     background: var(--background-outer);
-    box-shadow: inset 3px 3px 6px var(--shadow-dark), inset -3px -3px 6px var(--shadow-light);
+    box-shadow: inset 0 0 0 1px var(--border-light);
     border: 2px solid color-mix(in srgb, var(--primary-light) 15%, transparent);
     border-radius: 1rem;
 }
@@ -1533,7 +1527,7 @@ select.form-control {
     min-height: 200px;
     overflow-y: auto;
     background: var(--background-light);
-    box-shadow: inset 3px 3px 6px var(--shadow-dark), inset -3px -3px 6px var(--shadow-light);
+    box-shadow: inset 0 0 0 1px var(--border-light);
     border: 1px solid var(--border-light);
     border-radius: 2rem;
     padding: 2rem;
@@ -1677,7 +1671,7 @@ select.form-control {
     cursor: pointer;
     padding: 1rem 1.5rem;
     background: var(--background-light);
-    box-shadow: 5px 5px 10px var(--shadow-dark), -5px -5px 10px var(--shadow-light);
+    box-shadow: 0 0 0 1px var(--border-light);
     border: 1px solid var(--border-light);
     border-radius: 1rem;
     margin-bottom: 1rem;
@@ -1689,7 +1683,7 @@ select.form-control {
 }
 
 .prompt-options-toggle:hover {
-    box-shadow: 6px 6px 12px var(--shadow-dark), -6px -6px 12px var(--shadow-light);
+    box-shadow: 0 0 0 1px var(--border-light);
 }
 
 .prompt-options-toggle span {
@@ -1709,11 +1703,11 @@ select.form-control {
     border-bottom-left-radius: 0;
     border-bottom-right-radius: 0;
     border-bottom: 1px solid var(--border-light);
-    box-shadow: -5px -5px 10px var(--shadow-light), 5px 0 10px var(--shadow-dark);
+    box-shadow: 0 0 0 1px var(--border-light);
 }
 
 .prompt-options-toggle:has(+ div:not(.hidden)):hover {
-    box-shadow: -5px -5px 10px var(--shadow-light), 5px 0 10px var(--shadow-dark);
+    box-shadow: 0 0 0 1px var(--border-light);
 }
 
 .prompt-options-toggle + div:not(.hidden) {
@@ -1724,7 +1718,7 @@ select.form-control {
     border-bottom-left-radius: 1rem;
     border-bottom-right-radius: 1rem;
     margin-bottom: 1rem;
-    box-shadow: -5px 0 10px var(--shadow-light), 5px 5px 10px var(--shadow-dark);
+    box-shadow: 0 0 0 1px var(--border-light);
 }
 
 /* ========================================
@@ -1855,7 +1849,7 @@ input[type="checkbox"] {
 .file-action-btn {
     padding: 0;
     background: var(--background-light);
-    box-shadow: 2px 2px 4px var(--shadow-dark), -2px -2px 4px var(--shadow-light);
+    box-shadow: 0 0 0 1px var(--border-light);
     border: 1px solid var(--border-light);
     color: var(--text-dark);
     border-radius: 0.375rem;
@@ -1873,7 +1867,7 @@ input[type="checkbox"] {
 
 .file-action-btn:hover {
     transform: translateY(-1px);
-    box-shadow: 3px 3px 6px var(--shadow-dark), -3px -3px 6px var(--shadow-light);
+    box-shadow: 0 0 0 1px var(--border-light);
 }
 
 .file-action-btn.download {
@@ -1930,7 +1924,7 @@ input[type="checkbox"] {
     border-radius: 1rem;
     margin: 1rem 0;
     font-weight: 600;
-    box-shadow: 3px 3px 6px var(--shadow-dark), -3px -3px 6px var(--shadow-light);
+    box-shadow: 0 0 0 1px var(--border-light);
 }
 
 .message .message-dismiss {
@@ -2070,74 +2064,14 @@ input[type="checkbox"] {
 
 .status-dot.available {
     background: #22c55e;
-    box-shadow: 0 0 8px rgba(34, 197, 94, 0.6);
-    animation: pulse-green 2s infinite;
 }
 
 .status-dot.unavailable {
     background: #ef4444;
-    box-shadow: 0 0 8px rgba(239, 68, 68, 0.6);
 }
 
 .status-dot.checking {
     background: #fbbf24;
-    box-shadow: 0 0 8px rgba(251, 191, 36, 0.6);
-    animation: pulse-yellow 1s infinite;
-}
-
-@keyframes pulse-green {
-    0%, 100% {
-        box-shadow: 0 0 8px rgba(34, 197, 94, 0.6);
-        transform: scale(1);
-    }
-    50% {
-        box-shadow: 0 0 15px rgba(34, 197, 94, 0.9);
-        transform: scale(1.1);
-    }
-}
-
-@keyframes pulse-yellow {
-    0%, 100% {
-        box-shadow: 0 0 8px rgba(251, 191, 36, 0.6);
-        transform: scale(1);
-    }
-    50% {
-        box-shadow: 0 0 15px rgba(251, 191, 36, 0.9);
-        transform: scale(1.1);
-    }
-}
-
-@keyframes pulse-red {
-    0%, 100% {
-        box-shadow: 0 0 8px rgba(220, 38, 38, 0.6);
-        transform: scale(1);
-    }
-    50% {
-        box-shadow: 0 0 15px rgba(220, 38, 38, 0.9);
-        transform: scale(1.1);
-    }
-}
-
-@keyframes pulse-orange {
-    0%, 100% {
-        box-shadow: 0 0 8px rgba(245, 158, 11, 0.6);
-        transform: scale(1);
-    }
-    50% {
-        box-shadow: 0 0 15px rgba(245, 158, 11, 0.9);
-        transform: scale(1.1);
-    }
-}
-
-@keyframes pulse-gray {
-    0%, 100% {
-        box-shadow: 0 0 8px rgba(107, 114, 128, 0.4);
-        transform: scale(1);
-    }
-    50% {
-        box-shadow: 0 0 15px rgba(107, 114, 128, 0.7);
-        transform: scale(1.1);
-    }
 }
 
 @keyframes spin {
@@ -2158,7 +2092,7 @@ input[type="checkbox"] {
     height: 8px;
     border-radius: 4px;
     background: var(--background-light);
-    box-shadow: inset 2px 2px 4px var(--shadow-dark), inset -2px -2px 4px var(--shadow-light);
+    box-shadow: inset 0 0 0 1px var(--border-light);
     outline: none;
     cursor: pointer;
     margin-top: 0.5rem;
@@ -2172,7 +2106,7 @@ input[type="checkbox"] {
     border-radius: 50%;
     background: var(--primary-light);
     cursor: pointer;
-    box-shadow: 3px 3px 6px var(--shadow-dark), -3px -3px 6px var(--shadow-light);
+    box-shadow: 0 0 0 1px var(--border-light);
     transition: all 0.2s;
 }
 
@@ -2187,7 +2121,7 @@ input[type="checkbox"] {
     background: var(--primary-light);
     cursor: pointer;
     border: none;
-    box-shadow: 3px 3px 6px var(--shadow-dark), -3px -3px 6px var(--shadow-light);
+    box-shadow: 0 0 0 1px var(--border-light);
     transition: all 0.2s;
 }
 
@@ -2235,7 +2169,6 @@ input[type="checkbox"] {
     align-items: center;
     justify-content: center;
     z-index: 1000;
-    backdrop-filter: blur(8px);
 }
 
 .modal-content {
@@ -2307,7 +2240,7 @@ input[type="checkbox"] {
     border: 1px solid var(--success-light);
     border-left: 4px solid var(--success-light);
     border-radius: 1rem;
-    box-shadow: 5px 5px 10px var(--shadow-dark), -5px -5px 10px var(--shadow-light);
+    box-shadow: 0 0 0 1px var(--border-light);
     display: flex;
     flex-direction: column;
     gap: 0.85rem;
@@ -2338,7 +2271,7 @@ input[type="checkbox"] {
     height: 72px;
     object-fit: cover;
     border-radius: 3px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 0 0 1px var(--border-light);
     display: block;
 }
 
@@ -2603,7 +2536,7 @@ input[type="range"] {
     width: 100%;
     height: 6px;
     background: var(--background-light);
-    box-shadow: inset 2px 2px 4px var(--shadow-dark), inset -2px -2px 4px var(--shadow-light);
+    box-shadow: inset 0 0 0 1px var(--border-light);
     outline: none;
     border-radius: 3px;
     cursor: pointer;
@@ -2617,7 +2550,7 @@ input[type="range"]::-webkit-slider-thumb {
     background: var(--primary-light);
     cursor: pointer;
     border-radius: 50%;
-    box-shadow: 3px 3px 6px var(--shadow-dark), -3px -3px 6px var(--shadow-light);
+    box-shadow: 0 0 0 1px var(--border-light);
 }
 
 input[type="range"]::-moz-range-thumb {
@@ -2627,7 +2560,7 @@ input[type="range"]::-moz-range-thumb {
     cursor: pointer;
     border-radius: 50%;
     border: none;
-    box-shadow: 3px 3px 6px var(--shadow-dark), -3px -3px 6px var(--shadow-light);
+    box-shadow: 0 0 0 1px var(--border-light);
 }
 
 /* ========================================
@@ -2645,7 +2578,7 @@ input[type="range"]::-moz-range-thumb {
     padding: 1rem;
     margin: 0;
     background: var(--background-light);
-    box-shadow: inset 3px 3px 6px var(--shadow-dark), inset -3px -3px 6px var(--shadow-light);
+    box-shadow: inset 0 0 0 1px var(--border-light);
     border: 1px solid var(--border-light);
     border-radius: 1.5rem;
 }
@@ -2678,7 +2611,7 @@ input[type="range"]::-moz-range-thumb {
 
 /* Clickable file items (Queued status) */
 .file-item[style*="cursor: pointer"]:hover {
-    box-shadow: 0 2px 8px rgba(54, 118, 216, 0.15);
+    box-shadow: 0 0 0 2px var(--primary-light);
     transform: translateY(-1px);
     border-color: var(--primary-light);
 }
@@ -2689,7 +2622,7 @@ input[type="range"]::-moz-range-thumb {
 
 /* Non-clickable file items (Processing/Completed) */
 .file-item:not([style*="cursor: pointer"]):hover {
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 0 0 1px var(--border-light);
 }
 
 /* Active file - the last uploaded file that syncs with language selectors */
@@ -2743,7 +2676,7 @@ input[type="range"]::-moz-range-thumb {
     height: 64px;
     object-fit: cover;
     border-radius: 4px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 0 0 1px var(--border-light);
 }
 
 .generic-epub-icon {
@@ -2823,19 +2756,19 @@ html.dark .file-info {
     margin-bottom: 15px;
     border-radius: 1rem !important;
     background: var(--background-light) !important;
-    box-shadow: 3px 3px 6px var(--shadow-dark), -3px -3px 6px var(--shadow-light);
+    box-shadow: 0 0 0 1px var(--border-light);
     transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .resumable-job-card:hover {
     transform: translateY(-2px);
-    box-shadow: 5px 5px 10px var(--shadow-dark), -5px -5px 10px var(--shadow-light);
+    box-shadow: 0 0 0 1px var(--border-light);
 }
 
 #resumableJobsList {
     padding: 1rem;
     background: var(--background-light);
-    box-shadow: inset 3px 3px 6px var(--shadow-dark), inset -3px -3px 6px var(--shadow-light);
+    box-shadow: inset 0 0 0 1px var(--border-light);
     border: 1px solid var(--border-light);
     border-radius: 1.5rem;
 }
@@ -2941,7 +2874,7 @@ html.dark .file-info {
     background: var(--background-light);
     border: 2px solid var(--primary-light);
     border-radius: 1rem;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 0 0 1px var(--border-light);
     max-height: 0;
     overflow: hidden;
     opacity: 0;
@@ -3154,7 +3087,7 @@ html.dark .searchable-select-badge {
 html.dark .searchable-select-dropdown {
     background: #2a2a2a;
     border-color: var(--primary-light);
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+    box-shadow: 0 0 0 1px var(--border-light);
 }
 
 html.dark .searchable-select-search {
@@ -3229,7 +3162,7 @@ html.dark .searchable-select-group {
     background: var(--background-outer);
     color: var(--text-dark);
     border: 1px solid var(--border-light);
-    box-shadow: 0 8px 22px rgba(15, 25, 45, 0.18);
+    box-shadow: 0 0 0 1px var(--border-light);
     font-size: 0.875rem;
     line-height: 1.35;
     min-width: 240px;
@@ -3964,8 +3897,7 @@ html.dark .ner-warnings {
     font-size: 0.85rem;
     line-height: 1.2;
     border: 1px solid var(--border-light);
-    box-shadow: inset 2px 2px 4px var(--shadow-dark),
-                inset -2px -2px 4px var(--shadow-light);
+    box-shadow: inset 0 0 0 1px var(--border-light);
     user-select: none;
     transition: background 0.15s ease, color 0.15s ease;
 }
@@ -4074,7 +4006,7 @@ html.dark .cost-badge.cost-error {
     border-radius: 0.75rem;
     color: var(--text-dark);
     font-size: 0.9rem;
-    box-shadow: 2px 2px 5px var(--shadow-dark), -2px -2px 5px var(--shadow-light);
+    box-shadow: 0 0 0 1px var(--border-light);
 }
 .update-banner.hidden { display: none; }
 .update-banner__text { flex: 1 1 auto; }
@@ -4115,7 +4047,6 @@ html.dark .update-banner__close:hover {
     position: fixed;
     inset: 0;
     background: rgba(15, 22, 35, 0.6);
-    backdrop-filter: blur(2px);
     z-index: 9999;
     display: flex;
     align-items: center;
@@ -4130,7 +4061,7 @@ html.dark .update-banner__close:hover {
     padding: 1.5rem 1.75rem;
     max-width: 640px;
     width: 100%;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.35);
+    box-shadow: 0 0 0 1px var(--border-light);
     border: 1px solid var(--border-light);
 }
 .update-overlay__title {
@@ -4190,7 +4121,7 @@ html.dark .update-overlay__error { color: #fca5a5; }
     /* Use the recessed surface tone (not pure white) so the white input wells
        inside the card stand out. The neumorphic shadow keeps it raised. */
     background: var(--background-light);
-    box-shadow: 4px 4px 8px var(--shadow-dark), -4px -4px 8px var(--shadow-light);
+    box-shadow: 0 0 0 1px var(--border-light);
 }
 
 /* While a Run is in flight, lock the column editor: editing a provider/model
@@ -4277,7 +4208,7 @@ html.dark .sample-warning-info {
     background: var(--background-outer);
     border-radius: 0.9rem;
     padding: 16px;
-    box-shadow: 4px 4px 8px var(--shadow-dark), -4px -4px 8px var(--shadow-light);
+    box-shadow: 0 0 0 1px var(--border-light);
     display: flex;
     flex-direction: column;
     gap: 14px;
@@ -4293,7 +4224,7 @@ html.dark .sample-card {
     padding-right: 42px;
     border-radius: 0.6rem;
     background: var(--background-light);
-    box-shadow: inset 3px 3px 6px var(--shadow-dark), inset -3px -3px 6px var(--shadow-light);
+    box-shadow: inset 0 0 0 1px var(--border-light);
     position: relative;
 }
 .sample-file-card {
@@ -4305,7 +4236,7 @@ html.dark .sample-card {
     background: var(--background-light);
     border: 1px solid var(--border-light);
     border-radius: 0.85rem;
-    box-shadow: 4px 4px 8px var(--shadow-dark), -4px -4px 8px var(--shadow-light);
+    box-shadow: 0 0 0 1px var(--border-light);
     position: relative;
 }
 .sample-file-cover {
@@ -4317,7 +4248,7 @@ html.dark .sample-card {
     justify-content: center;
     border-radius: 6px;
     background: var(--background-outer);
-    box-shadow: inset 2px 2px 4px var(--shadow-dark), inset -2px -2px 4px var(--shadow-light);
+    box-shadow: inset 0 0 0 1px var(--border-light);
     color: var(--primary-light);
     overflow: hidden;
 }

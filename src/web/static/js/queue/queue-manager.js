@@ -1789,7 +1789,21 @@ async function moveBook(bookId, direction) {
     }
 }
 
+// The server renders the queue snapshot into the page; apply it before the first
+// fetch so the queue is never shown empty on load.
+function applyInitialQueueState() {
+    const node = document.getElementById('initial-queue');
+    if (!node) return;
+    try {
+        const data = JSON.parse(node.textContent || 'null');
+        if (data && Array.isArray(data.books)) applySnapshot(data);
+    } catch (_error) {
+        // Malformed state: fall back to the normal fetch.
+    }
+}
+
 function initialize() {
+    applyInitialQueueState();
     ensureGlobalQualityDrawer();
     const button = byId('queueRefreshBtn');
     if (button) button.addEventListener('click', refresh);

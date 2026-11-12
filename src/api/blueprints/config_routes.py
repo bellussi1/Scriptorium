@@ -210,6 +210,14 @@ def create_config_blueprint(server_session_id=None):
             return f"<h1>Error: Interface not found</h1><p>Looked in: {interface_path}</p>", 404
 
         from src.api.auth import API_TOKEN
+        initial_queue = None
+        try:
+            from pathlib import Path as _Path
+            from src.api.blueprints.literary_queue_routes import build_queue_snapshot
+            queue_db = _Path(os.getenv('LITERARY_QUEUE_DB', 'data/literary_queue.db'))
+            initial_queue = build_queue_snapshot(queue_db)
+        except Exception:
+            initial_queue = None  # the page still loads and fetches the queue itself
         return render_template(
             'translation_interface.html',
             initial_locale=resolve_ui_locale(request),
@@ -219,6 +227,7 @@ def create_config_blueprint(server_session_id=None):
             # /api/ call and the Socket.IO handshake (issue #210). Same-origin
             # delivery means a foreign page cannot read it.
             api_token=API_TOKEN,
+            initial_queue=initial_queue,
         )
 
     @bp.route('/api/ui-locale', methods=['POST'])
