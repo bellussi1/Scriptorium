@@ -128,6 +128,15 @@ documents). Do not re-run it on finals; see
   log, control, about every 10 s); API median 38-39 ms, one outlier 770-820 ms. After the
   `ui/html` helper in `renderSummary` and `renderEvents`: unchanged. Rule: no new polling;
   re-measure with the same script before changing render paths in `queue-manager`.
+- Targeted repair (branch `feat/chunk-quality-gates`, not merged): `src/literary/targeted_fix.py`
+  repairs paragraphs of a finished EPUB that carry a forbidden glossary form or a blocking pt-PT
+  form. Model call only for flagged paragraphs; accepted only when the failure is gone and the
+  guard passes. Howling Dark (refined): 12 of 7,650 paragraphs flagged, 5 of them with inline
+  markup (skipped). Run on a copy of the refined book (2026-11-12, guard v2, commit 235f908):
+  7 attempted, 6 accepted, 1 rejected ("pagar" -> "construindo", a meaning error the v1 guard
+  let through). Remaining flagged: 6, all in paragraphs with inline markup or the rejected one.
+  No XHTML broke. The deliverable is not touched. Decide per the 6 accepted changes before
+  wiring the repair into the pipeline. Results: scratchpad/exp/summary.json.
 - Container `translatebook-literary-dev` (127.0.0.1:5000) mounts `src` read-only:
   restart it to load Python changes; no rebuild needed.
 - Tests: `venv\Scripts\python.exe -m pytest -q tests/unit tests/literary tests/test_frontend_i18n.py`.
