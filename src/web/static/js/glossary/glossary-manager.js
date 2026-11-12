@@ -242,15 +242,10 @@ function switchTopTab(name, options = {}) {
     buttons.forEach((btn) => {
         const isActive = btn.dataset.tab === name;
         btn.classList.toggle('tab-btn-active', isActive);
-        if (isActive) {
-            btn.setAttribute('aria-current', 'page');
-            // Keep the active tab visible when the strip scrolls on narrow
-            // screens. Centring it leaves the neighbouring tabs readable on
-            // both sides instead of clipping the label at the edge.
-            btn.scrollIntoView({ block: 'nearest', inline: 'center' });
-        } else {
-            btn.removeAttribute('aria-current');
-        }
+        btn.setAttribute('aria-selected', String(isActive));
+        btn.tabIndex = isActive ? 0 : -1;
+        if (isActive) btn.setAttribute('aria-current', 'page');
+        else btn.removeAttribute('aria-current');
     });
 
     if (!options.silent) {
@@ -2115,6 +2110,26 @@ export const GlossaryManager = {
         return refreshDropdown();
     },
 };
+
+// Tabs follow the ARIA tab pattern: arrow keys move between tabs, Home and End
+// jump to the ends. The focused tab is activated, as with a click.
+function handleTopTabKeys(event) {
+    const tabs = [...document.querySelectorAll('#topTabNav .tab-btn')];
+    const index = tabs.indexOf(document.activeElement);
+    if (index < 0) return;
+    let next = null;
+    if (event.key === 'ArrowRight') next = (index + 1) % tabs.length;
+    else if (event.key === 'ArrowLeft') next = (index - 1 + tabs.length) % tabs.length;
+    else if (event.key === 'Home') next = 0;
+    else if (event.key === 'End') next = tabs.length - 1;
+    if (next === null) return;
+    event.preventDefault();
+    tabs[next].focus();
+    tabs[next].click();
+}
+
+const topTabNav = document.getElementById('topTabNav');
+if (topTabNav) topTabNav.addEventListener('keydown', handleTopTabKeys);
 
 window.switchTopTab = switchTopTab;
 window.restoreTopTab = restoreTopTab;

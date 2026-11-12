@@ -48,25 +48,8 @@ html.dark .form-control::placeholder {
 }
 
 /* White text on the old #ef4444 fill was 3.76:1. */
-html:not(.dark) .btn-danger {
-    background: #dc2626;
-    border-color: #dc2626;
-}
-
-html:not(.dark) .btn-danger:hover {
-    background: #b91c1c;
-}
 
 /* Colored glows read as haze on a dark surface; use neutral elevation there. */
-html.dark .btn-primary,
-html.dark .btn-danger {
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35);
-}
-
-html.dark .btn-primary:hover,
-html.dark .btn-danger:hover {
-    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
-}
 
 .model-override-panel {
     border-top-color: var(--border-light);
@@ -258,30 +241,6 @@ html.dark .btn-danger:hover {
 
     .upload-zone-grid > .file-upload-secondary p {
         max-width: none;
-    }
-}
-
-/* ----------------------------------------
-   Tab strip on narrow screens
-   The seven tabs do not fit at 390px; let the strip scroll and keep the
-   active tab in view (switchTopTab scrolls it with inline: nearest).
-   ---------------------------------------- */
-
-@media (max-width: 900px) {
-    .tab-nav {
-        overflow-x: auto;
-        flex-wrap: nowrap !important;
-        padding-bottom: 4px;
-        scrollbar-width: thin;
-        scroll-snap-type: x proximity;
-        -webkit-overflow-scrolling: touch;
-    }
-
-    .tab-nav .tab-btn {
-        flex: 0 0 auto;
-        scroll-snap-align: start;
-        padding-left: 0.9rem;
-        padding-right: 0.9rem;
     }
 }
 
@@ -583,3 +542,354 @@ pre.queue-quality-log {
 .logo-img--dark { display: none; }
 .dark .logo-img--light { display: none; }
 .dark .logo-img--dark { display: block; }
+
+/* ==========================================================================
+   Design system: buttons, tabs, history rows and states
+   One definition per control. Heights, radius, focus ring and motion come from
+   the tokens below. Colour comes from the theme variables, so light and dark
+   follow without overrides. Press feedback is a colour change only (no scale, no
+   shadow). Focus is a 2px accent ring with a 2px offset.
+   ========================================================================== */
+
+:root {
+    --space-1: 4px;
+    --space-2: 8px;
+    --space-3: 12px;
+    --space-4: 16px;
+    --space-5: 24px;
+    --space-6: 32px;
+    --control-h: var(--ui-control-h, 36px);
+    --control-h-sm: 32px;
+    --control-radius: 8px;
+    --control-motion: 150ms ease-out;
+    --control-ink: var(--ink, var(--text-dark));
+    --control-muted: var(--muted, var(--text-muted-light));
+    --control-line: var(--rule-strong, var(--border-light));
+    --control-surface: var(--surface, var(--background-light));
+    --control-hover: var(--surface-strong, var(--background-light));
+    --control-accent: var(--data-accent, var(--info-light));
+    --control-focus: 0 0 0 2px var(--background-outer), 0 0 0 4px var(--control-accent);
+}
+
+[hidden],
+.hidden {
+    display: none !important;
+}
+
+/* ---- Buttons ------------------------------------------------------------ */
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+    min-height: var(--control-h);
+    padding: 0 var(--space-4);
+    border: 1px solid var(--control-line);
+    border-radius: var(--control-radius);
+    background: var(--control-surface);
+    color: var(--control-ink);
+    font-family: var(--font-ui);
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1.2;
+    letter-spacing: 0;
+    white-space: nowrap;
+    text-decoration: none;
+    cursor: pointer;
+    user-select: none;
+    transition: background-color var(--control-motion), border-color var(--control-motion), color var(--control-motion);
+}
+
+.btn .material-symbols-outlined {
+    font-size: 18px;
+    line-height: 1;
+}
+
+.btn:hover:not(:disabled) {
+    background: var(--control-hover);
+}
+
+.btn:active:not(:disabled) {
+    border-color: var(--control-accent);
+}
+
+.btn:focus-visible {
+    outline: none;
+    box-shadow: var(--control-focus);
+}
+
+.btn:disabled,
+.btn[aria-disabled="true"] {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.btn.is-loading {
+    cursor: progress;
+    pointer-events: none;
+}
+
+/* Variants: one primary per view; secondary is the default; ghost sits in
+   toolbars; danger is outlined, so a destructive action is labelled, not loud. */
+.btn-primary {
+    background: var(--primary-light);
+    border-color: var(--primary-light);
+    color: #fff;
+}
+
+.btn-primary:hover:not(:disabled) {
+    background: color-mix(in srgb, var(--primary-light) 88%, #000);
+    border-color: color-mix(in srgb, var(--primary-light) 88%, #000);
+}
+
+.btn-primary:active:not(:disabled) {
+    background: color-mix(in srgb, var(--primary-light) 76%, #000);
+    border-color: color-mix(in srgb, var(--primary-light) 76%, #000);
+}
+
+.btn-secondary {
+    background: transparent;
+    border-color: var(--control-line);
+    color: var(--control-ink);
+}
+
+.btn-secondary:hover:not(:disabled) {
+    background: var(--control-hover);
+}
+
+.btn-ghost {
+    background: transparent;
+    border-color: transparent;
+    color: var(--control-muted);
+}
+
+.btn-ghost:hover:not(:disabled) {
+    background: var(--control-hover);
+    color: var(--control-ink);
+}
+
+.btn-danger {
+    background: transparent;
+    border-color: var(--danger-light-border);
+    color: var(--danger-light-text);
+}
+
+.btn-danger:hover:not(:disabled) {
+    background: var(--danger-light-bg);
+}
+
+/* Toggle buttons (pressed or selected state) */
+.btn[aria-pressed="true"],
+.btn.is-active {
+    background: var(--data-accent-soft);
+    border-color: var(--control-accent);
+    color: var(--control-ink);
+}
+
+/* Sizes */
+.btn-sm {
+    min-height: var(--control-h-sm);
+    padding: 0 var(--space-3);
+    font-size: 13px;
+}
+
+.btn-icon {
+    width: var(--control-h);
+    padding: 0;
+}
+
+.btn-icon.btn-sm {
+    width: var(--control-h-sm);
+}
+
+/* Compact icon actions in lists share the icon-button size and states. */
+.file-action-group--compact .file-action-btn,
+.queue-move-btn,
+.close-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--control-h-sm);
+    min-height: var(--control-h-sm);
+    padding: 0;
+    border: 1px solid transparent;
+    border-radius: var(--control-radius);
+    background: transparent;
+    color: var(--control-muted);
+    cursor: pointer;
+    transition: background-color var(--control-motion), color var(--control-motion);
+}
+
+.file-action-group--compact .file-action-btn:hover:not(:disabled),
+.queue-move-btn:hover:not(:disabled),
+.close-btn:hover:not(:disabled) {
+    background: var(--control-hover);
+    color: var(--control-ink);
+}
+
+.file-action-group--compact .file-action-btn:focus-visible,
+.queue-move-btn:focus-visible,
+.close-btn:focus-visible {
+    outline: none;
+    box-shadow: var(--control-focus);
+}
+
+/* ---- Tabs --------------------------------------------------------------- */
+/* Tabs are a tablist: one row, wrapping on narrow screens (no sideways scroll).
+   The active tab is marked by a 2px ink underline and by aria-selected. */
+
+.tab-nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0 var(--space-1);
+    margin-bottom: var(--space-5);
+    border-bottom: 1px solid var(--control-line);
+}
+
+.tab-nav .tab-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    min-height: 44px;
+    margin-bottom: -1px;
+    padding: 0 var(--space-3);
+    border: 0;
+    border-bottom: 2px solid transparent;
+    border-radius: 0;
+    background: transparent;
+    color: var(--control-muted);
+    font-family: var(--font-ui);
+    font-size: 14px;
+    font-weight: 500;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: color var(--control-motion), border-color var(--control-motion);
+}
+
+.tab-nav .tab-btn::before,
+.tab-nav .tab-btn::after {
+    content: none;
+}
+
+.tab-nav .tab-btn .material-symbols-outlined {
+    font-size: 18px;
+}
+
+.tab-nav .tab-btn:hover {
+    color: var(--control-ink);
+}
+
+.tab-nav .tab-btn:focus-visible {
+    outline: none;
+    box-shadow: inset 0 0 0 2px var(--control-accent);
+}
+
+.tab-nav .tab-btn-active,
+.tab-nav .tab-btn[aria-selected="true"] {
+    color: var(--control-ink);
+    border-bottom-color: var(--control-ink);
+    font-weight: 600;
+}
+
+/* ---- Completed translations (Translate tab) ----------------------------- */
+
+.history-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: var(--space-3);
+}
+
+.history-header__hint {
+    margin: var(--space-1) 0 0;
+    font-size: 13px;
+    color: var(--control-muted);
+}
+
+.history-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+}
+
+.history-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    align-items: center;
+    gap: var(--space-4);
+    padding: var(--space-3) var(--space-4);
+    border: 1px solid var(--control-line);
+    border-radius: var(--control-radius);
+    background: var(--control-surface);
+}
+
+.history-row__main {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.history-row__title,
+.history-row__file {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.history-row__title {
+    font-weight: 600;
+    color: var(--control-ink);
+}
+
+.history-row__file {
+    font-size: 13px;
+    color: var(--control-muted);
+}
+
+.history-row__date {
+    font-size: 13px;
+    color: var(--control-muted);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+.history-row__actions {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-1);
+}
+
+.history-row__missing {
+    display: inline-block;
+    align-self: flex-start;
+    padding: 2px var(--space-2);
+    border: 1px solid var(--warning-light-border);
+    border-radius: 999px;
+    font-size: 12px;
+    color: var(--warning-light-text);
+    white-space: nowrap;
+}
+
+.history-state {
+    padding: var(--space-5) var(--space-4);
+    text-align: center;
+    color: var(--control-muted);
+}
+
+.history-error {
+    margin: 0;
+    color: var(--danger-light-text);
+}
+
+@media (max-width: 640px) {
+    .history-row {
+        grid-template-columns: minmax(0, 1fr) auto;
+    }
+
+    .history-row__actions {
+        grid-column: 1 / -1;
+        justify-content: flex-start;
+    }
+}

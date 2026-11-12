@@ -264,51 +264,12 @@ body {
     display: none;
 }
 
-.tab-nav .tab-btn {
-    padding: 11px 16px 13px;
-    border: 0;
-    border-radius: 0;
-    background: transparent;
-    color: var(--muted);
-    font-family: var(--font-ui);
-    font-size: 13px;
-    font-weight: 500;
-    letter-spacing: 0;
-    gap: 6px;
-    position: relative;
-    white-space: nowrap;
-}
-
 .tab-nav .tab-btn:first-child {
     padding-left: 0;
 }
 
-.tab-nav .tab-btn::before {
-    left: 16px;
-    right: 16px;
-    bottom: 0;
-    height: 2px;
-    background: transparent;
-}
-
 .tab-nav .tab-btn:first-child::before {
     left: 0;
-}
-
-.tab-nav .tab-btn:hover {
-    color: var(--ink);
-    border: 0;
-    background: transparent;
-}
-
-.tab-nav .tab-btn-active {
-    color: var(--ink);
-    background: transparent;
-    border: 0;
-}
-
-.tab-nav .tab-btn-active::before {
-    background: var(--ink);
 }
 
 .tab-nav .tab-btn .material-symbols-outlined {
@@ -408,63 +369,8 @@ label,
 
 /* ---------- Controls ---------- */
 
-.btn {
-    border-radius: var(--radius);
-    font-family: var(--font-ui);
-    font-size: 13px;
-    font-weight: 500;
-    letter-spacing: 0;
-    box-shadow: none;
-    min-height: 36px;
-    padding: 8px 14px;
-    transition: background 120ms ease, color 120ms ease, border-color 120ms ease;
-}
-
 .btn .material-symbols-outlined {
     font-size: 17px;
-}
-
-.btn-primary {
-    background: var(--ink);
-    border: 1px solid var(--ink);
-    color: var(--paper);
-    box-shadow: none;
-}
-
-.btn-primary:hover {
-    background: var(--ink-soft);
-    border-color: var(--ink-soft);
-    box-shadow: none;
-    transform: none;
-}
-
-.btn-primary:active {
-    transform: none;
-}
-
-.btn-primary:disabled {
-    background: var(--rule);
-    border-color: var(--rule);
-    color: var(--muted);
-    opacity: 1;
-}
-
-.btn-secondary {
-    background: transparent;
-    border: 1px solid var(--rule);
-    color: var(--ink);
-    box-shadow: none;
-}
-
-.btn-secondary:hover {
-    background: var(--surface-strong);
-    border-color: var(--rule-strong);
-    box-shadow: none;
-    transform: none;
-}
-
-.btn-danger {
-    box-shadow: none;
 }
 
 .form-control,
@@ -917,18 +823,6 @@ label,
 
     .header .logo-text p {
         font-size: 11px;
-    }
-
-    #topTabNav {
-        margin-bottom: 20px !important;
-        padding-right: 24px !important;
-        -webkit-mask-image: linear-gradient(to right, #000 88%, transparent 100%);
-        mask-image: linear-gradient(to right, #000 88%, transparent 100%);
-    }
-
-    .tab-nav .tab-btn {
-        padding: 10px 12px 12px;
-        font-size: 12px;
     }
 
     .tab-nav .tab-btn:first-child {
@@ -1462,23 +1356,6 @@ html.dark .queue-table tbody tr:hover {
     border-color: var(--success-light) !important;
     color: var(--paper) !important;
     font-weight: 700;
-}
-
-html:not(.dark) .btn-danger,
-html.dark .btn-danger {
-    background: transparent;
-    border-color: var(--danger-light-border);
-    color: var(--danger-light-text);
-    box-shadow: none;
-}
-
-html:not(.dark) .btn-danger:hover,
-html.dark .btn-danger:hover {
-    background: var(--danger-light-bg);
-    border-color: var(--danger-light);
-    color: var(--danger-light-text);
-    transform: none;
-    box-shadow: none;
 }
 
 /* ---------- Glossaries and Styles: one surface, not a box in a box ---------- */

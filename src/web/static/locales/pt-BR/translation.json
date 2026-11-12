@@ -194,7 +194,7 @@
   "paused_translations": "Traduções Pausadas",
   "refresh_list_title": "Atualizar lista",
   "no_paused_translations": "Nenhuma tradução pausada",
-  "history_title": "Histórico de Traduções",
+  "history_title": "Traduções concluídas",
   "history_empty": "Nenhuma tradução concluída ainda",
   "history_load_error": "Falha ao carregar o histórico: {{error}}",
   "history_count_log": "📚 {{count}} tradução(ões) concluída(s) no histórico",
@@ -275,5 +275,9 @@
   "quicktest_error_no_model": "Nenhum modelo selecionado. Escolha primeiro um provedor e um modelo.",
   "quicktest_error_no_target": "Defina um idioma de destino para este arquivo antes do teste.",
   "quicktest_error_empty": "Este arquivo é pequeno demais para amostragem.",
-  "quicktest_error_run": "Falha no teste rápido: {{error}}"
+  "quicktest_error_run": "Falha no teste rápido: {{error}}",
+  "history_hint": "Arquivos gerados pelas traduções concluídas. Baixe, abra ou mostre a pasta.",
+  "history_refresh": "Atualizar",
+  "tabs_label": "Seções",
+  "history_status_removed": "Arquivo removido"
 }

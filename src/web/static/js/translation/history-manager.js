@@ -11,7 +11,6 @@ import { ApiClient } from '../core/api-client.js';
 import { MessageLogger } from '../ui/message-logger.js';
 import { DomHelpers } from '../ui/dom-helpers.js';
 import { FileActions } from '../files/file-actions.js';
-import { getFileIcon } from './progress-title.js';
 import { t, getCurrentLocale, applyToDOM } from '../i18n/i18n.js';
 
 /**
@@ -33,100 +32,69 @@ async function loadAvailableFiles() {
 
 export const HistoryManager = {
     /**
-     * Build the card for one completed job.
-     *
-     * Every label goes through t() at render time (the whole list is rebuilt
-     * on locale switch) and every dynamic value is escaped before it reaches
-     * the HTML string.
+     * Build one row for a completed job: name and output file on the left,
+     * completion date, then the file actions. Output files that were removed are
+     * labelled as such, and offer no actions.
      * @param {Object} item - History item from GET /api/history
      * @param {Set<string>} availableFiles - Filenames still present in translated_files/
-     * @returns {HTMLElement} Card element for the job
+     * @returns {HTMLElement} Row element for the job
      */
     buildHistoryCard(item, availableFiles) {
-        const unknownText = t('translation:job_card_unknown');
-        const inputFilename = item.input_filename || unknownText;
-        const outputFilename = item.output_filename || unknownText;
+        const inputFilename = item.input_filename || t('translation:job_card_unknown');
+        const outputFilename = item.output_filename || '';
 
         // Same display name as the resumable cards: drop the 16-hex upload
         // prefix and the extension, then upper-case the first letter.
         const inputMatch = inputFilename.match(/^([a-f0-9]{16})_(.+)$/);
         const inputOriginalName = inputMatch ? inputMatch[2] : inputFilename;
-        const displayName = inputOriginalName.replace(/\.[^.]+$/, '');
-        const displayNameFormatted = displayName
-            ? displayName.charAt(0).toUpperCase() + displayName.slice(1)
-            : inputOriginalName;
+        const baseName = inputOriginalName.replace(/\.[^.]+$/, '') || inputOriginalName;
+        const title = baseName.charAt(0).toUpperCase() + baseName.slice(1);
 
-        const fileType = (item.file_type || 'txt').toUpperCase();
-        const completedChunks = item.completed_chunks || 0;
-        const totalChunks = item.total_chunks || 0;
-
-        // `completed_at` is set when the job reaches 'completed'; older rows
-        // may only carry `updated_at`.
-        const completedRaw = item.completed_at || item.updated_at;
+        const completedRaw = item.completed_at || item.updated_at || '';
         const completedDate = completedRaw
             ? new Date(completedRaw).toLocaleString(getCurrentLocale())
             : t('translation:job_card_na');
+        const available = Boolean(outputFilename) && availableFiles.has(outputFilename);
 
-        const safeDisplayName = DomHelpers.escapeHtml(displayNameFormatted);
-        const safeOutputFilename = DomHelpers.escapeHtml(outputFilename);
-
-        const card = document.createElement('div');
-        card.className = 'history-job-card';
-        card.style.cssText = 'border: 1px solid #e5e7eb; padding: 20px; margin-bottom: 15px; border-radius: 8px; background: #f9fafb;';
-
-        card.innerHTML = `
-            <div style="display: flex; justify-content: space-between; align-items: start; gap: 15px;">
-                <div style="flex: 1; min-width: 0;">
-                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px; min-width: 0;">
-                        <span style="flex-shrink: 0; display: inline-flex; align-items: center;">${getFileIcon(item.file_type)}</span>
-                        <span style="font-size: 18px; font-weight: 600; color: var(--text-dark); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${safeDisplayName}">${safeDisplayName}</span>
-                        <span style="flex-shrink: 0; padding: 2px 8px; font-size: 11px; font-weight: 600; color: #166534; background: #dcfce7; border: 1px solid #22c55e; border-radius: 4px;">${t('translation:history_status_completed')}</span>
-                    </div>
-                    <div style="font-size: 14px; color: var(--text-muted-light); margin-bottom: 5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="→ ${safeOutputFilename}">
-                        → ${safeOutputFilename}
-                    </div>
-                    <div style="display: flex; flex-wrap: wrap; gap: 20px; font-size: 12px; color: var(--text-muted-light); margin-top: 8px;">
-                        <span>${t('translation:history_type_line', { type: DomHelpers.escapeHtml(fileType) })}</span>
-                        <span>${t('translation:history_chunks', { completed: completedChunks, total: totalChunks })}</span>
-                        <span>${t('translation:history_completed_at', { date: DomHelpers.escapeHtml(completedDate) })}</span>
-                    </div>
-                </div>
-                <div class="history-job-actions" style="flex-shrink: 0;"></div>
+        const row = document.createElement('div');
+        row.className = 'history-row';
+        row.innerHTML = `
+            <div class="history-row__main">
+                <span class="history-row__title" title="${DomHelpers.escapeHtml(title)}">${DomHelpers.escapeHtml(title)}</span>
+                ${available
+                    ? `<span class="history-row__file" title="${DomHelpers.escapeHtml(outputFilename)}">${DomHelpers.escapeHtml(outputFilename)}</span>`
+                    : '<span class="history-row__missing" data-i18n="translation:history_status_removed"></span>'}
             </div>
+            <time class="history-row__date" datetime="${DomHelpers.escapeHtml(String(completedRaw))}">${DomHelpers.escapeHtml(completedDate)}</time>
+            <div class="history-row__actions"></div>
         `;
 
-        const actionsContainer = card.querySelector('.history-job-actions');
-        if (item.output_filename && availableFiles.has(item.output_filename)) {
-            actionsContainer.appendChild(FileActions.createActionGroup({
+        if (available) {
+            row.querySelector('.history-row__actions').appendChild(FileActions.createActionGroup({
                 actions: ['download', 'open', 'reveal'],
-                filename: item.output_filename,
+                filename: outputFilename,
                 variant: 'compact',
             }));
-        } else {
-            // The row outlives its output file (deleted from the Files tab, or
-            // pruned): say so instead of offering actions that would 404.
-            const missing = document.createElement('span');
-            missing.style.cssText = 'font-size: 12px; color: var(--text-muted-light); font-style: italic;';
-            missing.textContent = t('translation:history_output_missing');
-            actionsContainer.appendChild(missing);
         }
-
-        return card;
+        return row;
     },
 
     /**
-     * Load and display the completed translations history
+     * Load and display the completed translations history.
+     *
+     * The section stays hidden while there is nothing to show. A failed load is
+     * shown inside the section, with its reason, so it is never silent.
      */
     async loadHistory() {
         const section = DomHelpers.getElement('historySection');
         const loading = DomHelpers.getElement('historyLoading');
         const listContainer = DomHelpers.getElement('historyList');
-        const emptyMessage = DomHelpers.getElement('historyEmpty');
+        const errorBox = DomHelpers.getElement('historyEmpty');
+        const show = (el, visible) => el && el.classList.toggle('hidden', !visible);
 
-        // Show loading, hide list and empty message (use inline style to override)
-        if (loading) loading.style.display = 'block';
-        if (listContainer) listContainer.style.display = 'none';
-        if (emptyMessage) emptyMessage.style.display = 'none';
+        show(loading, true);
+        show(listContainer, false);
+        show(errorBox, false);
 
         try {
             const [data, availableFiles] = await Promise.all([
@@ -134,45 +102,33 @@ export const HistoryManager = {
                 loadAvailableFiles(),
             ]);
             const history = (data && data.history) || [];
-
-            // Hide loading
-            if (loading) loading.style.display = 'none';
+            show(loading, false);
 
             if (history.length === 0) {
-                // Hide the section entirely when there is nothing to show
-                if (section) section.style.display = 'none';
-                if (emptyMessage) emptyMessage.style.display = 'block';
+                show(section, false);
                 return;
             }
-
             if (!listContainer) {
                 console.error('Error: historyList element not found');
                 return;
             }
 
-            // Show section and populate the list (use inline style to override)
-            if (section) section.style.display = 'block';
-            listContainer.style.display = 'block';
-
+            show(section, true);
+            show(listContainer, true);
             listContainer.innerHTML = '';
             history.forEach((item) => {
                 listContainer.appendChild(this.buildHistoryCard(item, availableFiles));
             });
-
-            // Translate the data-i18n markup carried by the injected cards
             applyToDOM(listContainer);
-
             MessageLogger.addLog(t('translation:history_count_log', { count: history.length }));
-
         } catch (error) {
-            // Hide loading, show error message
-            if (loading) loading.style.display = 'none';
-            if (emptyMessage) {
-                emptyMessage.style.display = 'block';
-                emptyMessage.innerHTML = `<p style="color: #ef4444;">${t('translation:history_load_error', { error: DomHelpers.escapeHtml(error.message) })}</p>`;
+            show(loading, false);
+            show(section, true);
+            show(listContainer, false);
+            if (errorBox) {
+                errorBox.classList.remove('hidden');
+                errorBox.innerHTML = `<p class="history-error">${DomHelpers.escapeHtml(t('translation:history_load_error', { error: error.message || String(error) }))}</p>`;
             }
-            // Hide the section on error
-            if (section) section.style.display = 'none';
             console.error('Error loading translation history:', error);
         }
     },

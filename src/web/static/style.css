@@ -676,76 +676,10 @@ select.form-control {
    Buttons
    ======================================== */
 
-.btn {
-    padding: 0.75rem 1.25rem;
-    border: none;
-    border-radius: 0.75rem;
-    font-size: 1rem;
-    font-weight: 700;
-    cursor: pointer;
-    transition: all 0.3s;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
-    letter-spacing: 0.025em;
-}
-
-.btn-primary {
-    background: var(--primary-light);
-    color: white;
-    box-shadow: 0 0 0 2px var(--primary-light);
-}
-
-.btn-primary:hover {
-    box-shadow: 0 0 0 2px var(--primary-light);
-    transform: scale(1.02);
-}
-
-.btn-primary:active {
-    transform: scale(0.98);
-}
-
-.btn-primary:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-    transform: none;
-}
-
-.btn-secondary {
-    background: var(--background-light);
-    color: var(--text-dark);
-    box-shadow: 0 0 0 1px var(--border-light);
-    border: 1px solid var(--border-light);
-}
-
-.btn-secondary:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 0 0 1px var(--border-light);
-}
-
-.btn-danger {
-    background: var(--danger-light);
-    color: white;
-    box-shadow: 0 0 0 2px var(--danger-light);
-}
-
-.btn-danger:hover {
-    background: var(--danger-light-hover);
-    box-shadow: 0 0 0 2px var(--danger-light);
-}
-
 /* Compact variant, for buttons that sit inside a row of text rather than in a
    footer. The class was already used in the template before it had any rule of
    its own, so those call sites carried per-button inline padding; their inline
    values still win here, this only gives the class a sane default. */
-.btn-sm {
-    padding: 0.35rem 0.7rem;
-    border-radius: 0.5rem;
-    font-size: 0.8125rem;
-    font-weight: 600;
-    letter-spacing: 0;
-}
 
 /* ========================================
    File Upload Area
