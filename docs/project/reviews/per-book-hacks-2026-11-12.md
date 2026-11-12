@@ -68,3 +68,22 @@ Still in code (next steps):
 - Rule 6: the Chantry metric in the Queue UI.
 - Heading override for `VALKA CORREU NA DIREÇÃO` in `fix_headings`, if any.
 
+## Status after the second 6.2 pass (2026-11-12, branch `refactor/prompt-6-2-data`)
+
+Moved to data:
+
+- Rule 2: Howling Dark's sentence and title fixes are `book_text_fixes` in
+  `reader-repairs.yaml`, applied only to that queue title. The copyright lines stay in code
+  (class b: they hold for every book).
+- Rule 4: the front, back and extra matter labels are `labels` in `reader-repairs.yaml`;
+  the document-title helper uses the same labels.
+- Rule 5: the Ship of Magic running header is `running_header` in its chapter-title spec.
+- Rule 6: the Chantry, Cielcin, Mericanii and Halfmortal metrics are one count,
+  `forbidden_forms`, of the reader's term and casing sources; the UI row and the locale keys
+  follow it.
+- Generic term casing: `reader_terms` now apply to every case variant, not only the
+  exact-case form.
+
+Still in code, by design: the copyright lines (class b), the Sun Eater series gate in
+`polish.py` (class b), and the docstring examples (class c).
+
