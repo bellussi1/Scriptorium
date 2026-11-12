@@ -290,6 +290,6 @@ terms:
     policy: keep
     notes: "Jaddian ruling caste; kept untranslated as in the Demon in White lexicon. Lowercase in running text."
     source_reference: "Source text (Disquiet Gods, Demon in White lexicon); editorial rendering"
-    confidence: provisional
+    confidence: reviewed
     first_appearance: demon-in-white
-    approved: false
+    approved: true

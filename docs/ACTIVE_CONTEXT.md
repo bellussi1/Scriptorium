@@ -26,17 +26,18 @@ with `git status` and `git log` before acting. Older handoffs are in git history
   left alone). Applied to the refined files of Howling Dark, Demon in White, Kingdoms and
   Ashes (EPUBCheck 0 errors; backups in `data/tmp/progressive-repair-backup-2026-11-12/`).
   Kindle folder rebuilt. Wired into the queue run after the id repair (from this change on).
-  Left for review: "despregar" (Ashes, pt-PT lexicon); two cases split by markup (Demon
-  "estava</i> a brincar", Ashes "estava a <a id/>gritar").
-- **Open:** title of Kingdoms chapter 40 ("Que Altar Verde") is an editorial choice in
-  `literary-resources/.../chapter-titles/kingdoms-of-death.yaml`; no official pt-BR chapter list
-  was found online. Needs the owner's decision.
-- **Glossary:** `eali` (Jaddian ruling caste) added as `policy: keep`, provisional, not yet
-  approved. Uncommitted, with the progressive repair and its tests.
-- **Sun Eater pt-BR revision: paused.** Demon in White was rerun with the corrected
-  prompt and guard, but that run was stopped; its output was discarded. Run
-  Demon, Howling and Kingdoms again, in order, after Ashes. Use `--num-ctx 4096`
-  and gate every output before replacing a refined file.
+  The three leftovers were fixed by hand on 2026-11-12: "despregar" (Ashes, now "lançando"),
+  and the two split by markup (Demon "estava</i> brincando", Ashes "estava <a/>gritando").
+- **Kingdoms chapter 40 title** ("Que Altar Verde", literal for "What Green Altar"): kept
+  (decided 2026-11-12). No official pt-BR chapter list was found online; the map in
+  `literary-resources/.../chapter-titles/kingdoms-of-death.yaml` still marks it as editorial.
+- **Glossary:** `eali` (Jaddian ruling caste) is `policy: keep` and approved (2026-11-12). The
+  compiled Disquiet Gods glossary was rebuilt once, before that flag change.
+- **Sun Eater pt-BR revision, word-swap stage: done 2026-11-12** on Demon, Howling and Kingdoms
+  (guard, EPUBCheck 0, `validate_epub_pair` unchanged). Backups in
+  `data/tmp/progressive-repair-backup-2026-11-12/pre-ptbr-swaps/`. The model stage (`tu`,
+  second-person verbs, "estar a") is still pending: it needs the GPU, so run it after
+  Disquiet Gods, in the order Demon, Howling, Kingdoms, with `--num-ctx 4096`, gating each output.
 - **Queued on Index:** Ship of Magic (2), Fool's Errand (4), Ship of Destiny (1),
   The Golden Fool (6), Fool's Fate (5). Their Hy-MT2 outputs are in
   `translated_files/archive-hy-mt2-2026-11-12/`.
@@ -63,15 +64,16 @@ with `git status` and `git log` before acting. Older handoffs are in git history
 
 | Book | Queue | State | Notes |
 | --- | --- | --- | --- |
-| Demon in White (Sun Eater 3) | 8, completed | refined, post-passed | Titles, body headings, series metadata and Lexicon done. Audit: `Imperium` drift (owner accepted "Império"). Revision running. |
-| Howling Dark (Sun Eater 2) | 10, completed | refined, post-passed | Approved in the Queue UI. Headings and titles consistent (80). Chapter 50 title and "“ELA" fixed 2026-11-12. Revision pending. |
-| Kingdoms of Death (Sun Eater 4) | 11, needs_review | refined, post-passed | Deterministic audit passes (2026-11-12). Not approved until the pt-BR revision is done. |
-| Ashes of Man (Sun Eater 5) | 7, translating | — | Job 25. No chapter-title map yet. |
-| Disquiet Gods, Shadows Upon Time | 9, 13, pending | — | Index. |
+| Demon in White (Sun Eater 3) | 8, completed | refined, post-passed | Titles, body headings, series metadata and Lexicon done. Audit: `Imperium` drift (owner accepted "Império"). Word swaps done 2026-11-12; model stage pending. |
+| Howling Dark (Sun Eater 2) | 10, completed | refined, post-passed | Approved in the Queue UI. Headings and titles consistent (80). Chapter 50 title and "“ELA" fixed 2026-11-12. Word swaps done 2026-11-12; model stage pending. |
+| Kingdoms of Death (Sun Eater 4) | 11, completed | refined, post-passed | Approved in the queue 2026-11-12, before the model stage of the pt-BR revision. Reopen if the owner wants the revision first. |
+| Ashes of Man (Sun Eater 5) | 7, completed | refined, post-passed | Approved 2026-11-12. OPF scheme warning fixed (EPUBCheck 0/0/0). No chapter-title map yet. |
+| Disquiet Gods (Sun Eater 6) | 9, running | re-translation from EPUB 3.0 | Started 2026-11-12 16:43 local. Then: progressive repair, gate, review. |
+| Shadows Upon Time | 13, pending | — | After Disquiet Gods. |
 | Ship of Magic (Realm 1) | 2, pending | to be re-translated | Was Hy-MT2 + repair. Post-pass (`chapter_headings`) was aligned to Hy-MT2 residue; redo it. |
 | Fool's Errand (Realm, Tawny Man 1) | 4, pending | to be re-translated | Was Hy-MT2. Post-pass (roman numerals, `fools-errand.yaml`) must be redone; body title XXI was English. |
 | Ship of Destiny, The Golden Fool, Fool's Fate, The Mad Ship | 1, 6, 5, 3, pending | Index | Hy-MT2 rows were switched to Index. |
-| Lonesome Dove | not queued | — | Resources exist; queue placement not decided. |
+| Lonesome Dove | not queued | — | Resources exist. Decided 2026-11-12: not queued until the Sun Eater pt-BR work ends. |
 | Malazan | not queued | — | Zero glossary terms; needs a glossary build first. |
 
 ## Procedures
@@ -135,13 +137,14 @@ documents). Do not re-run it on finals; see
   markup (skipped). Run on a copy of the refined book (2026-11-12, guard v2, commit 235f908):
   7 attempted, 6 accepted, 1 rejected ("pagar" -> "construindo", a meaning error the v1 guard
   let through). Remaining flagged: 6, all in paragraphs with inline markup or the rejected one.
-  No XHTML broke. The deliverable is not touched. Decide per the 6 accepted changes before
-  wiring the repair into the pipeline. Results: scratchpad/exp/summary.json.
+  No XHTML broke. Decided 2026-11-12: the six accepted changes are pt-BR word swaps (contacto,
+  demónio, facto, prémio, Podia) and are now in the refined Howling file. The module stays out of
+  the pipeline: it needs the model per paragraph, and its one trial rejection was a meaning error.
 - Container `translatebook-literary-dev` (127.0.0.1:5000) mounts `src` read-only:
   restart it to load Python changes; no rebuild needed.
 - Tests: `venv\Scripts\python.exe -m pytest -q tests/unit tests/literary tests/test_frontend_i18n.py`.
-  2559 pass on 2026-11-11 in the main checkout with a translation running. The 409
-  failures noted earlier did not reproduce in that run.
+  `tests/unit/conftest.py` points `LITERARY_QUEUE_DB` at an empty file per test, so the
+  translate routes no longer see the live queue: 2226 pass in `tests/unit` with a translation running.
 
 ## Queue runtime
 
@@ -162,9 +165,9 @@ documents). Do not re-run it on finals; see
 ## Open decisions
 
 1. **Resolved 2026-11-12.** Kingdoms chapter 15: derived forms of a glossary target are data (`accepted_targets`; Legião accepts legionário(s)); `Sollan` used as an adjective is now sollana/sollano. The audit passes.
-2. **Meaning gate (Howling).** Calibrated; the two confirmed notes look like
-   false positives. Choose: approve by hand, add a stronger adjudicator, or
-   raise the threshold to 2.
+2. **Meaning gate (Howling).** Resolved 2026-11-12: Howling was approved by hand in the
+   Queue UI and the gate is unchanged. Option 5 of `adjudicator-calibration-2026-11-11.md`
+   (human review on any confirmed candidate) stays the recommendation; it needs a blind run first.
 3. **Imperium vs Império.** The freeze is merged; Demon and Howling keep
    "Império" by owner decision.
 4. **Per-book code still to move** (`docs/project/reviews/per-book-hacks-2026-11-12.md`):
