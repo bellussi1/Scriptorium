@@ -19,6 +19,7 @@ import difflib
 import json
 import re
 import zipfile
+from collections import Counter
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple
@@ -52,6 +53,7 @@ class ForbiddenRule:
 class Failure:
     code: str  # "forbidden" or "pt_pt_block"
     instruction: str
+    matches: Tuple[str, ...] = ()  # the flagged text, which the repair may change
 
 
 def rules_from_terms(terms: Sequence[Any]) -> List[ForbiddenRule]:
@@ -68,12 +70,19 @@ def rules_from_terms(terms: Sequence[Any]) -> List[ForbiddenRule]:
 def find_failures(text: str, rules: Sequence[ForbiddenRule]) -> List[Failure]:
     failures: List[Failure] = []
     for rule in rules:
-        if re.search(rf"\b{re.escape(rule.form)}\b", text, flags=re.IGNORECASE):
+        hits = tuple(m.group(0) for m in re.finditer(rf"\b{re.escape(rule.form)}\b", text, flags=re.IGNORECASE))
+        if hits:
             failures.append(Failure(
                 "forbidden",
                 f"Replace '{rule.form}' with '{rule.target}' (glossary term for '{rule.source}').",
+                hits,
             ))
-    if any(re.search(pattern, text, flags=re.IGNORECASE) for pattern in PT_PT_BLOCKING_PATTERNS):
+    blocking = tuple(
+        m.group(0)
+        for pattern in PT_PT_BLOCKING_PATTERNS
+        for m in re.finditer(pattern, text, flags=re.IGNORECASE)
+    )
+    if blocking:
         hints = []
         for issue in pt_pt_issues(text)[:4]:
             hint = issue.message
@@ -83,6 +92,7 @@ def find_failures(text: str, rules: Sequence[ForbiddenRule]) -> List[Failure]:
         failures.append(Failure(
             "pt_pt_block",
             " ".join(hints) or "Use Brazilian Portuguese forms (você, está, contato, demônio, prêmio).",
+            blocking,
         ))
     return failures
 
@@ -101,6 +111,45 @@ def build_messages(draft: str, failures: Sequence[Failure], feedback: str = "") 
         {"role": "system", "content": SYSTEM_PROMPT},
         {"role": "user", "content": user},
     ]
+
+
+_WORD = re.compile(r"\w+")
+# Words that may disappear without changing the sense: articles, pronouns, short particles.
+_FUNCTION_WORDS = frozenset({
+    "uma", "uns", "umas", "dos", "das", "nos", "nas", "pelo", "pela", "pelos", "pelas",
+    "lhe", "lhes", "meu", "minha", "seu", "sua", "ele", "ela", "eles", "elas", "isso", "isto",
+})
+MIN_CONTENT_LENGTH = 4  # shorter words are function words in Portuguese
+RELATED_RATIO = 0.5  # similarity above which two words are treated as one word family
+
+
+def _tokens(text: str) -> List[str]:
+    return [word.casefold() for word in _WORD.findall(text)]
+
+
+def _related(a: str, b: str) -> bool:
+    return a[:4] == b[:4] or difflib.SequenceMatcher(None, a, b).ratio() >= RELATED_RATIO
+
+
+def unexpected_removals(draft: str, revised: str, failures: Sequence[Failure]) -> List[str]:
+    """Content words the draft had and the reply lost, without a related word replacing them.
+
+    A repair may change the flagged forms and the words of their family (podia ->
+    poderia). A verb swapped for another (pagar -> construindo) is a meaning error.
+    """
+    allowed = {token for failure in failures for match in failure.matches for token in _tokens(match)}
+    draft_counts = Counter(_tokens(draft))
+    revised_counts = Counter(_tokens(revised))
+    removed = [word for word in draft_counts if draft_counts[word] > revised_counts.get(word, 0)]
+    added = [word for word in revised_counts if revised_counts[word] > draft_counts.get(word, 0)]
+    bad = []
+    for word in removed:
+        if word in allowed or word in _FUNCTION_WORDS or len(word) < MIN_CONTENT_LENGTH:
+            continue
+        if any(_related(word, other) for other in added):
+            continue
+        bad.append(word)
+    return sorted(bad)
 
 
 def guard(draft: str, revised: str, failures: Sequence[Failure]) -> Tuple[bool, List[str]]:
@@ -122,6 +171,9 @@ def guard(draft: str, revised: str, failures: Sequence[Failure]) -> Tuple[bool, 
         reasons.append("placeholders changed")
     if detect_language(revised) == "en":
         reasons.append("reply is English")
+    removed = unexpected_removals(draft, revised, failures)
+    if removed:
+        reasons.append("unexpected word change: " + ", ".join(removed))
     return not reasons, reasons
 
 

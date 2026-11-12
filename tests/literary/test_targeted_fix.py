@@ -111,3 +111,20 @@ def test_fix_epub_dry_run_changes_nothing(tmp_path):
     assert report["flagged"] == 1
     assert report["attempted"] == 0
     assert not output.exists()
+
+
+PAGAR = 'Estamos a pagar aos guardas o dobro do valor combinado todos os dias da semana inteira.'
+
+
+def test_content_word_swap_is_rejected():
+    revised = PAGAR.replace('pagar', 'construindo')
+    result = fix_paragraph(PAGAR, RULES, lambda messages: revised)
+    assert result['accepted'] is False
+    assert any('unexpected word change: pagar' in r for r in result['reasons'])
+
+
+def test_related_form_is_accepted():
+    draft = 'Podia entrar em contacto com o vosso mestre, sacerdote, e pedir uma audiência com ele antes do fim do dia.'
+    revised = draft.replace('Podia', 'Poderia').replace('contacto', 'contato')
+    result = fix_paragraph(draft, RULES, lambda messages: revised)
+    assert result['accepted'] is True
