@@ -150,3 +150,78 @@ def repair_doc_roles_in_epub(source_path: str, output_path: str) -> Dict[str, ob
         "changed_files": changed_files,
         "total_changes": total,
     }
+
+
+TEXT_ENTRY_SUFFIXES = (".xhtml", ".html", ".htm", ".opf", ".ncx")
+_ID_ATTR_RE = re.compile(r"""(\sid\s*=\s*["'])([^"']*)""")
+
+
+def _invalid_xml_id(value: str) -> bool:
+    """An XML name starts with a letter or an underscore; a digit does not."""
+    return bool(value) and not (value[0].isalpha() or value[0] == "_")
+
+
+def repair_invalid_ids_in_epub(source_path: str, output_path: str) -> Dict[str, object]:
+    """Copy an EPUB, renaming ``id`` values that are not valid XML names.
+
+    An id that starts with a digit is an EPUBCheck error (RSC-005 in the XHTML, RSC-012 for
+    the fragment that points at it). The id gets a leading underscore, and every ``#id``
+    fragment reference in the XHTML, OPF and NCX is renamed with it. Nothing else changes.
+    """
+    with zipfile.ZipFile(source_path, "r") as source:
+        items = source.infolist()
+        contents = {item.filename: source.read(item.filename) for item in items}
+
+    texts = {
+        name: contents[name].decode("utf-8", "replace")
+        for name in contents
+        if name.lower().endswith(TEXT_ENTRY_SUFFIXES)
+    }
+    existing: set = set()
+    invalid: set = set()
+    for text in texts.values():
+        for match in _ID_ATTR_RE.finditer(text):
+            value = match.group(2)
+            existing.add(value)
+            if _invalid_xml_id(value):
+                invalid.add(value)
+
+    rename: Dict[str, str] = {}
+    for value in sorted(invalid):
+        new = "_" + value
+        while new in existing:
+            new = "_" + new
+        existing.add(new)
+        rename[value] = new
+
+    changes: Dict[str, int] = {}
+    if rename:
+        alternation = "|".join(re.escape(value) for value in sorted(rename, key=len, reverse=True))
+        pattern = re.compile(r"""(\sid\s*=\s*["']|#)(""" + alternation + r""")(?=["'])""")
+
+        def swap(match: re.Match) -> str:
+            return match.group(1) + rename[match.group(2)]
+
+        for name, text in texts.items():
+            new_text, count = pattern.subn(swap, text)
+            if count:
+                texts[name] = new_text
+                changes[name] = count
+
+    changed_files: List[Dict[str, object]] = []
+    total = 0
+    with zipfile.ZipFile(output_path, "w", zipfile.ZIP_DEFLATED) as target:
+        for item in items:
+            data = contents[item.filename]
+            if item.filename in changes:
+                data = texts[item.filename].encode("utf-8")
+                total += changes[item.filename]
+                changed_files.append({"file": item.filename, "changes": changes[item.filename]})
+            target.writestr(item, data)
+    return {
+        "source": source_path,
+        "out": output_path,
+        "renamed_ids": rename,
+        "changed_files": changed_files,
+        "total_changes": total,
+    }
