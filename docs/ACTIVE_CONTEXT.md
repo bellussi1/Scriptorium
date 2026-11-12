@@ -9,13 +9,20 @@ with `git status` and `git log` before acting. Older handoffs are in git history
 
 - **Queue agent** runs from the main checkout (`scripts/queue_runner_agent.py`).
   Queue changes from the UI need it; start `start-queue-agent.bat` if it is down.
-- **Running:** Ashes of Man (book 7, job 25, Index, refine on), about one chapter
-  a minute (89 of 845 at 22:15). When it stops at `needs_review`, the next run
-  must be started by hand (`--max-books 1`).
-- **Sun Eater pt-BR revision:** Demon in White is running (PID 5980, started 22:19). A background chain (`scratchpad/revise/chain.sh`) runs Howling Dark and then Kingdoms after it, writing `*-full.epub` and `*-full.json` to the scratchpad. Gate them before replacing any refined file.
+- **Running:** Ashes of Man (book 7, job 25) resumed on 2026-11-11 22:54 from its
+  checkpoint (`cli_d3291368`, 341/845). The translation process was killed
+  externally (exit 137) at 22:51; the cause was not identified. The job was set
+  to `paused` and resumed with `queue run --book-id 7`.
+- **Sun Eater pt-BR revision:** Demon in White first, then Howling Dark and
+  Kingdoms of Death, in one background chain. Use `--num-ctx 4096` (the
+  translation's context size): another size makes Ollama reload the model on each
+  call and both jobs slow down. Gate every output before replacing a refined file.
 - **Queued on Index:** Ship of Magic (2), Fool's Errand (4), Ship of Destiny (1),
   The Golden Fool (6), Fool's Fate (5). Their Hy-MT2 outputs are in
   `translated_files/archive-hy-mt2-2026-11-12/`.
+- **Branches:** every local branch is merged or equivalent in `main`. Two
+  remote copies of merged branches remain on `origin` (`fix/epub-contributor-role`,
+  `fix/glossary-forbidden`); delete them on request.
 
 ## Books
 
