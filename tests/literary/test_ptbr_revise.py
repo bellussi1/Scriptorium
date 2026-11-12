@@ -105,3 +105,16 @@ def test_guard_accepts_a_verb_person_change_within_the_same_stem():
     revised = "Espera encontrar algum registro de contato."
     ok, reasons = guard(draft, revised, pt_pt_issues(draft))
     assert ok, reasons
+
+
+def test_guard_refuses_a_gerund_with_no_source_verb():
+    draft = "Estou a ser clara."
+    ok, reasons = guard(draft, "Estou construindo clara.", pt_pt_issues(draft))
+    assert not ok
+    assert any("gerund with no source verb" in reason for reason in reasons)
+
+
+def test_guard_accepts_the_gerund_of_the_same_verb():
+    draft = "Estou a ser clara."
+    ok, reasons = guard(draft, "Estou sendo clara.", pt_pt_issues(draft))
+    assert ok, reasons

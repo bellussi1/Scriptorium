@@ -59,7 +59,8 @@ become Brazilian Portuguese. Change only what the list asks for:
 - Second person "tu" becomes "você", and its verb moves to the third person
   (fizeste -> fez, garantirás -> garantirá, és -> é, compreendes -> entende,
   tens -> tem, sabes -> sabe, abençoa-nos -> abençoe-nos). Teu/tua become seu/sua.
-- "estar a" + infinitive becomes "estar" + gerund (estamos a construir -> estamos construindo).
+- "estar a" + infinitive becomes "estar" + gerund of the SAME verb (estou a ser -> estou sendo;
+  estão a chamar -> estão chamando; estava a ler -> estava lendo). Never use a verb that is not in the paragraph.
 Keep every other word, name, number, punctuation mark and dash exactly as it is.
 Keep the meaning and the register. Do not add or remove sentences.
 Return only the revised paragraph, with no comments."""
@@ -158,6 +159,7 @@ def guard(draft: str, revised: str, issues: Sequence[PtBrIssue] = ()) -> Tuple[b
     revised_words = Counter(w.lower() for w in _WORD_RE.findall(revised))
     removed = draft_words - revised_words
     added = list((revised_words - draft_words).keys())
+    added_words = revised_words - draft_words
     unexpected = sorted(
         word
         for word in (removed - _allowed_removals(draft, issues)).keys()
@@ -165,6 +167,11 @@ def guard(draft: str, revised: str, issues: Sequence[PtBrIssue] = ()) -> Tuple[b
     )
     if unexpected:
         reasons.append(f"words changed outside the flagged forms: {unexpected}")
+    gerunds = sorted(w for w in (added_words - draft_words).keys() if w.endswith("ndo"))
+    stems = [w for w in removed.keys() if w not in _ARTICLES]
+    orphan = [g for g in gerunds if not any(g[0] == w[0] for w in stems)]
+    if orphan:
+        reasons.append(f"gerund with no source verb: {orphan}")
     edit = 1.0 - difflib.SequenceMatcher(None, draft, revised).ratio()
     if edit > 0.35:
         reasons.append(f"edit ratio {edit:.2f} above 0.35")
