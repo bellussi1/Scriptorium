@@ -130,6 +130,9 @@ class Term:
     policy: str = "translate"  # translate | keep | adapt | transliterate | contextual
     aliases: List[str] = field(default_factory=list)
     alias_targets: Dict[str, str] = field(default_factory=dict)
+    # Derived forms the audit accepts for a target, keyed by that target:
+    # {"Legião": ["legionário", "legionários"]}. Audit-side only.
+    accepted_targets: Dict[str, List[str]] = field(default_factory=dict)
     forbidden: List[str] = field(default_factory=list)
     gender: str = ""
     number: str = ""
@@ -177,6 +180,7 @@ class Term:
             "policy": self.policy,
             "aliases": self.aliases,
             "alias_targets": self.alias_targets,
+            "accepted_targets": self.accepted_targets,
             "forbidden": self.forbidden,
             "gender": self.gender,
             "number": self.number,

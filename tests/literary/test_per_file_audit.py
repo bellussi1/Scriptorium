@@ -251,3 +251,11 @@ def test_audit_matcher_still_rejects_unrelated_and_multi_word_forms(target: str,
 def test_translation_time_guard_is_not_loosened():
     assert not target_present("Legião", "as Legiões")
 
+
+
+def test_accepted_target_variant_counts_as_a_glossary_hit():
+    from src.literary.per_file_audit import _accepted_variant
+
+    view = {"target": "Legião", "accepted_targets": {"Legião": ["legionários"]}}
+    assert _accepted_variant(view, "Os Legionários marcharam ao amanhecer.")
+    assert not _accepted_variant(view, "Os soldados marcharam ao amanhecer.")

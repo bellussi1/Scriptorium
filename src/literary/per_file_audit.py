@@ -168,12 +168,14 @@ def _term_view(term: Any) -> Dict[str, Any]:
             raw_aliases = raw_aliases.split("|")
         aliases = [str(alias).strip() for alias in raw_aliases if str(alias).strip()]
         alias_targets = dict(term.get("alias_targets") or {})
+        accepted_targets = dict(term.get("accepted_targets") or {})
     else:
         source = str(getattr(term, "source", "") or "")
         target = str(getattr(term, "target", "") or "")
         forbidden = list(getattr(term, "forbidden", []) or [])
         aliases = [str(alias) for alias in (getattr(term, "aliases", []) or [])]
         alias_targets = dict(getattr(term, "alias_targets", {}) or {})
+        accepted_targets = dict(getattr(term, "accepted_targets", {}) or {})
     forms = [part.strip() for part in source.split("|") if part.strip()]
     if not forms:
         return {}
@@ -187,9 +189,17 @@ def _term_view(term: Any) -> Dict[str, Any]:
         "aliases": aliases,
         "target": target,
         "alias_targets": alias_targets,
+        "accepted_targets": {str(k): [str(v) for v in vs] for k, vs in accepted_targets.items()},
         "forbidden": [str(item) for item in forbidden if item],
         "confidence": confidence,
     }
+
+
+def _accepted_variant(view: Dict[str, Any], text: str) -> bool:
+    """A derived form listed for this target, e.g. "legionários" for "Legião"."""
+    variants = (view.get("accepted_targets") or {}).get(view["target"], [])
+    text_cf = text.casefold()
+    return any(variant.casefold() in text_cf for variant in variants)
 
 
 def _form_present(form: str, text: str, text_cf: str) -> bool:
@@ -318,7 +328,7 @@ def scan_book(
                 ):
                     continue
                 glossary["eligible"] += 1
-                if glossary_target_present(view["target"], text):
+                if glossary_target_present(view["target"], text) or _accepted_variant(view, text):
                     glossary["hits"] += 1
                 else:
                     missing = {

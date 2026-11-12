@@ -183,6 +183,14 @@ def _parse_term(raw: Dict[str, Any], origin: str, scope: str) -> Tuple[Optional[
         for key, value in alias_targets_raw.items()
         if str(key).strip() and str(value).strip()
     }
+    accepted_raw = raw.get("accepted_targets") or {}
+    if not isinstance(accepted_raw, dict):
+        accepted_raw = {}
+    accepted_targets = {
+        str(key).strip(): [str(item).strip() for item in (value or []) if str(item).strip()]
+        for key, value in accepted_raw.items()
+        if str(key).strip()
+    }
     aliases_clean = [str(a).strip() for a in aliases if str(a).strip()]
     for alias in alias_targets:
         if alias.casefold() not in {a.casefold() for a in aliases_clean}:
@@ -196,6 +204,7 @@ def _parse_term(raw: Dict[str, Any], origin: str, scope: str) -> Tuple[Optional[
             policy=policy,
             aliases=aliases_clean,
             alias_targets=alias_targets,
+            accepted_targets=accepted_targets,
             forbidden=[str(a).strip() for a in forbidden if str(a).strip()],
             gender=str(raw.get("gender") or "").strip().lower(),
             number=str(raw.get("number") or "").strip().lower(),
@@ -315,6 +324,7 @@ def _merge_terms(base: List[Term], overlay: List[Term]) -> List[Term]:
         current.origin = term.origin
         current.aliases = list(dict.fromkeys([*current.aliases, *term.aliases]))
         current.alias_targets = {**current.alias_targets, **term.alias_targets}
+        current.accepted_targets = {**current.accepted_targets, **term.accepted_targets}
         current.forbidden = list(dict.fromkeys([*current.forbidden, *term.forbidden]))
     return [by_key[key] for key in order]
 

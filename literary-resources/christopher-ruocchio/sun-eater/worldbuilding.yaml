@@ -122,6 +122,9 @@ terms:
     policy: translate
     aliases: [Legions, Imperial Legion]
     alias_targets: {Legions: "Legiões", Imperial Legion: "Legião Imperial"}
+    accepted_targets:
+      Legião: [legionário, legionários]
+      Legião Imperial: [legionários imperiais, legionário imperial]
     notes: "The official PT edition uses Legião (e.g. 617ª Legião)."
     source_reference: "Official PT-BR edition, Calibre 436"
     confidence: confirmed
