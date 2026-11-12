@@ -10,7 +10,7 @@ with `git status` and `git log` before acting. Older handoffs are in git history
 - **Queue agent** runs from the main checkout (`scripts/queue_runner_agent.py`).
   Queue changes from the UI need it; start `start-queue-agent.bat` if it is down.
 - **Running:** Ashes of Man (book 7, job 25) resumed from checkpoint 354/845 at
-  23:00 as the only runner (`queue run --book-id 7`). It died twice with exit 137
+  23:00 as the only runner (`queue run --book-id 7`); about 522/845 at 23:38. It died twice with exit 137
   (22:51 and 22:59) while revision jobs were using Ollama; the cause is not
   confirmed. Keep revisions paused until Ashes finishes.
 - **Sun Eater pt-BR revision: paused.** Demon in White was rerun with the corrected
@@ -23,6 +23,12 @@ with `git status` and `git log` before acting. Older handoffs are in git history
 - **Branches:** every local branch is merged or equivalent in `main`. Two
   remote copies of merged branches remain on `origin` (`fix/epub-contributor-role`,
   `fix/glossary-forbidden`); delete them on request.
+- **UI pass (buttons, tabs, completed translations):** committed as `0aec978` on
+  `feat/ui-design-system`, not pushed. Verified on a test instance at 127.0.0.1:5055
+  (queue DB copy in `data/ui-check/`, gitignored): tab ARIA and arrow/Home/End keys,
+  light and dark, mobile wrap, history rows. Open: at 375 px the seven tabs take three
+  rows; `#glossaryListTable` is about 490 px and overflows panes under ~520 px (predates
+  this pass); one 400 on a model-list request at page load is not yet identified.
 
 ## Books
 
@@ -85,8 +91,8 @@ documents). Do not re-run it on finals; see
 - Container `translatebook-literary-dev` (127.0.0.1:5000) mounts `src` read-only:
   restart it to load Python changes; no rebuild needed.
 - Tests: `venv\Scripts\python.exe -m pytest -q tests/unit tests/literary tests/test_frontend_i18n.py`.
-  2494 pass in a clean worktree. In the main checkout, 28 tests in `tests/unit`
-  fail with 409 while a translation job runs (environmental).
+  2559 pass on 2026-11-11 in the main checkout with a translation running. The 409
+  failures noted earlier did not reproduce in that run.
 
 ## Queue runtime
 
