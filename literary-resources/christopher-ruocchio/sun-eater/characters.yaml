@@ -214,7 +214,7 @@ terms:
     category: character
     policy: keep
     aliases: [William, Emperor William]
-    alias_targets: {William: William, Emperor William: "Imperador William"}
+    alias_targets: {William: William, Emperor William: "imperador William"}
     gender: male
     source_reference: "Approved PT-BR translation, Howling Dark (2026)"
     confidence: reviewed
@@ -479,7 +479,7 @@ terms:
     first_appearance: empire-of-silence
     approved: true
   - source: Oalicomn
-    target: oalicomn
+    target: Oalicomn
     category: other
     policy: transliterate
     notes: "Cielcin term; lowercase in running text like cielcin. Role not verified."
@@ -536,7 +536,7 @@ terms:
     category: character
     policy: keep
     aliases: [Sir Elomas]
-    alias_targets: {Sir Elomas: "Sir Elomas"}
+    alias_targets: {Sir Elomas: "sir Elomas"}
     notes: "The official PT edition keeps Sir Elomas."
     source_reference: "Official PT-BR edition, Calibre 436"
     confidence: reviewed
@@ -567,7 +567,7 @@ terms:
     category: character
     policy: keep
     aliases: [Sir Roban]
-    alias_targets: {Sir Roban: "Sir Roban"}
+    alias_targets: {Sir Roban: "sir Roban"}
     notes: "The official PT edition keeps Sir Roban."
     source_reference: "Official PT-BR edition, Calibre 436"
     confidence: reviewed
@@ -598,7 +598,7 @@ terms:
     category: character
     policy: keep
     aliases: [Lord Alistair]
-    alias_targets: {Lord Alistair: "Lorde Alistair"}
+    alias_targets: {Lord Alistair: "lorde Alistair"}
     notes: "The official PT edition keeps Alistair."
     source_reference: "Official PT-BR edition, Calibre 436"
     confidence: reviewed
@@ -618,7 +618,7 @@ terms:
     category: character
     policy: keep
     aliases: [Sir Felix]
-    alias_targets: {Sir Felix: "Sir Felix"}
+    alias_targets: {Sir Felix: "sir Felix"}
     notes: "The official PT edition keeps Sir Felix."
     source_reference: "Official PT-BR edition, Calibre 436"
     confidence: reviewed

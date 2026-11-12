@@ -29,7 +29,7 @@ def test_imperium_stays_a_latin_proper_name():
 
 def test_invented_terms_are_frozen():
     terms = _sun_eater_terms()
-    assert terms["datasphere"].target == "esfera de dados"
+    assert terms["datasphere"].target == "datasfera"
     assert "dataesfera" in terms["datasphere"].forbidden
     assert terms["animalcule"].target == "animalculo"
     assert terms["knight-tribune"].target == "tribuna-cavaleira"
@@ -41,5 +41,5 @@ def test_official_forms_are_not_reverted():
     assert terms["Chantry"].target == "Chantria"
     assert terms["Cielcin"].target == "cielcin"
     assert terms["Sollan Empire"].target == "Império Sollano"
-    assert terms["Quiet"].target == "Quieto"
+    assert terms["Quiet"].target == "Quietos"
     assert terms["Fugue"].target == "fuga"

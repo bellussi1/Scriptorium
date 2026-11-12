@@ -38,7 +38,7 @@ terms:
     category: organization
     policy: translate
     aliases: [Sollan Imperium, Sollan]
-    alias_targets: {Sollan: sollano}
+    alias_targets: {Sollan: Sollano}
     notes: >-
       The official PT edition uses Império Sollano. Do not reduce every
       occurrence of "Empire" to "Império Sollano"; only translate the full
@@ -305,7 +305,7 @@ terms:
     first_appearance: demon-in-white
     approved: false
   - source: Pale
-    target: Pálido
+    target: pálido
     category: other
     policy: translate
     notes: >-
@@ -372,11 +372,11 @@ terms:
     first_appearance: empire-of-silence
     approved: true
   - source: datasphere
-    target: esfera de dados
+    target: datasfera
     category: concept
     policy: translate
     aliases: [dataspheres]
-    alias_targets: {dataspheres: esferas de dados}
+    alias_targets: {dataspheres: datasferas}
     forbidden: [datasphere, dataspheres, dataesfera, dataesferas]
     notes: >-
       The in-world data network. Books 2-3 use "esfera de dados" consistently
@@ -419,7 +419,7 @@ terms:
     first_appearance: howling-dark
     approved: true
   - source: Watchers
-    target: Vigilantes
+    target: vigilantes
     category: other
     policy: translate
     notes: >-
@@ -441,7 +441,7 @@ terms:
     first_appearance: empire-of-silence
     approved: false
   - source: Quiet
-    target: Quieto
+    target: Quietos
     category: concept
     policy: translate
     notes: >-

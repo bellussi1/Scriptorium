@@ -49,18 +49,18 @@ terms:
     first_appearance: empire-of-silence
     approved: false
   - source: Lord Marlowe
-    target: Lorde Marlowe
+    target: lorde Marlowe
     category: title
     policy: translate
     aliases: [Lord Hadrian Marlowe]
-    alias_targets: {Lord Hadrian Marlowe: "Lorde Hadrian Marlowe"}
+    alias_targets: {Lord Hadrian Marlowe: "lorde Hadrian Marlowe"}
     notes: "Title + surname; do not treat it as a name variant of Hadrian Marlowe."
     source_reference: "Approved PT-BR translation, Howling Dark (2026)"
     confidence: reviewed
     first_appearance: empire-of-silence
     approved: true
   - source: Lord Commandant
-    target: Lorde Comandante
+    target: lorde comandante
     category: title
     policy: translate
     source_reference: "Source text (Howling Dark); editorial rendering"
@@ -68,7 +68,7 @@ terms:
     first_appearance: howling-dark
     approved: false
   - source: Commandant
-    target: Comandante
+    target: comandante
     category: title
     policy: translate
     source_reference: "Source text (Howling Dark); editorial rendering"
@@ -84,7 +84,7 @@ terms:
     first_appearance: howling-dark
     approved: false
   - source: Admiral
-    target: Almirante
+    target: almirante
     category: title
     policy: translate
     source_reference: "Source text (Howling Dark); editorial rendering"
@@ -92,7 +92,7 @@ terms:
     first_appearance: empire-of-silence
     approved: false
   - source: Emperor
-    target: Imperador
+    target: imperador
     category: title
     policy: translate
     source_reference: "Source text (Howling Dark); editorial rendering"
@@ -100,7 +100,7 @@ terms:
     first_appearance: empire-of-silence
     approved: false
   - source: Tribune
-    target: Tribuno
+    target: tribuno
     category: title
     policy: translate
     notes: "Legion rank; translate as the Portuguese historical title."
@@ -144,7 +144,7 @@ terms:
     first_appearance: howling-dark
     approved: false
   - source: Galstani
-    target: galstani
+    target: Galstani
     category: other
     policy: transliterate
     notes: "Galactic Standard, the common Imperial language; lowercase in running text."
@@ -171,11 +171,11 @@ terms:
     first_appearance: howling-dark
     approved: false
   - source: Norman
-    target: normando
+    target: normano
     category: other
     policy: translate
     aliases: [Normans]
-    alias_targets: {Normans: normandos}
+    alias_targets: {Normans: normanos}
     notes: >-
       Demonym for the Norman Expanse and its Freeholders; lowercase. Do not
       confuse it with a personal name.
@@ -184,7 +184,7 @@ terms:
     first_appearance: howling-dark
     approved: false
   - source: The Exalted
-    target: Os Exaltados
+    target: os Exaltados
     category: organization
     policy: translate
     notes: "Extrasolarian faction of extreme cybernetic augmentation."
@@ -204,7 +204,7 @@ terms:
     first_appearance: howling-dark
     approved: false
   - source: Brethren
-    target: Irmãos
+    target: irmãos
     category: organization
     policy: translate
     notes: "Collective name; translate as Irmãos. Role not verified against the appendix."
@@ -276,7 +276,7 @@ terms:
     first_appearance: empire-of-silence
     approved: true
   - source: Coritani
-    target: coritani
+    target: Coritani
     category: organization
     policy: transliterate
     notes: "People/faction name; lowercase in running text. Role not verified."

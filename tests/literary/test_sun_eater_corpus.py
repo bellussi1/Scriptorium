@@ -50,8 +50,8 @@ def test_sun_eater_resources_include_confirmed_characters_and_terms():
     assert by_source["Cielcin"].target == "cielcin"
     assert by_source["Sollan Empire"].target == "Império Sollano"
     assert by_source["Empire of Silence"].target == "Império do Silêncio"
-    assert by_source["Quiet"].target == "Quieto"
-    assert by_source["Pale"].target == "Pálido"
+    assert by_source["Quiet"].target == "Quietos"
+    assert by_source["Pale"].target == "pálido"
     assert by_source["Forum"].target == "Fórum"
     assert by_source["Gibson of Syracuse"].target == "Gibson de Siracusa"
 
@@ -92,9 +92,9 @@ def test_benchmark_prompt_uses_alias_targets():
     assert glossary["Marlowe"] == "Marlowe"
     assert glossary["Gibson"] == "Gibson"
     assert glossary["Gibson of Syracuse"] == "Gibson de Siracusa"
-    assert glossary["Emperor William"] == "Imperador William"
-    assert glossary["Quiet"] == "Quieto"
-    assert glossary["Pale"] == "Pálido"
+    assert glossary["Emperor William"] == "imperador William"
+    assert glossary["Quiet"] == "Quietos"
+    assert glossary["Pale"] == "pálido"
     assert glossary["Forum"] == "Fórum"
     assert len(glossary) >= 60
     assert style
