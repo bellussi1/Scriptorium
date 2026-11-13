@@ -118,3 +118,51 @@ def test_guard_accepts_the_gerund_of_the_same_verb():
     draft = "Estou a ser clara."
     ok, reasons = guard(draft, "Estou sendo clara.", pt_pt_issues(draft))
     assert ok, reasons
+
+
+def test_conversion_accepts_second_person_verbs_and_pronouns():
+    from src.literary.ptbr_revise import conversion_only
+
+    assert conversion_only("Sabes que vens.", "Você sabe que vem.")[0]
+    assert conversion_only("Tu ouviste isso.", "Você ouviu isso.")[0]
+    assert conversion_only("és tu?", "é você?")[0]
+    assert conversion_only("Não virás.", "Você não virá.")[0]
+
+
+def test_conversion_accepts_progressive_forms_with_the_a_dropped():
+    from src.literary.ptbr_revise import conversion_only
+
+    assert conversion_only("Ele estava a trabalhar.", "Ele estava trabalhando.")[0]
+    assert conversion_only("Corvo está a deixar-me sair.", "Corvo está me deixando sair.")[0]
+
+
+def test_conversion_refuses_a_changed_word_that_is_not_a_second_person_form():
+    from src.literary.ptbr_revise import conversion_only
+
+    ok, reasons = conversion_only("um azul-celeste intenso", "um azul-você intenso")
+    assert not ok and reasons
+
+
+def test_conversion_refuses_a_tense_change_of_the_same_verb():
+    from src.literary.ptbr_revise import conversion_only
+
+    assert not conversion_only("um problema que não existe!", "um problema que não existia!")[0]
+
+
+def test_conversion_refuses_a_gender_change_and_a_deleted_word():
+    from src.literary.ptbr_revise import conversion_only
+
+    assert not conversion_only("já esquecida qualquer medo", "já esquecido qualquer medo")[0]
+    assert not conversion_only("Não podes a mais", "Você não pode mais")[0]
+
+
+def test_conversion_refuses_an_imperative_turned_into_the_past():
+    from src.literary.ptbr_revise import conversion_only
+
+    assert not conversion_only("— Veste-te.", "— Você se vestiu.")[0]
+
+
+def test_conversion_refuses_a_person_change_to_a_third_person_subject():
+    from src.literary.ptbr_revise import conversion_only
+
+    assert not conversion_only("respondeste-lhe", "ele respondeu")[0]

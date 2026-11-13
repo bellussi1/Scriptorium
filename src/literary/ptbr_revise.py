@@ -25,8 +25,10 @@ from __future__ import annotations
 import argparse
 import difflib
 import json
+import os
 import re
 import sys
+import unicodedata
 import zipfile
 from collections import Counter
 from pathlib import Path
@@ -189,6 +191,99 @@ def guard(draft: str, revised: str, issues: Sequence[PtBrIssue] = ()) -> Tuple[b
     return not reasons, reasons
 
 
+_PERSON_TOKEN_RE = re.compile(r"[^\W\d_]+(?:-[^\W\d_]+)*")
+_ESTAR_FORMS = frozenset(
+    "estou estas esta estamos estao estava estavas estavam estive esteve estivemos estiveram "
+    "estarei estara estarao estaria estariam esteja estejam estando estar".split()
+)
+_PRONOUN_FORMS = frozenset(
+    "tu te ti teu teus tua tuas contigo voce voces se me nos lhe lhes seu seus sua suas".split()
+)
+_INSERTABLE_FORMS = frozenset("voce voces se me nos lhe lhes".split())
+_IMPERFECT_ENDINGS = ("ava", "avam", "ia", "iam")
+
+
+def _plain(word: str) -> str:
+    """Lower case without accents: "você" -> "voce"."""
+    return unicodedata.normalize("NFKD", word).encode("ascii", "ignore").decode().lower()
+
+
+def _second_person_pair(old: str, new: str) -> bool:
+    """A pt-PT second-person verb becoming its pt-BR form: tens -> tem, ouviste -> ouviu.
+
+    The old form must end like a second-person verb (-s present, -ste preterite), the
+    new form must keep its stem, and it may not move into the imperfect (existe -> existia).
+    """
+    o, n = _plain(old), _plain(new)
+    if not n:
+        return False
+    # "existe" also ends in -ste, so the -ste form needs a long stem and a shared root.
+    if o.endswith("s"):
+        min_shared = 2
+    elif o.endswith("ste") and len(o) >= 6:
+        min_shared = 4
+    else:
+        return False
+    shorter = min(len(o), len(n))
+    shared = len(os.path.commonprefix([o, n]))
+    if shared < max(min(min_shared, shorter), shorter - 2):
+        return False
+    return not (n.endswith(_IMPERFECT_ENDINGS) and not o.endswith(_IMPERFECT_ENDINGS))
+
+
+def _progressive_pair(old: str, new: str) -> bool:
+    """"estar a" + infinitive becoming a gerund of the same verb: trabalhar -> trabalhando."""
+    base = _plain(old.split("-")[0])
+    n = _plain(new.split("-")[0])
+    if not base.endswith(("ar", "er", "ir")) or not n.endswith("ndo"):
+        return False
+    stem = base[:-2]
+    return n.startswith(stem[: max(1, len(stem) - 1)])
+
+
+def conversion_only(draft: str, revised: str) -> Tuple[bool, List[str]]:
+    """Accept a model revision only when it converts second-person and progressive forms.
+
+    The word guard counts words but not their meaning: a rewrite can turn "existe" into
+    "existia", "celeste" into "você", "Uma" into "Um" or "esquecida" into "esquecido", and
+    the counts still match. Here each change must be a pt-PT second-person verb or pronoun
+    becoming its pt-BR form, an "estar a" infinitive becoming a gerund (with its "a" dropped),
+    or a pronoun added. Anything else is refused and the paragraph stays as it was.
+    """
+    before = _PERSON_TOKEN_RE.findall(draft)
+    after = _PERSON_TOKEN_RE.findall(revised)
+    lower_before = [word.lower() for word in before]
+    lower_after = [word.lower() for word in after]
+    reasons: List[str] = []
+    for op, i1, i2, j1, j2 in difflib.SequenceMatcher(None, lower_before, lower_after, autojunk=False).get_opcodes():
+        if op == "equal":
+            continue
+        old, new = before[i1:i2], after[j1:j2]
+        after_estar = i1 > 0 and _plain(before[i1 - 1]) in _ESTAR_FORMS
+        if op == "delete":
+            if old == ["a"] and after_estar:
+                continue
+            reasons.append(f"removed '{' '.join(old)}'")
+            continue
+        if op == "insert":
+            if all(_plain(word) in _INSERTABLE_FORMS for word in new):
+                continue
+            reasons.append(f"added '{' '.join(new)}'")
+            continue
+        if old[:1] == ["a"] and after_estar:
+            old = old[1:]
+        core_old = [word for word in old if _plain(word) not in _PRONOUN_FORMS]
+        core_new = [word for word in new if _plain(word) not in _PRONOUN_FORMS]
+        if not core_old and not core_new:
+            continue
+        ok = len(core_old) == len(core_new) and all(
+            _second_person_pair(x, y) or _progressive_pair(x, y) for x, y in zip(core_old, core_new)
+        )
+        if not ok:
+            reasons.append(f"'{' '.join(old)}' -> '{' '.join(new)}'")
+    return not reasons, reasons
+
+
 def revise_paragraph(
     text: str,
     generate: Callable[[List[Dict[str, str]]], str],
@@ -208,6 +303,9 @@ def revise_paragraph(
         except Exception as exc:  # provider failure: keep the draft
             return {"method": "model", "accepted": False, "reasons": [f"error: {exc}"], "after": "", "codes": _codes(issues)}
         ok, reasons = guard(text, revised, issues)
+        if ok:
+            ok, extra = conversion_only(base, revised)
+            reasons = [] if ok else ["changes beyond the conversion: " + "; ".join(extra)]
         if ok:
             return {"method": "model", "accepted": True, "reasons": [], "after": revised, "codes": _codes(issues)}
         feedback = (
