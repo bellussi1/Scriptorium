@@ -7,14 +7,40 @@ with `git status` and `git log` before acting. Older handoffs are in git history
 
 ## Now
 
+- **Decision 2026-11-13: retranslate Demon in White, Howling Dark, Kingdoms of Death and Ashes of Man**
+  from source, one at a time, without the refine pass (Scenario A of
+  `docs/project/reviews/local-model-ceiling-2026-11-12.md`). `scripts/queue_runner_agent.py` now passes
+  `--no-refine`; that takes effect when the agent restarts, which waits for Shadows Upon Time to finish.
+  Order: Demon (priority 1000000), Howling, Kingdoms, Ashes. Each run is gated before the next one starts.
+  **Unattended chain waiting since 2026-11-13 00:39 local (starts after Shadows).** Script:
+  `data/tmp/retranslation-backup-2026-11-13/chain/retranslate_chain.py`. Log: `chain/chain.log`.
+  State: `chain/state.json` (`halted` says why it stopped). Gate per book: EPUBCheck 0, no more
+  forbidden renderings, pt-PT at most baseline + 2 per 100k, glossary coverage at most 0.01 below
+  baseline. Baselines: `chain/../baseline/`. If it halts, the new output is `needs_review` and the old
+  one is in `backup/outputs` and `backup/replaced`.
+  Backups (DB and the current outputs of the four books): `data/tmp/retranslation-backup-2026-11-13/`.
+  Until the new versions are approved, the old ones are the backups, not the library state.
 - **Queue agent** runs from the main checkout (`scripts/queue_runner_agent.py`).
   Queue changes from the UI need it; start `start-queue-agent.bat` if it is down.
-- **Running:** Disquiet Gods (Sun Eater 6, book 9) re-translated from the EPUB 3.0 library
-  source, started 2026-11-12 16:43 local (about 4 h on the local GPU). The old output was
-  built from the superseded EPUB 2.0 source and moved to
-  `data/tmp/disquiet-gods-superseded-2026-11-12/`. When it finishes: check the gate
-  (job state `needs_review`), apply the progressive repair to its output, then review.
-  Shadows Upon Time (book 13) is pending. Book 9 keeps the EPUB 2.0 hash in `books.source_hash`.
+- **Disquiet Gods (Sun Eater 6, book 9)** re-translated from the EPUB 3.0 library source
+  (run 16:43 to 22:26 local, 2026-11-12). Job state `needs_review`: waiting for human review
+  in the Queue UI. After the run its refined file was gated: progressive repair (33 pt-PT
+  periphrases converted; the noun "mulher" left alone), EPUBCheck 0/0/0, pair validation
+  passed, deterministic audit passed (cloud audit disabled). Matter fixes: English `<title>`
+  elements in 002, 075 and 077, the series header in 002, "escolástico" to "escoliasta" in 007
+  and "escritores" to "escoliastas" in 045. Backups: `data/tmp/disquiet-gods-pre-progressive-2026-11-12/`
+  and `data/tmp/disquiet-gods-pre-matter-fix-2026-11-13/`. The old output came from the superseded
+  EPUB 2.0 source (`data/tmp/disquiet-gods-superseded-2026-11-12/`). Book 9 keeps the EPUB 2.0
+  hash in `books.source_hash`.
+- **Shadows Upon Time (book 13) running** since 2026-11-12 23:11 local (queue run requested by the
+  session, `mode next`). It stops at the review gate.
+- **pt-BR model stage: done 2026-11-12 under a stricter rule.** The guard checked numbers and
+  word counts only, and accepted "azul-celeste" to "azul-você", "esquecida" to "esquecido"
+  and "que não existe" to "que não existia". `conversion_only` (`src/literary/ptbr_revise.py`)
+  now accepts only second-person verbs and pronouns becoming their pt-BR forms, and "estar a"
+  infinitives becoming gerunds. Replayed from the saved answers (temperature 0; no GPU). Replaced
+  refined files: Demon 11, Howling 19, Kingdoms 14 paragraphs; backups `*.refined.pre-ptbr.epub`.
+  Kindle folder rebuilt (Howling, Demon, Ashes). Kingdoms is ready for review.
 - **Approved 2026-11-12:** Ashes of Man (book 7), `completed`. Kingdoms of Death (book 11) was
   reopened the same day as `needs_review` until its pt-BR model stage is done. The previous
   refined files are `*.refined.pre-review.epub`.
@@ -36,9 +62,8 @@ with `git status` and `git log` before acting. Older handoffs are in git history
   compiled Disquiet Gods glossary was rebuilt once, before that flag change.
 - **Sun Eater pt-BR revision, word-swap stage: done 2026-11-12** on Demon, Howling and Kingdoms
   (guard, EPUBCheck 0, `validate_epub_pair` unchanged). Backups in
-  `data/tmp/progressive-repair-backup-2026-11-12/pre-ptbr-swaps/`. The model stage (`tu`,
-  second-person verbs, "estar a") is still pending: it needs the GPU, so run it after
-  Disquiet Gods, in the order Demon, Howling, Kingdoms, with `--num-ctx 4096`, gating each output.
+  `data/tmp/progressive-repair-backup-2026-11-12/pre-ptbr-swaps/`. The model stage (`tu`, second-person verbs, "estar a") is done for Demon, Howling and Kingdoms (see
+  the bullet above).
 - **Queued on Index:** Ship of Magic (2), Fool's Errand (4), Ship of Destiny (1),
   The Golden Fool (6), Fool's Fate (5). Their Hy-MT2 outputs are in
   `translated_files/archive-hy-mt2-2026-11-12/`.
@@ -59,22 +84,21 @@ with `git status` and `git log` before acting. Older handoffs are in git history
 - **Front-end pass (2026-11-11, merged into `main`):** stylesheets are SCSS partials in `src/web/static/scss`,
   compiled with `npm run build:css` into `src/web/static/css/app.css`; spacing and radius
   tokens are in `_tokens.scss`. Mobile media queries are gone (desktop-first).
-  **Deploy step pending:** the running container still serves its cached template,
-  which links the five legacy stylesheets (`style.css`, `queue.css`, `ui-polish.css`,
-  `literary-theme.css`, `theme-dark.css`). Those files are untracked copies of HEAD
-  kept on disk; delete them after the container restarts (after Ashes finishes).
+  **Deploy check done (2026-11-12):** the live page links only `/static/css/app.css`, and the five
+  legacy stylesheets (`style.css`, `queue.css`, `ui-polish.css`, `literary-theme.css`,
+  `theme-dark.css`) are not on disk. Nothing left to delete or restart.
   Not done: JS comment sweep beyond narration lines; TypeScript and HTML-generation decisions.
 
 ## Books
 
 | Book | Queue | State | Notes |
 | --- | --- | --- | --- |
-| Demon in White (Sun Eater 3) | 8, completed | refined, post-passed | Titles, body headings, series metadata and Lexicon done. Audit: `Imperium` drift (owner accepted "Império"). Word swaps done 2026-11-12; model stage pending. |
-| Howling Dark (Sun Eater 2) | 10, completed | refined, post-passed | Approved in the Queue UI. Headings and titles consistent (80). Chapter 50 title and "“ELA" fixed 2026-11-12. Word swaps done 2026-11-12; model stage pending. |
-| Kingdoms of Death (Sun Eater 4) | 11, needs_review | refined, post-passed | Reopened 2026-11-12 by owner decision: approve again only after the model stage of the pt-BR revision. Queue row edited directly (backup `data/tmp/queue-backups/literary_queue-before-kingdoms-reopen-2026-11-12.db`). It leaves the Kindle export until approved. |
+| Demon in White (Sun Eater 3) | 8, completed | refined, post-passed, model stage done | Titles, body headings, series metadata and Lexicon done. Audit: `Imperium` drift (owner accepted "Império"). Word swaps and model stage done 2026-11-12. |
+| Howling Dark (Sun Eater 2) | 10, completed | refined, post-passed | Approved in the Queue UI. Headings and titles consistent (80). Chapter 50 title and "“ELA" fixed 2026-11-12. Word swaps and model stage done 2026-11-12. |
+| Kingdoms of Death (Sun Eater 4) | 11, needs_review | refined, post-passed | Reopened 2026-11-12 by owner decision. The model stage is done (2026-11-12); approval is the owner's call. Queue row edited directly (backup `data/tmp/queue-backups/literary_queue-before-kingdoms-reopen-2026-11-12.db`). It leaves the Kindle export until approved. |
 | Ashes of Man (Sun Eater 5) | 7, completed | refined, post-passed | Approved 2026-11-12. OPF scheme warning fixed (EPUBCheck 0/0/0). No chapter-title map yet. |
-| Disquiet Gods (Sun Eater 6) | 9, running | re-translation from EPUB 3.0 | Started 2026-11-12 16:43 local. Then: progressive repair, gate, review. |
-| Shadows Upon Time | 13, pending | — | After Disquiet Gods. |
+| Disquiet Gods (Sun Eater 6) | 9, needs_review | re-translation from EPUB 3.0 | Run 2026-11-12 16:43 to 22:26 local. Progressive repair, matter fixes and deterministic audit done; awaiting human review in the Queue UI. |
+| Shadows Upon Time | 13, running | — | Queue run started 2026-11-12 23:11 local. |
 | Ship of Magic (Realm 1) | 2, pending | to be re-translated | Was Hy-MT2 + repair. Post-pass (`chapter_headings`) was aligned to Hy-MT2 residue; redo it. |
 | Fool's Errand (Realm, Tawny Man 1) | 4, pending | to be re-translated | Was Hy-MT2. Post-pass (roman numerals, `fools-errand.yaml`) must be redone; body title XXI was English. |
 | Ship of Destiny, The Golden Fool, Fool's Fate, The Mad Ship | 1, 6, 5, 3, pending | Index | Hy-MT2 rows were switched to Index. |
@@ -116,6 +140,9 @@ documents). Do not re-run it on finals; see
   ≤ 0.01, repetition ≤ 0.05, length ratio 0.80–1.20. Glossary matching ignores
   case (2026-11-12).
 - Cloud audit needs an approved cap (`--max-cloud-usd`). No cloud spend now.
+- Glossary eligibility (`per_file_audit._form_present`, 2026-11-12): single words match as whole
+  words at any length. Before, `Raine` matched `drained` and `Scholiast` matched `scholiasts`, which
+  made phantom pairs. Audits run before this fix may report different per-file counts.
 - pt-BR checker (`src/literary/ptbr.py`) flags European Portuguese: `tu` with its
   verbs, `estar a` + infinitive, de facto, contacto, demónio, prémio, -ámos,
   convosco, teu/tua. Refine and the revision both use it.
@@ -163,9 +190,9 @@ documents). Do not re-run it on finals; see
   `docs/project/reviews/single-writer-design-2026-11-11.md`.
 - Live jobs DB: named volume `/app/state/jobs.db`; host mirror `data/jobs.mirror.db`.
   Journal mode DELETE (no WAL on the bind mount).
-- Known defects: a resumed run can write a `(1)` duplicate; a job can stay
-  `running` after a complete resume; the watchdog is monitor-only; UI reads still
-  cross the bind mount (design §9).
+- Known defects: a job can stay `running` after a complete resume (not reproduced,
+  see decision 6); the watchdog is monitor-only; UI reads still cross the bind
+  mount (design §9).
 
 ## Open decisions
 
