@@ -28,6 +28,17 @@ def test_maps_pt_pt_infinitive_spellings_to_pt_br_gerunds():
     assert _text("<p>Estou a planear.</p>") == "<p>Estou planejando.</p>"
 
 
+def test_converts_the_regular_verbs_found_in_disquiet_gods():
+    assert _text("<p>Estava a trabalhar.</p>") == "<p>Estava trabalhando.</p>"
+    assert _text("<p>Estavam a impor a vontade.</p>") == "<p>Estavam impondo a vontade.</p>"
+    assert _text("<p>Estava a morrer.</p>") == "<p>Estava morrendo.</p>"
+
+
+def test_leaves_a_noun_after_estar_a_alone_even_when_it_ends_in_er():
+    html = "<p>Ali estava a mulher que seu pai me oferecera.</p>"
+    assert _text(html) == html
+
+
 def test_the_verb_ser_becomes_sendo_in_a_progressive_passive():
     assert _text("<p>Estava a ser atacado.</p>") == "<p>Estava sendo atacado.</p>"
 
