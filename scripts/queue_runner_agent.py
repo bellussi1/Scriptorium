@@ -102,6 +102,9 @@ def _command(db: Path, mode: str) -> list[str]:
         "1",
         "--refine-limit",
         "0",
+        # Scenario A of docs/project/reviews/local-model-ceiling-2026-11-12.md: the refine
+        # pass costs about 2 h per book for a small measured gain, so queue runs skip it.
+        "--no-refine",
         "--export-kindle",
         "--outputs",
         "translated_files",
