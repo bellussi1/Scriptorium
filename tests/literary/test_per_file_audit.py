@@ -259,3 +259,20 @@ def test_accepted_target_variant_counts_as_a_glossary_hit():
     view = {"target": "Legião", "accepted_targets": {"Legião": ["legionários"]}}
     assert _accepted_variant(view, "Os Legionários marcharam ao amanhecer.")
     assert not _accepted_variant(view, "Os soldados marcharam ao amanhecer.")
+
+
+def test_single_word_glossary_form_is_not_matched_inside_a_longer_word():
+    from src.literary.per_file_audit import _form_present
+
+    text = "He drained the cup and trained beside the scholiasts."
+    assert not _form_present("Raine", text, text.casefold())
+    assert not _form_present("Scholiast", text, text.casefold())
+    assert _form_present("Scholiasts", text, text.casefold())
+
+
+def test_single_word_glossary_form_matches_as_a_whole_word_at_any_length():
+    from src.literary.per_file_audit import _form_present
+
+    text = "Raine spoke to the Scholiast."
+    assert _form_present("Raine", text, text.casefold())
+    assert _form_present("Scholiast", text, text.casefold())

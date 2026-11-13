@@ -203,12 +203,13 @@ def _accepted_variant(view: Dict[str, Any], text: str) -> bool:
 
 
 def _form_present(form: str, text: str, text_cf: str) -> bool:
-    """Substring for long or multi-word forms, whole word for short ones.
+    """Substring for multi-word forms, whole word for single words of any length.
 
-    ``Cat`` as a substring matches ``Catch``; the boundary check keeps short
-    glossary names from creating phantom pairs in every file.
+    A substring test made ``Cat`` match ``Catch`` and, for longer names, ``Raine``
+    match ``drained`` or ``Scholiast`` match ``scholiasts``. Each phantom match made
+    a file count as a glossary pair the translation never had to render.
     """
-    if len(form) >= 5 or " " in form:
+    if " " in form:
         return form.casefold() in text_cf
     return re.search(rf"\b{re.escape(form)}\b", text, re.IGNORECASE) is not None
 
