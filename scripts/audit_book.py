@@ -39,7 +39,11 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 from benchmark.literary.metrics import english_leakage, length_ratio, repetition_ratio  # noqa: E402
-from src.literary.per_file_audit import PT_PT_PATTERNS, scan_book  # noqa: E402
+from src.literary.per_file_audit import (  # noqa: E402
+    PT_PT_PATTERNS,
+    count_forbidden_occurrences,
+    scan_book,
+)
 from src.literary.queue import QueueStore  # noqa: E402
 from src.literary.resources import compile_for_book, load_tree  # noqa: E402
 from src.literary.run_plan import build_run_plan  # noqa: E402
@@ -420,13 +424,7 @@ def _term_audit(
                     }
                 )
         for forbidden in getattr(term, "forbidden", []) or []:
-            count = len(
-                re.findall(
-                    rf"\b{re.escape(str(forbidden))}\b",
-                    target_text,
-                    flags=re.I,
-                )
-            )
+            count = count_forbidden_occurrences(target_text, str(forbidden), term.source)
             if count:
                 forbidden_hits.append({"source": term.source, "forbidden": forbidden, "count": count})
     coverage = (hits / eligible) if eligible else 1.0

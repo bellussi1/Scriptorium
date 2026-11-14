@@ -111,6 +111,24 @@ _CAPS_EN = {
     "WITH", "FOR", "ON", "AT", "BUT", "HIS", "HER", "THEY", "HAD", "YOU", "NOT",
     "THIS", "FROM", "HAVE", "BY", "BE", "WHICH", "OR", "AN",
 }
+# "FOR" is also the Portuguese future subjunctive of "ser" ("SE FOR MINOS"). After one of
+# these Portuguese words it is not counted as an English leak.
+_CAPS_PT_BEFORE_FOR = {"SE", "QUE", "QUANDO", "CASO", "ENQUANTO"}
+
+
+def english_caps_tokens(text: str) -> set:
+    """All-caps English words in text, skipping the Portuguese uses of "FOR"."""
+    found = set()
+    for match in _CAPS_RE.finditer(text):
+        token = match.group(0)
+        if token not in _CAPS_EN:
+            continue
+        if token == "FOR":
+            prior = _WORD_RE.findall(text[: match.start()][-40:])
+            if prior and prior[-1].upper() in _CAPS_PT_BEFORE_FOR:
+                continue
+        found.add(token)
+    return found
 
 
 def _now() -> str:
@@ -235,7 +253,7 @@ def _top(items: Sequence[Dict[str, Any]], key: str, limit: int = 10) -> List[Dic
     return sorted(items, key=lambda item: item.get(key) or 0, reverse=True)[:limit]
 
 
-def _forbidden_occurrences(text: str, forbidden: str, source: str = "") -> int:
+def count_forbidden_occurrences(text: str, forbidden: str, source: str = "") -> int:
     """Count hits of one forbidden form.
 
     A forbidden form that starts with a capital and is not the English source term is a
@@ -317,7 +335,7 @@ def scan_book(
         forbidden_hits = []
         for view in views:
             for forbidden in view["forbidden"]:
-                count = _forbidden_occurrences(text, forbidden, view["source"])
+                count = count_forbidden_occurrences(text, forbidden, view["source"])
                 if count:
                     hit = {
                         "file": name,
@@ -387,7 +405,7 @@ def scan_book(
             dropcap_all.append(issue)
 
         caps = _CAPS_RE.findall(text)
-        caps_foreign = sorted({token for token in caps if token in _CAPS_EN})
+        caps_foreign = sorted(english_caps_tokens(text))
         untranslated = sorted(
             {
                 token
