@@ -7,17 +7,30 @@ with `git status` and `git log` before acting. Older handoffs are in git history
 
 ## Now
 
+- **Front (2026-11-13 23:45 local):** slop pass applied (violet accents to the theme accent, labels to 12px, muted grey darkened, side-tab borders to 1px). Static CSS and JS are live on reload. The template version bump (`index.js?v=20261113-slop-pass`) applies only after the app container restarts. Do not restart it while a queue book runs, because `docker exec` translations die with it.
 - **Decision 2026-11-13: retranslate Demon in White, Howling Dark, Kingdoms of Death and Ashes of Man**
   from source, one at a time, without the refine pass (Scenario A of
   `docs/project/reviews/local-model-ceiling-2026-11-12.md`). `scripts/queue_runner_agent.py` now passes
   `--no-refine`; that takes effect when the agent restarts, which waits for Shadows Upon Time to finish.
   Order: Demon (priority 1000000), Howling, Kingdoms, Ashes. Each run is gated before the next one starts.
-  **Unattended chain waiting since 2026-11-13 00:39 local (starts after Shadows).** Script:
-  `data/tmp/retranslation-backup-2026-11-13/chain/retranslate_chain.py`. Log: `chain/chain.log`.
-  State: `chain/state.json` (`halted` says why it stopped). Gate per book: EPUBCheck 0, no more
-  forbidden renderings, pt-PT at most baseline + 2 per 100k, glossary coverage at most 0.01 below
-  baseline. Baselines: `chain/../baseline/`. If it halts, the new output is `needs_review` and the old
-  one is in `backup/outputs` and `backup/replaced`.
+  **Status 2026-11-13 22:39 local: Kingdoms of Death running again** (from source, `--no-refine`), then Ashes.
+  Demon and Howling passed the gate and wait for review (`needs_review`). The first Kingdoms run failed
+  (`Chantry` ×3 against baseline 0; pt-PT 17.55 against 9.94); its output is in
+  `data/tmp/retranslation-backup-2026-11-13/rejected-kingdoms-2026-11-13/`.
+  **The earlier pt-BR fix never reached any run.** `_compile_assets` (`src/literary/queue_runner.py`)
+  rewrites `Custom_Instructions/queue-<slug>.yaml` at each run start from the style source, so the hand
+  edits were overwritten. The fix now lives in `literary-resources/christopher-ruocchio/sun-eater/style.yaml`
+  as rule `target_variety` (uncommitted). The regenerated preset will differ from HEAD until it is committed.
+  Demon 11.08 (baseline 10.07) and Howling 13.86 (baseline 6.75) ran without that rule.
+  **Chain re-run 2026-11-13 10:05 local, after the first Demon run halted.** The first run (06:04 to
+  10:01) failed the pt-PT gate (14.43 per 100k against a baseline of 10.07). That baseline was a
+  post-edited book (refine plus the pt-BR stage); the new run had neither, so the check was not
+  like-for-like. The rejected Demon output is
+  in `data/tmp/retranslation-backup-2026-11-13/rejected-demon-2026-11-13/`. Script:
+  `scratchpad/retranslate_chain.py` (session scratchpad). Log: `chain/chain.log`. State: `chain/state.json`
+  (`halted` says why it stopped). Gate per book: EPUBCheck 0, no more forbidden renderings, glossary
+  coverage at most 0.01 below baseline, English leakage at most 0.01, length ratio 0.80 to 1.20.
+  If it halts, the new output is `needs_review` and the old one is in `backup/outputs` and `backup/replaced`.
   Backups (DB and the current outputs of the four books): `data/tmp/retranslation-backup-2026-11-13/`.
   Until the new versions are approved, the old ones are the backups, not the library state.
 - **Queue agent** runs from the main checkout (`scripts/queue_runner_agent.py`).
@@ -32,8 +45,8 @@ with `git status` and `git log` before acting. Older handoffs are in git history
   and `data/tmp/disquiet-gods-pre-matter-fix-2026-11-13/`. The old output came from the superseded
   EPUB 2.0 source (`data/tmp/disquiet-gods-superseded-2026-11-12/`). Book 9 keeps the EPUB 2.0
   hash in `books.source_hash`.
-- **Shadows Upon Time (book 13) running** since 2026-11-12 23:11 local (queue run requested by the
-  session, `mode next`). It stops at the review gate.
+- **Shadows Upon Time (book 13) needs review.** Its queue run finished 2026-11-13 06:03 local and
+  stopped at the review gate.
 - **pt-BR model stage: done 2026-11-12 under a stricter rule.** The guard checked numbers and
   word counts only, and accepted "azul-celeste" to "azul-você", "esquecida" to "esquecido"
   and "que não existe" to "que não existia". `conversion_only` (`src/literary/ptbr_revise.py`)
@@ -93,12 +106,12 @@ with `git status` and `git log` before acting. Older handoffs are in git history
 
 | Book | Queue | State | Notes |
 | --- | --- | --- | --- |
-| Demon in White (Sun Eater 3) | 8, completed | refined, post-passed, model stage done | Titles, body headings, series metadata and Lexicon done. Audit: `Imperium` drift (owner accepted "Império"). Word swaps and model stage done 2026-11-12. |
-| Howling Dark (Sun Eater 2) | 10, completed | refined, post-passed | Approved in the Queue UI. Headings and titles consistent (80). Chapter 50 title and "“ELA" fixed 2026-11-12. Word swaps and model stage done 2026-11-12. |
-| Kingdoms of Death (Sun Eater 4) | 11, needs_review | refined, post-passed | Reopened 2026-11-12 by owner decision. The model stage is done (2026-11-12); approval is the owner's call. Queue row edited directly (backup `data/tmp/queue-backups/literary_queue-before-kingdoms-reopen-2026-11-12.db`). It leaves the Kindle export until approved. |
-| Ashes of Man (Sun Eater 5) | 7, completed | refined, post-passed | Approved 2026-11-12. OPF scheme warning fixed (EPUBCheck 0/0/0). No chapter-title map yet. |
+| Demon in White (Sun Eater 3) | 8, needs_review (new run passed the gate 2026-11-13 14:18 local) | refined, post-passed, model stage done | Titles, body headings, series metadata and Lexicon done. Audit: `Imperium` drift (owner accepted "Império"). Word swaps and model stage done 2026-11-12. |
+| Howling Dark (Sun Eater 2) | 10, needs_review (retranslation; gate passed 2026-11-13 19:43 local, pt-PT 13.86 vs base 6.75) | no refine | Previously approved in the Queue UI; that version is in `backup/replaced`. Headings and titles consistent (80). Chapter 50 title and "“ELA" fixed 2026-11-12. Word swaps and model stage done 2026-11-12. |
+| Kingdoms of Death (Sun Eater 4) | 11, needs_review (retranslation; gate FAILED 2026-11-13 22:24: `Chantry` ×3, pt-PT 17.55 vs base 9.94) | no refine | Old version (not the retranslation): refined, post-passed | Reopened 2026-11-12 by owner decision. The model stage is done (2026-11-12); approval is the owner's call. Queue row edited directly (backup `data/tmp/queue-backups/literary_queue-before-kingdoms-reopen-2026-11-12.db`). It leaves the Kindle export until approved. |
+| Ashes of Man (Sun Eater 5) | 7, pending (retranslation, not started) | refined, post-passed (old version, in `backup/replaced`) | Previously approved 2026-11-12. OPF scheme warning fixed (EPUBCheck 0/0/0). No chapter-title map yet. |
 | Disquiet Gods (Sun Eater 6) | 9, needs_review | re-translation from EPUB 3.0 | Run 2026-11-12 16:43 to 22:26 local. Progressive repair, matter fixes and deterministic audit done; awaiting human review in the Queue UI. |
-| Shadows Upon Time | 13, running | — | Queue run started 2026-11-12 23:11 local. |
+| Shadows Upon Time | 13, needs_review | — | Queue run finished 2026-11-13 06:03 local. |
 | Ship of Magic (Realm 1) | 2, pending | to be re-translated | Was Hy-MT2 + repair. Post-pass (`chapter_headings`) was aligned to Hy-MT2 residue; redo it. |
 | Fool's Errand (Realm, Tawny Man 1) | 4, pending | to be re-translated | Was Hy-MT2. Post-pass (roman numerals, `fools-errand.yaml`) must be redone; body title XXI was English. |
 | Ship of Destiny, The Golden Fool, Fool's Fate, The Mad Ship | 1, 6, 5, 3, pending | Index | Hy-MT2 rows were switched to Index. |
