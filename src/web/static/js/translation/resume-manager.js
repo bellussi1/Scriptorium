@@ -51,9 +51,9 @@ function formatJobCard(job, hasActiveTranslation, activeNames) {
 
     const failedBadgeLabel = t('translation:job_card_failed_badge', { count: failedChunks });
     const statusBadge = isPartial
-        ? `<span style="display: inline-block; margin-left: 8px; padding: 2px 8px; font-size: 11px; font-weight: 600; color: #92400e; background: #fef3c7; border: 1px solid #f59e0b; border-radius: 4px;" title="${t('translation:job_card_partial_title', { count: failedChunks })}">${failedBadgeLabel}</span>`
+        ? `<span style="display: inline-block; margin-left: 8px; padding: 2px 8px; font-size: 12px; font-weight: 600; color: #92400e; background: #fef3c7; border: 1px solid #f59e0b; border-radius: 4px;" title="${t('translation:job_card_partial_title', { count: failedChunks })}">${failedBadgeLabel}</span>`
         : (failedChunks > 0
-            ? `<span style="display: inline-block; margin-left: 8px; padding: 2px 8px; font-size: 11px; font-weight: 600; color: #92400e; background: #fef3c7; border: 1px solid #f59e0b; border-radius: 4px;" title="${t('translation:job_card_failed_title', { count: failedChunks })}">${failedBadgeLabel}</span>`
+            ? `<span style="display: inline-block; margin-left: 8px; padding: 2px 8px; font-size: 12px; font-weight: 600; color: #92400e; background: #fef3c7; border: 1px solid #f59e0b; border-radius: 4px;" title="${t('translation:job_card_failed_title', { count: failedChunks })}">${failedBadgeLabel}</span>`
             : '');
 
     const naText = t('translation:job_card_na');

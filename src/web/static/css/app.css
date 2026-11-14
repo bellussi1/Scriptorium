@@ -356,7 +356,7 @@ body {
 
 .header .logo-text .app-version {
   color: var(--text-muted-light);
-  font-size: 0.7rem;
+  font-size: 0.75rem;
   font-weight: 600;
   letter-spacing: 0;
   margin-left: 4px;
@@ -815,7 +815,7 @@ select.form-control {
 }
 
 .file-item-controls .file-op-badge {
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 0.05em;
   text-transform: uppercase;
@@ -830,7 +830,7 @@ select.form-control {
 
 .file-item-controls .file-op-badge.op-refine {
   background: var(--data-accent-soft);
-  color: #7e22ce;
+  color: var(--data-accent);
 }
 
 .file-item-controls .file-op-badge.op-term_fix {
@@ -1159,7 +1159,7 @@ select.form-control {
   color: var(--text-muted-light);
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
   font-weight: 600;
 }
 
@@ -1228,7 +1228,7 @@ select.form-control {
   border-radius: 999px;
   background: transparent;
   color: inherit;
-  font-size: 0.7rem;
+  font-size: 0.75rem;
   line-height: 1;
   cursor: pointer;
   opacity: 0;
@@ -2613,7 +2613,7 @@ input[type=range]::-moz-range-thumb {
   align-items: center;
   gap: 4px;
   padding: 2px 8px;
-  font-size: 0.7rem;
+  font-size: 0.75rem;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -2785,7 +2785,7 @@ html.dark .file-info {
 }
 
 .searchable-select-badge {
-  font-size: 0.7rem;
+  font-size: 0.75rem;
   font-weight: 600;
   padding: 0.2rem 8px;
   background: rgba(54, 118, 216, 0.12);
@@ -2956,7 +2956,7 @@ html.dark .file-info {
 /* Group headers - sticky with opaque background */
 .searchable-select-group {
   padding: 8px 16px 4px;
-  font-size: 0.7rem;
+  font-size: 0.75rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -4354,7 +4354,7 @@ html.dark .sample-card {
 }
 
 .sample-file-label {
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
   text-transform: uppercase;
   letter-spacing: 0.06em;
   color: var(--text-muted-light);
@@ -4456,7 +4456,7 @@ html.dark .sample-card {
 }
 
 .sample-card-source-label {
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
   text-transform: uppercase;
   letter-spacing: 0.06em;
   color: var(--text-muted-light);
@@ -4496,13 +4496,13 @@ html.dark .sample-card {
 }
 
 .sample-llm-index {
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
   color: var(--text-muted-light);
   font-weight: 700;
 }
 
 .sample-llm-provider {
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
   text-transform: uppercase;
   letter-spacing: 0.04em;
   color: var(--text-muted-light);
@@ -4533,7 +4533,7 @@ html.dark .sample-card {
 }
 
 .sample-phase-label {
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -4603,7 +4603,7 @@ html.dark .sample-output-diff:hover del {
   display: inline-block;
   padding: 2px 8px;
   border-radius: 999px;
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
   font-weight: 600;
 }
 
@@ -4619,12 +4619,12 @@ html.dark .sample-badge-truncated {
 
 .sample-badge-fallback {
   background: var(--data-accent-soft);
-  color: #6b21a8;
+  color: var(--data-accent);
 }
 
 html.dark .sample-badge-fallback {
   background: var(--data-accent-soft);
-  color: #c084fc;
+  color: var(--data-accent);
 }
 
 .sample-badge-error {
@@ -5194,7 +5194,7 @@ html.dark .file-test-btn {
 }
 
 .queue-stat-label {
-  font-size: 0.7rem;
+  font-size: 0.75rem;
   font-weight: 600;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -5276,7 +5276,7 @@ html.dark .file-test-btn {
   padding: 8px;
   background: var(--background-light);
   color: var(--text-muted-light);
-  font-size: 0.7rem;
+  font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -6251,7 +6251,7 @@ html.dark {
 .queue-quality-section h5 {
   margin: 0 0 8px;
   color: var(--text-muted-light);
-  font-size: 0.7rem;
+  font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 0.07em;
   text-transform: uppercase;

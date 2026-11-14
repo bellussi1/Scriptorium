@@ -443,7 +443,7 @@ export const MessageLogger = {
         // Add cleanup message if batch complete
         const batchComplete = cleanup.find(c => c.includes('All files in the batch'));
         if (batchComplete) {
-            parts.push(`<span style="margin-left: 10px; color: #6366f1;">${DomHelpers.escapeHtml(batchComplete)}</span>`);
+            parts.push(`<span style="margin-left: 10px; color: var(--data-accent, #2563eb);">${DomHelpers.escapeHtml(batchComplete)}</span>`);
         }
 
         summaryHtml += parts.join('<br>');
