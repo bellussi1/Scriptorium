@@ -26,6 +26,8 @@ rules:
     instruction: Use em dashes for interruption and aside, semicolons for rhetorical accumulation, and fragments for shock; do not inflate exclamation marks or scatter ellipses for atmosphere.
   - dimension: formatting
     instruction: Allow a single sentence or a single word to stand as a paragraph at a turn or shock, use longer paragraphs for argument and worldbuilding, and preserve chapter titles, epigraph-like openings, direct address to the reader, and white space around isolated lines as part of the narrative architecture.
+  - dimension: target_variety
+    instruction: Write Brazilian Portuguese (pt-BR), not European Portuguese. Use "você" for the second person and never "tu". Use Brazilian progressive forms ("estou fazendo", "está ficando") and Brazilian clitic placement ("me disse", "não te vejo"). Avoid European forms such as "estou a fazer", "contacto", "ecrã", "equipa", "autocarro", "rapariga", "demónio" and "prémio"; use "de fato" and Brazilian spelling throughout.
 evidence:
   samples:
     - data/editorial_samples/sun2_en/chapter_01.txt
