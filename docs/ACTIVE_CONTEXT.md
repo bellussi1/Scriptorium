@@ -7,6 +7,10 @@ handoffs are in git history (this file was compacted on 2026-11-12).
 
 ## Now
 
+- **Fixed badge column alignment in `#files` (`5a0bd29`, 2026-11-15; no Docker restart):**
+  - Switched `.file-name-cell` in `src/web/static/scss/_ui-polish.scss` to a 3-column CSS Grid (`minmax(180px, 42ch) 58px 144px`), pinning `.is-final` (`Final`) to track 2 and role badges (`.file-artifact-badge:not(.is-final)`) to track 3 with centered pill widths so badges form vertical columns across every row regardless of filename length.
+  - Restored standard `table` / `table-header-group` / `table-row-group` / `table-row` display geometry on `.file-table` in `src/web/static/scss/_literary-theme.scss`, aligned `#tab-files` Actions `<th>` width to `160px` (`translation_interface.html`), bumped `app.css?v=20261115-files-cols`, rebuilt `src/web/static/css/app.css`, and verified `npm run build:css`, `npm run typecheck`, `npm run test:js` (`7/7`), and `pytest -q tests/test_frontend_i18n.py` (`22 passed`).
+
 - **Compact Web UI density for 100% zoom (`b818319`, 2026-11-15; no Docker restart):**
   - Widened `.container` (`1200px` -> `1440px`) and compacted shell typography/padding across `src/web/static/scss/_literary-theme.scss`, `_ui-polish.scss`, and `_queue.scss` (`body` `13px`, tighter `.header` / `#topTabNav` / `.card-header` / `.card-body`, `--ui-control-h: 32px` inside `@layer compact-ui`, smaller Translate upload zones, denser Queue summary strip/filters/table rows/action buttons, and slimmer `--q-*` tokens + Review drawer padding) so 100% browser zoom matches ~75% zoom density without unnecessary vertical scrolling.
   - Bumped stylesheet cache-buster in `src/web/templates/translation_interface.html` (`app.css?v=20261115-compact`) and rebuilt `src/web/static/css/app.css`. Verified `npm run build:css`, `npm run typecheck`, `npm run test:js` (`7/7`), and `pytest -q tests/test_frontend_i18n.py tests/unit/test_literary_queue_routes.py` (`54 passed`). Static CSS changes are served immediately from disk without restarting `translatebook-literary-dev`.
