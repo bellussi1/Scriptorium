@@ -1,11 +1,129 @@
 # Active context
 
 Handoff between sessions. Read this first; update it before you stop. It must
-describe the real repository, not a plan. Status as of 2026-11-12: revalidate
-with `git status` and `git log` before acting. Older handoffs are in git history
-(this file was compacted on 2026-11-12).
+describe the real repository, not a plan. Status as of 2026-11-15 (early
+morning local): revalidate with `git status` and `git log` before acting. Older
+handoffs are in git history (this file was compacted on 2026-11-12).
 
 ## Now
+
+- **Calibre-aligned OPF metadata, tags & synopses standardization (2026-11-15; no GPU/cloud calls):**
+  Added `src/literary/metadata.py` (`tags_for`, `infer_calibre_library`, `standardized_title`,
+  `standardized_description`, `standardize_book_opf`, `standardize_completed_outputs`) and
+  `python -m src.literary.cli metadata standardize`. Wired `standardize_book_opf` into
+  both `src/literary/queue_runner.py` (all completed books, series or standalone, before
+  `validate_epub_pair` / `EPUBCheck`) and `src/literary/kindle.py` (`build_kindle_library`),
+  and fixed Windows in-place ZIP `PermissionError` plus NCX `<docTitle><text>` syncing
+  in `src/literary/epub.py`.
+  - **Applied to live completed EPUBs:** Updated all 7 `translated_files/*.refined.epub`
+    files and rebuilt `translated_files/kindle/` (`7` EPUBs, `manifest.csv`, `README.md`)
+    using Calibre (`C:\Users\Bellussi\Biblioteca do calibre\metadata.db`) read-only;
+    Calibre's database was not modified.
+  - **Conventions applied:** `<dc:subject>` normalized to Calibre genres (`Fiction`,
+    `Speculative Fiction`, `Science Fiction`, `Space Opera`, `Science Fantasy` for Sun
+    Eater; `Fiction`, `Historical Fiction`, `Western`, `Classic` for Lonesome Dove;
+    macro-universe tags preserved where present) plus `PT-BR` and `Scriptorium` (removing
+    `Brazilian Portuguese`, `Machine Translation`, `no data`, `EN`, BISAC, and redundant
+    series tags). Disambiguated untranslated titles (`Lonesome Dove (PT-BR)`) in
+    `<dc:title>`, `calibre:title_sort`, and NCX `<docTitle><text>`. Preserved existing
+    PT-BR synopses while stripping legacy Scriptorium URLs, replacing `"Devorador de Sóis"`
+    with `"Sun Eater"`, appending `"Tradução em português brasileiro via Scriptorium."`,
+    and supplying a curated PT-BR synopsis for *Disquiet Gods* (`Deuses Inquietos`).
+  - **Verification:** `EPUBCheck` exited `0` (`0` fatals, `0` errors) on all 7
+    `*.refined.epub` files and all 7 `translated_files/kindle/**/*.epub` files
+    (`Ashes of Man` and `Shadows Upon Time` keep 1 pre-existing `OPF-086c` `xsd` prefix
+    warning each); `ruff check` on all 7 added/modified files passed (`0` errors);
+    `pytest -q tests/unit tests/literary tests/test_frontend_i18n.py` passed (`2656 passed`).
+
+- **Proper-noun & title keep-in-English alignment (2026-11-15 early morning local; no GPU/cloud calls):**
+  Owner defined glossary/style preference: keep capitalized proper nouns,
+  settlements/cities, states/realms, organizations, offices, and formal titles
+  paired with names in English (`policy: keep`), while preserving official
+  Farseer PT-BR canon (`Talento`, `Manha`, `Bobo`, `Ferreirinho`, `Seis Ducados`,
+  `Torre do Cervo`, `Cervo`, `Vara`, `rio Cervo`, `Ilhas Externas`, `ilhéu`,
+  `Navio Vermelho`, `Forjados`, `Antigos`, `Outros`, `Assassino`, `chyurda`) and
+  adapting only lowercase demonyms (`jamailliano`, `chalcedeano`) and lowercase
+  common-noun heads (`rio Rain Wild`, `pilar do Talento`, `rio do Talento`).
+  - **Global rules:** Added `literary-resources/global/style.yaml` (`proper_nouns`
+    dimension, clean under `lint_instruction`) so every series—including `Malazan`
+    (`rules=1`)—inherits the rule automatically, and updated
+    `literary-resources/global/pt-br-conventions.yaml` (`proper_nouns`,
+    `forms_of_address`) to match.
+  - **Robin Hobb (`realm-of-the-elderlings`):** Switched alias titles to English
+    in `characters.yaml` (`King Shrewd`, `Prince Verity`, `Prince Regal`,
+    `Prince Chivalry`, `Prince Dutiful`), and switched non-Farseer capitalized
+    terms/titles/places/groups to `policy: keep` across `liveship-traders/`,
+    `tawny-man/`, `rain-wild-chronicles/`, and `fitz-and-the-fool/` (`Liveship`/
+    `Liveships`, `Trader`/`Traders`, `Old Traders`, `New Traders`,
+    `Bingtown Traders`, `Rain Wild Traders`, `Pirate Isles`, `Satrap Cosgo`,
+    `She Who Remembers`, `Captain Leftrin`, `Lord Golden`, `Pale Woman`,
+    `Black Man`, `Old Blood`, `Piebalds`, `Catalyst`, `White Prophet`/`Whites`),
+    plus `chapter-titles/ship-of-magic.yaml` (ch. 2, 24, 36) and
+    `robin-hobb/tawny-man/chapter-titles/fools-errand.yaml` (ch. 8).
+  - **John Gwynne (`the-banished-lands`):** Updated `glossary.yaml` to keep
+    capitalized places, groups, titles, and events in English (`Banished Lands`,
+    `Faithful`, `Fallen`, `The Faithful and the Fallen`, `Land of the Faithful`,
+    `Otherworld`, `White-Wing`/`White-Wings`, `War of Treasures`, `Age of Lore`,
+    `Separate Ones`, `Sons of the Mighty`, `Great Tyrant`), leaving lowercase
+    `giant` and `starstone` translated. `joe-abercrombie/the-first-law` left
+    untouched.
+  - **Active run handling (`Ship of Magic` #2):** Let the running Index-Translate-9B
+    job finish rather than restarting mid-run; already-translated early chunks
+    carrying `navio vivo`, `Comerciante`, `Sátrapa`, and `Ilhas Piratas` will be
+    normalized in post-translation `--fix-terms` / revision alongside
+    `chapter_headings`. Pending books `#3, #1, #4, #6, #5, #16-18, #33, #29-30, #19, #31`
+    all pass `queue plan` with `issues: []`.
+- **Polish & glossary pass (2026-11-14 late evening local; no GPU/cloud calls):**
+  Backups in `data/tmp/polish-pass-2026-11-14/` (`literary_queue.before.db`,
+  `Lonesome Dove (pt-BR) - fixed-v2.before.epub`, and six `*.refined.before.epub`).
+  - **Queue state:** `Ship of Magic` (book 2, priority 22) is `translating` on
+    Index-Translate-9B. Do NOT restart `translatebook-literary-dev`. The seven
+    previously completed books (`Lonesome Dove` #32 and *Sun Eater 2–7*: #10, #8,
+    #11, #7, #9, #13) were polished in place and exported to `translated_files/kindle/`
+    (`queue export-kindle`, 7 entries in `translated_files/kindle/manifest.csv`).
+  - **Rule & audit fixes:** Expanded `PROGRESSIVE_GERUNDS` in
+    `src/literary/progressive_repair.py`; added `ptbr.pt_quilometro` and
+    expanded `ptbr.pt_tu_preterito` / `ptbr.pt_tu_futuro` in `src/literary/ptbr.py`;
+    added `pt_quilometro` / `pt_tu` / `pt_tu_futuro` to `SAFE_CODES` + 2p tables in
+    `src/literary/ptbr_revise.py`; preserved non-empty `accepted_targets` in
+    `write_glossary_json` (`src/literary/resources.py`) and
+    `_load_glossary_snapshot` / `_term_audit` (`scripts/audit_book.py`).
+  - **Lonesome Dove (#32):** Updated `literary-resources/larry-mcmurtry/lonesome-dove/glossary.yaml`
+    (genders for `Lorie`, `Zwey`, `Ellie`, `Peach`; dict `accepted_targets` for
+    `July Johnson`, `Needle Nelson`, `Indian`; added `Comanche`) and recompiled
+    `data/compiled/lonesome-dove-glossary.json` (`44` compiled entries). Converted
+    123 `<blockquote class="calibre_4|6">` to `<p>` (`index_split_112/108/075/056.html`),
+    localized `toc.ncx`, and fixed `Bolívar`, all-caps sign, `rebanho`, `Lorie`
+    agreement, progressive periphrases, and 2p leftovers; promoted the verified
+    artifact to `translated_files/Lonesome Dove (pt-BR).refined.epub` (and updated
+    `refined_output` in `data/queue-runs/lonesome-dove.report.json`). Passed
+    `validate_epub_pair` (`blocking: 0`), `EPUBCheck` (`0/0/0`, down from 248
+    errors), and `audit_book.py --book-id 32 --no-cloud` (`passed: true`).
+  - **Files tab cleanup (`translated_files/`):** Moved 21 intermediate EPUBs
+    (`raw`, `- fixed`, `- fixed-v2`) across the 7 completed books plus 2
+    `Destructive-24h-*` test EPUBs into `translated_files/archive/intermediates-2026-11-14/`
+    so `#files` (`FileService`) lists only the 7 final `*.refined.epub` editions.
+  - **Sun Eater 2–7 (.refined.epub):** Applied progressive repair, `_swap_text`,
+    `contigo` / preposition+`ti`, `estava a sonhar`, and split chapter-header/TOC
+    repairs (`Ashes of Man` ch. 19 `023_chapter_019.xhtml` / `toc.ncx` / `nav.xhtml`;
+    `Shadows Upon Time` ch. 13 `017_Chapter_013.xhtml` / `nav.xhtml`). Updated
+    `validation` + `epubcheck` in all six `data/queue-runs/<slug>.report.json`
+    files; all six pass `validate_epub_pair` (`blocking: 0`), `EPUBCheck` (`0`
+    fatals / `0` errors), and `audit_book.py --no-cloud` (`passed: true`).
+  - **Realm of the Elderlings glossaries:** Added
+    `fitz-and-the-fool/{characters,glossary}.yaml` and
+    `rain-wild-chronicles/{characters,glossary}.yaml` (updated 2026-11-15 to
+    `74` and `93` compiled terms under the English proper-noun/title policy).
+    Remaining note: `Ship of Magic`, `The Mad Ship`, and `Ship of Destiny`
+    sources still carry a `file:///C|/Documents and Settings/Tony/...` footer
+    (run `chapter_headings` post-pass after translation); `Malazan` still has no
+    glossary (inherits `global/style.yaml` `proper_nouns`).
+- **Earlier 2026-11-14 notes:** Lonesome Dove (book 32) ran Job 36 (`cli_ad52c2c1`,
+  resumed after shutdown at ch. 71/1261 with Ollama + `scripts/queue_runner_agent.py`
+  and completed before approval). Priority queue order after `Ship of Magic` (2):
+  `The Mad Ship` (3), `Ship of Destiny` (1), `Fool's Errand` (4), `The Golden Fool` (6),
+  `Fool's Fate` (5), `Fool's Assassin` (16), `Fool's Quest` (17), `Assassin's Fate` (18),
+  `The Rain Wild Chronicles` (33, priority 13). Malazan rows 19–28 sit below at priorities 12–3.
 
 - **Front (2026-11-13 23:45 local):** slop pass applied (violet accents to the theme accent, labels to 12px, muted grey darkened, side-tab borders to 1px). Static CSS and JS are live on reload. The template version bump (`index.js?v=20261113-slop-pass`) applies only after the app container restarts. Do not restart it while a queue book runs, because `docker exec` translations die with it.
 - **Decision 2026-11-13: retranslate Demon in White, Howling Dark, Kingdoms of Death and Ashes of Man**
@@ -13,14 +131,18 @@ with `git status` and `git log` before acting. Older handoffs are in git history
   `docs/project/reviews/local-model-ceiling-2026-11-12.md`). `scripts/queue_runner_agent.py` now passes
   `--no-refine`; that takes effect when the agent restarts, which waits for Shadows Upon Time to finish.
   Order: Demon (priority 1000000), Howling, Kingdoms, Ashes. Each run is gated before the next one starts.
-  **Status 2026-11-13 22:39 local: Kingdoms of Death running again** (from source, `--no-refine`), then Ashes.
-  Demon and Howling passed the gate and wait for review (`needs_review`). The first Kingdoms run failed
+  **Chain finished 2026-11-14 04:11 local.** All four books passed the gate and wait for review (`needs_review`).
+  Kingdoms passed at 01:30 (pt-PT 20.33 against 9.94, forbidden 0). Ashes passed at 04:11 (pt-PT 20.32 against 17.5;
+  one forbidden rendering, `Chantry` to `Cantaria`, which the baseline also has, so the gate allows it).
+  pt-PT is recorded, not gated: Howling (13.86 against 6.75) and Kingdoms are about double their baselines.
+  Check the pt-BR wording in review before approving. Nothing is committed for this run.
+  Demon and Howling passed the gate earlier. The first Kingdoms run failed
   (`Chantry` ×3 against baseline 0; pt-PT 17.55 against 9.94); its output is in
   `data/tmp/retranslation-backup-2026-11-13/rejected-kingdoms-2026-11-13/`.
   **The earlier pt-BR fix never reached any run.** `_compile_assets` (`src/literary/queue_runner.py`)
   rewrites `Custom_Instructions/queue-<slug>.yaml` at each run start from the style source, so the hand
   edits were overwritten. The fix now lives in `literary-resources/christopher-ruocchio/sun-eater/style.yaml`
-  as rule `target_variety` (uncommitted). The regenerated preset will differ from HEAD until it is committed.
+  as rule `target_variety` (committed in `74a9668`).
   Demon 11.08 (baseline 10.07) and Howling 13.86 (baseline 6.75) ran without that rule.
   **Chain re-run 2026-11-13 10:05 local, after the first Demon run halted.** The first run (06:04 to
   10:01) failed the pt-PT gate (14.43 per 100k against a baseline of 10.07). That baseline was a
@@ -33,6 +155,36 @@ with `git status` and `git log` before acting. Older handoffs are in git history
   If it halts, the new output is `needs_review` and the old one is in `backup/outputs` and `backup/replaced`.
   Backups (DB and the current outputs of the four books): `data/tmp/retranslation-backup-2026-11-13/`.
   Until the new versions are approved, the old ones are the backups, not the library state.
+- **Deterministic fixes 2026-11-14 (after the cloud audit, no approval):** Demon (`Veja IMPÉRIO SOLLANO`, `WILLIAM O ADVENTO`);
+  Ashes (`FOGO PÁLIDO`, `ALMIRANTE`, `NO IMPÉRIO SOLLANO`, `LÉXICO` in place of `LEXYCONO`, chapter titles in nav, English `<title>` to pt-BR);
+  Shadows (chapter titles in nav, English `<title>` to pt-BR). Backups: `data/tmp/fixes-2026-11-14-backup/`.
+  Audit (deterministic): all six pass after the detector fix below. The Kindle export is not rebuilt.
+- **Detector fix 2026-11-14 (owner approved "ajustar"):** two false positives in Ashes were detector bugs, not text errors.
+  (1) `scripts/audit_book.py` counted forbidden forms case-insensitively, so the verb `cantaria` ("would sing") hit the
+  forbidden `Cantaria`; it now uses `count_forbidden_occurrences` from `src/literary/per_file_audit.py`, which the per-file scan
+  already used. (2) `FOR` was an English all-caps token everywhere; it is now skipped after `SE`, `QUE`, `QUANDO`, `CASO`,
+  `ENQUANTO` (`english_caps_tokens`). Tests: `tests/literary/test_audit_precision.py`; full `tests/literary` suite: 398 passed.
+  Ashes passes the deterministic audit and the cloud audit (about $0.0014). Its one judge meaning item is the false ISBN; the
+  gate tolerates it. Ashes is still `needs_review`; nothing was approved.
+- **Meaning fixes 2026-11-14 (owner approved the judge's meaning errors):** Demon ch. 9 `mobiliário branco` → `paredes brancas`
+  (source: "Gray-walled and white"); Howling ch. 17 `que víssemos` → `que tínhamos visto`; Kingdoms ch. 5 `incomparável` →
+  `incontável`; Kingdoms ch. 33 `cresciam` → `rangiam`. Judge findings rejected as false: the Ashes copyright ISBN is in the source,
+  and Howling ch. 17 keeps "maybe" as `talvez umas cem passos`. Backups: `data/tmp/meaning-fixes-2026-11-14-backup/`.
+  Deterministic audit: Demon, Howling and Kingdoms pass. Cloud re-judge (Haiku, about $0.004 in total): all three pass with 0 meaning
+  errors. Ashes's only judge meaning item was the false ISBN.
+- **Corrections 2026-11-14 (owner: "corrija todos"):** accents across the six books: `telegrafo` → `telégrafo`, `animalculo` →
+  `animálculo`, `SILENCIO`/`Silencio` → `SILÊNCIO`/`Silêncio`, `IMPERIO`/`Imperio` → `IMPÉRIO`/`Império`, `A MUSICA` → `A MÚSICA`,
+  `FOGO PALIDO` → `FOGO PÁLIDO` (Ashes contents), `Unico` → `Único` (Shadows ch. 79). Glossary form `Sollan` → `Sollano`
+  (adjective agreed: `sollanos`, `sollana`) in all 19 places, including `oficiais Sollan` (Demon ch. 81). `nave-nave` (shuttle) →
+  `lançadeira` (Demon ch. 64 ×2, Shadows ch. 81). English labels: Ashes nav `COVER` → `Capa`, `TITLE PAGE` → `Folha de rosto`,
+  `COPYRIGHT PAGE` → `Direitos autorais`, `DEDICATION` → `Dedicação`, nav `Contents` → `Sumário`; Shadows nav `Contents` →
+  `Sumário`; Disquiet nav `Table of Contents` and title `Contents` → `Sumário`. Kept on purpose: the Demon elenco braces `{ }` (in the
+  source). Backups: `data/tmp/corrections-2026-11-14-backup/`. Deterministic audit: all pass except Ashes (the two false positives).
+  Cloud re-judge: all pass with 0 meaning and 0 gender errors (about $0.008 total). The `telegrafou` verb form stays.
+- **Gender fixes 2026-11-14 (owner approved):** Howling ch. 7 `num varanda` → `numa varanda`; Howling ch. 27 title
+  `MEU ENCONTRO COM A oráculo` → `… COM O oráculo` (the article sits in a separate span); Shadows ch. 59 `dos nossos botas` →
+  `das nossas botas`. Backups: `data/tmp/gender-fixes-2026-11-14-backup/` (Howling and Shadows, as they stood before this step).
+  Deterministic audit passes for both; cloud re-judge passes with 0 meaning and 0 gender errors (about $0.0024 in total).
 - **Queue agent** runs from the main checkout (`scripts/queue_runner_agent.py`).
   Queue changes from the UI need it; start `start-queue-agent.bat` if it is down.
 - **Disquiet Gods (Sun Eater 6, book 9)** re-translated from the EPUB 3.0 library source
@@ -106,17 +258,21 @@ with `git status` and `git log` before acting. Older handoffs are in git history
 
 | Book | Queue | State | Notes |
 | --- | --- | --- | --- |
-| Demon in White (Sun Eater 3) | 8, needs_review (new run passed the gate 2026-11-13 14:18 local) | refined, post-passed, model stage done | Titles, body headings, series metadata and Lexicon done. Audit: `Imperium` drift (owner accepted "Império"). Word swaps and model stage done 2026-11-12. |
-| Howling Dark (Sun Eater 2) | 10, needs_review (retranslation; gate passed 2026-11-13 19:43 local, pt-PT 13.86 vs base 6.75) | no refine | Previously approved in the Queue UI; that version is in `backup/replaced`. Headings and titles consistent (80). Chapter 50 title and "“ELA" fixed 2026-11-12. Word swaps and model stage done 2026-11-12. |
-| Kingdoms of Death (Sun Eater 4) | 11, needs_review (retranslation; gate FAILED 2026-11-13 22:24: `Chantry` ×3, pt-PT 17.55 vs base 9.94) | no refine | Old version (not the retranslation): refined, post-passed | Reopened 2026-11-12 by owner decision. The model stage is done (2026-11-12); approval is the owner's call. Queue row edited directly (backup `data/tmp/queue-backups/literary_queue-before-kingdoms-reopen-2026-11-12.db`). It leaves the Kindle export until approved. |
-| Ashes of Man (Sun Eater 5) | 7, pending (retranslation, not started) | refined, post-passed (old version, in `backup/replaced`) | Previously approved 2026-11-12. OPF scheme warning fixed (EPUBCheck 0/0/0). No chapter-title map yet. |
-| Disquiet Gods (Sun Eater 6) | 9, needs_review | re-translation from EPUB 3.0 | Run 2026-11-12 16:43 to 22:26 local. Progressive repair, matter fixes and deterministic audit done; awaiting human review in the Queue UI. |
-| Shadows Upon Time | 13, needs_review | — | Queue run finished 2026-11-13 06:03 local. |
-| Ship of Magic (Realm 1) | 2, pending | to be re-translated | Was Hy-MT2 + repair. Post-pass (`chapter_headings`) was aligned to Hy-MT2 residue; redo it. |
-| Fool's Errand (Realm, Tawny Man 1) | 4, pending | to be re-translated | Was Hy-MT2. Post-pass (roman numerals, `fools-errand.yaml`) must be redone; body title XXI was English. |
-| Ship of Destiny, The Golden Fool, Fool's Fate, The Mad Ship | 1, 6, 5, 3, pending | Index | Hy-MT2 rows were switched to Index. |
-| Lonesome Dove | not queued | — | Resources exist. Decided 2026-11-12: not queued until the Sun Eater pt-BR work ends. |
-| Malazan | not queued | — | Zero glossary terms; needs a glossary build first. |
+| Demon in White (Sun Eater 3) | 8, completed | refined, post-passed, polish pass done 2026-11-14 | EPUBCheck 0/0/0, `audit_book --no-cloud` passed; in `translated_files/kindle/`. |
+| Howling Dark (Sun Eater 2) | 10, completed | no refine, polish pass done 2026-11-14 | EPUBCheck 0/0/0, `audit_book --no-cloud` passed; in `translated_files/kindle/`. |
+| Kingdoms of Death (Sun Eater 4) | 11, completed | no refine, polish pass done 2026-11-14 | EPUBCheck 0/0/0, `audit_book --no-cloud` passed; in `translated_files/kindle/`. |
+| Ashes of Man (Sun Eater 5) | 7, completed | no refine, polish pass + ch. 19 header/TOC fix 2026-11-14 | EPUBCheck 0/0/1 (OPF `xsd` warning), `audit_book --no-cloud` passed; in `translated_files/kindle/`. |
+| Disquiet Gods (Sun Eater 6) | 9, completed | EPUB 3.0 source, polish pass done 2026-11-14 | EPUBCheck 0/0/0, `audit_book --no-cloud` passed; in `translated_files/kindle/`. |
+| Shadows Upon Time (Sun Eater 7) | 13, completed | polish pass + ch. 13 header/TOC fix 2026-11-14 | EPUBCheck 0/0/1, `audit_book --no-cloud` passed; in `translated_files/kindle/`. |
+| Lonesome Dove | 32, completed | Job 36 finished + polish pass done 2026-11-14 | 123 blockquotes converted to `<p>`, `toc.ncx` localized, 2p/pt-PT/Bolívar fixed; EPUBCheck 0/0/0, `audit_book --no-cloud` passed; in `translated_files/kindle/`. |
+| Ship of Magic (Realm 1) | 2, translating | Index-Translate-9B (active run) | Previous Hy-MT2 archive in `translated_files/archive-hy-mt2-2026-11-12/`. Let finish, then normalize early `navio vivo`/`Comerciante`/`Sátrapa`/`Ilhas Piratas` terms + run `chapter_headings`. |
+| Fool's Errand (Realm, Tawny Man 1) | 4, pending | Index (`61` terms, `issues: []`) | English capitalized terms/titles updated 2026-11-15. Run post-pass (roman numerals, `fools-errand.yaml`) after completion. |
+| The Mad Ship, Ship of Destiny | 3, 1, pending | Index (`78` / `79` terms, `issues: []`) | Updated 2026-11-15 (`Liveships`, `Trader(s)`, `Pirate Isles`, `Satrap Cosgo`, etc. kept in EN); run `chapter_headings` post-pass. |
+| The Golden Fool, Fool's Fate | 6, 5, pending | Index (`58` / `61` terms, `issues: []`) | Updated 2026-11-15 (`Old Blood`, `Piebalds`, `Catalyst`, `White Prophet`, titles kept in EN). |
+| Fool's Assassin, Fool's Quest, Assassin's Fate | 16, 17, 18, pending | Index (`74` terms, `issues: []`) | Updated 2026-11-15 with cross-subseries EN `keep` terms; style stays provisional. |
+| The Rain Wild Chronicles | 33, pending | Index (`93` terms, `issues: []`, 672,555 words, priority 13) | Updated 2026-11-15 (`Liveships`, `Traders`, `Pirate Isles`, `Captain Leftrin` kept in EN). Omnibus of 4 books. |
+| Farseer trilogy (Assassin's Apprentice, Royal Assassin, Assassin's Quest) | not queued | — | In the library; the owner decided not to queue it (2026-11-14). Official Farseer core terms stay in `realm-of-the-elderlings/glossary.yaml`. |
+| Malazan | not queued (Gardens of the Moon, 19, is `pending` at priority 12 with no model) | — | Zero glossary terms; inherits global `proper_nouns` style rule (`1` rule). Needs a glossary build before running. |
 
 ## Procedures
 
@@ -228,9 +384,12 @@ documents). Do not re-run it on finals; see
    (a container restart already kills the job with exit 137). Monitoring is enough for now.
 8. **Queue UI reads across the bind mount (design §9): deferred.** No user-visible failure
    recorded; it is an architecture change.
-9. **Disquiet Gods description (4,405 characters): stays in English.** It is the publisher's
-   back-cover copy, and the pipeline's 4,000-character limit is a product choice, not a bug.
-   Translating it in parts with the local model is possible but untested; decide later.
+9. **Resolved 2026-11-15 (Disquiet Gods description).** Supplied a curated PT-BR
+   back-cover synopsis for *Disquiet Gods* in `src/literary/metadata.py` (`_CURATED_DESCRIPTIONS_PTBR`),
+   matching `sun-eater/worldbuilding.yaml` terminology (`os Quietos`, `Vigilantes`,
+   `Imperador Sollano`, `cielcin pálidos`, `HAPSIS`, `Jadd`, `Cassandra`), and embedded it
+   into `Disquiet Gods (pt-BR).refined.epub` and `translated_files/kindle/`. The
+   pipeline's 4,000-character translation limit remains unchanged for new translations.
 10. **Malazan glossary: not queued.** Building it means deciding pt-BR policy for hundreds of
     invented names; it needs the owner's naming decisions first.
 11. **24 h destructive test: blocked** until the queue is idle and the dedicated app is up.
