@@ -15,6 +15,7 @@ from html.parser import HTMLParser
 from typing import Any, Dict, Iterable, List, Optional, Tuple
 from urllib.parse import unquote, urlsplit
 from xml.etree import ElementTree as ET
+from xml.sax.saxutils import escape as _xml_escape
 
 from .models import Severity, ValidationIssue
 
@@ -565,6 +566,23 @@ def _set_translator(
 
 
 
+_NCX_DOC_TITLE_RE = re.compile(
+    r"(<(?:\w+:)?docTitle\b[^>]*>\s*<(?:\w+:)?text\b[^>]*>)(.*?)(</(?:\w+:)?text>\s*</(?:\w+:)?docTitle>)",
+    re.S,
+)
+
+
+def _update_ncx_doc_title(raw_bytes: bytes, title: str) -> bytes:
+    """Update ``<docTitle><text>`` in an NCX document while preserving its preamble."""
+    text = raw_bytes.decode("utf-8", "replace")
+    updated, count = _NCX_DOC_TITLE_RE.subn(
+        lambda match: match.group(1) + _xml_escape(title, {"\r": "&#13;"}) + match.group(3),
+        text,
+        count=1,
+    )
+    return updated.encode("utf-8") if count else raw_bytes
+
+
 def update_opf_metadata(
     source_path: str,
     output_path: str,
@@ -589,74 +607,75 @@ def update_opf_metadata(
     out_dir = os.path.dirname(output_path) or "."
     os.makedirs(out_dir, exist_ok=True)
 
-    with zipfile.ZipFile(source_path, "r") as zin:
-        opf_path = _read_container(zin)
-        opf_dir = posixpath.dirname(opf_path)
-        opf = _read_opf(zin, opf_path)
-        metadata = None
-        for child in opf:
-            if _local_name(child.tag) == "metadata":
-                metadata = child
-                break
-        if metadata is None:
-            metadata = ET.SubElement(opf, f"{{{OPF_NS}}}metadata")
-        epub2 = str(opf.attrib.get("version", "2.0")).strip().startswith("2")
-        if title is not None:
-            _set_dc_text(metadata, "title", title)
-        if language is not None:
-            _set_dc_text(metadata, "language", language)
-        if identifier is not None:
-            _set_dc_text(metadata, "identifier", identifier)
-        if description is not None:
-            _set_dc_text(metadata, "description", description)
-        if subjects:
-            _set_subjects(metadata, subjects)
-        if translator:
-            _set_translator(metadata, translator, epub2=epub2)
-        if title_sort:
-            _set_meta(metadata, name="calibre:title_sort", value=title_sort)
-        if author_sort:
-            _set_meta(metadata, name="calibre:author_sort", value=author_sort)
-        if series is not None:
-            if not epub2:
-                _set_meta(
-                    metadata,
-                    property_name="belongs-to-collection",
-                    value=series,
-                    element_id="tbl-series",
-                )
-                _set_meta(
-                    metadata,
-                    property_name="collection-type",
-                    value="series",
-                    refines="#tbl-series",
-                )
-            _set_meta(metadata, name="calibre:series", value=series)
-        if series_index is not None:
-            value = f"{series_index:g}"
-            if not epub2:
-                _set_meta(
-                    metadata,
-                    property_name="group-position",
-                    value=value,
-                    refines="#tbl-series",
-                )
-            _set_meta(metadata, name="calibre:series_index", value=value)
+    fd, temp_path = tempfile.mkstemp(prefix=".epub-meta-", suffix=".epub", dir=out_dir)
+    os.close(fd)
+    try:
+        with zipfile.ZipFile(source_path, "r") as zin:
+            opf_path = _read_container(zin)
+            opf = _read_opf(zin, opf_path)
+            metadata = None
+            for child in opf:
+                if _local_name(child.tag) == "metadata":
+                    metadata = child
+                    break
+            if metadata is None:
+                metadata = ET.SubElement(opf, f"{{{OPF_NS}}}metadata")
+            epub2 = str(opf.attrib.get("version", "2.0")).strip().startswith("2")
+            if title is not None:
+                _set_dc_text(metadata, "title", title)
+            if language is not None:
+                _set_dc_text(metadata, "language", language)
+            if identifier is not None:
+                _set_dc_text(metadata, "identifier", identifier)
+            if description is not None:
+                _set_dc_text(metadata, "description", description)
+            if subjects:
+                _set_subjects(metadata, subjects)
+            if translator:
+                _set_translator(metadata, translator, epub2=epub2)
+            if title_sort:
+                _set_meta(metadata, name="calibre:title_sort", value=title_sort)
+            if author_sort:
+                _set_meta(metadata, name="calibre:author_sort", value=author_sort)
+            if series is not None:
+                if not epub2:
+                    _set_meta(
+                        metadata,
+                        property_name="belongs-to-collection",
+                        value=series,
+                        element_id="tbl-series",
+                    )
+                    _set_meta(
+                        metadata,
+                        property_name="collection-type",
+                        value="series",
+                        refines="#tbl-series",
+                    )
+                _set_meta(metadata, name="calibre:series", value=series)
+            if series_index is not None:
+                value = f"{series_index:g}"
+                if not epub2:
+                    _set_meta(
+                        metadata,
+                        property_name="group-position",
+                        value=value,
+                        refines="#tbl-series",
+                    )
+                _set_meta(metadata, name="calibre:series_index", value=value)
 
-        new_opf = ET.tostring(opf, encoding="utf-8", xml_declaration=True)
+            new_opf = ET.tostring(opf, encoding="utf-8", xml_declaration=True)
 
-        fd, temp_path = tempfile.mkstemp(prefix=".epub-meta-", suffix=".epub", dir=out_dir)
-        os.close(fd)
-        try:
             with zipfile.ZipFile(temp_path, "w") as zout:
                 for info in zin.infolist():
                     data = zin.read(info.filename)
                     if info.filename == opf_path:
                         data = new_opf
+                    elif title is not None and info.filename.lower().endswith(".ncx"):
+                        data = _update_ncx_doc_title(data, title)
                     zout.writestr(info, data)
-            os.replace(temp_path, output_path)
-        except Exception:
-            if os.path.exists(temp_path):
-                os.unlink(temp_path)
-            raise
+        os.replace(temp_path, output_path)
+    except Exception:
+        if os.path.exists(temp_path):
+            os.unlink(temp_path)
+        raise
     return output_path

@@ -38,17 +38,20 @@ try:
     load_dotenv(Path(__file__).resolve().parents[2] / ".env")
 except Exception:
     pass
-from .reading_repair import repair_reading_epub
-from .epub import update_opf_metadata
+from .metadata import infer_calibre_library, standardize_book_opf
 from .progressive_repair import repair_progressive_in_epub
-from .repair import repair_doc_roles_in_epub, repair_dropcaps_in_epub, repair_invalid_ids_in_epub
+from .reading_repair import repair_reading_epub
+from .repair import (
+    repair_doc_roles_in_epub,
+    repair_dropcaps_in_epub,
+    repair_invalid_ids_in_epub,
+)
 from .resources import (
     write_glossary_json,
     write_style_preset,
 )
 from .run_plan import build_run_plan, compile_book_resources, infer_scopes
 from .validation import validate_epub_pair
-
 
 ROOT = Path(__file__).resolve().parents[2]
 QUEUE_DB = ROOT / "data" / "literary_queue.db"
@@ -977,45 +980,48 @@ def run_queue_book(
                 reader_temp.unlink()
 
     series_report = None
-    if book.series:
-        series_source = refined_host if refined_host.exists() else v2_host
-        series_temp = OUTPUT_DIR / f".{output_host.stem}.series.tmp.epub"
-        log(book.title, f"writing series metadata: {book.series} #{book.series_index}")
+    metadata_source = refined_host if refined_host.exists() else v2_host
+    if metadata_source.exists():
+        metadata_temp = OUTPUT_DIR / f".{output_host.stem}.metadata.tmp.epub"
+        log(book.title, "standardizing OPF metadata, tags and series")
         try:
-            update_opf_metadata(
-                str(series_source),
-                str(series_temp),
-                series=book.series,
-                series_index=book.series_index,
+            calibre_library = infer_calibre_library(str(host_source(book)))
+            meta_info = standardize_book_opf(
+                book,
+                str(metadata_source),
+                str(metadata_temp),
+                calibre_library=calibre_library,
             )
-            series_validation = validate_epub_pair(
-                str(host_source(book)), str(series_temp), expected_language="pt-BR"
+            metadata_validation = validate_epub_pair(
+                str(host_source(book)), str(metadata_temp), expected_language="pt-BR"
             )
-            series_epubcheck = _epubcheck(series_temp)
-            if bool(series_validation.get("passed")) and series_epubcheck.get("errors") == 0:
-                os.replace(series_temp, refined_host)
-                validation = series_validation
-                epubcheck = series_epubcheck
+            metadata_epubcheck = _epubcheck(metadata_temp)
+            if bool(metadata_validation.get("passed")) and metadata_epubcheck.get("errors") == 0:
+                os.replace(metadata_temp, refined_host)
+                validation = metadata_validation
+                epubcheck = metadata_epubcheck
                 series_report = {
                     "applied": True,
-                    "series": book.series,
-                    "series_index": book.series_index,
+                    "title": meta_info.get("title"),
+                    "series": meta_info.get("series"),
+                    "series_index": meta_info.get("series_index"),
+                    "subjects": meta_info.get("subjects"),
                     "final": str(refined_host),
                 }
-                log(book.title, "series metadata accepted")
+                log(book.title, "standardized metadata accepted")
             else:
                 series_report = {
                     "applied": False,
-                    "reason": "series metadata validation failed",
+                    "reason": "metadata validation failed",
                 }
-                log(book.title, "series metadata rejected: validation gate failed")
-                if series_temp.exists():
-                    series_temp.unlink()
+                log(book.title, "standardized metadata rejected: validation gate failed")
+                if metadata_temp.exists():
+                    metadata_temp.unlink()
         except Exception as exc:
             series_report = {"applied": False, "error": str(exc)}
-            log(book.title, f"series metadata failed; keeping the previous artifact: {exc}")
-            if series_temp.exists():
-                series_temp.unlink()
+            log(book.title, f"metadata standardization failed; keeping the previous artifact: {exc}")
+            if metadata_temp.exists():
+                metadata_temp.unlink()
 
     store = QueueStore(db_path)
     gate_ok = bool(validation.get("passed")) and epubcheck.get("errors") == 0

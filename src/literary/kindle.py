@@ -15,9 +15,9 @@ import re
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-from .epub import read_epub, update_opf_metadata
+from .metadata import standardize_book_opf
+from .metadata import tags_for as _standard_tags_for
 from .queue import QueueStore
-from ..config import GENERATOR_NAME
 
 
 def _safe(value: str) -> str:
@@ -42,21 +42,17 @@ def index_label(series_index: Optional[float]) -> str:
     return f"{whole.zfill(2)}.{fraction}"
 
 
-def tags_for(book: Any) -> List[str]:
-    author = str(getattr(book, "author", "") or "").casefold()
-    series = str(getattr(book, "series", "") or "")
-    tags = ["Brazilian Portuguese", "Machine Translation"]
-    if "hobb" in author:
-        tags.extend(["Fantasy", "Epic Fantasy"])
-    elif "ruocchio" in author:
-        tags.extend(["Science Fiction", "Space Opera"])
-    elif "mcmurtry" in author:
-        tags.extend(["Western", "Literary Fiction"])
-    else:
-        tags.append("Literary Fiction")
-    if series:
-        tags.append(series)
-    return list(dict.fromkeys(tags))
+def tags_for(
+    book: Any,
+    *,
+    calibre_library: str = "",
+    include_scriptorium: bool = True,
+) -> List[str]:
+    return _standard_tags_for(
+        book,
+        calibre_library=calibre_library,
+        include_scriptorium=include_scriptorium,
+    )
 
 
 def _artifact_rank(filename: str, title: str) -> int:
@@ -87,11 +83,7 @@ def best_artifact(outputs_dir: Path, title: str) -> Optional[Path]:
     return max(candidates, key=lambda item: (item[0], item[1].stat().st_mtime))[1]
 
 
-def _description(title: str) -> str:
-    return (
-        f"Edição em português brasileiro de {title}. "
-        "Tradução assistida por IA; revisão editorial recomendada."
-    )
+
 
 
 def build_kindle_library(
@@ -99,6 +91,8 @@ def build_kindle_library(
     db_path: str = "data/literary_queue.db",
     outputs_dir: str = "translated_files",
     output_root: str = "translated_files/kindle",
+    calibre_library: str = "",
+    include_scriptorium: bool = True,
     include_needs_review: bool = False,
 ) -> Dict[str, Any]:
     outputs = Path(outputs_dir)
@@ -124,8 +118,6 @@ def build_kindle_library(
         if not getattr(book, "reviewed_at", ""):
             skipped.append({"title": book.title, "reason": "not reviewed"})
             continue
-        info = read_epub(str(artifact), include_text=False)
-        translated_title = info.title or book.title
         author = book.author or "Unknown"
         series = book.series or "Standalone"
         destination = (
@@ -134,19 +126,14 @@ def build_kindle_library(
             / _safe(series)
             / f"{index_label(book.series_index)} - {_safe(book.title)} (pt-BR).epub"
         )
-        update_opf_metadata(
+        meta = standardize_book_opf(
+            book,
             str(artifact),
             str(destination),
-            title=translated_title,
-            language="pt-BR",
-            series=series if book.series else None,
-            series_index=book.series_index if book.series else None,
-            subjects=tags_for(book),
-            description=_description(book.title),
-            translator=GENERATOR_NAME,
-            title_sort=translated_title,
-            author_sort=author_sort(author),
+            calibre_library=calibre_library,
+            include_scriptorium=include_scriptorium,
         )
+        translated_title = meta["title"]
         manifest.append(
             {
                 "book_id": book.id,

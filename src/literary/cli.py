@@ -20,12 +20,19 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 from .calibre import CalibreLibrary
-from .cost import SCENARIOS, estimate_book, estimate_scenario, estimate_series, get_pricing
-from .epub import read_epub, update_opf_metadata, validate_epub_structure
+from .continuity import ContinuityTracker
+from .cost import (
+    SCENARIOS,
+    estimate_book,
+    estimate_scenario,
+    estimate_series,
+    get_pricing,
+)
+from .epub import update_opf_metadata, validate_epub_structure
 from .models import BookRecord, Severity
 from .queue import QueueStore
 from .queue_control import honor_pause, pause_requested, set_pause, set_pause_now
-from .status import build_queue_status, format_queue_status
+from .refine_epub import refine_epub
 from .refine_runner import (
     find_flagged_segments,
     generate_ollama,
@@ -34,8 +41,6 @@ from .refine_runner import (
     split_segments,
 )
 from .repair import repair_dropcaps_in_epub
-from .continuity import ContinuityTracker
-from .refine_epub import refine_epub
 from .resources import (
     assemble_style,
     compile_for_book,
@@ -45,6 +50,7 @@ from .resources import (
     write_glossary_json,
     write_style_preset,
 )
+from .status import build_queue_status, format_queue_status
 from .validation import summarize_issues, validate_epub_pair, validate_pair
 
 
@@ -407,6 +413,8 @@ def cmd_queue_export_kindle(args: argparse.Namespace) -> int:
             db_path=args.db,
             outputs_dir=args.outputs,
             output_root=args.out,
+            calibre_library=args.calibre_library,
+            include_scriptorium=not args.no_scriptorium_tag,
             include_needs_review=args.include_needs_review,
         )
     except Exception as exc:
@@ -975,6 +983,23 @@ def cmd_metadata_apply(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_metadata_standardize(args: argparse.Namespace) -> int:
+    from .metadata import standardize_completed_outputs
+
+    result = standardize_completed_outputs(
+        db_path=args.db,
+        outputs_dir=args.outputs,
+        kindle_out="" if args.no_kindle else args.kindle_out,
+        calibre_library=args.calibre_library,
+        include_needs_review=args.include_needs_review,
+        include_scriptorium=not args.no_scriptorium_tag,
+        run_epubcheck=not args.no_epubcheck,
+        book_id=args.book_id,
+    )
+    _print_json(result)
+    return 1 if result.get("failed") else 0
+
+
 def cmd_pricing(args: argparse.Namespace) -> int:
     pricing = get_pricing(args.provider, args.model)
     _print_json(
@@ -1087,6 +1112,8 @@ def build_parser() -> argparse.ArgumentParser:
     export_parser.add_argument("--db", default="data/literary_queue.db")
     export_parser.add_argument("--outputs", default="translated_files")
     export_parser.add_argument("--out", default="translated_files/kindle")
+    export_parser.add_argument("--calibre-library", default="")
+    export_parser.add_argument("--no-scriptorium-tag", action="store_true")
     export_parser.add_argument("--include-needs-review", action="store_true")
     export_parser.add_argument("--completed-only", action="store_true", help=argparse.SUPPRESS)
     export_parser.set_defaults(func=cmd_queue_export_kindle)
@@ -1331,6 +1358,20 @@ def build_parser() -> argparse.ArgumentParser:
     apply_parser.add_argument("--series")
     apply_parser.add_argument("--series-index", type=float)
     apply_parser.set_defaults(func=cmd_metadata_apply)
+    standardize_parser = metadata_sub.add_parser(
+        "standardize",
+        help="Standardize OPF metadata, tags, categories and synopses on finished EPUBs",
+    )
+    standardize_parser.add_argument("--db", default="data/literary_queue.db")
+    standardize_parser.add_argument("--outputs", default="translated_files")
+    standardize_parser.add_argument("--kindle-out", default="translated_files/kindle")
+    standardize_parser.add_argument("--no-kindle", action="store_true")
+    standardize_parser.add_argument("--calibre-library", default="")
+    standardize_parser.add_argument("--book-id", type=int, default=0)
+    standardize_parser.add_argument("--include-needs-review", action="store_true")
+    standardize_parser.add_argument("--no-scriptorium-tag", action="store_true")
+    standardize_parser.add_argument("--no-epubcheck", action="store_true")
+    standardize_parser.set_defaults(func=cmd_metadata_standardize)
 
     pricing = sub.add_parser("pricing", help="Show the recorded price for a model")
     pricing.add_argument("--provider", required=True)

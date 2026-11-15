@@ -25,16 +25,26 @@ def test_series_labels_and_sorting():
     assert author_sort("Robin Hobb") == "Hobb, Robin"
 
 
-def test_tags_include_series_and_language():
+def test_tags_include_calibre_categories_and_language():
     hobb = tags_for(SimpleNamespace(author="Robin Hobb", series="The Liveship Traders"))
+    assert "Realm of the Elderlings" in hobb
     assert "Fantasy" in hobb
-    assert "The Liveship Traders" in hobb
-    assert "Brazilian Portuguese" in hobb
-    assert "Machine Translation" in hobb
+    assert "Epic Fantasy" in hobb
+    assert "High Fantasy" in hobb
+    assert "PT-BR" in hobb
+    assert "Scriptorium" in hobb
+    assert "The Liveship Traders" not in hobb
+    assert "Brazilian Portuguese" not in hobb
+    assert "Machine Translation" not in hobb
 
     ruocchio = tags_for(SimpleNamespace(author="Christopher Ruocchio", series="The Sun Eater"))
+    assert "Fiction" in ruocchio
+    assert "Speculative Fiction" in ruocchio
     assert "Science Fiction" in ruocchio
     assert "Space Opera" in ruocchio
+    assert "Science Fantasy" in ruocchio
+    assert "PT-BR" in ruocchio
+    assert "Scriptorium" in ruocchio
 
 
 def test_build_kindle_library_copies_and_standardizes(tmp_path: Path):
@@ -78,9 +88,10 @@ def test_build_kindle_library_copies_and_standardizes(tmp_path: Path):
     assert 'name="calibre:series"' in opf
     assert "Test Series" in opf
     assert "Science Fiction" not in opf
-    assert "Brazilian Portuguese" in opf
-    assert "Machine Translation" in opf
+    assert "PT-BR" in opf
     assert "Scriptorium" in opf
+    assert "Brazilian Portuguese" not in opf
+    assert "Machine Translation" not in opf
     assert (root / "manifest.csv").exists()
     assert (root / "README.md").exists()
 
