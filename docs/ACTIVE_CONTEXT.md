@@ -1,13 +1,17 @@
 # Active context
 
 Handoff between sessions. Read this first; update it before you stop. It must
-describe the real repository, not a plan. Status as of 2026-11-15 (early
+describe the real repository, not a plan. Status as of 2026-11-15 (late
 morning local): revalidate with `git status` and `git log` before acting. Older
 handoffs are in git history (this file was compacted on 2026-11-12).
 
 ## Now
 
-- **Web UI/UX & Queue Review Drawer polish (2026-11-15; no GPU/cloud/Docker restart):**
+- **Compact Web UI density for 100% zoom (`b818319`, 2026-11-15; no Docker restart):**
+  - Widened `.container` (`1200px` -> `1440px`) and compacted shell typography/padding across `src/web/static/scss/_literary-theme.scss`, `_ui-polish.scss`, and `_queue.scss` (`body` `13px`, tighter `.header` / `#topTabNav` / `.card-header` / `.card-body`, `--ui-control-h: 32px` inside `@layer compact-ui`, smaller Translate upload zones, denser Queue summary strip/filters/table rows/action buttons, and slimmer `--q-*` tokens + Review drawer padding) so 100% browser zoom matches ~75% zoom density without unnecessary vertical scrolling.
+  - Bumped stylesheet cache-buster in `src/web/templates/translation_interface.html` (`app.css?v=20261115-compact`) and rebuilt `src/web/static/css/app.css`. Verified `npm run build:css`, `npm run typecheck`, `npm run test:js` (`7/7`), and `pytest -q tests/test_frontend_i18n.py tests/unit/test_literary_queue_routes.py` (`54 passed`). Static CSS changes are served immediately from disk without restarting `translatebook-literary-dev`.
+
+- **Web UI/UX & Queue Review Drawer polish (`549516c` / `78ab97d`, 2026-11-15; no GPU/cloud/Docker restart):**
   - **SCSS & theme token cleanup:** Removed orphaned `.header .logo-text` rules from `src/web/static/scss/_style.scss` and `src/web/static/scss/_literary-theme.scss`, wired `.header .logo-wordmark` into the Zilla Slab display scale, replaced undefined CSS variables (`--bg-light`, `--border-color`, `--primary`, `--text-light`) in `_style.scss` and `translation_interface.html`, fixed the conflicting `.btn-primary` rule in `_ui-polish.scss`, and aligned `html.dark { --primary-light: #2563eb; }` in `_literary-theme.scss`.
   - **De-inlined status panels & badges:** Removed hardcoded light-mode hex colors, pastel gradients, and `1.5rem`/pill radii from `#openrouterCostGrid`, `#ttsProgressSection`/`#ttsProgressBar`, `#apiEndpointBadge`, `#openaiEndpointBadge`, `#thinkingModelWarning`, `#notifyStatusBadge`, and `#glossaryEditorDeleteBtn` in `src/web/templates/translation_interface.html` (and `ttsProgressBar` error color in `src/web/static/js/index.js`), moving them to token-backed SCSS classes in `_literary-theme.scss` and bumping the CSS cache-buster (`app.css?v=20261115-ui-ux`). Rebuilt `src/web/static/css/app.css`.
   - **Actionable 2-minute Queue Review Drawer:** Extended `src/literary/queue_insights.py` (`_compiled_forbidden_forms`, `forbidden_form_hits`, `pt_pt_blocking`, `pt_pt_total`, `review_samples` per spine doc), removed duplicate local `escapeHtml` in `src/web/static/js/queue/queue-manager.js`, added a localized 5-check **Review checklist** plus flagged occurrence samples in `#queueQualityDrawer` (`_queue.scss`, `locales/{pt-BR,en}/queue.json`), and added coverage in `tests/literary/test_queue_insights.py`.
