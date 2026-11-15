@@ -23,7 +23,7 @@ import re
 import unicodedata
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Dict, Iterable, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 import yaml
 
@@ -472,18 +472,19 @@ def write_glossary_json(compiled: CompiledResources, output_path: str, name: str
     entries = []
     for term in compiled.glossary.terms:
         for target, forms in _target_groups(term):
-            entries.append(
-                {
-                    "source": "|".join(forms),
-                    "target": target,
-                    "category": term.category,
-                    "gender": term.gender,
-                    "forbidden": term.forbidden,
-                    "policy": term.policy,
-                    "confidence": term.confidence,
-                    "source_reference": term.source_reference,
-                }
-            )
+            entry: Dict[str, Any] = {
+                "source": "|".join(forms),
+                "target": target,
+                "category": term.category,
+                "gender": term.gender,
+                "forbidden": term.forbidden,
+                "policy": term.policy,
+                "confidence": term.confidence,
+                "source_reference": term.source_reference,
+            }
+            if term.accepted_targets:
+                entry["accepted_targets"] = term.accepted_targets
+            entries.append(entry)
     payload = {
         "name": name or (compiled.series.name if compiled.series else "literary"),
         "source_language": compiled.glossary.source_language,

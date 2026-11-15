@@ -222,3 +222,281 @@ terms:
     confidence: provisional
     first_appearance: lonesome-dove
     approved: false
+  - source: "July Johnson"
+    target: "July Johnson"
+    category: character
+    policy: keep
+    aliases: ["July"]
+    alias_targets: {"July": "July"}
+    accepted_targets:
+      July: [julho]
+    gender: male
+    notes: "Added 2026-11-14 from the owner unreviewed PT draft (Calibre ID 405) where it has a rendering; provisional, not approved."
+    source_reference: "User's unreviewed PT-BR draft, Calibre ID 405"
+    confidence: provisional
+    first_appearance: lonesome-dove
+    approved: false
+  - source: "Clara Allen"
+    target: "Clara Allen"
+    category: character
+    policy: keep
+    aliases: ["Clara"]
+    alias_targets: {"Clara": "Clara"}
+    gender: female
+    notes: "Added 2026-11-14 from the owner unreviewed PT draft (Calibre ID 405) where it has a rendering; provisional, not approved."
+    source_reference: "User's unreviewed PT-BR draft, Calibre ID 405"
+    confidence: provisional
+    first_appearance: lonesome-dove
+    approved: false
+  - source: "Roscoe Brown"
+    target: "Roscoe Brown"
+    category: character
+    policy: keep
+    aliases: ["Roscoe"]
+    alias_targets: {"Roscoe": "Roscoe"}
+    gender: male
+    notes: "Added 2026-11-14 from the owner unreviewed PT draft (Calibre ID 405) where it has a rendering; provisional, not approved."
+    source_reference: "User's unreviewed PT-BR draft, Calibre ID 405"
+    confidence: provisional
+    first_appearance: lonesome-dove
+    approved: false
+  - source: "Elmira"
+    target: "Elmira"
+    category: character
+    policy: keep
+    aliases: []
+    gender: female
+    notes: "Added 2026-11-14 from the owner unreviewed PT draft (Calibre ID 405) where it has a rendering; provisional, not approved."
+    source_reference: "User's unreviewed PT-BR draft, Calibre ID 405"
+    confidence: provisional
+    first_appearance: lonesome-dove
+    approved: false
+  - source: "Jasper Fant"
+    target: "Jasper Fant"
+    category: character
+    policy: keep
+    aliases: ["Jasper"]
+    alias_targets: {"Jasper": "Jasper"}
+    gender: male
+    notes: "Added 2026-11-14 from the owner unreviewed PT draft (Calibre ID 405) where it has a rendering; provisional, not approved."
+    source_reference: "User's unreviewed PT-BR draft, Calibre ID 405"
+    confidence: provisional
+    first_appearance: lonesome-dove
+    approved: false
+  - source: "Lorie"
+    target: "Lorie"
+    category: character
+    policy: keep
+    aliases: []
+    gender: female
+    notes: "Added 2026-11-14 from the owner unreviewed PT draft (Calibre ID 405) where it has a rendering; provisional, not approved."
+    source_reference: "User's unreviewed PT-BR draft, Calibre ID 405"
+    confidence: provisional
+    first_appearance: lonesome-dove
+    approved: false
+  - source: "Zwey"
+    target: "Zwey"
+    category: character
+    policy: keep
+    aliases: ["Big Zwey"]
+    alias_targets: {"Big Zwey": "Big Zwey"}
+    gender: male
+    notes: "Added 2026-11-14 from the owner unreviewed PT draft (Calibre ID 405) where it has a rendering; provisional, not approved."
+    source_reference: "User's unreviewed PT-BR draft, Calibre ID 405"
+    confidence: provisional
+    first_appearance: lonesome-dove
+    approved: false
+  - source: "Suggs"
+    target: "Suggs"
+    category: organization
+    policy: keep
+    aliases: []
+    notes: "Added 2026-11-14 from the owner unreviewed PT draft (Calibre ID 405) where it has a rendering; provisional, not approved."
+    source_reference: "User's unreviewed PT-BR draft, Calibre ID 405"
+    confidence: provisional
+    first_appearance: lonesome-dove
+    approved: false
+  - source: "Dee Boot"
+    target: "Dee Boot"
+    category: character
+    policy: keep
+    aliases: ["Dee"]
+    alias_targets: {"Dee": "Dee"}
+    gender: male
+    notes: "Added 2026-11-14 from the owner unreviewed PT draft (Calibre ID 405) where it has a rendering; provisional, not approved."
+    source_reference: "User's unreviewed PT-BR draft, Calibre ID 405"
+    confidence: provisional
+    first_appearance: lonesome-dove
+    approved: false
+  - source: "Luke"
+    target: "Luke"
+    category: character
+    policy: keep
+    aliases: []
+    gender: male
+    notes: "Added 2026-11-14 from the owner unreviewed PT draft (Calibre ID 405) where it has a rendering; provisional, not approved."
+    source_reference: "User's unreviewed PT-BR draft, Calibre ID 405"
+    confidence: provisional
+    first_appearance: lonesome-dove
+    approved: false
+  - source: "Ellie"
+    target: "Ellie"
+    category: character
+    policy: keep
+    aliases: []
+    gender: female
+    notes: "Added 2026-11-14 from the owner unreviewed PT draft (Calibre ID 405) where it has a rendering; provisional, not approved."
+    source_reference: "User's unreviewed PT-BR draft, Calibre ID 405"
+    confidence: provisional
+    first_appearance: lonesome-dove
+    approved: false
+  - source: "Peach"
+    target: "Peach"
+    category: character
+    policy: keep
+    aliases: []
+    gender: female
+    notes: "Added 2026-11-14 from the owner unreviewed PT draft (Calibre ID 405) where it has a rendering; provisional, not approved."
+    source_reference: "User's unreviewed PT-BR draft, Calibre ID 405"
+    confidence: provisional
+    first_appearance: lonesome-dove
+    approved: false
+  - source: "Soupy Jones"
+    target: "Soupy Jones"
+    category: character
+    policy: keep
+    aliases: ["Soupy"]
+    alias_targets: {"Soupy": "Soupy"}
+    gender: male
+    notes: "Added 2026-11-14 from the owner unreviewed PT draft (Calibre ID 405) where it has a rendering; provisional, not approved."
+    source_reference: "User's unreviewed PT-BR draft, Calibre ID 405"
+    confidence: provisional
+    first_appearance: lonesome-dove
+    approved: false
+  - source: "Needle Nelson"
+    target: "Needle Nelson"
+    category: character
+    policy: keep
+    aliases: ["Needle"]
+    alias_targets: {"Needle": "Needle"}
+    accepted_targets:
+      Needle: [agulha, agulhas]
+    gender: male
+    notes: "Added 2026-11-14 from the owner unreviewed PT draft (Calibre ID 405) where it has a rendering; provisional, not approved."
+    source_reference: "User's unreviewed PT-BR draft, Calibre ID 405"
+    confidence: provisional
+    first_appearance: lonesome-dove
+    approved: false
+  - source: "Xavier Wanz"
+    target: "Xavier Wanz"
+    category: character
+    policy: keep
+    aliases: ["Xavier"]
+    alias_targets: {"Xavier": "Xavier"}
+    gender: male
+    notes: "Added 2026-11-14 from the owner unreviewed PT draft (Calibre ID 405) where it has a rendering; provisional, not approved."
+    source_reference: "User's unreviewed PT-BR draft, Calibre ID 405"
+    confidence: provisional
+    first_appearance: lonesome-dove
+    approved: false
+  - source: "Sally Skull"
+    target: "Sally Skull"
+    category: character
+    policy: keep
+    aliases: ["Sally"]
+    alias_targets: {"Sally": "Sally"}
+    gender: female
+    notes: "Added 2026-11-14 from the owner unreviewed PT draft (Calibre ID 405) where it has a rendering; provisional, not approved."
+    source_reference: "User's unreviewed PT-BR draft, Calibre ID 405"
+    confidence: provisional
+    first_appearance: lonesome-dove
+    approved: false
+  - source: "Sean"
+    target: "Sean"
+    category: character
+    policy: keep
+    aliases: []
+    gender: male
+    notes: "Added 2026-11-14 from the owner unreviewed PT draft (Calibre ID 405) where it has a rendering; provisional, not approved."
+    source_reference: "User's unreviewed PT-BR draft, Calibre ID 405"
+    confidence: provisional
+    first_appearance: lonesome-dove
+    approved: false
+  - source: "Wilbarger"
+    target: "Wilbarger"
+    category: character
+    policy: keep
+    aliases: []
+    gender: male
+    notes: "Added 2026-11-14 from the owner unreviewed PT draft (Calibre ID 405) where it has a rendering; provisional, not approved."
+    source_reference: "User's unreviewed PT-BR draft, Calibre ID 405"
+    confidence: provisional
+    first_appearance: lonesome-dove
+    approved: false
+  - source: "San Antonio"
+    target: "San Antonio"
+    category: location
+    policy: keep
+    aliases: []
+    notes: "Added 2026-11-14 from the owner unreviewed PT draft (Calibre ID 405) where it has a rendering; provisional, not approved."
+    source_reference: "User's unreviewed PT-BR draft, Calibre ID 405"
+    confidence: provisional
+    first_appearance: lonesome-dove
+    approved: false
+  - source: "San Francisco"
+    target: "San Francisco"
+    category: location
+    policy: keep
+    aliases: []
+    notes: "Added 2026-11-14 from the owner unreviewed PT draft (Calibre ID 405) where it has a rendering; provisional, not approved."
+    source_reference: "User's unreviewed PT-BR draft, Calibre ID 405"
+    confidence: provisional
+    first_appearance: lonesome-dove
+    approved: false
+  - source: "Indian"
+    target: "índio"
+    category: other
+    policy: translate
+    aliases: ["Indians"]
+    alias_targets: {"Indians": "índios"}
+    accepted_targets:
+      índio: [índios]
+      índios: [índio]
+    notes: "Added 2026-11-14 from the owner unreviewed PT draft (Calibre ID 405) where it has a rendering; provisional, not approved."
+    source_reference: "User's unreviewed PT-BR draft, Calibre ID 405"
+    confidence: provisional
+    first_appearance: lonesome-dove
+    approved: false
+  - source: "Texan"
+    target: "texano"
+    category: other
+    policy: translate
+    aliases: ["Texans"]
+    alias_targets: {"Texans": "texanos"}
+    notes: "Added 2026-11-14 from the owner unreviewed PT draft (Calibre ID 405) where it has a rendering; provisional, not approved."
+    source_reference: "User's unreviewed PT-BR draft, Calibre ID 405"
+    confidence: provisional
+    first_appearance: lonesome-dove
+    approved: false
+  - source: "Mexico"
+    target: "México"
+    category: location
+    policy: translate
+    aliases: ["Mexican", "Mexicans"]
+    alias_targets: {"Mexican": "mexicano", "Mexicans": "mexicanos"}
+    notes: "Added 2026-11-14 from the owner unreviewed PT draft (Calibre ID 405) where it has a rendering; provisional, not approved."
+    source_reference: "User's unreviewed PT-BR draft, Calibre ID 405"
+    confidence: provisional
+    first_appearance: lonesome-dove
+    approved: false
+  - source: "Comanche"
+    target: "Comanche"
+    category: organization
+    policy: keep
+    aliases: ["Comanches"]
+    alias_targets: {"Comanches": "Comanches"}
+    notes: "Plains tribe name; kept in both singular and plural."
+    source_reference: "Source text (Lonesome Dove)"
+    confidence: provisional
+    first_appearance: lonesome-dove
+    approved: false

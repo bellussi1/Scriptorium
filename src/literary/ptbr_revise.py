@@ -34,18 +34,19 @@ from collections import Counter
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple
 
-from .ptbr import PtBrIssue, check_text
+from .ptbr import PtBrIssue, _match_case, check_text
 from .reading_repair import _replace_text_nodes
-from .refine_epub import Paragraph, _write_epub, apply_paragraph_replacements, extract_paragraphs
+from .refine_epub import _write_epub, apply_paragraph_replacements, extract_paragraphs
 
 PT_PT_PREFIX = "ptbr.pt_"
 # One retry with the guard's reasons: a second answer often fixes the leftover form.
 MODEL_ATTEMPTS = 2
 
-# Swaps that are safe without the model: the replacement is a whole word that
-# reads the same in every person, so no verb has to change.
+# Swaps that are safe without the model: whole-word lexical swaps and unambiguous
+# second-person pronouns / future forms.
 SAFE_CODES = {
     "ptbr.pt_de_facto",
+    "ptbr.pt_quilometro",
     "ptbr.pt_contacto",
     "ptbr.pt_demonio",
     "ptbr.pt_premio",
@@ -53,6 +54,51 @@ SAFE_CODES = {
     "ptbr.pt_convosco",
     "ptbr.pt_teu",
     "ptbr.pt_tua",
+    "ptbr.pt_tu",
+    "ptbr.pt_tu_futuro",
+}
+
+_SECOND_PERSON_PRESENT = {
+    "és": "é",
+    "tens": "tem",
+    "queres": "quer",
+    "sabes": "sabe",
+    "podes": "pode",
+    "vês": "vê",
+    "dizes": "diz",
+    "fazes": "faz",
+    "dás": "dá",
+    "vens": "vem",
+    "estás": "está",
+}
+
+_SECOND_PERSON_PRETERITE_IRREGULARS = {
+    "disseste": "disse",
+    "fizeste": "fez",
+    "viste": "viu",
+    "previste": "previu",
+    "reviste": "reviu",
+    "vieste": "veio",
+    "trouxeste": "trouxe",
+    "tiveste": "teve",
+    "estiveste": "esteve",
+    "mantiveste": "manteve",
+    "detiveste": "deteve",
+    "obtiveste": "obteve",
+    "retiveste": "reteve",
+    "soubeste": "soube",
+    "foste": "foi",
+    "pudeste": "pôde",
+    "puseste": "pôs",
+    "quiseste": "quis",
+    "coubeste": "coube",
+    "houveste": "houve",
+    "cuspiaste": "cuspiu",
+    "regrescaste": "regressou",
+    "lêeste": "leu",
+    "leveste": "levou",
+    "põeste": "pôs",
+    "riste": "riu",
 }
 
 SYSTEM_PROMPT = """You are a copy editor for a Brazilian Portuguese literary translation.
@@ -82,12 +128,32 @@ def pt_pt_issues(text: str) -> List[PtBrIssue]:
     return [issue for issue in check_text(text) if issue.code.startswith(PT_PT_PREFIX)]
 
 
+def _second_person_swap(word: str, code: str) -> Optional[str]:
+    """Return the pt-BR third-person equivalent of an unambiguous 2p verb."""
+    lower = word.lower()
+    if code == "ptbr.pt_tu_presente":
+        target = _SECOND_PERSON_PRESENT.get(lower)
+        return _match_case(word, target) if target else None
+    if code != "ptbr.pt_tu_preterito":
+        return None
+    if lower in _SECOND_PERSON_PRETERITE_IRREGULARS:
+        return _match_case(word, _SECOND_PERSON_PRETERITE_IRREGULARS[lower])
+    for suffix, replacement in (("aste", "ou"), ("este", "eu"), ("iste", "iu")):
+        if lower.endswith(suffix) and len(lower) > len(suffix):
+            return _match_case(word, lower[: -len(suffix)] + replacement)
+    return None
+
+
 def safe_fixes(text: str, issues: Sequence[PtBrIssue]) -> str:
-    """Apply the word swaps in SAFE_CODES; everything else is left for the model."""
+    """Apply deterministic swaps in SAFE_CODES and unambiguous 2p verbs."""
     result = text
     for issue in sorted(issues, key=lambda item: item.start, reverse=True):
         if issue.code in SAFE_CODES and issue.suggestions:
-            result = result[: issue.start] + issue.suggestions[0] + result[issue.end :]
+            replacement = issue.suggestions[0]
+        else:
+            replacement = _second_person_swap(result[issue.start : issue.end], issue.code)
+        if replacement:
+            result = result[: issue.start] + replacement + result[issue.end :]
     return result
 
 

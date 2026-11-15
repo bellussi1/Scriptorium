@@ -155,6 +155,8 @@ _RULES: List[_Rule] = [
     # model has to conjugate the whole clause, so no single-word suggestion is
     # offered.
     _rule(r"\bde facto\b", "de fato", "ptbr.pt_de_facto", "Português europeu: use 'de fato'.", "error"),
+    _rule(r"\bquilómetro\b", "quilômetro", "ptbr.pt_quilometro", "Português europeu: use 'quilômetro'.", "error"),
+    _rule(r"\bquilómetros\b", "quilômetros", "ptbr.pt_quilometro", "Português europeu: use 'quilômetros'.", "error"),
     _rule(r"\bcontact(o|os)\b", r"contat\1", "ptbr.pt_contacto", "Português europeu: use 'contato'.", "error"),
     _rule(r"\bdemónio(s?)\b", r"demônio\1", "ptbr.pt_demonio", "Português europeu: use 'demônio'.", "error"),
     _rule(r"\bprémio(s?)\b", r"prêmio\1", "ptbr.pt_premio", "Português europeu: use 'prêmio'.", "error"),
@@ -168,15 +170,20 @@ _RULES: List[_Rule] = [
         "error",
     ),
     _rule(
-        r"\b(?!(?:este|deste|neste|oeste|leste|teste|peste|agreste|nordeste|sudeste)\b)\w+(?:aste|este|iste)\b",
+        r"\b(?!(?:este|deste|neste|oeste|leste|teste|peste|agreste|nordeste|sudeste|"
+        r"noroeste|sudoeste|centro-oeste|existe|inexiste|coexiste|consiste|insiste|"
+        r"persiste|resiste|desiste|assiste|subsiste|triste|veste|reveste|investe|"
+        r"contraste|desgaste|celeste|afaste|baste|arraste|gaste|devaste|engaste|"
+        r"cadaste|haste|trieste|reste|empreste|guindaste|registe|outcaste|conquiste|"
+        r"cipreste|arcipreste|aviste|liste)\b)\w+(?:aste|este|iste)\b",
         "",
         "ptbr.pt_tu_preterito",
         "Segunda pessoa do português europeu. Troque por 'você' e conjugue o verbo na 3.ª pessoa do pretérito.",
         "error",
     ),
     _rule(
-        r"\b\w+(?:irás|erás|arás)\b",
-        "",
+        r"\b(\w+)(ir|er|ar)ás\b",
+        r"\1\2á",
         "ptbr.pt_tu_futuro",
         "Segunda pessoa do futuro. Troque por 'você' e use o futuro na 3.ª pessoa.",
         "error",

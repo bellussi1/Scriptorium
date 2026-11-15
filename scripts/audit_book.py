@@ -272,6 +272,7 @@ def _load_glossary_snapshot(path: Path) -> List[Any]:
                 category=str(row.get("category") or "other"),
                 aliases=aliases,
                 alias_targets={alias: target for alias in aliases},
+                accepted_targets=dict(row.get("accepted_targets") or {}),
                 forbidden=list(row.get("forbidden") or []),
                 policy=str(row.get("policy") or ""),
                 confidence=str(row.get("confidence") or ""),
@@ -413,7 +414,13 @@ def _term_audit(
         targets = [target for target in targets if target]
         if targets:
             eligible += 1
-            if any(glossary_target_present(target, target_text) for target in targets):
+            accepted_map = getattr(term, "accepted_targets", {}) or {}
+            target_cf = target_text.casefold()
+            if any(glossary_target_present(target, target_text) for target in targets) or any(
+                str(variant).casefold() in target_cf
+                for target in targets
+                for variant in accepted_map.get(target, [])
+            ):
                 hits += 1
             else:
                 missing.append(
