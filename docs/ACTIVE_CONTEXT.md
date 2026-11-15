@@ -7,6 +7,11 @@ handoffs are in git history (this file was compacted on 2026-11-12).
 
 ## Now
 
+- **Web UI/UX & Queue Review Drawer polish (2026-11-15; no GPU/cloud/Docker restart):**
+  - **SCSS & theme token cleanup:** Removed orphaned `.header .logo-text` rules from `src/web/static/scss/_style.scss` and `src/web/static/scss/_literary-theme.scss`, wired `.header .logo-wordmark` into the Zilla Slab display scale, replaced undefined CSS variables (`--bg-light`, `--border-color`, `--primary`, `--text-light`) in `_style.scss` and `translation_interface.html`, fixed the conflicting `.btn-primary` rule in `_ui-polish.scss`, and aligned `html.dark { --primary-light: #2563eb; }` in `_literary-theme.scss`.
+  - **De-inlined status panels & badges:** Removed hardcoded light-mode hex colors, pastel gradients, and `1.5rem`/pill radii from `#openrouterCostGrid`, `#ttsProgressSection`/`#ttsProgressBar`, `#apiEndpointBadge`, `#openaiEndpointBadge`, `#thinkingModelWarning`, `#notifyStatusBadge`, and `#glossaryEditorDeleteBtn` in `src/web/templates/translation_interface.html` (and `ttsProgressBar` error color in `src/web/static/js/index.js`), moving them to token-backed SCSS classes in `_literary-theme.scss` and bumping the CSS cache-buster (`app.css?v=20261115-ui-ux`). Rebuilt `src/web/static/css/app.css`.
+  - **Actionable 2-minute Queue Review Drawer:** Extended `src/literary/queue_insights.py` (`_compiled_forbidden_forms`, `forbidden_form_hits`, `pt_pt_blocking`, `pt_pt_total`, `review_samples` per spine doc), removed duplicate local `escapeHtml` in `src/web/static/js/queue/queue-manager.js`, added a localized 5-check **Review checklist** plus flagged occurrence samples in `#queueQualityDrawer` (`_queue.scss`, `locales/{pt-BR,en}/queue.json`), and added coverage in `tests/literary/test_queue_insights.py`.
+
 - **Calibre-aligned OPF metadata, tags & synopses standardization (2026-11-15; no GPU/cloud calls):**
   Added `src/literary/metadata.py` (`tags_for`, `infer_calibre_library`, `standardized_title`,
   `standardized_description`, `standardize_book_opf`, `standardize_completed_outputs`) and
