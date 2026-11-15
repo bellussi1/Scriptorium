@@ -1,0 +1,378 @@
+version: 1
+scope: subseries
+source_language: en
+target_language: pt-BR
+notes: >-
+  Rain Wild Chronicles human keepers, river crew, Elderlings, dragons, and
+  supporting characters (matched against The Rain Wild Chronicles omnibus,
+  Calibre ID 331). Recurring characters preserve approved Liveship Traders forms.
+terms:
+  - source: Thymara
+    target: Thymara
+    category: character
+    policy: keep
+    gender: female
+    notes: "Dragon keeper protagonist; keep the name."
+    source_reference: "Source text (The Rain Wild Chronicles); name kept"
+    confidence: provisional
+    first_appearance: dragon-keeper
+    approved: false
+  - source: Sedric
+    target: Sedric
+    category: character
+    policy: keep
+    aliases: [Sedric Meldar]
+    alias_targets: {Sedric Meldar: Sedric Meldar}
+    gender: male
+    notes: "Hest's secretary and Relpda's keeper; keep the name."
+    source_reference: "Source text (The Rain Wild Chronicles); name kept"
+    confidence: provisional
+    first_appearance: dragon-keeper
+    approved: false
+  - source: Alise
+    target: Alise
+    category: character
+    policy: keep
+    aliases: [Alise Finbok, Alise Khuprus]
+    alias_targets: {Alise Finbok: Alise Finbok, Alise Khuprus: Alise Khuprus}
+    gender: female
+    notes: "Bingtown scholar studying Elderlings and dragons; keep the name."
+    source_reference: "Source text (The Rain Wild Chronicles); name kept"
+    confidence: provisional
+    first_appearance: dragon-keeper
+    approved: false
+  - source: Leftrin
+    target: Leftrin
+    category: character
+    policy: keep
+    aliases: [Captain Leftrin]
+    alias_targets: {Captain Leftrin: Captain Leftrin}
+    gender: male
+    notes: "Captain of the Tarman; keep both title Captain and personal name Leftrin in English."
+    source_reference: "User preference; title and personal name kept"
+    confidence: reviewed
+    first_appearance: dragon-keeper
+    approved: true
+  - source: Hest
+    target: Hest
+    category: character
+    policy: keep
+    aliases: [Hest Finbok]
+    alias_targets: {Hest Finbok: Hest Finbok}
+    gender: male
+    notes: "Bingtown Trader husband of Alise; keep the name."
+    source_reference: "Source text (The Rain Wild Chronicles); name kept"
+    confidence: provisional
+    first_appearance: dragon-keeper
+    approved: false
+  - source: Tats
+    target: Tats
+    category: character
+    policy: keep
+    gender: male
+    notes: "Dragon keeper (tattooed ex-slave) bonded to Fente; keep the name."
+    source_reference: "Source text (The Rain Wild Chronicles); name kept"
+    confidence: provisional
+    first_appearance: dragon-keeper
+    approved: false
+  - source: Rapskal
+    target: Rapskal
+    category: character
+    policy: keep
+    gender: male
+    notes: "Dragon keeper bonded to Heeby; keep the name."
+    source_reference: "Source text (The Rain Wild Chronicles); name kept"
+    confidence: provisional
+    first_appearance: dragon-keeper
+    approved: false
+  - source: Carson
+    target: Carson
+    category: character
+    policy: keep
+    gender: male
+    notes: "Senior hunter of the expedition; keep the name."
+    source_reference: "Source text (The Rain Wild Chronicles); name kept"
+    confidence: provisional
+    first_appearance: dragon-keeper
+    approved: false
+  - source: Davvie
+    target: Davvie
+    category: character
+    policy: keep
+    gender: male
+    notes: "Hunter and Carson's nephew; keep the name."
+    source_reference: "Source text (The Rain Wild Chronicles); name kept"
+    confidence: provisional
+    first_appearance: dragon-keeper
+    approved: false
+  - source: Lecter
+    target: Lecter
+    category: character
+    policy: keep
+    gender: male
+    notes: "Hunter on the expedition; keep the name."
+    source_reference: "Source text (The Rain Wild Chronicles); name kept"
+    confidence: provisional
+    first_appearance: dragon-keeper
+    approved: false
+  - source: Greft
+    target: Greft
+    category: character
+    policy: keep
+    gender: male
+    notes: "Older keeper bonded to Kalo; keep the name."
+    source_reference: "Source text (The Rain Wild Chronicles); name kept"
+    confidence: provisional
+    first_appearance: dragon-keeper
+    approved: false
+  - source: Jerd
+    target: Jerd
+    category: character
+    policy: keep
+    gender: female
+    notes: "Keeper among the group; keep the name."
+    source_reference: "Source text (The Rain Wild Chronicles); name kept"
+    confidence: provisional
+    first_appearance: dragon-keeper
+    approved: false
+  - source: Harrikin
+    target: Harrikin
+    category: character
+    policy: keep
+    gender: male
+    notes: "Keeper in Greft's circle; keep the name."
+    source_reference: "Source text (The Rain Wild Chronicles); name kept"
+    confidence: provisional
+    first_appearance: dragon-keeper
+    approved: false
+  - source: Kase
+    target: Kase
+    category: character
+    policy: keep
+    gender: male
+    notes: "Keeper; keep the name."
+    source_reference: "Source text (The Rain Wild Chronicles); name kept"
+    confidence: provisional
+    first_appearance: dragon-keeper
+    approved: false
+  - source: Boxter
+    target: Boxter
+    category: character
+    policy: keep
+    gender: male
+    notes: "Keeper; keep the name."
+    source_reference: "Source text (The Rain Wild Chronicles); name kept"
+    confidence: provisional
+    first_appearance: dragon-keeper
+    approved: false
+  - source: Nortel
+    target: Nortel
+    category: character
+    policy: keep
+    gender: male
+    notes: "Keeper; keep the name."
+    source_reference: "Source text (The Rain Wild Chronicles); name kept"
+    confidence: provisional
+    first_appearance: dragon-keeper
+    approved: false
+  - source: Sylve
+    target: Sylve
+    category: character
+    policy: keep
+    gender: female
+    notes: "Keeper bonded to Mercor; keep the name."
+    source_reference: "Source text (The Rain Wild Chronicles); name kept"
+    confidence: provisional
+    first_appearance: dragon-keeper
+    approved: false
+  - source: Bellin
+    target: Bellin
+    category: character
+    policy: keep
+    gender: female
+    notes: "Cook aboard the Tarman; keep the name."
+    source_reference: "Source text (The Rain Wild Chronicles); name kept"
+    confidence: provisional
+    first_appearance: dragon-keeper
+    approved: false
+  - source: Swarge
+    target: Swarge
+    category: character
+    policy: keep
+    gender: male
+    notes: "First mate of the Tarman; keep the name."
+    source_reference: "Source text (The Rain Wild Chronicles); name kept"
+    confidence: provisional
+    first_appearance: dragon-keeper
+    approved: false
+  - source: Tarman
+    target: Tarman
+    category: character
+    policy: keep
+    gender: male
+    notes: "Wizardwood river barge; keep the ship's name."
+    source_reference: "Source text (The Rain Wild Chronicles); name kept"
+    confidence: provisional
+    first_appearance: dragon-keeper
+    approved: false
+  - source: Tintaglia
+    target: Tintaglia
+    category: character
+    policy: keep
+    gender: female
+    notes: "Blue dragon queen; keep the name."
+    source_reference: "Source text (The Mad Ship); name kept"
+    confidence: provisional
+    first_appearance: the-mad-ship
+    approved: false
+  - source: Sintara
+    target: Sintara
+    category: character
+    policy: keep
+    gender: female
+    notes: "Blue dragon bonded to Thymara; keep the name."
+    source_reference: "Source text (The Rain Wild Chronicles); name kept"
+    confidence: provisional
+    first_appearance: dragon-keeper
+    approved: false
+  - source: Mercor
+    target: Mercor
+    category: character
+    policy: keep
+    gender: male
+    notes: "Golden dragon; keep the name."
+    source_reference: "Source text (The Rain Wild Chronicles); name kept"
+    confidence: provisional
+    first_appearance: dragon-keeper
+    approved: false
+  - source: Kalo
+    target: Kalo
+    category: character
+    policy: keep
+    gender: male
+    notes: "Black dragon; keep the name."
+    source_reference: "Source text (The Rain Wild Chronicles); name kept"
+    confidence: provisional
+    first_appearance: dragon-keeper
+    approved: false
+  - source: Heeby
+    target: Heeby
+    category: character
+    policy: keep
+    gender: female
+    notes: "Red dragon bonded to Rapskal; keep the name."
+    source_reference: "Source text (The Rain Wild Chronicles); name kept"
+    confidence: provisional
+    first_appearance: dragon-keeper
+    approved: false
+  - source: Spit
+    target: Spit
+    category: character
+    policy: keep
+    gender: male
+    notes: "Silver dragon; keep the name."
+    source_reference: "Source text (The Rain Wild Chronicles); name kept"
+    confidence: provisional
+    first_appearance: dragon-keeper
+    approved: false
+  - source: Ranculos
+    target: Ranculos
+    category: character
+    policy: keep
+    gender: male
+    notes: "Green dragon; keep the name."
+    source_reference: "Source text (The Rain Wild Chronicles); name kept"
+    confidence: provisional
+    first_appearance: dragon-keeper
+    approved: false
+  - source: Arbuc
+    target: Arbuc
+    category: character
+    policy: keep
+    gender: male
+    notes: "Red dragon; keep the name."
+    source_reference: "Source text (The Rain Wild Chronicles); name kept"
+    confidence: provisional
+    first_appearance: dragon-keeper
+    approved: false
+  - source: Fente
+    target: Fente
+    category: character
+    policy: keep
+    gender: female
+    notes: "Green dragon bonded to Tats; keep the name."
+    source_reference: "Source text (The Rain Wild Chronicles); name kept"
+    confidence: provisional
+    first_appearance: dragon-keeper
+    approved: false
+  - source: Relpda
+    target: Relpda
+    category: character
+    policy: keep
+    gender: female
+    notes: "Copper dragon bonded to Sedric; keep the name."
+    source_reference: "Source text (The Rain Wild Chronicles); name kept"
+    confidence: provisional
+    first_appearance: dragon-keeper
+    approved: false
+  - source: Sestican
+    target: Sestican
+    category: character
+    policy: keep
+    gender: male
+    notes: "Rain Wild Trader councilor; keep the name."
+    source_reference: "Source text (The Rain Wild Chronicles); name kept"
+    confidence: provisional
+    first_appearance: dragon-keeper
+    approved: false
+  - source: Dortean
+    target: Dortean
+    category: character
+    policy: keep
+    gender: male
+    notes: "River barge captain; keep the name."
+    source_reference: "Source text (The Rain Wild Chronicles); name kept"
+    confidence: provisional
+    first_appearance: dragon-keeper
+    approved: false
+  - source: Skelly
+    target: Skelly
+    category: character
+    policy: keep
+    gender: female
+    notes: "Tarman deckhand; keep the name."
+    source_reference: "Source text (The Rain Wild Chronicles); name kept"
+    confidence: provisional
+    first_appearance: dragon-keeper
+    approved: false
+  - source: Glauder
+    target: Glauder
+    category: character
+    policy: keep
+    gender: male
+    notes: "Keeper / Bingtown figure; keep the name."
+    source_reference: "Source text (The Rain Wild Chronicles); name kept"
+    confidence: provisional
+    first_appearance: dragon-keeper
+    approved: false
+  - source: Icefyre
+    target: Icefyre
+    category: character
+    policy: keep
+    gender: male
+    notes: "Black elder dragon; keep the name."
+    source_reference: "Source text (Fool's Fate); name kept"
+    confidence: provisional
+    first_appearance: fools-fate
+    approved: false
+  - source: Reyn Khuprus
+    target: Reyn Khuprus
+    category: character
+    policy: keep
+    aliases: [Reyn]
+    alias_targets: {Reyn: Reyn}
+    gender: male
+    source_reference: "Approved PT-BR translation, Ship of Magic (2026)"
+    confidence: reviewed
+    first_appearance: ship-of-magic
+    approved: true

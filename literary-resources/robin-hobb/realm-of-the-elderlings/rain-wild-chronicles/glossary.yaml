@@ -1,0 +1,207 @@
+version: 1
+scope: subseries
+source_language: en
+target_language: pt-BR
+notes: >-
+  Rain Wild Chronicles terminology. Capitalized worldbuilding names, ranks,
+  peoples/organizations, and settlements (Liveship/Liveships, Trader/Traders,
+  Old/New/Bingtown/Rain Wild Traders, Pirate Isles, Satrap, Trehaug, Cassarik,
+  Kelsingra) stay in English; lowercase demonyms and standalone common nouns
+  follow pt-BR conventions.
+terms:
+  - source: Liveship
+    target: Liveship
+    category: item
+    policy: keep
+    aliases: [Liveships]
+    alias_targets: {Liveships: Liveships}
+    notes: "Keep capitalized/proper ship-class term Liveship and Liveships in English."
+    source_reference: "User preference; English worldbuilding term kept"
+    confidence: reviewed
+    first_appearance: ship-of-magic
+    approved: true
+  - source: Trader
+    target: Trader
+    category: title
+    policy: keep
+    aliases: [Traders]
+    alias_targets: {Traders: Traders}
+    notes: >-
+      Keep Trader / Traders capitalized in English both as a title (Trader
+      Vestrit) and caste/office term; standalone lowercase merchant may be comerciante.
+    source_reference: "User preference; English title/caste term kept"
+    confidence: reviewed
+    first_appearance: ship-of-magic
+    approved: true
+  - source: Old Traders
+    target: Old Traders
+    category: organization
+    policy: keep
+    notes: "Capitalized Bingtown mercantile faction; keep in English."
+    source_reference: "User preference; English organization name kept"
+    confidence: reviewed
+    first_appearance: ship-of-magic
+    approved: true
+  - source: New Traders
+    target: New Traders
+    category: organization
+    policy: keep
+    notes: "Capitalized Bingtown mercantile faction; keep in English."
+    source_reference: "User preference; English organization name kept"
+    confidence: reviewed
+    first_appearance: ship-of-magic
+    approved: true
+  - source: Bingtown
+    target: Bingtown
+    category: location
+    policy: keep
+    source_reference: "Source text (Ship of Magic); name kept"
+    confidence: reviewed
+    first_appearance: ship-of-magic
+    approved: true
+  - source: Bingtown Traders
+    target: Bingtown Traders
+    category: organization
+    policy: keep
+    aliases: [Bingtown Trader]
+    alias_targets: {Bingtown Trader: Bingtown Trader}
+    notes: "Capitalized organization/caste name; keep in English."
+    source_reference: "User preference; English organization name kept"
+    confidence: reviewed
+    first_appearance: ship-of-magic
+    approved: true
+  - source: Jamaillia
+    target: Jamaillia
+    category: location
+    policy: keep
+    source_reference: "Approved PT-BR translation, Ship of Magic (2026)"
+    confidence: reviewed
+    first_appearance: ship-of-magic
+    approved: true
+  - source: Jamaillia City
+    target: Jamaillia City
+    category: location
+    policy: keep
+    notes: >-
+      The approved text also uses Cidade de Jamaillia when the city is referred
+      to descriptively; keep Jamaillia City for the proper name.
+    source_reference: "Approved PT-BR translation, Ship of Magic (2026)"
+    confidence: reviewed
+    first_appearance: ship-of-magic
+    approved: true
+  - source: Jamaillian
+    target: jamailliano
+    category: other
+    policy: adapt
+    aliases: [Jamaillians]
+    alias_targets: {Jamaillians: jamaillianos}
+    source_reference: "Approved PT-BR translation, Ship of Magic (2026)"
+    confidence: reviewed
+    first_appearance: ship-of-magic
+    approved: true
+  - source: Chalced
+    target: Chalced
+    category: location
+    policy: keep
+    source_reference: "Approved PT-BR translation, Ship of Magic (2026)"
+    confidence: reviewed
+    first_appearance: ship-of-magic
+    approved: true
+  - source: Chalcedean
+    target: chalcedeano
+    category: other
+    policy: adapt
+    aliases: [Chalcedeans]
+    alias_targets: {Chalcedeans: chalcedeanos}
+    notes: >-
+      The approved text uses chalcedeanos. The spelling with the extra e is the
+      canon; do not normalize it to chalcedano.
+    source_reference: "Approved PT-BR translation, Ship of Magic (2026)"
+    confidence: reviewed
+    first_appearance: ship-of-magic
+    approved: true
+  - source: Divvytown
+    target: Divvytown
+    category: location
+    policy: keep
+    source_reference: "Approved PT-BR translation, Ship of Magic (2026)"
+    confidence: reviewed
+    first_appearance: ship-of-magic
+    approved: true
+  - source: Rain Wild
+    target: Rain Wild
+    category: location
+    policy: keep
+    aliases: [Rain Wilds]
+    alias_targets: {Rain Wilds: Rain Wild}
+    source_reference: "Approved PT-BR translation, Ship of Magic (2026)"
+    confidence: reviewed
+    first_appearance: ship-of-magic
+    approved: true
+  - source: Rain Wild River
+    target: rio Rain Wild
+    category: location
+    policy: translate
+    notes: "The approved text uses rio Rain Wild."
+    source_reference: "Approved PT-BR translation, Ship of Magic (2026)"
+    confidence: reviewed
+    first_appearance: ship-of-magic
+    approved: true
+  - source: Rain Wild Traders
+    target: Rain Wild Traders
+    category: organization
+    policy: keep
+    aliases: [Rain Wild Trader]
+    alias_targets: {Rain Wild Trader: Rain Wild Trader}
+    notes: "Capitalized organization/caste name; keep in English."
+    source_reference: "User preference; English organization name kept"
+    confidence: reviewed
+    first_appearance: ship-of-magic
+    approved: true
+  - source: Pirate Isles
+    target: Pirate Isles
+    category: location
+    policy: keep
+    notes: "Capitalized archipelago/place name; keep in English."
+    source_reference: "User preference; English place name kept"
+    confidence: reviewed
+    first_appearance: ship-of-magic
+    approved: true
+  - source: Satrap
+    target: Satrap
+    category: title
+    policy: keep
+    aliases: [Satraps]
+    alias_targets: {Satraps: Satraps}
+    notes: "Keep Satrap / Satraps capitalized as title/office in English."
+    source_reference: "User preference; English title/office kept"
+    confidence: reviewed
+    first_appearance: ship-of-magic
+    approved: true
+  - source: Trehaug
+    target: Trehaug
+    category: location
+    policy: keep
+    notes: "Rain Wild Traders city built in the canopy; keep the name."
+    source_reference: "Source text (The Rain Wild Chronicles); name kept"
+    confidence: provisional
+    first_appearance: ship-of-magic
+    approved: false
+  - source: Cassarik
+    target: Cassarik
+    category: location
+    policy: keep
+    notes: "Rain Wild Traders settlement; keep the name."
+    source_reference: "Source text (The Rain Wild Chronicles); name kept"
+    confidence: provisional
+    first_appearance: dragon-keeper
+    approved: false
+  - source: Kelsingra
+    target: Kelsingra
+    category: location
+    policy: keep
+    notes: "Ancient Elderling city on the Rain Wild River; keep the name."
+    source_reference: "Source text (The Rain Wild Chronicles); name kept"
+    confidence: provisional
+    first_appearance: dragon-keeper
+    approved: false

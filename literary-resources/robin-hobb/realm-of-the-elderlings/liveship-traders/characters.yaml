@@ -109,10 +109,10 @@ terms:
     category: character
     policy: keep
     aliases: [Satrap Cosgo]
-    alias_targets: {Satrap Cosgo: "Sátrapa Cosgo"}
+    alias_targets: {Satrap Cosgo: Satrap Cosgo}
     gender: male
-    notes: "The Satrap; keep the personal name, translate the title."
-    source_reference: "Approved PT-BR translation, Ship of Magic (2026)"
+    notes: "Keep both the title Satrap and the personal name Cosgo in English."
+    source_reference: "User preference; title and personal name kept"
     confidence: reviewed
     first_appearance: ship-of-magic
     approved: true
@@ -250,14 +250,12 @@ terms:
     first_appearance: the-mad-ship
     approved: false
   - source: She Who Remembers
-    target: Aquela Que Se Lembra
+    target: She Who Remembers
     category: character
-    policy: translate
+    policy: keep
     gender: female
-    notes: >-
-      Serpent matriarch. Ship of Magic does not settle the title; the natural
-      Portuguese relative clause keeps the epithet without inventing a name.
-    source_reference: "Approved PT-BR translation, Ship of Magic (2026)"
+    notes: "Serpent matriarch; keep capitalized proper name/title in English."
+    source_reference: "User preference; English proper name/title kept"
     confidence: reviewed
     first_appearance: ship-of-magic
     approved: true

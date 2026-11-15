@@ -18,18 +18,18 @@ terms:
     first_appearance: fools-errand
     approved: false
   - source: Lord Golden
-    target: Lorde Golden
+    target: Lord Golden
     category: character
-    policy: translate
+    policy: keep
     aliases: [Golden]
     alias_targets: {Golden: Golden}
     notes: >-
-      The Fool's Tawny Man persona. Translate the title (Lorde) and keep the
-      name; do not force a gender reading where the source withholds it.
-    source_reference: "Source text (Fool's Errand); editorial rendering"
-    confidence: provisional
+      The Fool's Tawny Man persona. Keep both title Lord and name Golden in
+      English; do not force a gender reading where the source withholds it.
+    source_reference: "User preference; English title and name kept"
+    confidence: reviewed
     first_appearance: fools-errand
-    approved: false
+    approved: true
   - source: Tom Badgerlock
     target: Tom Badgerlock
     category: character
@@ -159,21 +159,21 @@ terms:
     first_appearance: fools-fate
     approved: false
   - source: Pale Woman
-    target: Mulher Pálida
+    target: Pale Woman
     category: character
-    policy: translate
+    policy: keep
     gender: female
-    notes: "The antagonist's title; translate the descriptive title."
-    source_reference: "Source text (Fool's Errand); editorial rendering"
-    confidence: provisional
+    notes: "The antagonist's capitalized title; keep in English."
+    source_reference: "User preference; English title kept"
+    confidence: reviewed
     first_appearance: fools-errand
-    approved: false
+    approved: true
   - source: Black Man
-    target: Homem Negro
+    target: Black Man
     category: character
-    policy: translate
-    notes: "The Pale Woman's servant; translate the descriptive title."
-    source_reference: "Source text (Fool's Fate); editorial rendering"
-    confidence: provisional
+    policy: keep
+    notes: "The Pale Woman's servant's capitalized title; keep in English."
+    source_reference: "User preference; English title kept"
+    confidence: reviewed
     first_appearance: fools-fate
-    approved: false
+    approved: true

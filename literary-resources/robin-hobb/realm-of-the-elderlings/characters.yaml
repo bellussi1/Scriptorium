@@ -49,9 +49,9 @@ terms:
     category: character
     policy: keep
     aliases: [Prince Verity]
-    alias_targets: {Prince Verity: "Príncipe Verity"}
+    alias_targets: {Prince Verity: Prince Verity}
     gender: male
-    source_reference: "Official PT-BR edition, Calibre 94"
+    source_reference: "Official PT-BR edition, Calibre 94; title kept in English per user rule"
     confidence: confirmed
     first_appearance: assassins-apprentice
     approved: true
@@ -60,9 +60,9 @@ terms:
     category: character
     policy: keep
     aliases: [Prince Regal]
-    alias_targets: {Prince Regal: "Príncipe Regal"}
+    alias_targets: {Prince Regal: Prince Regal}
     gender: male
-    source_reference: "Official PT-BR edition, Calibre 94"
+    source_reference: "Official PT-BR edition, Calibre 94; title kept in English per user rule"
     confidence: confirmed
     first_appearance: assassins-apprentice
     approved: true
@@ -71,9 +71,9 @@ terms:
     category: character
     policy: keep
     aliases: [King Shrewd]
-    alias_targets: {King Shrewd: "Rei Shrewd"}
+    alias_targets: {King Shrewd: King Shrewd}
     gender: male
-    source_reference: "Official PT-BR edition, Calibre 94"
+    source_reference: "Official PT-BR edition, Calibre 94; title kept in English per user rule"
     confidence: confirmed
     first_appearance: assassins-apprentice
     approved: true
@@ -92,9 +92,9 @@ terms:
     category: character
     policy: keep
     aliases: [Prince Chivalry]
-    alias_targets: {Prince Chivalry: "Príncipe Chivalry"}
+    alias_targets: {Prince Chivalry: Prince Chivalry}
     gender: male
-    source_reference: "Official PT-BR edition, Calibre 94"
+    source_reference: "Official PT-BR edition, Calibre 94; title kept in English per user rule"
     confidence: confirmed
     first_appearance: assassins-apprentice
     approved: true
@@ -233,12 +233,12 @@ terms:
     category: character
     policy: keep
     aliases: [Prince Dutiful]
-    alias_targets: {Prince Dutiful: "Príncipe Dutiful"}
+    alias_targets: {Prince Dutiful: Prince Dutiful}
     gender: male
-    source_reference: "Source text (Tawny Man); name kept"
-    confidence: provisional
+    source_reference: "Source text (Tawny Man); name and title kept"
+    confidence: reviewed
     first_appearance: fools-errand
-    approved: false
+    approved: true
   - source: Kettricken
     target: Kettricken
     category: character

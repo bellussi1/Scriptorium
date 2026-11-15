@@ -1,0 +1,189 @@
+version: 1
+scope: subseries
+source_language: en
+target_language: pt-BR
+notes: >-
+  Fitz and the Fool characters not already covered by the universe sheet.
+  New trilogy names keep English spellings and record grammatical gender for
+  pt-BR agreement; recurring characters preserve canonical forms from earlier
+  trilogies.
+terms:
+  - source: Bee
+    target: Bee
+    category: character
+    policy: keep
+    aliases: [Bee Farseer]
+    alias_targets: {Bee Farseer: Bee Farseer}
+    gender: female
+    notes: "Fitz and Molly's daughter and young focalizer; keep the name."
+    source_reference: "Source text (Fool's Assassin); name kept"
+    confidence: provisional
+    first_appearance: fools-assassin
+    approved: false
+  - source: Riddle
+    target: Riddle
+    category: character
+    policy: keep
+    gender: male
+    notes: "Fitz's retainer and friend at Withywoods; keep the name, do not translate as 'Enigma' or 'Charada'."
+    source_reference: "Source text (Fool's Assassin); name kept"
+    confidence: provisional
+    first_appearance: fools-assassin
+    approved: false
+  - source: Shun
+    target: Shun
+    category: character
+    policy: keep
+    aliases: [Shine, Lady Shun]
+    alias_targets: {Shine: Shine, Lady Shun: Lady Shun}
+    gender: female
+    notes: "Chade's ward sent to Withywoods; keep Shun and Shine."
+    source_reference: "Source text (Fool's Assassin); name kept"
+    confidence: provisional
+    first_appearance: fools-assassin
+    approved: false
+  - source: Lant
+    target: Lant
+    category: character
+    policy: keep
+    gender: male
+    notes: "Chade's bastard son and Fitz's cousin/ally; keep the name."
+    source_reference: "Source text (Fool's Assassin); name kept"
+    confidence: provisional
+    first_appearance: fools-assassin
+    approved: false
+  - source: Perseverance
+    target: Perseverance
+    category: character
+    policy: keep
+    gender: male
+    notes: "Stableboy at Withywoods and Bee's companion; keep the personal name."
+    source_reference: "Source text (Fool's Assassin); name kept"
+    confidence: provisional
+    first_appearance: fools-assassin
+    approved: false
+  - source: Tavia
+    target: Tavia
+    category: character
+    policy: keep
+    gender: female
+    notes: "Bee's nursemaid at Withywoods; keep the name."
+    source_reference: "Source text (Fool's Assassin); name kept"
+    confidence: provisional
+    first_appearance: fools-assassin
+    approved: false
+  - source: Revel
+    target: Revel
+    category: character
+    policy: keep
+    gender: male
+    notes: "Steward at Withywoods; keep the name."
+    source_reference: "Source text (Fool's Assassin); name kept"
+    confidence: provisional
+    first_appearance: fools-assassin
+    approved: false
+  - source: Ash
+    target: Ash
+    category: character
+    policy: keep
+    gender: male
+    notes: "Spark's disguise / alias (presented as a boy at Buckkeep); keep the name."
+    source_reference: "Source text (Fool's Quest); name kept"
+    confidence: provisional
+    first_appearance: fools-quest
+    approved: false
+  - source: Spark
+    target: Spark
+    category: character
+    policy: keep
+    gender: female
+    notes: "Chade's assassin apprentice; keep the name."
+    source_reference: "Source text (Fool's Quest); name kept"
+    confidence: provisional
+    first_appearance: fools-quest
+    approved: false
+  - source: Dwalia
+    target: Dwalia
+    category: character
+    policy: keep
+    gender: female
+    notes: "Servant of Clerres who abducts Bee; keep the name."
+    source_reference: "Source text (Fool's Quest); name kept"
+    confidence: provisional
+    first_appearance: fools-quest
+    approved: false
+  - source: Vindeliar
+    target: Vindeliar
+    category: character
+    policy: keep
+    gender: male
+    notes: "Companion of Dwalia with fogging magic; keep the name."
+    source_reference: "Source text (Fool's Quest); name kept"
+    confidence: provisional
+    first_appearance: fools-quest
+    approved: false
+  - source: Amber
+    target: Amber
+    category: character
+    policy: keep
+    gender: female
+    notes: "The Fool's Liveship persona returning in Kelsingra and Clerres; keep the name."
+    source_reference: "Approved PT-BR translation, Ship of Magic (2026)"
+    confidence: reviewed
+    first_appearance: ship-of-magic
+    approved: true
+  - source: Rapskal
+    target: Rapskal
+    category: character
+    policy: keep
+    gender: male
+    notes: "Elderling bonded to Heeby; keep the name."
+    source_reference: "Source text (Fool's Quest); name kept"
+    confidence: provisional
+    first_appearance: dragon-keeper
+    approved: false
+  - source: Heeby
+    target: Heeby
+    category: character
+    policy: keep
+    gender: female
+    notes: "Crimson dragon bonded to Rapskal; keep the name."
+    source_reference: "Source text (Assassin's Fate); name kept"
+    confidence: provisional
+    first_appearance: dragon-keeper
+    approved: false
+  - source: Reyn Khuprus
+    target: Reyn Khuprus
+    category: character
+    policy: keep
+    aliases: [Reyn]
+    alias_targets: {Reyn: Reyn}
+    gender: male
+    source_reference: "Approved PT-BR translation, Ship of Magic (2026)"
+    confidence: reviewed
+    first_appearance: ship-of-magic
+    approved: true
+  - source: Alise
+    target: Alise
+    category: character
+    policy: keep
+    aliases: [Alise Khuprus]
+    alias_targets: {Alise Khuprus: Alise Khuprus}
+    gender: female
+    notes: "Dragon scholar and Leftrin's wife; keep the name."
+    source_reference: "Source text (Assassin's Fate); name kept"
+    confidence: provisional
+    first_appearance: dragon-keeper
+    approved: false
+  - source: Leftrin
+    target: Leftrin
+    category: character
+    policy: keep
+    aliases: [Captain Leftrin]
+    alias_targets: {Captain Leftrin: Captain Leftrin}
+    gender: male
+    notes: "Captain of the Tarman; keep both title Captain and personal name Leftrin in English."
+    source_reference: "User preference; title and personal name kept"
+    confidence: reviewed
+    first_appearance: dragon-keeper
+    approved: true

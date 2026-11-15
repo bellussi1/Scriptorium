@@ -1,0 +1,12 @@
+# Global writing-style rules inherited by every universe and series.
+# Rules use distinct dimension names so subseries files keep them when merged.
+description: Global Brazilian Portuguese literary conventions for proper nouns and titles.
+mode: source
+context: ""
+rules:
+  - dimension: proper_nouns
+    instruction: >-
+      Keep capitalized proper nouns and capitalized worldbuilding names in English—whether
+      personal names or settlements and states, or organizations alongside formal titles
+      and offices—unless the active glossary explicitly assigns a Portuguese form; render
+      standalone lowercase common nouns and lowercase demonyms naturally according to the glossary.

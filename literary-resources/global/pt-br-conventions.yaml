@@ -7,13 +7,13 @@ target_language: pt-BR
 
 conventions:
   proper_nouns: >-
-    Keep personal, place and invented names in the form established by the
-    official Brazilian edition when one exists. The glossary is authoritative;
-    do not transliterate a name on the fly. Three tiers: keep opaque names and
-    in-world Latin or technical coinages; naturalize common nouns and titles
-    that have a Portuguese form; translate descriptive epithets whose meaning
-    carries the narrative. Never choose a form per occurrence: a new term is
-    frozen in the glossary before the book starts, and changing a frozen form
+    Keep capitalized proper nouns—personal names, cities, states,
+    organizations, offices, formal titles, and capitalized worldbuilding
+    terms—in their English form unless an established official Brazilian
+    edition (such as the three Farseer trilogy books) sets a translated form
+    in the universe glossary. Naturalize standalone lowercase common nouns and
+    lowercase demonyms/gentílicos. Never choose a form per occurrence: lock new
+    terms in the glossary before the book starts, and changing a frozen form
     requires a series-wide pass, not a local edit.
   dialogue: >-
     Preserve the edition's dialogue punctuation. Brazilian literary prose often
@@ -39,9 +39,10 @@ conventions:
     Preserve italics, bold, small caps and other emphasis. They carry voice,
     interiority and emphasis; losing them is a translation error.
   forms_of_address: >-
-    Use Sr./Sra./Srta. for Mr./Mrs./Miss only when the title is functioning as
-    a form of address. Do not translate military ranks or invented titles
-    without a glossary decision.
+    Use Sr./Sra./Srta. for Mr./Mrs./Miss only when functioning as a contemporary
+    form of address. Keep capitalized fantasy, noble, military, and mercantile
+    titles or offices paired with a name (King, Prince, Lord, Captain, Satrap,
+    Trader) in English unless an explicit glossary entry says otherwise.
   profanity: >-
     Match the intensity and social register of the original. Do not upgrade a
     mild oath into a strong one, or neutralize a deliberately coarse voice.

@@ -1,0 +1,194 @@
+version: 1
+scope: subseries
+source_language: en
+target_language: pt-BR
+notes: >-
+  Fitz and the Fool locations, titles, and recurring Realm terminology.
+  Maintains continuity with Farseer, Liveship Traders, and Tawny Man terms.
+terms:
+  - source: Withywoods
+    target: Withywoods
+    category: location
+    policy: keep
+    notes: "Fitz and Molly's estate in Buck Duchy; keep the English estate name."
+    source_reference: "Source text (Fool's Assassin); name kept"
+    confidence: provisional
+    first_appearance: fools-errand
+    approved: false
+  - source: Clerres
+    target: Clerres
+    category: location
+    policy: keep
+    notes: "Stronghold of the Servants and White Prophets; keep the name."
+    source_reference: "Source text (Fool's Assassin); name kept"
+    confidence: provisional
+    first_appearance: fools-assassin
+    approved: false
+  - source: Whites
+    target: Whites
+    category: other
+    policy: keep
+    aliases: [White Prophet, White Prophets]
+    alias_targets: {White Prophet: White Prophet, White Prophets: White Prophets}
+    notes: "Capitalized collective and titles (White Prophet / White Prophets); keep in English."
+    source_reference: "User preference; English capitalized term/title kept"
+    confidence: reviewed
+    first_appearance: fools-errand
+    approved: true
+  - source: Skill-pillar
+    target: pilar do Talento
+    category: item
+    policy: translate
+    aliases: [Skill-pillars]
+    alias_targets: {Skill-pillars: pilares do Talento}
+    notes: "Standing Skill portals; keep Talento for Skill."
+    source_reference: "Source text (Fool's Quest); aligned with Official Farseer Talento"
+    confidence: provisional
+    first_appearance: assassins-quest
+    approved: false
+  - source: Skill-river
+    target: rio do Talento
+    category: concept
+    policy: translate
+    notes: "The silver stream of Skill energy; keep Talento for Skill."
+    source_reference: "Source text (Fool's Assassin); aligned with Official Farseer Talento"
+    confidence: provisional
+    first_appearance: fools-errand
+    approved: false
+  - source: Kelsingra
+    target: Kelsingra
+    category: location
+    policy: keep
+    notes: "Ancient Elderling city on the Rain Wild River; keep the name."
+    source_reference: "Source text (Rain Wild / Fitz and the Fool); name kept"
+    confidence: provisional
+    first_appearance: dragon-keeper
+    approved: false
+  - source: Bingtown
+    target: Bingtown
+    category: location
+    policy: keep
+    source_reference: "Approved PT-BR translation, Ship of Magic (2026)"
+    confidence: reviewed
+    first_appearance: ship-of-magic
+    approved: true
+  - source: Rain Wild
+    target: Rain Wild
+    category: location
+    policy: keep
+    aliases: [Rain Wilds]
+    alias_targets: {Rain Wilds: Rain Wild}
+    source_reference: "Approved PT-BR translation, Ship of Magic (2026)"
+    confidence: reviewed
+    first_appearance: ship-of-magic
+    approved: true
+  - source: Chalced
+    target: Chalced
+    category: location
+    policy: keep
+    source_reference: "Approved PT-BR translation, Ship of Magic (2026)"
+    confidence: reviewed
+    first_appearance: ship-of-magic
+    approved: true
+  - source: Jamaillia
+    target: Jamaillia
+    category: location
+    policy: keep
+    source_reference: "Approved PT-BR translation, Ship of Magic (2026)"
+    confidence: reviewed
+    first_appearance: ship-of-magic
+    approved: true
+  - source: Liveship
+    target: Liveship
+    category: item
+    policy: keep
+    aliases: [Liveships]
+    alias_targets: {Liveships: Liveships}
+    notes: "Keep capitalized/proper ship-class term Liveship and Liveships in English."
+    source_reference: "User preference; English worldbuilding term kept"
+    confidence: reviewed
+    first_appearance: ship-of-magic
+    approved: true
+  - source: Trader
+    target: Trader
+    category: title
+    policy: keep
+    aliases: [Traders]
+    alias_targets: {Traders: Traders}
+    notes: "Keep Trader / Traders capitalized in English as title/caste term."
+    source_reference: "User preference; English title/caste term kept"
+    confidence: reviewed
+    first_appearance: ship-of-magic
+    approved: true
+  - source: Old Traders
+    target: Old Traders
+    category: organization
+    policy: keep
+    source_reference: "User preference; English organization name kept"
+    confidence: reviewed
+    first_appearance: ship-of-magic
+    approved: true
+  - source: New Traders
+    target: New Traders
+    category: organization
+    policy: keep
+    source_reference: "User preference; English organization name kept"
+    confidence: reviewed
+    first_appearance: ship-of-magic
+    approved: true
+  - source: Bingtown Traders
+    target: Bingtown Traders
+    category: organization
+    policy: keep
+    aliases: [Bingtown Trader]
+    alias_targets: {Bingtown Trader: Bingtown Trader}
+    source_reference: "User preference; English organization name kept"
+    confidence: reviewed
+    first_appearance: ship-of-magic
+    approved: true
+  - source: Rain Wild Traders
+    target: Rain Wild Traders
+    category: organization
+    policy: keep
+    aliases: [Rain Wild Trader]
+    alias_targets: {Rain Wild Trader: Rain Wild Trader}
+    source_reference: "User preference; English organization name kept"
+    confidence: reviewed
+    first_appearance: ship-of-magic
+    approved: true
+  - source: Pirate Isles
+    target: Pirate Isles
+    category: location
+    policy: keep
+    source_reference: "User preference; English place name kept"
+    confidence: reviewed
+    first_appearance: ship-of-magic
+    approved: true
+  - source: Satrap
+    target: Satrap
+    category: title
+    policy: keep
+    aliases: [Satraps]
+    alias_targets: {Satraps: Satraps}
+    source_reference: "User preference; English title/office kept"
+    confidence: reviewed
+    first_appearance: ship-of-magic
+    approved: true
+  - source: Old Blood
+    target: Old Blood
+    category: concept
+    policy: keep
+    aliases: [Old Bloods]
+    alias_targets: {Old Bloods: Old Bloods}
+    source_reference: "User preference; English capitalized term kept"
+    confidence: reviewed
+    first_appearance: fools-errand
+    approved: true
+  - source: Catalyst
+    target: Catalyst
+    category: title
+    policy: keep
+    source_reference: "User preference; English title kept"
+    confidence: reviewed
+    first_appearance: fools-errand
+    approved: true

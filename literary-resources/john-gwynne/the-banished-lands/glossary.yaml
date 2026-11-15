@@ -10,46 +10,47 @@ notes: >-
   books before a full translation.
 terms:
   - source: Banished Lands
-    target: Terras Banidas
+    target: Banished Lands
     category: location
-    policy: translate
-    notes: "The continent; the shared setting of both series."
-    source_reference: "English source (Malice, A Time of Dread); no official PT-BR verified"
+    policy: keep
+    notes: "The continent; keep capitalized proper place name in English."
+    source_reference: "English source (Malice, A Time of Dread); user preference keep"
     confidence: provisional
     approved: false
-  - source: the Faithful
-    target: os Fiéis
+  - source: Faithful
+    target: Faithful
     category: organization
-    policy: translate
-    aliases: [Faithful]
-    alias_targets: {Faithful: Fiéis}
-    notes: "The people of the Land of the Faithful; capital F in the source."
-    source_reference: "English source (Malice, A Time of Dread); no official PT-BR verified"
+    policy: keep
+    notes: >-
+      The people of the Land of the Faithful; capital F in the source. Case-sensitive
+      matching preserves lowercase adjective faithful cleanly in Portuguese.
+    source_reference: "English source (Malice, A Time of Dread); user preference keep"
     confidence: provisional
     approved: false
-  - source: the Fallen
-    target: os Caídos
+  - source: Fallen
+    target: Fallen
     category: organization
-    policy: translate
-    aliases: [Fallen]
-    alias_targets: {Fallen: Caídos}
-    notes: "Asroth's host; capital F in the source. Do not confuse with the adjective fallen."
-    source_reference: "English source (Malice, A Time of Dread); no official PT-BR verified"
+    policy: keep
+    notes: >-
+      Asroth's host; capital F in the source. Case-sensitive matching avoids
+      matching lowercase fallen.
+    source_reference: "English source (Malice, A Time of Dread); user preference keep"
     confidence: provisional
     approved: false
   - source: The Faithful and the Fallen
-    target: Os Fiéis e os Caídos
+    target: The Faithful and the Fallen
     category: title
-    policy: translate
-    notes: "Series title; the first series."
-    source_reference: "English source; no official PT-BR verified"
+    policy: keep
+    notes: "Series title; keep in English."
+    source_reference: "English source; user preference keep"
     confidence: provisional
     approved: false
   - source: Land of the Faithful
-    target: Terra dos Fiéis
+    target: Land of the Faithful
     category: location
-    policy: translate
-    source_reference: "English source (A Time of Dread); no official PT-BR verified"
+    policy: keep
+    notes: "Capitalized realm/state name; keep in English."
+    source_reference: "English source (A Time of Dread); user preference keep"
     confidence: provisional
     first_appearance: a-time-of-dread
     approved: false
@@ -86,11 +87,11 @@ terms:
     confidence: provisional
     approved: false
   - source: Otherworld
-    target: Outro Mundo
+    target: Otherworld
     category: location
-    policy: translate
-    notes: "The world of spirit; capitalize as a proper place."
-    source_reference: "English source (Malice, A Time of Dread); no official PT-BR verified"
+    policy: keep
+    notes: "The world of spirit; keep capitalized place name in English."
+    source_reference: "English source (Malice, A Time of Dread); user preference keep"
     confidence: provisional
     approved: false
   - source: giant
@@ -154,54 +155,55 @@ terms:
     first_appearance: a-time-of-dread
     approved: false
   - source: White-Wing
-    target: Asa Branca
+    target: White-Wing
     category: title
-    policy: translate
+    policy: keep
     aliases: [White-Wings]
-    alias_targets: {White-Wings: Asas Brancas}
-    notes: "Elite warrior of Drassil; singular/plural title."
-    source_reference: "English source (A Time of Dread); no official PT-BR verified"
+    alias_targets: {White-Wings: White-Wings}
+    notes: "Elite warrior title/order of Drassil; keep capitalized title in English."
+    source_reference: "English source (A Time of Dread); user preference keep"
     confidence: provisional
     first_appearance: a-time-of-dread
     approved: false
   - source: War of Treasures
-    target: Guerra dos Tesouros
+    target: War of Treasures
     category: concept
-    policy: translate
-    source_reference: "English source (Malice); no official PT-BR verified"
+    policy: keep
+    notes: "Capitalized historical conflict; keep in English."
+    source_reference: "English source (Malice); user preference keep"
     confidence: provisional
     approved: false
   - source: Age of Lore
-    target: Era do Saber
+    target: Age of Lore
     category: concept
-    policy: translate
-    notes: "The historical age in the in-world extracts; review the register."
-    source_reference: "English source (A Time of Dread); no official PT-BR verified"
+    policy: keep
+    notes: "Capitalized historical era in the in-world extracts; keep in English."
+    source_reference: "English source (A Time of Dread); user preference keep"
     confidence: provisional
     first_appearance: a-time-of-dread
     approved: false
-  - source: the Separate Ones
-    target: os Separados
+  - source: Separate Ones
+    target: Separate Ones
     category: organization
-    policy: translate
-    notes: "Epithet of the Kadoshim."
-    source_reference: "English source (Malice); no official PT-BR verified"
+    policy: keep
+    notes: "Capitalized epithet of the Kadoshim; keep in English (Portuguese supplies articles)."
+    source_reference: "English source (Malice); user preference keep"
     confidence: provisional
     approved: false
-  - source: the Sons of the Mighty
-    target: os Filhos dos Poderosos
+  - source: Sons of the Mighty
+    target: Sons of the Mighty
     category: organization
-    policy: translate
-    notes: "Epithet of the Ben-Elim."
-    source_reference: "English source (Malice); no official PT-BR verified"
+    policy: keep
+    notes: "Capitalized epithet of the Ben-Elim; keep in English (Portuguese supplies articles)."
+    source_reference: "English source (Malice); user preference keep"
     confidence: provisional
     approved: false
-  - source: the Great Tyrant
-    target: o Grande Tirano
+  - source: Great Tyrant
+    target: Great Tyrant
     category: title
-    policy: translate
-    notes: "Kadoshim epithet for Elyon; keep the capital letters."
-    source_reference: "English source (A Time of Dread); no official PT-BR verified"
+    policy: keep
+    notes: "Kadoshim capitalized title/epithet for Elyon; keep in English."
+    source_reference: "English source (A Time of Dread); user preference keep"
     confidence: provisional
     first_appearance: a-time-of-dread
     approved: false
