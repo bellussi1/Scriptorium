@@ -133,6 +133,8 @@ html.dark {
 body {
     background: var(--paper);
     color: var(--ink);
+    font-size: 13px;
+    line-height: 1.42;
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
 }
@@ -145,13 +147,13 @@ body {
 /* ---------- Shell ---------- */
 
 .container {
-    max-width: 1200px !important;
-    padding: 0 $space-5;
+    max-width: 1440px !important;
+    padding: 0 $space-4;
 }
 
 .header {
-    padding: $space-4 0;
-    margin-bottom: $space-2;
+    padding: $space-2 0;
+    margin-bottom: $space-1;
     background: transparent;
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
@@ -162,13 +164,13 @@ body {
 }
 
 .header .logo-section {
-    gap: $space-3;
+    gap: $space-2;
 }
 
 .header .logo-icon img {
-    width: 42px;
-    height: 42px;
-    max-width: 42px;
+    width: 30px;
+    height: 30px;
+    max-width: 30px;
 }
 
 .header .app-version {
@@ -235,7 +237,7 @@ body {
 #topTabNav {
     display: flex !important;
     gap: 0 !important;
-    margin: 0 0 $space-5 !important;
+    margin: 0 0 $space-3 !important;
     padding: 0 !important;
     border-bottom: 1px solid var(--rule);
     overflow-x: auto;
@@ -255,7 +257,7 @@ body {
 }
 
 .tab-nav .tab-btn .material-symbols-outlined {
-    font-size: 17px;
+    font-size: 16px;
     vertical-align: middle;
 }
 
@@ -267,31 +269,31 @@ body {
     border-radius: var(--radius);
     box-shadow: none;
     overflow: visible;
-    margin-bottom: $space-5;
+    margin-bottom: $space-3;
 }
 
 .card-header {
     background: transparent;
     border-bottom: 1px solid var(--rule);
-    padding: $space-4 $space-5;
+    padding: 10px $space-4;
 }
 
 .card-header .material-symbols-outlined {
     color: var(--muted);
-    font-size: 20px;
+    font-size: 18px;
 }
 
 .card-header h2,
 .card-header h3 {
     font-family: var(--font-display);
-    font-size: 22px;
+    font-size: 17px;
     font-weight: 500;
     letter-spacing: -0.02em;
     color: var(--ink);
 }
 
 .card-body {
-    padding: $space-5;
+    padding: $space-3 $space-4;
 }
 
 #tab-translate > .main-card:first-child,
@@ -344,15 +346,27 @@ label,
     text-transform: none;
     letter-spacing: 0;
     font-family: var(--font-ui);
-    font-size: 12px;
+    font-size: 11.5px;
     font-weight: 500;
     color: var(--muted);
 }
 
 /* ---------- Controls ---------- */
 
+.btn {
+    min-height: 32px;
+    padding: 5px $space-3;
+    font-size: 12.5px;
+}
+
+.btn-sm {
+    min-height: 26px;
+    padding: 3px $space-2;
+    font-size: 11.5px;
+}
+
 .btn .material-symbols-outlined {
-    font-size: 17px;
+    font-size: 16px;
 }
 
 .form-control,
@@ -363,9 +377,14 @@ label,
     border-radius: var(--radius);
     color: var(--ink);
     font-family: var(--font-ui);
-    font-size: 13px;
+    font-size: 12.5px;
+    padding: 0 10px;
     box-shadow: none;
-    min-height: 36px;
+    min-height: 32px;
+}
+
+textarea.form-control {
+    padding: 6px 10px;
 }
 
 .form-control:focus,
@@ -387,8 +406,8 @@ label,
 .fixed-language-pair {
     align-items: center;
     gap: $space-2;
-    margin-bottom: $space-4;
-    padding-bottom: $space-4;
+    margin-bottom: $space-2;
+    padding-bottom: $space-2;
     border-bottom: 1px solid var(--rule);
 }
 
@@ -411,7 +430,7 @@ label,
     border: 0;
     border-radius: 0;
     font-family: var(--font-display);
-    font-size: 17px;
+    font-size: 14.5px;
     font-weight: 500;
     color: var(--ink);
     letter-spacing: -0.01em;
@@ -420,16 +439,16 @@ label,
 .fixed-language-pair__arrow {
     margin: 0 $space-1;
     color: var(--muted);
-    font-size: 15px;
+    font-size: 14px;
 }
 
 .upload-zone-grid {
-    gap: $space-3;
+    gap: $space-2;
     margin: 0 0 $space-1;
 }
 
 .upload-zone-grid > #fileUpload.file-upload {
-    padding: $space-6 $space-5 $space-6;
+    padding: $space-3 $space-4;
     border: 1px dashed var(--rule-strong);
     border-radius: var(--radius);
     background: var(--surface-strong);
@@ -437,7 +456,7 @@ label,
 }
 
 .upload-zone-grid > .file-upload-secondary {
-    padding: $space-4 $space-4;
+    padding: $space-2 $space-3;
     border: 1px solid var(--rule);
     border-radius: var(--radius);
     background: transparent;
@@ -464,9 +483,9 @@ label,
 }
 
 .file-upload .upload-icon {
-    width: 36px;
-    height: 36px;
-    margin: 0 auto $space-3;
+    width: 28px;
+    height: 28px;
+    margin: 0 auto $space-1;
     background: transparent;
     border-radius: 0;
 }
@@ -476,64 +495,64 @@ label,
 }
 
 .file-upload .material-symbols-outlined {
-    font-size: 30px;
+    font-size: 24px;
     color: var(--muted);
 }
 
 .file-upload-secondary .upload-icon .material-symbols-outlined {
-    font-size: 22px;
+    font-size: 20px;
 }
 
 .file-upload h3 {
-    font-size: 21px;
+    font-size: 16px;
     font-weight: 500;
-    margin-bottom: $space-1;
+    margin-bottom: 2px;
 }
 
 .file-upload p {
-    font-size: 13px;
+    font-size: 12px;
     color: var(--muted);
-    max-width: 46ch;
+    max-width: 48ch;
     margin: 0 auto;
-    line-height: 1.5;
+    line-height: 1.4;
 }
 
 .file-upload-secondary h4 {
-    font-size: 15px;
+    font-size: 13px;
     font-weight: 500;
 }
 
 .file-upload-secondary p {
-    font-size: 12px;
-    line-height: 1.45;
+    font-size: 11.5px;
+    line-height: 1.4;
 }
 
 .file-upload .browse-btn {
-    margin-top: $space-3;
-    padding: $space-2 $space-4;
+    margin-top: $space-2;
+    padding: 5px $space-3;
     background: var(--ink);
     color: var(--paper);
     border-radius: var(--radius);
     font-family: var(--font-ui);
-    font-size: 13px;
+    font-size: 12px;
     font-weight: 500;
     letter-spacing: 0;
     display: inline-block;
 }
 
 #translateBtn {
-    min-height: 44px;
-    padding: $space-2 $space-5;
-    font-size: 14px;
+    min-height: 36px;
+    padding: $space-1 $space-4;
+    font-size: 13px;
 }
 
 #settingsSummary {
     text-align: left !important;
     color: var(--muted) !important;
-    font-size: 12px !important;
-    line-height: 1.8 !important;
+    font-size: 11.5px !important;
+    line-height: 1.6 !important;
     max-width: 78ch;
-    margin: $space-4 auto 0 !important;
+    margin: $space-2 auto 0 !important;
 }
 
 #settingsSummary > * {
@@ -546,23 +565,23 @@ label,
 }
 
 .preflight-zone {
-    margin-top: $space-4;
+    margin-top: $space-3;
 }
 
 /* ---------- Queue ---------- */
 
 .queue-intro {
     max-width: 80ch;
-    margin: 0 0 $space-4;
+    margin: 0 0 $space-2;
     color: var(--muted);
-    font-size: 13px;
-    line-height: 1.5;
+    font-size: 12px;
+    line-height: 1.45;
 }
 
 .queue-summary {
     display: flex;
     gap: 0;
-    margin: 0 0 $space-4;
+    margin: 0 0 $space-2;
     border-top: 1px solid var(--rule);
     border-bottom: 1px solid var(--rule);
     overflow-x: auto;
@@ -574,10 +593,10 @@ label,
 }
 
 .queue-stat {
-    flex: 1 0 120px;
+    flex: 1 0 110px;
     align-items: flex-start;
-    gap: $space-1;
-    padding: $space-3 $space-4;
+    gap: 2px;
+    padding: 6px $space-3;
     background: transparent;
     border: 0;
     border-left: 1px solid var(--rule);
@@ -591,7 +610,7 @@ label,
 
 .queue-stat-value {
     font-family: var(--font-display);
-    font-size: 24px;
+    font-size: 18px;
     font-weight: 500;
     letter-spacing: -0.02em;
     line-height: 1.1;
@@ -599,18 +618,20 @@ label,
 }
 
 .queue-stat-label {
-    font-size: 12px;
+    font-size: 10.5px;
     font-weight: 400;
     color: var(--muted);
+    margin-top: 2px;
 }
 
 .queue-toolbar {
-    margin-bottom: $space-4;
-    gap: $space-2;
+    margin-bottom: $space-2;
+    padding-bottom: $space-2;
+    gap: 6px;
 }
 
 .queue-updated {
-    font-size: 12px;
+    font-size: 11.5px;
     color: var(--muted);
 }
 
@@ -621,17 +642,18 @@ label,
 }
 
 .queue-filters {
-    margin-bottom: $space-4;
+    margin-bottom: $space-2;
+    gap: 6px;
 }
 
 .queue-chip {
-    padding: $space-1 $space-2;
+    padding: 3px 8px;
     border: 1px solid var(--rule);
     border-radius: var(--radius);
     background: transparent;
     color: var(--muted);
     font-family: var(--font-ui);
-    font-size: 12px;
+    font-size: 11px;
     font-weight: 500;
 }
 
@@ -647,8 +669,28 @@ label,
     border: 1px solid var(--rule);
     border-radius: var(--radius);
     background: var(--surface-strong);
+    padding: 4px 8px;
     font-size: 12px;
-    min-height: 32px;
+    min-height: 30px;
+}
+
+.queue-library-search input {
+    padding: 5px 8px;
+    font-size: 12px;
+    min-height: 30px;
+}
+
+.queue-library-select {
+    min-height: 110px;
+    font-size: 12px;
+}
+
+.queue-events-title {
+    margin: $space-3 0 $space-1;
+}
+
+.queue-events {
+    max-height: 150px;
 }
 
 .queue-table-wrap {
@@ -658,17 +700,17 @@ label,
 }
 
 .queue-table {
-    font-size: 13px;
+    font-size: 12px;
 }
 
 .queue-table th {
-    padding: $space-2 $space-3;
+    padding: 6px 8px;
     background: transparent;
     border: 0;
     border-bottom: 1px solid var(--rule);
     color: var(--muted);
     font-family: var(--font-ui);
-    font-size: 11px;
+    font-size: 10.5px;
     font-weight: 500;
     letter-spacing: 0;
     text-transform: none;
@@ -676,7 +718,7 @@ label,
 }
 
 .queue-table td {
-    padding: $space-3;
+    padding: 6px 8px;
     border: 0;
     border-bottom: 1px solid var(--rule);
     vertical-align: middle;
@@ -692,7 +734,7 @@ label,
 
 .queue-table .queue-book-title {
     font-family: var(--font-display);
-    font-size: 15px;
+    font-size: 13px;
     font-weight: 500;
     letter-spacing: -0.01em;
 }
@@ -701,7 +743,8 @@ label,
 .queue-table .queue-series,
 .queue-table .queue-muted {
     color: var(--muted);
-    font-size: 12px;
+    font-size: 11px;
+    margin-top: 1px;
 }
 
 /* The "Next" marker inverts with the theme: dark ink on paper in light mode,
@@ -711,7 +754,7 @@ label,
 .queue-next-badge {
     background: var(--ink);
     color: var(--paper);
-    padding: 2px $space-2;
+    padding: 1px 6px;
     font-size: 10px;
     letter-spacing: 0.05em;
 }
@@ -724,14 +767,20 @@ label,
 
 .queue-move-btn,
 .queue-download-btn {
-    width: 26px;
-    height: 26px;
+    width: 24px;
+    height: 24px;
+    min-height: 24px;
     margin: 0 1px;
     border: 1px solid transparent;
     border-radius: var(--radius);
     background: transparent;
     color: var(--muted);
     box-shadow: none;
+}
+
+.queue-move-btn .material-symbols-outlined,
+.queue-download-btn .material-symbols-outlined {
+    font-size: 16px;
 }
 
 .queue-move-btn:hover:not(:disabled),
@@ -759,9 +808,11 @@ label,
 
 .queue-model-select {
     max-width: 180px;
+    min-height: 26px;
+    padding: 2px 6px;
     border: 0;
     background: transparent;
-    font-size: 11px;
+    font-size: 11.5px;
     color: var(--muted);
 }
 
@@ -793,14 +844,61 @@ label,
    win without editing style.css. */
 
 @layer compact-ui {
+    :root {
+        --ui-density-y: 0.6;
+        --ui-control-h: 32px;
+    }
+
+    body {
+        padding-top: $space-2 !important;
+        padding-bottom: $space-2 !important;
+    }
+
+    .header {
+        padding-top: $space-2 !important;
+        padding-bottom: $space-2 !important;
+        margin-bottom: $space-2 !important;
+    }
+
+    .tab-nav .tab-btn {
+        padding-top: $space-1 !important;
+        padding-bottom: $space-1 !important;
+    }
+
+    .main-card {
+        margin-bottom: $space-3 !important;
+    }
+
     .card-header {
-        padding-top: $space-4 !important;
-        padding-bottom: $space-4 !important;
+        padding-top: 10px !important;
+        padding-bottom: 10px !important;
     }
 
     .card-body {
-        padding-top: $space-5 !important;
-        padding-bottom: $space-5 !important;
+        padding-top: $space-3 !important;
+        padding-bottom: $space-3 !important;
+    }
+
+    .btn:not(.btn-sm):not(.glossary-toolbar-btn) {
+        padding-top: 5px !important;
+        padding-bottom: 5px !important;
+    }
+
+    .progress-section {
+        margin-top: $space-3 !important;
+        padding-top: $space-3 !important;
+        padding-bottom: $space-3 !important;
+    }
+
+    .progress-bar-container {
+        height: 20px !important;
+        margin-top: $space-2 !important;
+        margin-bottom: $space-2 !important;
+    }
+
+    .stats-grid {
+        margin-top: $space-3 !important;
+        margin-bottom: $space-3 !important;
     }
 
     .upload-zone-grid .file-upload {
@@ -809,13 +907,13 @@ label,
     }
 
     .upload-zone-grid > #fileUpload.file-upload {
-        padding-top: $space-6 !important;
-        padding-bottom: $space-5 !important;
+        padding-top: $space-3 !important;
+        padding-bottom: $space-3 !important;
     }
 
     .upload-zone-grid > .file-upload-secondary {
-        padding-top: $space-4 !important;
-        padding-bottom: $space-4 !important;
+        padding-top: $space-2 !important;
+        padding-bottom: $space-2 !important;
     }
 }
 
@@ -873,31 +971,31 @@ html.dark .queue-table tbody tr:hover {
 
 .upload-zone-grid > .file-upload-secondary {
     display: grid;
-    grid-template-columns: 28px minmax(0, 1fr);
-    column-gap: $space-3;
-    row-gap: 3px;
+    grid-template-columns: 24px minmax(0, 1fr);
+    column-gap: $space-2;
+    row-gap: 2px;
     align-items: start;
     justify-content: initial;
-    padding: $space-4 $space-4;
+    padding: $space-2 $space-3;
     text-align: left;
 }
 
 .upload-zone-grid > .file-upload-secondary .upload-icon {
     grid-row: 1 / span 2;
-    width: 28px;
-    height: 28px;
+    width: 24px;
+    height: 24px;
     margin: 2px 0 0;
 }
 
 .upload-zone-grid > .file-upload-secondary .upload-icon .material-symbols-outlined {
-    font-size: 21px;
+    font-size: 19px;
 }
 
 .upload-zone-grid > .file-upload-secondary h4 {
     grid-column: 2;
     margin: 0;
-    font-size: 14px;
-    line-height: 1.35;
+    font-size: 13px;
+    line-height: 1.3;
     text-align: left;
 }
 
@@ -905,8 +1003,8 @@ html.dark .queue-table tbody tr:hover {
     grid-column: 2;
     margin: 0;
     max-width: none;
-    font-size: 12px;
-    line-height: 1.45;
+    font-size: 11.5px;
+    line-height: 1.4;
     text-align: left;
 }
 
@@ -914,9 +1012,9 @@ html.dark .queue-table tbody tr:hover {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: $space-3;
+    gap: $space-2;
     flex-wrap: wrap;
-    margin-top: $space-5;
+    margin-top: $space-3;
 }
 
 #settingsSummary {
@@ -927,7 +1025,7 @@ html.dark .queue-table tbody tr:hover {
     gap: $space-1;
     text-align: center !important;
     max-width: none;
-    margin: $space-3 auto 0 !important;
+    margin: $space-2 auto 0 !important;
 }
 
 #settingsSummary > div {
@@ -957,7 +1055,7 @@ html.dark .queue-table tbody tr:hover {
 .queue-distribution {
     display: block !important;
     height: auto;
-    margin: -4px 0 $space-4;
+    margin: -2px 0 $space-2;
     background: transparent;
     border-radius: 0;
     overflow: visible;
@@ -1004,11 +1102,11 @@ html.dark .queue-table tbody tr:hover {
 .queue-distribution-legend {
     display: flex;
     flex-wrap: wrap;
-    gap: $space-1 $space-4;
-    margin-top: $space-2;
+    gap: $space-1 $space-3;
+    margin-top: $space-1;
     color: var(--muted);
     font-family: var(--font-ui);
-    font-size: 11px;
+    font-size: 10.5px;
 }
 
 .queue-distribution-legend-item {
@@ -1067,11 +1165,11 @@ html.dark .queue-table tbody tr:hover {
 }
 
 .file-table th {
-    padding: $space-2 $space-3;
+    padding: 6px 10px;
     border-bottom: 1px solid var(--rule);
     color: var(--muted);
     font-family: var(--font-ui);
-    font-size: 11px;
+    font-size: 10.5px;
     font-weight: 500;
     letter-spacing: 0.02em;
     text-transform: none;
@@ -1087,9 +1185,9 @@ html.dark .queue-table tbody tr:hover {
 }
 
 .file-table td {
-    padding: $space-2 $space-3;
+    padding: 6px 10px;
     border-bottom: 1px solid var(--rule);
-    font-size: 13px;
+    font-size: 12px;
 }
 
 .file-table tbody tr:last-child td {
@@ -1192,8 +1290,8 @@ html.dark .queue-table tbody tr:hover {
 /* ---------- Footer ---------- */
 
 .app-footer {
-    padding: $space-4 0;
-    margin-top: $space-6;
+    padding: $space-3 0;
+    margin-top: $space-4;
 }
 
 .footer-links {
@@ -1279,7 +1377,7 @@ h4 {
 }
 
 .header .logo-wordmark {
-    font-size: 22px;
+    font-size: 18px;
     letter-spacing: -0.02em;
 }
 
@@ -1377,23 +1475,23 @@ h4 {
 
 .card-header h2,
 .card-header h3 {
-    font-size: 21px;
+    font-size: 17px;
 }
 
 .queue-stat-value {
-    font-size: 23px;
+    font-size: 18px;
 }
 
 .file-upload h3 {
-    font-size: 20px;
+    font-size: 16px;
 }
 
 .file-upload-secondary h4 {
-    font-size: 14px;
+    font-size: 13px;
 }
 
 .queue-table .queue-book-title {
-    font-size: 14.5px;
+    font-size: 13px;
 }
 
 /* ---------- Native controls ---------- */

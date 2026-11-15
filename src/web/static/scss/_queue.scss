@@ -468,25 +468,25 @@
     --q-shadow-raised-hover: 9px 9px 20px var(--q-shadow-dark), -9px -9px 20px var(--q-shadow-light);
     --q-shadow-inset: inset 4px 4px 8px var(--q-shadow-dark), inset -4px -4px 8px var(--q-shadow-light);
 
-    --q-radius-card: 20px;
-    --q-radius-control: 12px;
-    --q-radius-inset: 12px;
+    --q-radius-card: 14px;
+    --q-radius-control: 8px;
+    --q-radius-inset: 8px;
     --q-radius-pill: 999px;
 
     --q-space-1: 4px;
-    --q-space-2: 8px;
-    --q-space-3: 12px;
-    --q-space-4: 16px;
-    --q-space-5: 24px;
+    --q-space-2: 6px;
+    --q-space-3: 10px;
+    --q-space-4: 12px;
+    --q-space-5: 16px;
 
     --q-font-ui: var(--font-ui, system-ui, sans-serif);
     --q-font-display: var(--font-display, Georgia, serif);
     --q-font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-    --q-text-xs: 0.75rem;
-    --q-text-sm: 0.8125rem;
-    --q-text-md: 0.875rem;
-    --q-text-title: clamp(1.4rem, 2.6vw, 2rem);
-    --q-text-figure: clamp(2.4rem, 4.5vw, 3.4rem);
+    --q-text-xs: 0.7rem;
+    --q-text-sm: 0.76rem;
+    --q-text-md: 0.8125rem;
+    --q-text-title: clamp(1.1rem, 1.8vw, 1.35rem);
+    --q-text-figure: clamp(1.5rem, 2.5vw, 2rem);
     --q-motion: 150ms;
 }
 
@@ -742,16 +742,16 @@ html.dark {
     align-items: center;
     justify-content: center;
     gap: var(--q-space-2);
-    min-height: 40px;
+    min-height: 30px;
     margin: 0;
-    padding: 0 var(--q-space-4);
+    padding: 0 10px;
     border: 1px solid var(--q-border);
     border-radius: var(--q-radius-control);
     background: var(--q-surface);
     box-shadow: var(--q-shadow-raised);
     color: var(--q-ink);
     font-family: var(--q-font-ui);
-    font-size: var(--q-text-md);
+    font-size: 12px;
     font-weight: 600;
     line-height: 1.2;
     white-space: nowrap;
@@ -762,7 +762,7 @@ html.dark {
 }
 
 .queue-btn .material-symbols-outlined {
-    font-size: 18px;
+    font-size: 16px;
 }
 
 .queue-btn:hover:not(:disabled) {
@@ -881,7 +881,7 @@ html.dark {
 
 .queue-metric {
     min-width: 0;
-    padding: var(--q-space-3) var(--q-space-4);
+    padding: 6px 10px;
     border-radius: var(--q-radius-inset);
     background: var(--q-surface-inset);
     box-shadow: var(--q-shadow-inset);
@@ -896,10 +896,10 @@ html.dark {
 
 .queue-metric__value {
     display: block;
-    margin-top: var(--q-space-1);
+    margin-top: 2px;
     overflow: hidden;
     color: var(--q-ink);
-    font-size: 1.05rem;
+    font-size: 0.9rem;
     font-weight: 700;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -1086,7 +1086,7 @@ html.dark {
 }
 
 .queue-drawer-body {
-    padding: $space-4;
+    padding: $space-3;
 }
 
 .queue-quality-heading {
@@ -1094,23 +1094,23 @@ html.dark {
     justify-content: space-between;
     gap: $space-3;
     align-items: flex-start;
-    margin-bottom: $space-4;
+    margin-bottom: $space-3;
 }
 
 .queue-quality-heading h4 {
-    margin: 0 0 3px;
+    margin: 0 0 2px;
     color: var(--text-dark);
-    font-size: 1rem;
+    font-size: 0.95rem;
 }
 
 .queue-quality-heading p {
     margin: 0;
     color: var(--text-muted-light);
-    font-size: 0.78rem;
+    font-size: 0.74rem;
 }
 
 .queue-quality-section {
-    margin: $space-4 0;
+    margin: $space-3 0;
 }
 
 .queue-quality-section h5 {
@@ -1217,7 +1217,7 @@ html.dark {
     display: flex;
     flex-wrap: wrap;
     gap: $space-2;
-    margin: $space-4 0 $space-2;
+    margin: $space-3 0 $space-2;
 }
 
 .queue-quality-checklist {

@@ -5596,23 +5596,23 @@ html.dark .file-test-btn {
   --q-shadow-raised: 6px 6px 14px var(--q-shadow-dark), -6px -6px 14px var(--q-shadow-light);
   --q-shadow-raised-hover: 9px 9px 20px var(--q-shadow-dark), -9px -9px 20px var(--q-shadow-light);
   --q-shadow-inset: inset 4px 4px 8px var(--q-shadow-dark), inset -4px -4px 8px var(--q-shadow-light);
-  --q-radius-card: 20px;
-  --q-radius-control: 12px;
-  --q-radius-inset: 12px;
+  --q-radius-card: 14px;
+  --q-radius-control: 8px;
+  --q-radius-inset: 8px;
   --q-radius-pill: 999px;
   --q-space-1: 4px;
-  --q-space-2: 8px;
-  --q-space-3: 12px;
-  --q-space-4: 16px;
-  --q-space-5: 24px;
+  --q-space-2: 6px;
+  --q-space-3: 10px;
+  --q-space-4: 12px;
+  --q-space-5: 16px;
   --q-font-ui: var(--font-ui, system-ui, sans-serif);
   --q-font-display: var(--font-display, Georgia, serif);
   --q-font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  --q-text-xs: 0.75rem;
-  --q-text-sm: 0.8125rem;
-  --q-text-md: 0.875rem;
-  --q-text-title: clamp(1.4rem, 2.6vw, 2rem);
-  --q-text-figure: clamp(2.4rem, 4.5vw, 3.4rem);
+  --q-text-xs: 0.7rem;
+  --q-text-sm: 0.76rem;
+  --q-text-md: 0.8125rem;
+  --q-text-title: clamp(1.1rem, 1.8vw, 1.35rem);
+  --q-text-figure: clamp(1.5rem, 2.5vw, 2rem);
   --q-motion: 150ms;
 }
 
@@ -5867,16 +5867,16 @@ html.dark {
   align-items: center;
   justify-content: center;
   gap: var(--q-space-2);
-  min-height: 40px;
+  min-height: 30px;
   margin: 0;
-  padding: 0 var(--q-space-4);
+  padding: 0 10px;
   border: 1px solid var(--q-border);
   border-radius: var(--q-radius-control);
   background: var(--q-surface);
   box-shadow: var(--q-shadow-raised);
   color: var(--q-ink);
   font-family: var(--q-font-ui);
-  font-size: var(--q-text-md);
+  font-size: 12px;
   font-weight: 600;
   line-height: 1.2;
   white-space: nowrap;
@@ -5885,7 +5885,7 @@ html.dark {
 }
 
 .queue-btn .material-symbols-outlined {
-  font-size: 18px;
+  font-size: 16px;
 }
 
 .queue-btn:hover:not(:disabled) {
@@ -6004,7 +6004,7 @@ html.dark {
 
 .queue-metric {
   min-width: 0;
-  padding: var(--q-space-3) var(--q-space-4);
+  padding: 6px 10px;
   border-radius: var(--q-radius-inset);
   background: var(--q-surface-inset);
   box-shadow: var(--q-shadow-inset);
@@ -6019,10 +6019,10 @@ html.dark {
 
 .queue-metric__value {
   display: block;
-  margin-top: var(--q-space-1);
+  margin-top: 2px;
   overflow: hidden;
   color: var(--q-ink);
-  font-size: 1.05rem;
+  font-size: 0.9rem;
   font-weight: 700;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -6208,7 +6208,7 @@ html.dark {
 }
 
 .queue-drawer-body {
-  padding: 16px;
+  padding: 12px;
 }
 
 .queue-quality-heading {
@@ -6216,23 +6216,23 @@ html.dark {
   justify-content: space-between;
   gap: 12px;
   align-items: flex-start;
-  margin-bottom: 16px;
+  margin-bottom: 12px;
 }
 
 .queue-quality-heading h4 {
-  margin: 0 0 3px;
+  margin: 0 0 2px;
   color: var(--text-dark);
-  font-size: 1rem;
+  font-size: 0.95rem;
 }
 
 .queue-quality-heading p {
   margin: 0;
   color: var(--text-muted-light);
-  font-size: 0.78rem;
+  font-size: 0.74rem;
 }
 
 .queue-quality-section {
-  margin: 16px 0;
+  margin: 12px 0;
 }
 
 .queue-quality-section h5 {
@@ -6339,7 +6339,7 @@ html.dark {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  margin: 16px 0 8px;
+  margin: 12px 0 8px;
 }
 
 .queue-quality-checklist {
@@ -6513,8 +6513,8 @@ html.dark .form-control::placeholder {
 .upload-zone-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 16px;
-  margin: 24px 0;
+  gap: 8px;
+  margin: 12px 0;
   align-items: stretch;
 }
 
@@ -6579,8 +6579,8 @@ html.dark .form-control::placeholder {
 .fixed-language-pair {
   display: flex;
   align-items: flex-end;
-  gap: 16px;
-  margin-bottom: 16px;
+  gap: 8px;
+  margin-bottom: 8px;
 }
 
 .glossary-meta-row {
@@ -6838,8 +6838,8 @@ pre.queue-quality-log {
    shadow). Focus is a 2px accent ring with a 2px offset.
    ========================================================================== */
 :root {
-  --control-h: var(--ui-control-h, 36px);
-  --control-h-sm: 32px;
+  --control-h: var(--ui-control-h, 32px);
+  --control-h-sm: 28px;
   --control-radius: 8px;
   --control-motion: 150ms ease-out;
   --control-ink: var(--ink, var(--text-dark));
@@ -6863,13 +6863,13 @@ pre.queue-quality-log {
   justify-content: center;
   gap: var(--space-2);
   min-height: var(--control-h);
-  padding: 0 var(--space-4);
+  padding: 0 var(--space-3);
   border: 1px solid var(--control-line);
   border-radius: var(--control-radius);
   background: var(--control-surface);
   color: var(--control-ink);
   font-family: var(--font-ui);
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
   line-height: 1.2;
   letter-spacing: 0;
@@ -6969,8 +6969,8 @@ pre.queue-quality-log {
 /* Sizes */
 .btn-sm {
   min-height: var(--control-h-sm);
-  padding: 0 var(--space-3);
-  font-size: 13px;
+  padding: 0 var(--space-2);
+  font-size: 12px;
 }
 
 .btn-icon {
@@ -7021,7 +7021,7 @@ pre.queue-quality-log {
   display: flex;
   flex-wrap: wrap;
   gap: 0 var(--space-1);
-  margin-bottom: var(--space-5);
+  margin-bottom: var(--space-3);
   border-bottom: 1px solid var(--control-line);
 }
 
@@ -7029,16 +7029,16 @@ pre.queue-quality-log {
   display: inline-flex;
   align-items: center;
   gap: var(--space-2);
-  min-height: 44px;
+  min-height: 34px;
   margin-bottom: -1px;
-  padding: 0 var(--space-3);
+  padding: 0 var(--space-2);
   border: 0;
   border-bottom: 2px solid transparent;
   border-radius: 0;
   background: transparent;
   color: var(--control-muted);
   font-family: var(--font-ui);
-  font-size: 14px;
+  font-size: 12.5px;
   font-weight: 500;
   white-space: nowrap;
   cursor: pointer;
@@ -7460,6 +7460,8 @@ html.dark {
 body {
   background: var(--paper);
   color: var(--ink);
+  font-size: 13px;
+  line-height: 1.42;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
 }
@@ -7471,13 +7473,13 @@ body {
 
 /* ---------- Shell ---------- */
 .container {
-  max-width: 1200px !important;
-  padding: 0 24px;
+  max-width: 1440px !important;
+  padding: 0 16px;
 }
 
 .header {
-  padding: 16px 0;
-  margin-bottom: 8px;
+  padding: 8px 0;
+  margin-bottom: 4px;
   background: transparent;
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
@@ -7488,13 +7490,13 @@ body {
 }
 
 .header .logo-section {
-  gap: 12px;
+  gap: 8px;
 }
 
 .header .logo-icon img {
-  width: 42px;
-  height: 42px;
-  max-width: 42px;
+  width: 30px;
+  height: 30px;
+  max-width: 30px;
 }
 
 .header .app-version {
@@ -7560,7 +7562,7 @@ body {
 #topTabNav {
   display: flex !important;
   gap: 0 !important;
-  margin: 0 0 24px !important;
+  margin: 0 0 12px !important;
   padding: 0 !important;
   border-bottom: 1px solid var(--rule);
   overflow-x: auto;
@@ -7580,7 +7582,7 @@ body {
 }
 
 .tab-nav .tab-btn .material-symbols-outlined {
-  font-size: 17px;
+  font-size: 16px;
   vertical-align: middle;
 }
 
@@ -7591,31 +7593,31 @@ body {
   border-radius: var(--radius);
   box-shadow: none;
   overflow: visible;
-  margin-bottom: 24px;
+  margin-bottom: 12px;
 }
 
 .card-header {
   background: transparent;
   border-bottom: 1px solid var(--rule);
-  padding: 16px 24px;
+  padding: 10px 16px;
 }
 
 .card-header .material-symbols-outlined {
   color: var(--muted);
-  font-size: 20px;
+  font-size: 18px;
 }
 
 .card-header h2,
 .card-header h3 {
   font-family: var(--font-display);
-  font-size: 22px;
+  font-size: 17px;
   font-weight: 500;
   letter-spacing: -0.02em;
   color: var(--ink);
 }
 
 .card-body {
-  padding: 24px;
+  padding: 12px 16px;
 }
 
 #tab-translate > .main-card:first-child,
@@ -7667,14 +7669,26 @@ label,
   text-transform: none;
   letter-spacing: 0;
   font-family: var(--font-ui);
-  font-size: 12px;
+  font-size: 11.5px;
   font-weight: 500;
   color: var(--muted);
 }
 
 /* ---------- Controls ---------- */
+.btn {
+  min-height: 32px;
+  padding: 5px 12px;
+  font-size: 12.5px;
+}
+
+.btn-sm {
+  min-height: 26px;
+  padding: 3px 8px;
+  font-size: 11.5px;
+}
+
 .btn .material-symbols-outlined {
-  font-size: 17px;
+  font-size: 16px;
 }
 
 .form-control,
@@ -7685,9 +7699,14 @@ label,
   border-radius: var(--radius);
   color: var(--ink);
   font-family: var(--font-ui);
-  font-size: 13px;
+  font-size: 12.5px;
+  padding: 0 10px;
   box-shadow: none;
-  min-height: 36px;
+  min-height: 32px;
+}
+
+textarea.form-control {
+  padding: 6px 10px;
 }
 
 .form-control:focus,
@@ -7708,8 +7727,8 @@ label,
 .fixed-language-pair {
   align-items: center;
   gap: 8px;
-  margin-bottom: 16px;
-  padding-bottom: 16px;
+  margin-bottom: 8px;
+  padding-bottom: 8px;
   border-bottom: 1px solid var(--rule);
 }
 
@@ -7732,7 +7751,7 @@ label,
   border: 0;
   border-radius: 0;
   font-family: var(--font-display);
-  font-size: 17px;
+  font-size: 14.5px;
   font-weight: 500;
   color: var(--ink);
   letter-spacing: -0.01em;
@@ -7741,16 +7760,16 @@ label,
 .fixed-language-pair__arrow {
   margin: 0 4px;
   color: var(--muted);
-  font-size: 15px;
+  font-size: 14px;
 }
 
 .upload-zone-grid {
-  gap: 12px;
+  gap: 8px;
   margin: 0 0 4px;
 }
 
 .upload-zone-grid > #fileUpload.file-upload {
-  padding: 32px 24px 32px;
+  padding: 12px 16px;
   border: 1px dashed var(--rule-strong);
   border-radius: var(--radius);
   background: var(--surface-strong);
@@ -7758,7 +7777,7 @@ label,
 }
 
 .upload-zone-grid > .file-upload-secondary {
-  padding: 16px 16px;
+  padding: 8px 12px;
   border: 1px solid var(--rule);
   border-radius: var(--radius);
   background: transparent;
@@ -7785,9 +7804,9 @@ label,
 }
 
 .file-upload .upload-icon {
-  width: 36px;
-  height: 36px;
-  margin: 0 auto 12px;
+  width: 28px;
+  height: 28px;
+  margin: 0 auto 4px;
   background: transparent;
   border-radius: 0;
 }
@@ -7797,64 +7816,64 @@ label,
 }
 
 .file-upload .material-symbols-outlined {
-  font-size: 30px;
+  font-size: 24px;
   color: var(--muted);
 }
 
 .file-upload-secondary .upload-icon .material-symbols-outlined {
-  font-size: 22px;
+  font-size: 20px;
 }
 
 .file-upload h3 {
-  font-size: 21px;
+  font-size: 16px;
   font-weight: 500;
-  margin-bottom: 4px;
+  margin-bottom: 2px;
 }
 
 .file-upload p {
-  font-size: 13px;
+  font-size: 12px;
   color: var(--muted);
-  max-width: 46ch;
+  max-width: 48ch;
   margin: 0 auto;
-  line-height: 1.5;
+  line-height: 1.4;
 }
 
 .file-upload-secondary h4 {
-  font-size: 15px;
+  font-size: 13px;
   font-weight: 500;
 }
 
 .file-upload-secondary p {
-  font-size: 12px;
-  line-height: 1.45;
+  font-size: 11.5px;
+  line-height: 1.4;
 }
 
 .file-upload .browse-btn {
-  margin-top: 12px;
-  padding: 8px 16px;
+  margin-top: 8px;
+  padding: 5px 12px;
   background: var(--ink);
   color: var(--paper);
   border-radius: var(--radius);
   font-family: var(--font-ui);
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 500;
   letter-spacing: 0;
   display: inline-block;
 }
 
 #translateBtn {
-  min-height: 44px;
-  padding: 8px 24px;
-  font-size: 14px;
+  min-height: 36px;
+  padding: 4px 16px;
+  font-size: 13px;
 }
 
 #settingsSummary {
   text-align: left !important;
   color: var(--muted) !important;
-  font-size: 12px !important;
-  line-height: 1.8 !important;
+  font-size: 11.5px !important;
+  line-height: 1.6 !important;
   max-width: 78ch;
-  margin: 16px auto 0 !important;
+  margin: 8px auto 0 !important;
 }
 
 #settingsSummary > * {
@@ -7867,22 +7886,22 @@ label,
 }
 
 .preflight-zone {
-  margin-top: 16px;
+  margin-top: 12px;
 }
 
 /* ---------- Queue ---------- */
 .queue-intro {
   max-width: 80ch;
-  margin: 0 0 16px;
+  margin: 0 0 8px;
   color: var(--muted);
-  font-size: 13px;
-  line-height: 1.5;
+  font-size: 12px;
+  line-height: 1.45;
 }
 
 .queue-summary {
   display: flex;
   gap: 0;
-  margin: 0 0 16px;
+  margin: 0 0 8px;
   border-top: 1px solid var(--rule);
   border-bottom: 1px solid var(--rule);
   overflow-x: auto;
@@ -7894,10 +7913,10 @@ label,
 }
 
 .queue-stat {
-  flex: 1 0 120px;
+  flex: 1 0 110px;
   align-items: flex-start;
-  gap: 4px;
-  padding: 12px 16px;
+  gap: 2px;
+  padding: 6px 12px;
   background: transparent;
   border: 0;
   border-left: 1px solid var(--rule);
@@ -7911,7 +7930,7 @@ label,
 
 .queue-stat-value {
   font-family: var(--font-display);
-  font-size: 24px;
+  font-size: 18px;
   font-weight: 500;
   letter-spacing: -0.02em;
   line-height: 1.1;
@@ -7919,18 +7938,20 @@ label,
 }
 
 .queue-stat-label {
-  font-size: 12px;
+  font-size: 10.5px;
   font-weight: 400;
   color: var(--muted);
+  margin-top: 2px;
 }
 
 .queue-toolbar {
-  margin-bottom: 16px;
-  gap: 8px;
+  margin-bottom: 8px;
+  padding-bottom: 8px;
+  gap: 6px;
 }
 
 .queue-updated {
-  font-size: 12px;
+  font-size: 11.5px;
   color: var(--muted);
 }
 
@@ -7941,17 +7962,18 @@ label,
 }
 
 .queue-filters {
-  margin-bottom: 16px;
+  margin-bottom: 8px;
+  gap: 6px;
 }
 
 .queue-chip {
-  padding: 4px 8px;
+  padding: 3px 8px;
   border: 1px solid var(--rule);
   border-radius: var(--radius);
   background: transparent;
   color: var(--muted);
   font-family: var(--font-ui);
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 500;
 }
 
@@ -7967,8 +7989,28 @@ label,
   border: 1px solid var(--rule);
   border-radius: var(--radius);
   background: var(--surface-strong);
+  padding: 4px 8px;
   font-size: 12px;
-  min-height: 32px;
+  min-height: 30px;
+}
+
+.queue-library-search input {
+  padding: 5px 8px;
+  font-size: 12px;
+  min-height: 30px;
+}
+
+.queue-library-select {
+  min-height: 110px;
+  font-size: 12px;
+}
+
+.queue-events-title {
+  margin: 12px 0 4px;
+}
+
+.queue-events {
+  max-height: 150px;
 }
 
 .queue-table-wrap {
@@ -7978,17 +8020,17 @@ label,
 }
 
 .queue-table {
-  font-size: 13px;
+  font-size: 12px;
 }
 
 .queue-table th {
-  padding: 8px 12px;
+  padding: 6px 8px;
   background: transparent;
   border: 0;
   border-bottom: 1px solid var(--rule);
   color: var(--muted);
   font-family: var(--font-ui);
-  font-size: 11px;
+  font-size: 10.5px;
   font-weight: 500;
   letter-spacing: 0;
   text-transform: none;
@@ -7996,7 +8038,7 @@ label,
 }
 
 .queue-table td {
-  padding: 12px;
+  padding: 6px 8px;
   border: 0;
   border-bottom: 1px solid var(--rule);
   vertical-align: middle;
@@ -8012,7 +8054,7 @@ label,
 
 .queue-table .queue-book-title {
   font-family: var(--font-display);
-  font-size: 15px;
+  font-size: 13px;
   font-weight: 500;
   letter-spacing: -0.01em;
 }
@@ -8021,7 +8063,8 @@ label,
 .queue-table .queue-series,
 .queue-table .queue-muted {
   color: var(--muted);
-  font-size: 12px;
+  font-size: 11px;
+  margin-top: 1px;
 }
 
 /* The "Next" marker inverts with the theme: dark ink on paper in light mode,
@@ -8031,7 +8074,7 @@ label,
 .queue-next-badge {
   background: var(--ink);
   color: var(--paper);
-  padding: 2px 8px;
+  padding: 1px 6px;
   font-size: 10px;
   letter-spacing: 0.05em;
 }
@@ -8044,14 +8087,20 @@ label,
 
 .queue-move-btn,
 .queue-download-btn {
-  width: 26px;
-  height: 26px;
+  width: 24px;
+  height: 24px;
+  min-height: 24px;
   margin: 0 1px;
   border: 1px solid transparent;
   border-radius: var(--radius);
   background: transparent;
   color: var(--muted);
   box-shadow: none;
+}
+
+.queue-move-btn .material-symbols-outlined,
+.queue-download-btn .material-symbols-outlined {
+  font-size: 16px;
 }
 
 .queue-move-btn:hover:not(:disabled),
@@ -8079,9 +8128,11 @@ label,
 
 .queue-model-select {
   max-width: 180px;
+  min-height: 26px;
+  padding: 2px 6px;
   border: 0;
   background: transparent;
-  font-size: 11px;
+  font-size: 11.5px;
   color: var(--muted);
 }
 
@@ -8108,25 +8159,63 @@ label,
    card shell with `!important`. Reopening that layer is the only way to
    win without editing style.css. */
 @layer compact-ui {
+  :root {
+    --ui-density-y: 0.6;
+    --ui-control-h: 32px;
+  }
+  body {
+    padding-top: 8px !important;
+    padding-bottom: 8px !important;
+  }
+  .header {
+    padding-top: 8px !important;
+    padding-bottom: 8px !important;
+    margin-bottom: 8px !important;
+  }
+  .tab-nav .tab-btn {
+    padding-top: 4px !important;
+    padding-bottom: 4px !important;
+  }
+  .main-card {
+    margin-bottom: 12px !important;
+  }
   .card-header {
-    padding-top: 16px !important;
-    padding-bottom: 16px !important;
+    padding-top: 10px !important;
+    padding-bottom: 10px !important;
   }
   .card-body {
-    padding-top: 24px !important;
-    padding-bottom: 24px !important;
+    padding-top: 12px !important;
+    padding-bottom: 12px !important;
+  }
+  .btn:not(.btn-sm):not(.glossary-toolbar-btn) {
+    padding-top: 5px !important;
+    padding-bottom: 5px !important;
+  }
+  .progress-section {
+    margin-top: 12px !important;
+    padding-top: 12px !important;
+    padding-bottom: 12px !important;
+  }
+  .progress-bar-container {
+    height: 20px !important;
+    margin-top: 8px !important;
+    margin-bottom: 8px !important;
+  }
+  .stats-grid {
+    margin-top: 12px !important;
+    margin-bottom: 12px !important;
   }
   .upload-zone-grid .file-upload {
     margin-top: 0 !important;
     margin-bottom: 0 !important;
   }
   .upload-zone-grid > #fileUpload.file-upload {
-    padding-top: 32px !important;
-    padding-bottom: 24px !important;
+    padding-top: 12px !important;
+    padding-bottom: 12px !important;
   }
   .upload-zone-grid > .file-upload-secondary {
-    padding-top: 16px !important;
-    padding-bottom: 16px !important;
+    padding-top: 8px !important;
+    padding-bottom: 8px !important;
   }
 }
 /* ---------- Dark corrections ---------- */
@@ -8180,31 +8269,31 @@ html.dark .queue-table tbody tr:hover {
 /* ---------- Translate: short secondary flows, calmer footer ---------- */
 .upload-zone-grid > .file-upload-secondary {
   display: grid;
-  grid-template-columns: 28px minmax(0, 1fr);
-  column-gap: 12px;
-  row-gap: 3px;
+  grid-template-columns: 24px minmax(0, 1fr);
+  column-gap: 8px;
+  row-gap: 2px;
   align-items: start;
   justify-content: initial;
-  padding: 16px 16px;
+  padding: 8px 12px;
   text-align: left;
 }
 
 .upload-zone-grid > .file-upload-secondary .upload-icon {
   grid-row: 1/span 2;
-  width: 28px;
-  height: 28px;
+  width: 24px;
+  height: 24px;
   margin: 2px 0 0;
 }
 
 .upload-zone-grid > .file-upload-secondary .upload-icon .material-symbols-outlined {
-  font-size: 21px;
+  font-size: 19px;
 }
 
 .upload-zone-grid > .file-upload-secondary h4 {
   grid-column: 2;
   margin: 0;
-  font-size: 14px;
-  line-height: 1.35;
+  font-size: 13px;
+  line-height: 1.3;
   text-align: left;
 }
 
@@ -8212,8 +8301,8 @@ html.dark .queue-table tbody tr:hover {
   grid-column: 2;
   margin: 0;
   max-width: none;
-  font-size: 12px;
-  line-height: 1.45;
+  font-size: 11.5px;
+  line-height: 1.4;
   text-align: left;
 }
 
@@ -8221,9 +8310,9 @@ html.dark .queue-table tbody tr:hover {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 12px;
+  gap: 8px;
   flex-wrap: wrap;
-  margin-top: 24px;
+  margin-top: 12px;
 }
 
 #settingsSummary {
@@ -8234,7 +8323,7 @@ html.dark .queue-table tbody tr:hover {
   gap: 4px;
   text-align: center !important;
   max-width: none;
-  margin: 12px auto 0 !important;
+  margin: 8px auto 0 !important;
 }
 
 #settingsSummary > div {
@@ -8263,7 +8352,7 @@ html.dark .queue-table tbody tr:hover {
 .queue-distribution {
   display: block !important;
   height: auto;
-  margin: -4px 0 16px;
+  margin: -2px 0 8px;
   background: transparent;
   border-radius: 0;
   overflow: visible;
@@ -8310,11 +8399,11 @@ html.dark .queue-table tbody tr:hover {
 .queue-distribution-legend {
   display: flex;
   flex-wrap: wrap;
-  gap: 4px 16px;
-  margin-top: 8px;
+  gap: 4px 12px;
+  margin-top: 4px;
   color: var(--muted);
   font-family: var(--font-ui);
-  font-size: 11px;
+  font-size: 10.5px;
 }
 
 .queue-distribution-legend-item {
@@ -8372,11 +8461,11 @@ html.dark .queue-table tbody tr:hover {
 }
 
 .file-table th {
-  padding: 8px 12px;
+  padding: 6px 10px;
   border-bottom: 1px solid var(--rule);
   color: var(--muted);
   font-family: var(--font-ui);
-  font-size: 11px;
+  font-size: 10.5px;
   font-weight: 500;
   letter-spacing: 0.02em;
   text-transform: none;
@@ -8392,9 +8481,9 @@ html.dark .queue-table tbody tr:hover {
 }
 
 .file-table td {
-  padding: 8px 12px;
+  padding: 6px 10px;
   border-bottom: 1px solid var(--rule);
-  font-size: 13px;
+  font-size: 12px;
 }
 
 .file-table tbody tr:last-child td {
@@ -8495,8 +8584,8 @@ html.dark .queue-table tbody tr:hover {
 
 /* ---------- Footer ---------- */
 .app-footer {
-  padding: 16px 0;
-  margin-top: 32px;
+  padding: 12px 0;
+  margin-top: 16px;
 }
 
 .footer-links {
@@ -8579,7 +8668,7 @@ h4 {
 }
 
 .header .logo-wordmark {
-  font-size: 22px;
+  font-size: 18px;
   letter-spacing: -0.02em;
 }
 
@@ -8676,23 +8765,23 @@ h4 {
 
 .card-header h2,
 .card-header h3 {
-  font-size: 21px;
+  font-size: 17px;
 }
 
 .queue-stat-value {
-  font-size: 23px;
+  font-size: 18px;
 }
 
 .file-upload h3 {
-  font-size: 20px;
+  font-size: 16px;
 }
 
 .file-upload-secondary h4 {
-  font-size: 14px;
+  font-size: 13px;
 }
 
 .queue-table .queue-book-title {
-  font-size: 14.5px;
+  font-size: 13px;
 }
 
 /* ---------- Native controls ---------- */
