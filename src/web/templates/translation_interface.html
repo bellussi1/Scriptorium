@@ -65,14 +65,13 @@
     <script src="https://cdn.jsdelivr.net/npm/i18next@23.16.4/dist/umd/i18next.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/i18next-http-backend@2.6.2/i18nextHttpBackend.min.js"></script>
 
-    <!-- Typography is bundled locally: Literata for display, Roboto for the
-         interface. No external font request is needed. -->
+    <!-- Typography is bundled locally: Zilla Slab for display, IBM Plex Sans for the interface. -->
 
     <!-- Google Material Icons -->
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
 
     <!-- Application styles, compiled from src/web/static/scss -->
-    <link rel="stylesheet" href="/static/css/app.css?v=20261113-slop-pass">
+    <link rel="stylesheet" href="/static/css/app.css?v=20261115-ui-ux">
 </head>
 <body>
     <div class="container">
@@ -458,14 +457,14 @@
                     <div id="fallbackRecommendationPanel" class="recommendation-panel" hidden></div>
 
                     <!-- OpenRouter Cost Display -->
-                    <div class="stats-grid hidden" id="openrouterCostGrid" style="margin-top: 15px;">
-                        <div class="stat-card" style="background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); border: 1px solid #f59e0b;">
-                            <h3 id="openrouterCost" style="color: #92400e;">$0.0000</h3>
-                            <p data-i18n="translation:stat_total_cost" style="color: #78350f;">Total Cost (USD)</p>
+                    <div class="stats-grid hidden" id="openrouterCostGrid">
+                        <div class="stat-card stat-card--cost">
+                            <h3 id="openrouterCost">$0.0000</h3>
+                            <p data-i18n="translation:stat_total_cost">Total Cost (USD)</p>
                         </div>
-                        <div class="stat-card" style="background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%); border: 1px solid #3b82f6;">
-                            <h3 id="openrouterTokens" style="color: #1e40af;">0</h3>
-                            <p data-i18n="translation:stat_total_tokens" style="color: #1e3a8a;">Total Tokens</p>
+                        <div class="stat-card stat-card--tokens">
+                            <h3 id="openrouterTokens">0</h3>
+                            <p data-i18n="translation:stat_total_tokens">Total Tokens</p>
                         </div>
                     </div>
 
@@ -486,15 +485,15 @@
                 <div id="completionCardsContainer"></div>
 
                 <!-- TTS Progress Section -->
-                <div id="ttsProgressSection" style="display: none; margin-top: 20px; padding: 15px; background: var(--success-light-bg); border: 1px solid var(--success-light); border-radius: 1.5rem;">
-                    <h3 style="margin: 0 0 10px 0; color: var(--success-light); display: flex; align-items: center; gap: 0.5rem;">
+                <div id="ttsProgressSection" class="tts-progress-section" style="display: none;">
+                    <h3 class="tts-progress-title">
                         <span class="material-symbols-outlined">volume_up</span>
                         <span data-i18n="tts:progress_title">Audio Generation</span>
                     </h3>
-                    <div class="progress-bar-container" style="margin-bottom: 10px;">
-                        <div class="progress-bar" id="ttsProgressBar" style="width: 0%; background: linear-gradient(90deg, var(--success-light), #22c55e);">0%</div>
+                    <div class="progress-bar-container tts-progress-bar-container">
+                        <div class="progress-bar" id="ttsProgressBar" style="width: 0%;">0%</div>
                     </div>
-                    <p id="ttsStatusText" data-i18n="tts:waiting" style="margin: 0; font-size: 0.875rem; color: var(--success-light);">Waiting to start...</p>
+                    <p id="ttsStatusText" class="tts-status-text" data-i18n="tts:waiting">Waiting to start...</p>
                 </div>
 
                 <!-- Activity Log (Collapsible) -->
@@ -733,7 +732,7 @@
                         <div class="form-group" id="ollamaSettings" style="margin-bottom: 0;">
                             <label>
                                 <span data-i18n="settings:api_endpoint">API Endpoint</span>
-                                <span id="apiEndpointBadge" class="badge badge-customized" data-i18n="settings:endpoint_custom_badge" style="display: none; margin-left: 8px; font-size: 0.75rem; background: #f59e0b; color: white; padding: 2px 8px; border-radius: 12px;">custom</span>
+                                <span id="apiEndpointBadge" class="badge badge-customized" data-i18n="settings:endpoint_custom_badge" style="display: none;">custom</span>
                             </label>
                             <div class="neu-inset-light" style="display: flex; gap: 8px;">
                                 <input type="text" class="form-control" id="apiEndpoint" value="http://localhost:11434/api/generate" style="flex: 1;">
@@ -810,8 +809,8 @@
                                 </select>
                             </div>
                             <!-- Thinking model warning -->
-                            <div id="thinkingModelWarning" style="display: none; margin-top: 8px; padding: 8px 10px; background: #fee2e2; border-left: 3px solid #ef4444; border-radius: 8px;">
-                                <p id="thinkingModelWarningText" style="margin: 0; font-size: 13px; color: #991b1b; white-space: pre-line;"></p>
+                            <div id="thinkingModelWarning" class="thinking-model-warning" style="display: none;">
+                                <p id="thinkingModelWarningText" class="thinking-model-warning-text"></p>
                             </div>
                         </div>
                         <button class="btn btn-secondary" onclick="refreshModels()" data-i18n-attr="title:settings:refresh_models_title" title="Refresh model list" style="height: 44px; padding: 0 1rem;">
@@ -824,7 +823,7 @@
                         <div class="form-group" style="margin-bottom: 0;">
                             <label>
                                 <span data-i18n="settings:api_endpoint">API Endpoint</span>
-                                <span id="openaiEndpointBadge" class="badge badge-customized" data-i18n="settings:endpoint_custom_badge" style="display: none; margin-left: 8px; font-size: 0.75rem; background: #f59e0b; color: white; padding: 2px 8px; border-radius: 12px;">custom</span>
+                                <span id="openaiEndpointBadge" class="badge badge-customized" data-i18n="settings:endpoint_custom_badge" style="display: none;">custom</span>
                             </label>
                             <div class="neu-inset-light" style="display: flex; gap: 8px;">
                                 <input type="text" class="form-control" id="openaiEndpoint" value="https://api.openai.com/v1/chat/completions" placeholder="https://api.openai.com/v1/chat/completions" style="flex: 1;">
@@ -884,7 +883,7 @@
                     </div>
 
                     <!-- Save Settings Button -->
-                    <div class="form-group" style="margin-top: 20px; padding-top: 15px; border-top: 1px solid var(--border-color);">
+                    <div class="form-group" style="margin-top: 20px; padding-top: 15px; border-top: 1px solid var(--border-light);">
                         <button type="button" id="saveSettingsBtn" class="btn btn-primary" style="width: 100%;" onclick="saveSettings()" disabled>
                             <span class="material-symbols-outlined">save</span>
                             <span data-i18n="settings:save_settings">Save Settings to .env</span>
@@ -900,7 +899,7 @@
                     <span style="display: flex; align-items: center; gap: 0.75rem;">
                         <span class="material-symbols-outlined">notifications_active</span>
                         <span data-i18n="settings:notifications">Notifications</span>
-                        <span id="notifyStatusBadge" style="display: none; font-size: 0.7rem; font-weight: 600; padding: 2px 8px; border-radius: 10px; background: #10b981; color: white;">ON</span>
+                        <span id="notifyStatusBadge" class="notify-status-badge" style="display: none;">ON</span>
                     </span>
                     <span id="notificationOptionsIcon" class="material-symbols-outlined">expand_more</span>
                 </div>
@@ -1178,7 +1177,7 @@
                         <span class="material-symbols-outlined">arrow_back</span>
                     </button>
                     <h2 id="glossaryEditorTitle" data-i18n="glossary:editor_title" style="margin: 0;">Edit glossary</h2>
-                    <button type="button" class="btn btn-secondary" id="glossaryEditorDeleteBtn" data-i18n-attr="title:glossary:editor_delete_title" title="Delete this glossary" style="margin-left: auto; padding: 0.5rem; color: #ef4444;">
+                    <button type="button" class="btn btn-danger" id="glossaryEditorDeleteBtn" data-i18n-attr="title:glossary:editor_delete_title" title="Delete this glossary" style="margin-left: auto; padding: 0.5rem;">
                         <span class="material-symbols-outlined">delete</span>
                     </button>
                 </div>

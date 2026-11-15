@@ -44,7 +44,6 @@ html.dark .form-control::placeholder {
 
 /* White text on the raw primary fill was 4.4:1 (light) and 3.2:1 (dark);
    this deeper blue keeps the same hue and clears AA for button labels. */
-.btn-primary,
 .file-upload .browse-btn {
     background: var(--primary-solid);
 }

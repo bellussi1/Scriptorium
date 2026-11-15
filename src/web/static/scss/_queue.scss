@@ -1220,6 +1220,63 @@ html.dark {
     margin: $space-4 0 $space-2;
 }
 
+.queue-quality-checklist {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: $space-2;
+}
+
+.queue-quality-check {
+    display: flex;
+    align-items: center;
+    gap: $space-2;
+    padding: $space-2;
+    border: 1px solid var(--border-light);
+    border-radius: $radius-md;
+    font-size: 0.76rem;
+}
+
+.queue-quality-check .material-symbols-outlined {
+    font-size: 16px;
+    line-height: 1;
+}
+
+.queue-quality-check span:nth-child(2) {
+    flex: 1;
+    min-width: 0;
+    color: var(--text-dark);
+}
+
+.queue-quality-check strong {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.queue-quality-check.is-ok .material-symbols-outlined,
+.queue-quality-check.is-ok strong {
+    color: var(--success-light);
+}
+
+.queue-quality-check.is-warn {
+    background: var(--warning-light-bg);
+    border-color: var(--warning-light-border);
+}
+
+.queue-quality-check.is-warn .material-symbols-outlined,
+.queue-quality-check.is-warn strong {
+    color: var(--warning-light-text);
+}
+
+.queue-quality-subtitle {
+    margin: $space-3 0 $space-1;
+    color: var(--text-muted-light);
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+}
+
 .queue-table th:nth-child(3),
 .queue-table td:nth-child(3) {
     white-space: normal;

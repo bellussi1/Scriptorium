@@ -143,7 +143,7 @@ function handleTtsUpdate(data) {
             if (ttsProgressBar) {
                 ttsProgressBar.style.width = '0%';
                 ttsProgressBar.textContent = t('tts:failed_label');
-                ttsProgressBar.style.background = '#ef4444';
+                ttsProgressBar.style.background = 'var(--danger-light)';
             }
 
             const errorText = error || message || t('errors:unknown_error');

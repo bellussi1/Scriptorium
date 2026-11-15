@@ -8,7 +8,6 @@ from pathlib import Path
 from src.literary.queue_insights import (
     epub_metrics,
     find_log,
-    find_report,
     kindle_zip,
     quality_payload,
     quality_sidecar_path,
@@ -142,3 +141,39 @@ def test_quality_payload_reads_the_sidecar_without_a_queue_report(tmp_path: Path
 
     assert payload["epubcheck"]["errors"] == 0
     assert payload["report"]["reader_repair"]["merged"] == 7
+
+
+def test_epub_metrics_reports_pt_pt_and_review_samples(tmp_path: Path, monkeypatch):
+    compiled_dir = tmp_path / "compiled"
+    compiled_dir.mkdir()
+    (compiled_dir / "ship-of-magic-glossary.json").write_text(
+        json.dumps(
+            {
+                "terms": [
+                    {"source": "Liveship", "target": "Liveship", "forbidden": ["navio vivo"]},
+                ]
+            }
+        ),
+        encoding="utf-8",
+    )
+    monkeypatch.setattr("src.literary.queue_insights.DEFAULT_COMPILED_DIR", compiled_dir)
+    path = make_epub(
+        tmp_path / "Ship of Magic (pt-BR).refined.epub",
+        title="Ship of Magic",
+        language="pt-BR",
+        chapters=[
+            "<html xmlns='http://www.w3.org/1999/xhtml'><body><h1>Capitulo 1</h1><p>De facto, o navio vivo entrou em contacto.</p></body></html>",
+            "<html xmlns='http://www.w3.org/1999/xhtml'><body><h1>Capitulo 2</h1><p>Tudo tranquilo aqui.</p></body></html>",
+        ],
+    )
+
+    result = epub_metrics(path, title="Ship of Magic")
+
+    assert result["metrics"]["pt_pt_blocking"] == 2
+    assert result["metrics"]["pt_pt_total"] >= 2
+    assert result["metrics"]["forbidden_forms"] >= 1
+    assert "pt_pt_blocking_remaining" in result["quality_flags"]
+    assert "forbidden_forms_remaining" in result["quality_flags"]
+    assert any(hit["form"] == "navio vivo" and hit["count"] == 1 for hit in result["forbidden_hits"])
+    assert any(sample["kind"] == "forbidden" and sample["match"] == "navio vivo" for sample in result["review_samples"])
+    assert any(sample["kind"] == "pt_pt_blocking" and sample["href"] == "ch1.xhtml" for sample in result["review_samples"])

@@ -100,7 +100,7 @@ html.dark {
     --data-accent: #7fc3b8;
     --data-accent-soft: #17312e;
 
-    --primary-light: #e6ece9;
+    --primary-light: #2563eb;
     --background-light: #0f1212;
     --background-outer: #171b1a;
     --text-dark: #e6ece9;
@@ -171,32 +171,12 @@ body {
     max-width: 42px;
 }
 
-.header .logo-text h2 {
-    font-family: var(--font-display);
-    font-size: 26px;
-    font-weight: 600;
-    letter-spacing: -0.03em;
-    line-height: 1;
-    color: var(--ink);
-    display: flex;
-    align-items: baseline;
-    gap: $space-2;
-}
-
 .header .app-version {
     font-family: var(--font-ui);
     font-size: 11px;
     font-weight: 400;
     letter-spacing: 0;
     color: var(--muted);
-}
-
-.header .logo-text p {
-    margin-top: $space-1;
-    font-family: var(--font-ui);
-    font-size: 12px;
-    color: var(--muted);
-    letter-spacing: 0;
 }
 
 .header .status-indicator {
@@ -1298,9 +1278,101 @@ h4 {
     letter-spacing: -0.015em;
 }
 
-.header .logo-text h2 {
-    font-size: 25px;
-    letter-spacing: -0.025em;
+.header .logo-wordmark {
+    font-size: 22px;
+    letter-spacing: -0.02em;
+}
+
+/* ---------- Token-backed status panels & badges ---------- */
+
+#openrouterCostGrid {
+    margin-top: $space-4;
+}
+
+#openrouterCostGrid .stat-card--cost {
+    background: var(--warning-light-bg);
+    border: 1px solid var(--warning-light-border);
+}
+
+#openrouterCostGrid .stat-card--cost h3,
+#openrouterCostGrid .stat-card--cost p {
+    color: var(--warning-light-text);
+}
+
+#openrouterCostGrid .stat-card--tokens {
+    background: var(--info-light-bg);
+    border: 1px solid var(--info-light);
+}
+
+#openrouterCostGrid .stat-card--tokens h3,
+#openrouterCostGrid .stat-card--tokens p {
+    color: var(--info-light);
+}
+
+.tts-progress-section {
+    margin-top: $space-5;
+    padding: $space-4;
+    background: var(--success-light-bg);
+    border: 1px solid var(--success-light);
+    border-radius: var(--radius);
+}
+
+.tts-progress-title {
+    margin: 0 0 $space-2 0;
+    color: var(--success-light);
+    display: flex;
+    align-items: center;
+    gap: $space-2;
+}
+
+.tts-progress-bar-container {
+    margin-bottom: $space-2;
+}
+
+#ttsProgressBar {
+    background: var(--success-light);
+}
+
+.tts-status-text {
+    margin: 0;
+    font-size: 0.875rem;
+    color: var(--success-light);
+}
+
+.badge-customized {
+    margin-left: $space-2;
+    padding: 2px $space-2;
+    border: 1px solid var(--warning-light-border);
+    border-radius: var(--radius);
+    background: var(--warning-light-bg);
+    color: var(--warning-light-text);
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.thinking-model-warning {
+    margin-top: $space-2;
+    padding: $space-2 $space-3;
+    background: var(--danger-light-bg);
+    border-left: 3px solid var(--danger-light-border);
+    border-radius: var(--radius);
+}
+
+.thinking-model-warning-text {
+    margin: 0;
+    font-size: 13px;
+    color: var(--danger-light-text);
+    white-space: pre-line;
+}
+
+.notify-status-badge {
+    padding: 2px $space-2;
+    border: 1px solid var(--success-light);
+    border-radius: var(--radius);
+    background: var(--success-light-bg);
+    color: var(--success-light);
+    font-size: 0.7rem;
+    font-weight: 600;
 }
 
 .card-header h2,

@@ -339,30 +339,6 @@ body {
     height: auto;
 }
 
-.header .logo-text h2 {
-    color: var(--text-dark);
-    font-size: 1.5rem;
-    font-weight: 900;
-    letter-spacing: -0.025em;
-    line-height: 1;
-}
-
-.header .logo-text p {
-    color: var(--text-muted-light);
-    font-size: 0.75rem;
-    font-weight: 500;
-    margin-top: $space-1;
-}
-
-.header .logo-text .app-version {
-    color: var(--text-muted-light);
-    font-size: 0.7rem;
-    font-weight: 600;
-    letter-spacing: 0;
-    margin-left: $space-1;
-    vertical-align: middle;
-}
-
 .header .status-section {
     display: flex;
     align-items: center;
@@ -1537,9 +1513,9 @@ select.form-control {
 
 /* Detailed summary with statistics and recommendations */
 .log-entry.log-summary-detailed {
-    background: var(--bg-light);
-    border: 1px solid var(--border-color);
-    border-left: 4px solid var(--primary);
+    background: var(--background-light);
+    border: 1px solid var(--border-light);
+    border-left: 4px solid var(--primary-light);
     padding: $space-4;
     border-radius: $radius-sm;
     display: block;
@@ -2679,7 +2655,7 @@ html.dark .file-icon {
 
 
 html.dark .file-info {
-    color: var(--text-light);
+    color: var(--text-dark);
 }
 
 /* ========================================

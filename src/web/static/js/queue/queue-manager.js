@@ -10,7 +10,7 @@
 
 import { t } from '../i18n/i18n.js';
 import { toast } from '../ui/toast.js';
-import { html, raw } from '../ui/html.js';
+import { escapeHtml, html, raw } from '../ui/html.js';
 
 const QUEUE_URL = '/api/literary/queue';
 const LIBRARY_URL = '/api/literary/library';
@@ -62,16 +62,6 @@ let controlInFlight = false;
 
 function byId(id) {
     return document.getElementById(id);
-}
-
-function escapeHtml(value) {
-    return String(value ?? '').replace(/[&<>"']/g, (char) => ({
-        '&': '&amp;',
-        '<': '&lt;',
-        '>': '&gt;',
-        '"': '&quot;',
-        "'": '&#39;',
-    }[char]));
 }
 
 function uiLocale() {
@@ -1407,8 +1397,41 @@ function renderQuality(payload) {
     const refine = report.refine || {};
     const reader = report.reader_repair || {};
     const termRows = [
-        [t('queue:quality_forbidden'), metrics.forbidden_forms],
+        [t('queue:quality_forbidden'), metrics.forbidden_forms ?? 0],
+        [t('queue:quality_pt_pt_blocking'), metrics.pt_pt_blocking ?? 0],
+        [t('queue:quality_pt_pt_total'), metrics.pt_pt_total ?? 0],
     ];
+    const hasCriticalIssue = issues.some((issue) => (
+        issue.severity === 'error' || issue.severity === 'critical'
+    ));
+    const epubcheckOk = Boolean(
+        epubcheck && Number(epubcheck.fatals || 0) === 0 && Number(epubcheck.errors || 0) === 0
+    );
+    const checklistItems = [
+        [t('queue:quality_check_epubcheck'), epubcheckOk],
+        [t('queue:quality_check_gate'), validation.passed === true],
+        [t('queue:quality_check_forbidden'), Number(metrics.forbidden_forms || 0) === 0],
+        [t('queue:quality_check_pt_pt'), Number(metrics.pt_pt_blocking || 0) === 0],
+        [t('queue:quality_check_structure'), !hasCriticalIssue],
+    ];
+    const checklistHtml = checklistItems.map(([label, passed]) => `
+        <div class="queue-quality-check ${passed ? 'is-ok' : 'is-warn'}">
+            <span class="material-symbols-outlined" aria-hidden="true">${passed ? 'check_circle' : 'warning'}</span>
+            <span>${escapeHtml(label)}</span>
+            <strong>${escapeHtml(passed ? t('queue:quality_pass') : t('queue:quality_fail'))}</strong>
+        </div>
+    `).join('');
+    const samples = Array.isArray(payload.review_samples) ? payload.review_samples : [];
+    const forbiddenHits = Array.isArray(payload.forbidden_hits) ? payload.forbidden_hits : [];
+    const sampleItems = samples.length
+        ? samples.map((sample) => `<li><code>${escapeHtml(sample.match || '')}</code> · <code>${escapeHtml(sample.href || '')}</code></li>`).join('')
+        : forbiddenHits.map((hit) => `<li><code>${escapeHtml(hit.form || '')}</code> × ${escapeHtml(formatNumber(hit.count))}</li>`).join('');
+    const samplesHtml = sampleItems
+        ? `<h5 class="queue-quality-subtitle">${escapeHtml(t('queue:quality_samples'))}</h5>
+           <ul class="queue-quality-report">${sampleItems}</ul>`
+        : ((Number(metrics.forbidden_forms || 0) === 0 && Number(metrics.pt_pt_blocking || 0) === 0)
+            ? `<p class="queue-muted">${escapeHtml(t('queue:quality_samples_clean'))}</p>`
+            : '');
     const reportLines = [];
     if (validation.passed != null) {
         reportLines.push(t('queue:quality_gate', {
@@ -1461,6 +1484,10 @@ function renderQuality(payload) {
             <span class="queue-status queue-status-${escapeHtml(state)}">${escapeHtml(stateLabel(refreshBook))}</span>
         </div>
         <section class="queue-quality-section">
+            <h5>${escapeHtml(t('queue:quality_checklist'))}</h5>
+            <div class="queue-quality-checklist">${checklistHtml}</div>
+        </section>
+        <section class="queue-quality-section">
             <h5>${escapeHtml(t('queue:quality_artifact'))}</h5>
             <div class="queue-quality-artifact">
                 <code>${escapeHtml(artifact.filename || '—')}</code>
@@ -1485,6 +1512,7 @@ function renderQuality(payload) {
             <div class="queue-quality-grid">
                 ${termRows.map(([label, value]) => qualityMetric(label, formatNumber(value))).join('')}
             </div>
+            ${samplesHtml}
         </section>
         <section class="queue-quality-section">
             <h5>${escapeHtml(t('queue:quality_issues'))}</h5>
