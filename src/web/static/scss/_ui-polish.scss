@@ -273,15 +273,18 @@ html.dark .form-control::placeholder {
 }
 
 .file-name-cell {
-    display: flex;
+    display: grid;
+    grid-template-columns: minmax(180px, 42ch) 58px 144px;
     align-items: center;
-    gap: $space-2;
+    column-gap: $space-2;
     min-width: 0;
 }
 
 .file-name-cell > .clickable-filename {
-    flex: 0 1 auto;
+    grid-column: 1;
     min-width: 0;
+    max-width: 100%;
+    justify-self: start;
 }
 
 .file-table .filename-text {
@@ -302,6 +305,21 @@ html.dark .form-control::placeholder {
     line-height: 1.5;
     vertical-align: middle;
     white-space: nowrap;
+}
+
+.file-name-cell > .file-artifact-badge {
+    justify-content: center;
+    width: 100%;
+    box-sizing: border-box;
+    text-align: center;
+}
+
+.file-name-cell > .file-artifact-badge.is-final {
+    grid-column: 2;
+}
+
+.file-name-cell > .file-artifact-badge:not(.is-final) {
+    grid-column: 3;
 }
 
 .file-artifact-badge.is-reader {

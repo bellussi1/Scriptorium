@@ -6681,15 +6681,18 @@ html.dark .form-control::placeholder {
 }
 
 .file-name-cell {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(180px, 42ch) 58px 144px;
   align-items: center;
-  gap: 8px;
+  column-gap: 8px;
   min-width: 0;
 }
 
 .file-name-cell > .clickable-filename {
-  flex: 0 1 auto;
+  grid-column: 1;
   min-width: 0;
+  max-width: 100%;
+  justify-self: start;
 }
 
 .file-table .filename-text {
@@ -6710,6 +6713,21 @@ html.dark .form-control::placeholder {
   line-height: 1.5;
   vertical-align: middle;
   white-space: nowrap;
+}
+
+.file-name-cell > .file-artifact-badge {
+  justify-content: center;
+  width: 100%;
+  box-sizing: border-box;
+  text-align: center;
+}
+
+.file-name-cell > .file-artifact-badge.is-final {
+  grid-column: 2;
+}
+
+.file-name-cell > .file-artifact-badge:not(.is-final) {
+  grid-column: 3;
 }
 
 .file-artifact-badge.is-reader {
@@ -8456,6 +8474,16 @@ html.dark .queue-table tbody tr:hover {
 }
 
 /* ---------- Tables shared by Files, Glossaries and Styles ---------- */
+.file-table {
+  display: table;
+  table-layout: fixed;
+  width: 100%;
+}
+
+.file-table thead {
+  display: table-header-group;
+}
+
 .file-table thead tr {
   background: transparent !important;
 }
@@ -8472,11 +8500,13 @@ html.dark .queue-table tbody tr:hover {
 }
 
 .file-table tbody {
+  display: table-row-group;
   max-height: none;
   overflow-y: visible;
 }
 
 .file-table tbody tr {
+  display: table-row;
   border-top: 0;
 }
 

@@ -1160,6 +1160,16 @@ html.dark .queue-table tbody tr:hover {
 
 /* ---------- Tables shared by Files, Glossaries and Styles ---------- */
 
+.file-table {
+    display: table;
+    table-layout: fixed;
+    width: 100%;
+}
+
+.file-table thead {
+    display: table-header-group;
+}
+
 .file-table thead tr {
     background: transparent !important;
 }
@@ -1176,11 +1186,13 @@ html.dark .queue-table tbody tr:hover {
 }
 
 .file-table tbody {
+    display: table-row-group;
     max-height: none;
     overflow-y: visible;
 }
 
 .file-table tbody tr {
+    display: table-row;
     border-top: 0;
 }
 
