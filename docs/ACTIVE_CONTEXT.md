@@ -1,11 +1,22 @@
 # Active context
 
 Handoff between sessions. Read this first; update it before you stop. It must
-describe the real repository, not a plan. Status as of 2026-11-18 (01:36 local):
+describe the real repository, not a plan. Status as of 2026-11-18 (01:49 local):
 revalidate with `git status` and `git log` before acting. Older
 handoffs are in git history (this file was compacted on 2026-11-12).
 
 ## Now
+
+- **Full queue re-queued & reprioritized onto `gemini / gemini-3.8-flash` (2026-11-18 01:49 local):**
+  - Backed up `data/literary_queue.db` to `data/tmp/literary_queue.before-requeue-2026-11-18.db` and archived the 10 prior `Index-Translate-9B` `*.refined.epub` files (+ 3 `.refined.quality.json` sidecars) from `translated_files/` to `translated_files/archive/index9b-completed-2026-11-18/` (preserving `translated_files/kindle/` until replaced).
+  - Updated all `28` non-running queue books (`id != 4`) to `status = 'pending'`, `reviewed_at = ''`, `provider = 'gemini'`, `model = 'gemini-3.8-flash'` in user-specified priority order while keeping `#4 Fool's Errand` actively translating (`job #41`, `cli_93ddf44e`, priority `1000000`):
+    1. Core Elderlings trilogies (`#4 Fool's Errand` running -> `#2 Ship of Magic` [28] -> `#3 The Mad Ship` [27] -> `#1 Ship of Destiny` [26] -> `#6 The Golden Fool` [25] -> `#5 Fool's Fate` [24] -> `#16 Fool's Assassin` [23] -> `#17 Fool's Quest` [22] -> `#18 Assassin's Fate` [21]);
+    2. `#33 The Rain Wild Chronicles` [20];
+    3. *The Sun Eater* (`#10 Howling Dark` [19] -> `#8 Demon in White` [18] -> `#11 Kingdoms of Death` [17] -> `#7 Ashes of Man` [16] -> `#9 Disquiet Gods` [15] -> `#13 Shadows Upon Time` [14]);
+    4. `#32 Lonesome Dove` [13];
+    5. John Gwynne & Joe Abercrombie (`#29 Malice` [12], `#30 A Time of Dread` [11], `#31 A Little Hatred` [10]);
+    6. *Malazan Book of the Fallen* 1–10 (`#19`..`#28`, priorities `9`..`0`).
+  - Verified `next_pending()` == `#2 Ship of Magic` (`gemini:gemini-3.8-flash`) and `run_queue_book(dry_run=True)` for `#2` and `#10` (`--provider gemini -m gemini-3.8-flash`, no `--translation-id`). Do **not** restart `translatebook-literary-dev` while `#4 Fool's Errand` runs.
 
 - **Gemini 3.8 Flash funded, Farseer official alignment complete, and `#4 Fool's Errand` actively translating (2026-11-18 01:36 local):**
   - **Billing & guard fix:** Funded `GEMINI_API_KEY` (`R$ 30` Prepay wallet top-up + `US$ 40` Google Developer Program monthly credit; `data/budgets.json` `gemini.cap_usd = 45.0`), verified `HTTP 200 OK` on `gemini-3.8-flash` (`thinkingBudget: 0`), and fixed `src/core/llm/providers/gemini.py` so HTTP `402` / `"prepayment"` / `"billing"` errors never raise `ContextOverflowError` (failing fast instead of chunk-splitting). Also fixed `compile_for_book` in `src/literary/resources.py` to match apostrophe/hyphen slug variants (`fool-s-errand` -> `fools-errand` order `7.0`) and added `the-rain-wild-chronicles` (`order: 13`) to `realm-of-the-elderlings/series.yaml`.
@@ -285,18 +296,16 @@ handoffs are in git history (this file was compacted on 2026-11-12).
 
 | Book | Queue | State | Notes |
 | --- | --- | --- | --- |
-| Ship of Magic (Realm, Liveship 1) | 2, completed | polished + standardized (2026-11-18) | `37` chapters in NCX, `pdftohtml`/Outline stripped, progressive + reader repair, `EPUBCheck 0/0/0`; in `translated_files/kindle/`. |
-| The Mad Ship (Realm, Liveship 2) | 3, completed | polished + standardized (2026-11-18) | `41` NCX entries (`42` headings), Ch 35 split fixed, `EPUBCheck 0/0/0`; in `translated_files/kindle/`. |
-| Ship of Destiny (Realm, Liveship 3) | 1, completed | polished + standardized (2026-11-18) | `42` chapters in NCX, Ch 17/18/20 + `&lt;/?KTRANSLATION&gt;` fixed, `EPUBCheck 0/0/0`; in `translated_files/kindle/`. |
-| Sun Eater 2–7 (Howling Dark .. Shadows Upon Time) | 10, 8, 11, 7, 9, 13 | completed | All `6` exported in `translated_files/kindle/` (`10` total completed books with Lonesome Dove + Liveship 1–3). |
-| Lonesome Dove | 32, completed | completed | Exported in `translated_files/kindle/`. |
-| Fool's Errand (Realm, Tawny Man 1) | 4, translating (`job #41`, priority 20) | `gemini` / `gemini-3.8-flash` (`cli_93ddf44e`) | Fresh run from chunk `1/851` on `data/calibre/prepared/fool-s-errand.epub` (old Ollama `job #40` retired); estimated `$2.20`. |
-| The Golden Fool, Fool's Fate | 6, 5 (priorities 19, 18) | pending (`gemini-3.8-flash`) | Sanitized under `data/calibre/prepared/` (`toc_r1` NCX `33` / `43`, `EPUBCheck 0/0/0`). |
-| Fool's Assassin, Fool's Quest, Assassin's Fate | 16, 17, 18 (priorities 17..15) | pending (`gemini-3.8-flash`) | Sanitized under `data/calibre/prepared/` (`OPF-030` / `<img alt="">` fixed). |
-| The Rain Wild Chronicles | 33, priority 14 | pending (`gemini-3.8-flash`) | Sanitized `data/calibre/prepared/the-rain-wild-chronicles.epub` (`order: 13`, `116` compiled terms). |
-| Malice, A Time of Dread, A Little Hatred | 29, 30, 31 (priorities 13..11) | pending (`ollama` / Index-9B) | Sanitized under `data/calibre/prepared/` (`OPF-030` fixed). |
+| Fool's Errand (Realm, Tawny Man 1) | 4, translating (`job #41`, prio `1000000`) | `gemini` / `gemini-3.8-flash` (`cli_93ddf44e`) | Fresh run from chunk `1/851` on `data/calibre/prepared/fool-s-errand.epub`; estimated `$2.20`. |
+| Liveship Traders 1–3 (`Ship of Magic`, `The Mad Ship`, `Ship of Destiny`) | 2, 3, 1 (priorities 28..26) | pending (`gemini-3.8-flash`) | Re-queued for Gemini translation (`data/calibre/prepared/`); prior Index-9B `.refined.epub` archived in `translated_files/archive/index9b-completed-2026-11-18/`, polished exports remain in `translated_files/kindle/`. |
+| The Golden Fool, Fool's Fate | 6, 5 (priorities 25, 24) | pending (`gemini-3.8-flash`) | Sanitized under `data/calibre/prepared/` (`toc_r1` NCX `33` / `43`, `EPUBCheck 0/0/0`). |
+| Fool's Assassin, Fool's Quest, Assassin's Fate | 16, 17, 18 (priorities 23..21) | pending (`gemini-3.8-flash`) | Sanitized under `data/calibre/prepared/` (`OPF-030` / `<img alt="">` fixed). |
+| The Rain Wild Chronicles | 33, priority 20 | pending (`gemini-3.8-flash`) | Sanitized `data/calibre/prepared/the-rain-wild-chronicles.epub` (`order: 13`, `116` compiled terms). |
+| Sun Eater 2–7 (`Howling Dark` .. `Shadows Upon Time`) | 10, 8, 11, 7, 9, 13 (priorities 19..14) | pending (`gemini-3.8-flash`) | Re-queued in chronological order 2→7 for Gemini; prior Index-9B `.refined.epub` archived, Kindle exports kept in `translated_files/kindle/`. |
+| Lonesome Dove | 32, priority 13 | pending (`gemini-3.8-flash`) | Re-queued for Gemini; prior Index-9B `.refined.epub` archived, Kindle export kept in `translated_files/kindle/`. |
+| Malice, A Time of Dread, A Little Hatred | 29, 30, 31 (priorities 12..10) | pending (`gemini-3.8-flash`) | Sanitized under `data/calibre/prepared/` (`OPF-030` fixed). |
 | Farseer trilogy (Assassin's Apprentice, Royal Assassin, Assassin's Quest) | not queued | reference EN/PT-BR pairs in Calibre & `data/editorial_samples/` | Canonical official PT-BR terms & style synced into `realm-of-the-elderlings/`. |
-| Malazan | 19..28 (priorities 10..1) | pending | Zero glossary terms; inherits global `proper_nouns` and `brazilian_prose` style rules. |
+| Malazan Book of the Fallen 1–10 | 19..28 (priorities 9..0) | pending (`gemini-3.8-flash`) | Last in queue; zero glossary terms, inherits global `proper_nouns` and `brazilian_prose` style rules. |
 
 ## Procedures
 
@@ -421,8 +430,8 @@ documents). Do not re-run it on finals; see
 
 ## Model policy and evidence
 
-- **Gemini 3.8 Flash (`gemini` / `gemini-3.8-flash`, `thinkingBudget: 0`) for active *Realm of the Elderlings* queue (`#4, #6, #5, #16..#18, #33`):** funded by `US$ 40` Google Developer Program monthly credit + `R$ 30` Prepay wallet top-up on `GEMINI_API_KEY`; live Hobb verification scored `100%` `name_recall` and `$13.02 / 1M` words (`docs/project/reviews/hobb-gemini-pilot-2026-11-18.md`).
-- Local `Index-Translate-9B` remains default for completed *Sun Eater* / *Liveship Traders* and later non-Hobb series (`Malazan`, `Gwynne`, `Abercrombie`). Evidence:
+- **Gemini 3.8 Flash (`gemini` / `gemini-3.8-flash`, `thinkingBudget: 0`) for the entire queue (all 29 books, led by Realm of the Elderlings core trilogies):** funded by `US$ 40` Google Developer Program monthly credit + `R$ 30` Prepay wallet top-up on `GEMINI_API_KEY`; live Hobb verification scored `100%` `name_recall` and `$13.02 / 1M` words (`docs/project/reviews/hobb-gemini-pilot-2026-11-18.md`).
+- Local `Index-Translate-9B` remains only in archived prior runs (`translated_files/archive/index9b-completed-2026-11-18/`, offline fallback). Evidence:
   `docs/project/reviews/sun-eater-model-selection-2026-11-10.md`,
   `docs/project/reviews/local-model-benchmark-2026-11-10.md`,
   `docs/project/reviews/local-model-ceiling-2026-11-12.md`.
