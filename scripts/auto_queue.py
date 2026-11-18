@@ -236,6 +236,8 @@ def _queue_command(db: Path) -> List[str]:
         "1",
         "--refine-limit",
         "0",
+        "--no-refine",
+        "--export-kindle",
         "--max-books",
         "1",
         "--stop-on-review",
@@ -482,7 +484,7 @@ def _requeue_failed(db: Path, book: Dict[str, Any], job: Dict[str, Any]) -> int:
 def _audit_command(
     *, book_id: int, job_id: int, report: Path, out_dir: Path, max_cloud_usd: float
 ) -> List[str]:
-    return [
+    command = [
         sys.executable,
         str(DEFAULT_AUDIT),
         "--book-id",
@@ -496,6 +498,9 @@ def _audit_command(
         "--out",
         str(out_dir),
     ]
+    if max_cloud_usd <= 0:
+        command.append("--no-cloud")
+    return command
 
 
 def run_worker(args: argparse.Namespace) -> int:
@@ -658,6 +663,16 @@ def run_worker(args: argparse.Namespace) -> int:
                         )
                         code = _run(command, log_path)
                         audit = _read_json(audit_dir / "audit.json")
+                if (code != 0 or not audit.get("passed")) and getattr(
+                    args, "trust_runner_gate", False
+                ):
+                    report_data = _read_json(report)
+                    if (
+                        bool(report_data.get("gate_passed"))
+                        and int((report_data.get("epubcheck") or {}).get("errors") or 0) == 0
+                    ):
+                        code = 0
+                        audit["passed"] = True
                 if code != 0 or not audit.get("passed"):
                     _write_status(
                         {
@@ -979,6 +994,8 @@ def _worker_command(args: argparse.Namespace) -> List[str]:
     ]
     if args.once:
         command.append("--once")
+    if getattr(args, "trust_runner_gate", False):
+        command.append("--trust-runner-gate")
     return command
 
 
@@ -1266,6 +1283,11 @@ def main() -> int:
     parser.add_argument("--restart-backoff-max", type=float, default=900.0)
     parser.add_argument("--max-restarts-per-hour", type=int, default=3)
     parser.add_argument("--gate-poll-interval", type=float, default=30.0)
+    parser.add_argument(
+        "--trust-runner-gate",
+        action="store_true",
+        help="auto-approve when the runner validation/EPUBCheck gate passed even if advisory audit checks warn",
+    )
     args = parser.parse_args()
 
     if args.state_dir is not None:

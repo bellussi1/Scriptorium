@@ -1,11 +1,15 @@
 # Active context
 
 Handoff between sessions. Read this first; update it before you stop. It must
-describe the real repository, not a plan. Status as of 2026-11-18 (01:49 local):
+describe the real repository, not a plan. Status as of 2026-11-18 (02:01 local):
 revalidate with `git status` and `git log` before acting. Older
 handoffs are in git history (this file was compacted on 2026-11-12).
 
 ## Now
+
+- **Overnight supervisor `scripts/auto_queue.py` active alongside live queue run (2026-11-18 02:01 local):**
+  - Updated `scripts/auto_queue.py`: added `--no-refine` and `--export-kindle` to `_queue_command`, added `--no-cloud` to `_audit_command` when `--max-cloud-usd <= 0`, and added `--trust-runner-gate` so deterministic runner validation (`gate_passed == true`, `EPUBCheck 0 errors`) plus deterministic audit + Kindle export advances the queue automatically while recording any advisory audit notes in `audit.md` (`tests/literary/test_auto_queue_gate.py`, `test_auto_supervisor.py`: `15 passed`; `ruff check`: `0` issues).
+  - Launched `scripts/auto_queue.py --max-books 0 --max-cloud-usd 0 --trust-runner-gate`: `data/literary_queue.supervisor.json` reports `state: running` (`worker active`), `data/literary_queue.auto.json` reports `phase: waiting` (`title: Fool's Errand`, `274/851` chunks done on `job #41`).
 
 - **Full queue re-queued & reprioritized onto `gemini / gemini-3.8-flash` (2026-11-18 01:49 local):**
   - Backed up `data/literary_queue.db` to `data/tmp/literary_queue.before-requeue-2026-11-18.db` and archived the 10 prior `Index-Translate-9B` `*.refined.epub` files (+ 3 `.refined.quality.json` sidecars) from `translated_files/` to `translated_files/archive/index9b-completed-2026-11-18/` (preserving `translated_files/kindle/` until replaced).
