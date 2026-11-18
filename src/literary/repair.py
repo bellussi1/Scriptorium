@@ -225,3 +225,285 @@ def repair_invalid_ids_in_epub(source_path: str, output_path: str) -> Dict[str, 
         "changed_files": changed_files,
         "total_changes": total,
     }
+
+
+_IMG_NO_ALT_RE = re.compile(r"<img(?![^>]*\balt\s*=)([^>]*?)(/?)>", re.IGNORECASE)
+_P_BLOCK_WRAP_RE = re.compile(
+    r"<p\b[^>]*>\s*(<h[1-6]\b[^>]*>.*?</h[1-6]>\s*<ul\b[^>]*>.*?</ul>)\s*</p>",
+    re.IGNORECASE | re.DOTALL,
+)
+_A_NAME_NO_ID_RE = re.compile(
+    r'(<a\b(?![^>]*\bid\s*=)[^>]*?)\s*\bname\s*=\s*(["\'])([^"\']+)\2([^>]*>)',
+    re.IGNORECASE,
+)
+_XML_NCNAME_RE = re.compile(r"^[A-Za-z_][A-Za-z0-9_.:-]*$")
+
+
+def _hygiene_fix_opf(opf_text: str) -> tuple[str, int, str]:
+    import html
+    import uuid
+
+    changes = 0
+    updated = opf_text
+
+    if re.search(r'\bversion\s*=\s*(["\'])2\.', updated):
+        updated, c1 = re.subn(
+            r'\s*<(?:[a-zA-Z0-9]+:)?meta\b[^>]*\b(?:property|refines)\s*=[^>]*>.*?</(?:[a-zA-Z0-9]+:)?meta>',
+            "",
+            updated,
+            flags=re.DOTALL,
+        )
+        updated, c2 = re.subn(
+            r'\s*<(?:[a-zA-Z0-9]+:)?meta\b[^>]*\b(?:property|refines)\s*=[^>]*/?>',
+            "",
+            updated,
+        )
+        changes += c1 + c2
+
+    updated, c_guide = re.subn(
+        r'\s*<(?:[a-zA-Z0-9]+:)?guide\s*(?:/>|>\s*</(?:[a-zA-Z0-9]+:)?guide>)',
+        "",
+        updated,
+    )
+    changes += c_guide
+
+    uid_match = re.search(r'unique-identifier\s*=\s*(["\'])([^"\']+)\1', updated)
+    if uid_match:
+        target_uid = uid_match.group(2)
+        if not re.search(rf'\bid\s*=\s*(["\']){re.escape(target_uid)}\1', updated):
+            id_candidates: List[str] = []
+            unid_matches = []
+            for match in re.finditer(
+                r"<dc:identifier\b([^>]*)>(.*?)</dc:identifier>", updated, re.DOTALL
+            ):
+                attrs = match.group(1)
+                id_m = re.search(r'\bid\s*=\s*(["\'])([^"\']+)\1', attrs)
+                is_isbn = "isbn" in attrs.lower() or (id_m and "isbn" in id_m.group(2).lower())
+                if id_m and not is_isbn:
+                    id_candidates.append(id_m.group(2))
+                elif not id_m and not is_isbn:
+                    unid_matches.append(match)
+
+            if id_candidates:
+                chosen = id_candidates[0]
+                updated = re.sub(
+                    r'unique-identifier\s*=\s*(["\'])([^"\']+)\1',
+                    f'unique-identifier="{chosen}"',
+                    updated,
+                    count=1,
+                )
+                changes += 1
+            elif unid_matches:
+                match = unid_matches[0]
+                replacement = (
+                    f'<dc:identifier id="{html.escape(target_uid)}"{match.group(1)}>'
+                    f"{match.group(2)}</dc:identifier>"
+                )
+                updated = updated[: match.start()] + replacement + updated[match.end() :]
+                changes += 1
+            else:
+                first_dc = re.search(r"<dc:identifier\b([^>]*)>", updated)
+                if first_dc and not re.search(r"\bid\s*=", first_dc.group(1)):
+                    replacement = f'<dc:identifier id="{html.escape(target_uid)}"{first_dc.group(1)}>'
+                    updated = updated[: first_dc.start()] + replacement + updated[first_dc.end() :]
+                    changes += 1
+                else:
+                    meta_close = re.search(r"</(?:[a-zA-Z0-9]+:)?metadata>", updated)
+                    if meta_close:
+                        inject = (
+                            f'  <dc:identifier id="{html.escape(target_uid)}">'
+                            f"urn:uuid:{uuid.uuid4()}</dc:identifier>\n  "
+                        )
+                        updated = updated[: meta_close.start()] + inject + updated[meta_close.start() :]
+                        changes += 1
+
+    final_uid_m = re.search(r'unique-identifier\s*=\s*(["\'])([^"\']+)\1', updated)
+    uid_value = ""
+    if final_uid_m:
+        esc_uid = re.escape(final_uid_m.group(2))
+        dc_val_m = re.search(
+            rf"<dc:identifier\b[^>]*\bid\s*=\s*([\"']){esc_uid}\1[^>]*>(.*?)</dc:identifier>",
+            updated,
+            re.DOTALL,
+        )
+        if dc_val_m:
+            uid_value = re.sub(r"<[^>]+>", "", dc_val_m.group(2)).strip()
+
+    return updated, changes, uid_value
+
+
+def _hygiene_fix_html_structure(text: str, *, default_lang: str = "pt-BR") -> tuple[str, int]:
+    changes = 0
+    text, lang_count = re.subn(
+        r'\b((?:xml:)?lang\s*=\s*)(["\'])\s*\2',
+        rf"\1\g<2>{default_lang}\g<2>",
+        text,
+        flags=re.IGNORECASE,
+    )
+    changes += lang_count
+    text, img_count = _IMG_NO_ALT_RE.subn(r'<img\1 alt=""\2>', text)
+    changes += img_count
+    text, unwrap_count = _P_BLOCK_WRAP_RE.subn(r"\1", text)
+    changes += unwrap_count
+
+    def _replace_name(match: re.Match[str]) -> str:
+        nonlocal changes
+        prefix, quote, val, suffix = match.groups()
+        changes += 1
+        if _XML_NCNAME_RE.match(val):
+            return f"{prefix} id={quote}{val}{quote}{suffix}"
+        return f"{prefix}{suffix}"
+
+    text = _A_NAME_NO_ID_RE.sub(_replace_name, text)
+    return text, changes
+
+
+def repair_epubcheck_hygiene_in_epub(source_path: str, output_path: str) -> Dict[str, object]:
+    """Fix common structural EPUBCheck hygiene errors in ``source_path``."""
+    import posixpath
+
+    html_suffixes = (".xhtml", ".html", ".htm")
+    with zipfile.ZipFile(source_path, "r") as source:
+        items = source.infolist()
+        contents = {item.filename: source.read(item.filename) for item in items}
+
+    texts: Dict[str, str] = {
+        name: contents[name].decode("utf-8", "replace")
+        for name in contents
+        if name.lower().endswith(TEXT_ENTRY_SUFFIXES)
+    }
+    changes: Dict[str, int] = {}
+
+    opf_uid_value = ""
+    default_lang = "pt-BR"
+    for name in list(texts):
+        if name.lower().endswith(".opf"):
+            lang_m = re.search(r"<dc:language\b[^>]*>(.*?)</dc:language>", texts[name], re.DOTALL)
+            if lang_m:
+                cand_lang = re.sub(r"<[^>]+>", "", lang_m.group(1)).strip()
+                if cand_lang:
+                    default_lang = cand_lang
+            updated, count, opf_uid_value = _hygiene_fix_opf(texts[name])
+            if count:
+                texts[name] = updated
+                changes[name] = changes.get(name, 0) + count
+
+    for name in list(texts):
+        if name.lower().endswith(html_suffixes):
+            updated, count = _hygiene_fix_html_structure(texts[name], default_lang=default_lang)
+            if count:
+                texts[name] = updated
+                changes[name] = changes.get(name, 0) + count
+
+    # Collect valid ids across all HTML documents after name/id upgrades.
+    html_ids: Dict[str, set] = {}
+    for name, text in texts.items():
+        if name.lower().endswith(html_suffixes):
+            html_ids[name] = {
+                m.group(2)
+                for m in re.finditer(r"""\b(?:id|name)\s*=\s*(["'])([^"']+)\1""", text)
+            }
+
+    def _strip_dangling_hrefs(
+        doc_name: str, text: str, attr_pattern: str
+    ) -> tuple[str, int]:
+        doc_dir = posixpath.dirname(doc_name)
+        base_name = posixpath.basename(doc_name)
+        count = 0
+
+        def _repl(match: re.Match[str]) -> str:
+            nonlocal count
+            prefix, quote, raw_ref, suffix = match.groups()
+            if raw_ref.startswith(("http://", "https://", "mailto:", "data:", "javascript:")):
+                return match.group(0)
+            doc_part, sep, frag = raw_ref.partition("#")
+            if not sep or not frag:
+                return match.group(0)
+            target = (
+                doc_name
+                if not doc_part
+                else posixpath.normpath(posixpath.join(doc_dir, doc_part) if doc_dir else doc_part)
+            )
+            if target not in html_ids or frag in html_ids[target]:
+                return match.group(0)
+            count += 1
+            clean_ref = doc_part if doc_part else base_name
+            return f"{prefix}{quote}{clean_ref}{quote}{suffix}"
+
+        return re.sub(attr_pattern, _repl, text, flags=re.IGNORECASE), count
+
+    for name in list(texts):
+        low = name.lower()
+        if low.endswith(html_suffixes):
+            updated, count = _strip_dangling_hrefs(
+                name, texts[name], r'(<a\b[^>]*\bhref\s*=\s*)(["\'])([^"\']+)\2([^>]*>)'
+            )
+            if count:
+                texts[name] = updated
+                changes[name] = changes.get(name, 0) + count
+        elif low.endswith(".ncx"):
+            ncx_text = texts[name]
+            ncx_changes = 0
+            if opf_uid_value:
+                dtb_m = re.search(
+                    r'<meta\b[^>]*\bname\s*=\s*(["\'])dtb:uid\1[^>]*/?>',
+                    ncx_text,
+                    re.IGNORECASE,
+                )
+                if dtb_m:
+                    cur_m = re.search(r'\bcontent\s*=\s*(["\'])([^"\']*)\1', dtb_m.group(0))
+                    if cur_m and cur_m.group(2).strip() != opf_uid_value:
+                        import html as _html
+
+                        new_meta = re.sub(
+                            r'\bcontent\s*=\s*(["\'])[^"\']*\1',
+                            f'content="{_html.escape(opf_uid_value)}"',
+                            dtb_m.group(0),
+                            count=1,
+                        )
+                        ncx_text = (
+                            ncx_text[: dtb_m.start()] + new_meta + ncx_text[dtb_m.end() :]
+                        )
+                        ncx_changes += 1
+            if re.search(r'playOrder\s*=\s*(["\'])0\1', ncx_text):
+                order = [0]
+
+                def _renumber(_match: re.Match[str]) -> str:
+                    order[0] += 1
+                    return f'playOrder="{order[0]}"'
+
+                ncx_text, p_count = re.subn(
+                    r'playOrder\s*=\s*(["\'])\d+\1', _renumber, ncx_text
+                )
+                ncx_changes += p_count
+            ncx_text, href_count = _strip_dangling_hrefs(
+                name, ncx_text, r'(<content\b[^>]*\bsrc\s*=\s*)(["\'])([^"\']+)\2([^>]*/?>)'
+            )
+            ncx_changes += href_count
+            if ncx_changes:
+                texts[name] = ncx_text
+                changes[name] = changes.get(name, 0) + ncx_changes
+
+    changed_files: List[Dict[str, object]] = []
+    total = 0
+    with zipfile.ZipFile(output_path, "w") as target:
+        if "mimetype" in contents:
+            zinfo = zipfile.ZipInfo("mimetype")
+            target.writestr(zinfo, contents["mimetype"], compress_type=zipfile.ZIP_STORED)
+        for item in items:
+            if item.filename == "mimetype":
+                continue
+            data = contents[item.filename]
+            if item.filename in changes:
+                data = texts[item.filename].encode("utf-8")
+                total += changes[item.filename]
+                changed_files.append({"file": item.filename, "changes": changes[item.filename]})
+            item.compress_type = zipfile.ZIP_DEFLATED
+            target.writestr(item, data)
+
+    return {
+        "source": source_path,
+        "out": output_path,
+        "changed_files": changed_files,
+        "total_changes": total,
+    }

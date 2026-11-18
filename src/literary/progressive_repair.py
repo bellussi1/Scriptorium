@@ -1,8 +1,10 @@
 """Rewrite the pt-PT progressive periphrasis ("estou a falar") as pt-BR ("estou falando").
 
-Only the verbs listed in ``PROGRESSIVE_GERUNDS`` are rewritten. The list is explicit on purpose:
-after "a", a word that ends in -r is often a noun ("a dor", "a favor de"), so a suffix rule is
-not safe. Every other "estar + a + word" is reported in ``unconverted`` for review, not changed.
+Listed irregulars and common verbs are mapped via ``PROGRESSIVE_GERUNDS``. Unknown
+lowercase regular infinitives ending in ``-ar``, ``-er``, or ``-ir`` (at least four
+characters and not in ``NON_INFINITIVE_AFTER_A``) fall back to regular ``-ando`` /
+``-endo`` / ``-indo`` conversion, while remaining unknown ``-or``/``-ôr`` candidates are
+reported in ``unconverted`` for review.
 
 Text is rewritten only outside tags, so attributes and markup are never touched.
 """
@@ -11,7 +13,7 @@ from __future__ import annotations
 import re
 import zipfile
 from collections import Counter
-from typing import Dict, List, Tuple
+from typing import Dict, FrozenSet, List, Optional, Tuple
 
 # pt-PT infinitive -> pt-BR gerund. pt-PT spellings in the infinitive (detetar, planear,
 # escanear, esvaecer, aclimatizar) are mapped to the gerund pt-BR readers expect.
@@ -29,6 +31,8 @@ PROGRESSIVE_GERUNDS: Dict[str, str] = {
     "aguentar": "aguentando",
     "ajudar": "ajudando",
     "alvejar": "alvejando",
+    "amadurecer": "amadurecendo",
+    "ameaçar": "ameaçando",
     "andar": "andando",
     "angular": "angulando",
     "apertar": "apertando",
@@ -37,7 +41,9 @@ PROGRESSIVE_GERUNDS: Dict[str, str] = {
     "assaltar": "assaltando",
     "assumir": "assumindo",
     "avançar": "avançando",
+    "barganhar": "barganhando",
     "bater": "batendo",
+    "beber": "bebendo",
     "brincar": "brincando",
     "buscar": "buscando",
     "cair": "caindo",
@@ -48,13 +54,16 @@ PROGRESSIVE_GERUNDS: Dict[str, str] = {
     "chamar": "chamando",
     "chegar": "chegando",
     "chorar": "chorando",
+    "chover": "chovendo",
     "citar": "citando",
     "comandar": "comandando",
     "começar": "começando",
     "cometer": "cometendo",
+    "compor": "compondo",
     "comunicar": "comunicando",
     "confundir": "confundindo",
     "construir": "construindo",
+    "consultar": "consultando",
     "contemplar": "contemplando",
     "continuar": "continuando",
     "convulsionar": "convulsionando",
@@ -66,8 +75,11 @@ PROGRESSIVE_GERUNDS: Dict[str, str] = {
     "decidir": "decidindo",
     "declinar": "declinando",
     "decorrer": "decorrendo",
+    "defender": "defendendo",
     "deixar": "deixando",
     "demorar": "demorando",
+    "depor": "depondo",
+    "desafiar": "desafiando",
     "desaparecer": "desaparecendo",
     "descer": "descendo",
     "desenvolver": "desenvolvendo",
@@ -75,7 +87,11 @@ PROGRESSIVE_GERUNDS: Dict[str, str] = {
     "desperdiçar": "desperdiçando",
     "destruir": "destruindo",
     "detetar": "detectando",
+    "diminuir": "diminuindo",
     "dirigir": "dirigindo",
+    "discutir": "discutindo",
+    "dispor": "dispondo",
+    "distorcer": "distorcendo",
     "dizer": "dizendo",
     "dormir": "dormindo",
     "duplicar": "duplicando",
@@ -90,6 +106,7 @@ PROGRESSIVE_GERUNDS: Dict[str, str] = {
     "escutar": "escutando",
     "esvaecer": "esvanecendo",
     "exagerar": "exagerando",
+    "expor": "expondo",
     "falar": "falando",
     "fazer": "fazendo",
     "ferver": "fervendo",
@@ -107,6 +124,7 @@ PROGRESSIVE_GERUNDS: Dict[str, str] = {
     "iniciar": "iniciando",
     "interpretar": "interpretando",
     "invadir": "invadindo",
+    "inventar": "inventando",
     "investigar": "investigando",
     "ir": "indo",
     "jogar": "jogando",
@@ -119,6 +137,7 @@ PROGRESSIVE_GERUNDS: Dict[str, str] = {
     "manter": "mantendo",
     "mentir": "mentindo",
     "minerar": "minerando",
+    "moldar": "moldando",
     "morrer": "morrendo",
     "mostrar": "mostrando",
     "mudar": "mudando",
@@ -127,6 +146,7 @@ PROGRESSIVE_GERUNDS: Dict[str, str] = {
     "ocorrer": "ocorrendo",
     "oferecer": "oferecendo",
     "olhar": "olhando",
+    "opor": "opondo",
     "orientar": "orientando",
     "ouvir": "ouvindo",
     "partir": "partindo",
@@ -138,42 +158,60 @@ PROGRESSIVE_GERUNDS: Dict[str, str] = {
     "percorrer": "percorrendo",
     "perder": "perdendo",
     "perguntar": "perguntando",
+    "permitir": "permitindo",
     "perseguir": "perseguindo",
     "piorar": "piorando",
     "planear": "planejando",
     "ponderar": "ponderando",
+    "por": "pondo",
+    "pôr": "pondo",
     "preparar": "preparando",
     "procurar": "procurando",
+    "progredir": "progredindo",
+    "propor": "propondo",
     "prosseguir": "prosseguindo",
     "quebrar": "quebrando",
     "querer": "querendo",
+    "rastejar": "rastejando",
     "rastrear": "rastreando",
     "receber": "recebendo",
+    "recolher": "recolhendo",
     "reconstruir": "reconstruindo",
     "recordar": "recordando",
     "recuar": "recuando",
+    "recuperar": "recuperando",
+    "refletir": "refletindo",
     "registar": "registrando",
     "regressar": "regressando",
+    "reivindicar": "reivindicando",
     "representar": "representando",
     "respirar": "respirando",
     "responder": "respondendo",
     "retirar": "retirando",
     "rever": "revendo",
+    "rir": "rindo",
     "sair": "saindo",
     "salvar": "salvando",
     "sangrar": "sangrando",
+    "sentir": "sentindo",
     "ser": "sendo",
     "sitiar": "sitiando",
     "sofrer": "sofrendo",
+    "sonhar": "sonhando",
     "sorrir": "sorrindo",
     "subir": "subindo",
+    "sugerir": "sugerindo",
+    "supor": "supondo",
     "tecer": "tecendo",
     "tentar": "tentando",
     "ter": "tendo",
     "testar": "testando",
     "tocar": "tocando",
+    "tomar": "tomando",
     "trabalhar": "trabalhando",
     "trair": "traindo",
+    "transformar": "transformando",
+    "transpor": "transpondo",
     "tratar": "tratando",
     "travar": "travando",
     "trazer": "trazendo",
@@ -190,7 +228,25 @@ PROGRESSIVE_GERUNDS: Dict[str, str] = {
     "visar": "visando",
     "viver": "vivendo",
     "voltar": "voltando",
+    "vomitar": "vomitando",
+    "zombar": "zombando",
 }
+
+# Nouns, adjectives, and modal/noun tokens ending in -r that legitimately follow
+# "estar a ..." without forming a pt-PT progressive periphrasis.
+NON_INFINITIVE_AFTER_A: FrozenSet[str] = frozenset({
+    "par", "favor", "dor", "cor", "flor", "amor", "calor", "redor", "vapor",
+    "temor", "terror", "rigor", "vigor", "humor", "rumor", "clamor", "tambor",
+    "motor", "valor", "senhor", "pavor", "suor", "odor", "sabor", "teor",
+    "fervor", "pudor", "rancor", "esplendor", "interior", "exterior",
+    "superior", "inferior", "anterior", "posterior", "melhor", "pior",
+    "maior", "menor", "autor", "leitor", "pastor", "doutor", "imperador",
+    "governador", "caçador", "pescador", "mercador", "traidor", "vencedor",
+    "corredor", "mar", "ar", "lar", "altar", "azar", "lugar", "prazer",
+    "laser", "éter", "líder", "caráter", "cadáver", "revólver", "cônsul",
+    "mártir", "elixir", "porvir", "reaper", "mulher", "colher", "talher",
+    "chanceler", "mister", "menester", "aluguer", "poder", "dever", "haver",
+})
 
 # Finite forms of "estar" that can start the periphrasis.
 ESTAR_FORMS = (
@@ -205,13 +261,29 @@ _PERIPHRASIS_RE = re.compile(
     rf"(?<![\w-])({ESTAR_FORMS})(\s+)a\s+({_VERBS})(?![\w-])",
     re.IGNORECASE,
 )
-# Any "estar + a + word" whose word looks like an infinitive. Used only to report leftovers.
+# Any remaining "estar + a + word" whose word looks like an infinitive.
 _LEFTOVER_RE = re.compile(
-    rf"(?<![\w-])(?:{ESTAR_FORMS})\s+a\s+([^\W\d_]+(?:ar|er|ir|or|ôr|por))(?![\w-])",
+    rf"(?<![\w-])({ESTAR_FORMS})(\s+)a\s+([^\W\d_]+(?:ar|er|ir|or|ôr|por))(?![\w-])",
     re.IGNORECASE,
 )
 _TAG_SPLIT_RE = re.compile(r"(<[^>]*>)")
 TEXT_ENTRY_SUFFIXES = (".xhtml", ".html", ".htm")
+
+
+def _infinitive_to_gerund(word: str) -> Optional[str]:
+    """Convert a regular lowercase -ar/-er/-ir infinitive to its pt-BR gerund."""
+    if not word or word[0].isupper() or len(word) < 4:
+        return None
+    lower = word.lower()
+    if lower in NON_INFINITIVE_AFTER_A:
+        return None
+    if lower.endswith("ar"):
+        return lower[:-2] + "ando"
+    if lower.endswith("er"):
+        return lower[:-2] + "endo"
+    if lower.endswith("ir"):
+        return lower[:-2] + "indo"
+    return None
 
 
 def _swap(match: re.Match) -> str:
@@ -231,14 +303,23 @@ def repair_progressive_html(html: str) -> Tuple[str, Counter, Counter]:
         converted[match.group(3).lower()] += 1
         return _swap(match)
 
+    def morph_or_record(match: re.Match) -> str:
+        estar, space, word = match.group(1), match.group(2), match.group(3)
+        lower = word.lower()
+        if lower in NON_INFINITIVE_AFTER_A:
+            return match.group(0)
+        gerund = _infinitive_to_gerund(word)
+        if gerund is not None:
+            converted[lower] += 1
+            return f"{estar}{space}{gerund}"
+        leftovers[lower] += 1
+        return match.group(0)
+
     parts = _TAG_SPLIT_RE.split(html)
     for index in range(0, len(parts), 2):  # even indexes are text, odd indexes are tags
         text = parts[index]
         text = _PERIPHRASIS_RE.sub(count, text)
-        for match in _LEFTOVER_RE.finditer(text):
-            word = match.group(1).lower()
-            if word not in PROGRESSIVE_GERUNDS:
-                leftovers[word] += 1
+        text = _LEFTOVER_RE.sub(morph_or_record, text)
         parts[index] = text
     return "".join(parts), converted, leftovers
 

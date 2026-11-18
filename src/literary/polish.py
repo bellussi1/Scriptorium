@@ -72,7 +72,7 @@ def polish_book(
         temp.unlink()
     try:
         repair = repair_reading_epub(
-            str(artifact), str(temp), apply_terms=True, queue_title=book.title
+            str(artifact), str(temp), apply_terms=_is_sun_eater(book), queue_title=book.title
         )
         issues = validate_epub_structure(str(temp))
         blocking = [
@@ -142,9 +142,6 @@ def polish_completed_books(
 
     results: List[Dict[str, Any]] = []
     for book in books:
-        if not _is_sun_eater(book):
-            results.append({"title": book.title, "status": "skipped", "reason": "not Sun Eater"})
-            continue
         results.append(
             polish_book(
                 book,

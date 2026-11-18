@@ -78,7 +78,8 @@ class GeminiProvider(LLMProvider):
 
     def _is_thinking_model(self) -> bool:
         """Check if the current model supports thinking mode (Gemini 2.5+)."""
-        return "2.5" in self.model
+        model_lower = self.model.lower()
+        return any(tag in model_lower for tag in ("2.5", "gemini-3", "gemini-4"))
 
     def _get_thinking_config(self) -> dict:
         """Return thinkingConfig to disable thinking for supported models."""

@@ -30,6 +30,9 @@ rules:
     instruction: Write Brazilian Portuguese (pt-BR), not European Portuguese. Use "você" for the second person and never "tu". Use Brazilian progressive forms ("estou fazendo", "está ficando") and Brazilian clitic placement ("me disse", "não te vejo"). Avoid European forms such as "estou a fazer", "contacto", "ecrã", "equipa", "autocarro", "rapariga", "demónio" and "prémio"; use "de fato" and Brazilian spelling throughout.
 evidence:
   samples:
+    - data/editorial_samples/sun1_en/chapter_01.txt
+    - data/editorial_samples/sun1_en/chapter_02.txt
+    - data/editorial_samples/sun1_en/chapter_03.txt
     - data/editorial_samples/sun2_en/chapter_01.txt
     - data/editorial_samples/sun2_en/chapter_02.txt
     - data/editorial_samples/sun2_en/chapter_03.txt

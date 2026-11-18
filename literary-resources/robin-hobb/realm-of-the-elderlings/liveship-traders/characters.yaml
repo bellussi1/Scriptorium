@@ -268,3 +268,13 @@ terms:
     confidence: provisional
     first_appearance: ship-of-destiny
     approved: false
+  - source: Delo
+    target: Delo
+    category: character
+    policy: keep
+    gender: female
+    notes: "Bingtown trader and Althea's associate; keep the name."
+    source_reference: "Source text (Ship of Magic); name kept"
+    confidence: provisional
+    first_appearance: ship-of-magic
+    approved: false

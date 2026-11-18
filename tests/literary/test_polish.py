@@ -63,16 +63,17 @@ def test_polish_completed_sun_eater_book_and_skip_on_second_run(tmp_path: Path):
     assert second["results"][0]["reason"] == "already polished"
 
 
-def test_polish_skips_non_sun_eater_books(tmp_path: Path):
+def test_polish_polishes_non_sun_eater_books(tmp_path: Path):
     db = tmp_path / "queue.db"
     outputs = tmp_path / "outputs"
     outputs.mkdir()
     store = QueueStore(str(db))
     _completed_book(store, tmp_path, title="Ship of Magic", author="Robin Hobb")
     store.close()
+    make_epub(outputs / "Ship of Magic (pt-BR).refined.epub", title="Ship of Magic")
 
     result = polish_completed_books(str(db), outputs, run_epubcheck=False, kindle_out="")
 
     assert result["books"] == 1
-    assert result["skipped"] == 1
-    assert result["results"][0]["reason"] == "not Sun Eater"
+    assert result["polished"] == 1
+    assert result["results"][0]["status"] == "polished"

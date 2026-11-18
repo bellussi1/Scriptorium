@@ -44,6 +44,7 @@ from .reading_repair import repair_reading_epub
 from .repair import (
     repair_doc_roles_in_epub,
     repair_dropcaps_in_epub,
+    repair_epubcheck_hygiene_in_epub,
     repair_invalid_ids_in_epub,
 )
 from .resources import (
@@ -51,6 +52,7 @@ from .resources import (
     write_style_preset,
 )
 from .run_plan import build_run_plan, compile_book_resources, infer_scopes
+from .source_prep import prepare_source_epub, prepared_source_path
 from .validation import validate_epub_pair
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -122,6 +124,10 @@ def _inventory_row(calibre_id: int) -> Optional[Dict[str, Any]]:
 
 
 def host_source(book: Any) -> Path:
+    if getattr(book, "title", None):
+        prepared = prepared_source_path(book, ROOT / "data" / "calibre" / "prepared")
+        if prepared.exists():
+            return prepared
     path = Path(str(book.source_path))
     if path.exists():
         return path
@@ -132,6 +138,10 @@ def host_source(book: Any) -> Path:
 
 
 def container_source(book: Any) -> str:
+    if getattr(book, "title", None):
+        prepared = prepared_source_path(book, ROOT / "data" / "calibre" / "prepared")
+        if prepared.exists():
+            return f"/app/data/calibre/prepared/{prepared.name}"
     path = str(book.source_path or "")
     if path.startswith("/library/") or path.startswith("/app/data/"):
         return path
@@ -683,6 +693,16 @@ def run_queue_book(
     fixed_host = OUTPUT_DIR / f"{output_host.stem} - fixed.epub"
     v2_host = OUTPUT_DIR / f"{output_host.stem} - fixed-v2.epub"
     refined_host = OUTPUT_DIR / f"{output_host.stem}.refined.epub"
+    prep_report: Optional[Dict[str, Any]] = None
+    if not dry_run:
+        try:
+            prep_report = prepare_source_epub(
+                book,
+                host_source(book),
+                prepared_dir=ROOT / "data" / "calibre" / "prepared",
+            )
+        except Exception as exc:
+            prep_report = {"prepared": False, "error": str(exc)}
     command = _translation_command(
         book,
         model,
@@ -711,6 +731,8 @@ def run_queue_book(
     RUN_DIR.mkdir(parents=True, exist_ok=True)
     _log_path(book.title).write_text("", encoding="utf-8")
     log(book.title, f"queue run for book {book.id}: {book.title}")
+    if prep_report is not None:
+        log(book.title, f"source prep: {prep_report.get('prepared')} -> {prep_report.get('path') or prep_report.get('error')}")
     log(book.title, " ".join(command))
 
     store = QueueStore(db_path)
@@ -907,6 +929,10 @@ def run_queue_book(
     ids_host = v2_host.with_name(f".{v2_host.stem}.ids.tmp.epub")
     id_repair = repair_invalid_ids_in_epub(str(v2_host), str(ids_host))
     os.replace(ids_host, v2_host)
+    log(book.title, "repairing EPUBCheck hygiene issues")
+    hygiene_host = v2_host.with_name(f".{v2_host.stem}.hygiene.tmp.epub")
+    hygiene_repair = repair_epubcheck_hygiene_in_epub(str(v2_host), str(hygiene_host))
+    os.replace(hygiene_host, v2_host)
     log(book.title, "rewriting pt-PT progressive periphrasis as pt-BR gerunds")
     progressive_host = v2_host.with_name(f".{v2_host.stem}.progressive.tmp.epub")
     progressive_repair = repair_progressive_in_epub(str(v2_host), str(progressive_host))
@@ -938,46 +964,45 @@ def run_queue_book(
             epubcheck = _epubcheck(refined_host)
 
     reader_report = None
-    if _is_sun_eater(book):
-        reader_input = refined_host if refined_host.exists() else v2_host
-        reader_temp = OUTPUT_DIR / f".{output_host.stem}.reader.tmp.epub"
-        log(book.title, "reader repair: joining chunk seams and normalising dialogue")
-        try:
-            reader_report = repair_reading_epub(
-                str(reader_input),
-                str(reader_temp),
-                apply_terms=True,
-                queue_title=book.title,
+    reader_input = refined_host if refined_host.exists() else v2_host
+    reader_temp = OUTPUT_DIR / f".{output_host.stem}.reader.tmp.epub"
+    log(book.title, "reader repair: joining chunk seams and normalising dialogue")
+    try:
+        reader_report = repair_reading_epub(
+            str(reader_input),
+            str(reader_temp),
+            apply_terms=_is_sun_eater(book),
+            queue_title=book.title,
+        )
+        reader_validation = validate_epub_pair(
+            str(host_source(book)), str(reader_temp), expected_language="pt-BR"
+        )
+        reader_epubcheck = _epubcheck(reader_temp)
+        if bool(reader_validation.get("passed")) and reader_epubcheck.get("errors") == 0:
+            os.replace(reader_temp, refined_host)
+            validation = reader_validation
+            epubcheck = reader_epubcheck
+            reader_report["accepted"] = True
+            reader_report["final"] = str(refined_host)
+            log(
+                book.title,
+                "reader repair accepted: merged={} quotes={} splits={}".format(
+                    reader_report.get("merged"),
+                    reader_report.get("quote_paragraphs"),
+                    (reader_report.get("artefact_changes") or {}).get("split_dialogue_paragraphs"),
+                ),
             )
-            reader_validation = validate_epub_pair(
-                str(host_source(book)), str(reader_temp), expected_language="pt-BR"
-            )
-            reader_epubcheck = _epubcheck(reader_temp)
-            if bool(reader_validation.get("passed")) and reader_epubcheck.get("errors") == 0:
-                os.replace(reader_temp, refined_host)
-                validation = reader_validation
-                epubcheck = reader_epubcheck
-                reader_report["accepted"] = True
-                reader_report["final"] = str(refined_host)
-                log(
-                    book.title,
-                    "reader repair accepted: merged={} quotes={} splits={}".format(
-                        reader_report.get("merged"),
-                        reader_report.get("quote_paragraphs"),
-                        (reader_report.get("artefact_changes") or {}).get("split_dialogue_paragraphs"),
-                    ),
-                )
-            else:
-                reader_report["accepted"] = False
-                reader_report["reason"] = "reader validation gate failed"
-                log(book.title, "reader repair rejected: validation gate failed")
-                if reader_temp.exists():
-                    reader_temp.unlink()
-        except Exception as exc:
-            reader_report = {"accepted": False, "error": str(exc)}
-            log(book.title, f"reader repair failed; keeping the previous artifact: {exc}")
+        else:
+            reader_report["accepted"] = False
+            reader_report["reason"] = "reader validation gate failed"
+            log(book.title, "reader repair rejected: validation gate failed")
             if reader_temp.exists():
                 reader_temp.unlink()
+    except Exception as exc:
+        reader_report = {"accepted": False, "error": str(exc)}
+        log(book.title, f"reader repair failed; keeping the previous artifact: {exc}")
+        if reader_temp.exists():
+            reader_temp.unlink()
 
     series_report = None
     metadata_source = refined_host if refined_host.exists() else v2_host
@@ -1078,6 +1103,10 @@ def run_queue_book(
         "id_repair": {
             "total_changes": id_repair.get("total_changes"),
             "renamed_ids": id_repair.get("renamed_ids"),
+        },
+        "hygiene_repair": {
+            "total_changes": hygiene_repair.get("total_changes"),
+            "changed_files": [item["file"] for item in hygiene_repair.get("changed_files", [])],
         },
         "validation": validation,
         "epubcheck": epubcheck,

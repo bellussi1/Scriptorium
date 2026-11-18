@@ -44,9 +44,13 @@ def test_the_verb_ser_becomes_sendo_in_a_progressive_passive():
 
 
 def test_leaves_nouns_that_follow_a_estar_form_alone():
-    # "dor" and "favor" end in -r and follow "a" but are nouns here.
-    assert _text("<p>Estava a dor de cabeça.</p>") == "<p>Estava a dor de cabeça.</p>"
-    assert _text("<p>Estava a favor da ideia.</p>") == "<p>Estava a favor da ideia.</p>"
+    # "dor", "favor", and "par" end in -r and follow "a" but are nouns here.
+    repaired, converted, leftovers = repair_progressive_html(
+        "<p>Estava a dor de cabeça. Estava a favor da ideia. Estava a par de tudo.</p>"
+    )
+    assert repaired == "<p>Estava a dor de cabeça. Estava a favor da ideia. Estava a par de tudo.</p>"
+    assert not converted
+    assert not leftovers
 
 
 def test_leaves_the_idiomatic_a_caminho_and_a_bordo_alone():
@@ -66,11 +70,22 @@ def test_never_touches_markup_or_attributes():
 
 
 def test_reports_unlisted_infinitives_for_review():
-    _, converted, leftovers = repair_progressive_html(
-        "<p>Estavam a lutar e estavam a sonhar com a vitória.</p>"
+    repaired, converted, leftovers = repair_progressive_html(
+        "<p>Estavam a lutar, estavam a sonhar e estavam a antepor regras.</p>"
     )
-    assert converted == {"lutar": 1}
-    assert leftovers == {"sonhar": 1}
+    assert "Estavam lutando, estavam sonhando e estavam a antepor regras." in repaired
+    assert converted == {"lutar": 1, "sonhar": 1}
+    assert leftovers == {"antepor": 1}
+
+
+def test_morphological_fallback_converts_regular_infinitives():
+    repaired, converted, leftovers = repair_progressive_html(
+        "<p>Estava a murmurar enquanto estava a escurecer e a refletir; ela estava a reter o fôlego.</p>"
+    )
+    assert "Estava murmurando enquanto estava escurecendo e a refletir" in repaired
+    assert converted["murmurar"] == 1
+    assert converted["escurecer"] == 1
+    assert not leftovers
 
 
 def test_epub_rewrite_changes_only_text_entries(tmp_path: Path):

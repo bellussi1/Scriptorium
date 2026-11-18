@@ -23,9 +23,11 @@ terms:
     policy: keep
     aliases: [Golden]
     alias_targets: {Golden: Golden}
+    gender: male
     notes: >-
       The Fool's Tawny Man persona. Keep both title Lord and name Golden in
-      English; do not force a gender reading where the source withholds it.
+      English and use masculine agreement for the Lord persona unless a passage
+      deliberately withholds it.
     source_reference: "User preference; English title and name kept"
     confidence: reviewed
     first_appearance: fools-errand
@@ -87,10 +89,10 @@ terms:
     aliases: [Starling]
     alias_targets: {Starling: Starling}
     gender: female
-    source_reference: "Source text (Fool's Errand); name kept"
-    confidence: provisional
-    first_appearance: fools-errand
-    approved: false
+    source_reference: "Official PT-BR edition, Calibre 71"
+    confidence: confirmed
+    first_appearance: assassins-quest
+    approved: true
   - source: Hap
     target: Hap
     category: character
@@ -102,15 +104,16 @@ terms:
     first_appearance: fools-errand
     approved: false
   - source: Nighteyes
-    target: Nighteyes
+    target: Olhos-de-Noite
     category: character
-    policy: keep
+    policy: translate
+    forbidden: ["Olhos da Noite", "Olhos Noturnos", "Nighteyes"]
     gender: male
-    notes: "Fitz's Wit-bonded wolf; keep the English name."
-    source_reference: "Source text (Fool's Errand); name kept"
-    confidence: provisional
-    first_appearance: fools-errand
-    approved: false
+    notes: "Fitz's Wit-bonded wolf; canonical PT-BR rendering from the official Farseer editions."
+    source_reference: "Official PT-BR editions, Calibre 92/71"
+    confidence: confirmed
+    first_appearance: royal-assassin
+    approved: true
   - source: Jinna
     target: Jinna
     category: character
@@ -135,6 +138,7 @@ terms:
     policy: keep
     aliases: [Civil]
     alias_targets: {Civil: Civil}
+    gender: male
     source_reference: "Source text (Fool's Errand); name kept"
     confidence: provisional
     first_appearance: fools-errand
@@ -177,3 +181,23 @@ terms:
     confidence: reviewed
     first_appearance: fools-fate
     approved: true
+  - source: Swift
+    target: Swift
+    category: character
+    policy: keep
+    gender: male
+    notes: "Burrich and Molly's Wit-gifted son; keep the name."
+    source_reference: "Source text (The Golden Fool); name kept"
+    confidence: provisional
+    first_appearance: fools-errand
+    approved: false
+  - source: Laurel
+    target: Laurel
+    category: character
+    policy: keep
+    gender: female
+    notes: "Queen's Huntswoman at Buckkeep; keep the name."
+    source_reference: "Source text (Fool's Errand); name kept"
+    confidence: provisional
+    first_appearance: fools-errand
+    approved: false

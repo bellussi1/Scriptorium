@@ -4,7 +4,11 @@ from __future__ import annotations
 import zipfile
 from pathlib import Path
 
-from src.literary.repair import _invalid_xml_id, repair_invalid_ids_in_epub
+from src.literary.repair import (
+    _invalid_xml_id,
+    repair_epubcheck_hygiene_in_epub,
+    repair_invalid_ids_in_epub,
+)
 
 OPF = """<?xml version="1.0" encoding="UTF-8"?>
 <package xmlns="http://www.idpf.org/2007/opf" version="2.0" unique-identifier="bookid">
@@ -106,3 +110,60 @@ def test_xml_name_rule():
     assert _invalid_xml_id("_x") is False
     assert _invalid_xml_id("émile1") is False
     assert _invalid_xml_id("") is False
+
+
+def test_repair_epubcheck_hygiene_fixes_opf_ncx_img_and_dangling_fragments(tmp_path):
+    opf = (
+        '<?xml version="1.0" encoding="utf-8"?>'
+        '<opf:package xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:opf="http://www.idpf.org/2007/opf" '
+        'unique-identifier="missing_uid" version="2.0">'
+        '<opf:metadata><dc:language>pt-BR</dc:language>'
+        '<dc:identifier id="calibre-id" opf:scheme="calibre">cal-uuid-123</dc:identifier>'
+        '<opf:meta id="col" property="belongs-to-collection">Series</opf:meta>'
+        '<opf:meta refines="#col" property="group-position">1</opf:meta>'
+        "</opf:metadata>"
+        "<opf:manifest/><opf:spine/><opf:guide /></opf:package>"
+    )
+    ncx = (
+        '<ncx><head><meta content="stale-uid-000" name="dtb:uid"/></head><navMap>'
+        '<navPoint id="n1" playOrder="0"><navLabel><text>One</text></navLabel>'
+        '<content src="text/part1.xhtml#missing"/></navPoint>'
+        '<navPoint id="n2" playOrder="1"><navLabel><text>Two</text></navLabel>'
+        '<content src="text/part1.xhtml#good"/></navPoint>'
+        "</navMap></ncx>"
+    )
+    part1 = (
+        '<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang=""><body>'
+        '<p class="calibre1"><h1>Heading</h1><ul><li>Item</li></ul></p>'
+        '<p><img src="cover.jpg"/></p>'
+        '<p><a name="good">G</a><a name="1">bad</a></p>'
+        '<p><a href="part1.xhtml#missing">dangling</a><a href="part1.xhtml#good">ok</a></p>'
+        "</body></html>"
+    )
+    source = _write_epub(
+        tmp_path / "dirty.epub",
+        {"content.opf": opf, "toc.ncx": ncx, "text/part1.xhtml": part1},
+    )
+    out = tmp_path / "clean.epub"
+    result = repair_epubcheck_hygiene_in_epub(str(source), str(out))
+
+    assert result["total_changes"] > 0
+    out_opf = _read(out, "content.opf")
+    assert 'unique-identifier="calibre-id"' in out_opf
+    assert "belongs-to-collection" not in out_opf
+    assert "<opf:guide" not in out_opf
+    out_ncx = _read(out, "toc.ncx")
+    assert 'content="cal-uuid-123"' in out_ncx
+    assert 'playOrder="0"' not in out_ncx
+    assert 'playOrder="1"' in out_ncx and 'playOrder="2"' in out_ncx
+    assert 'src="text/part1.xhtml"' in out_ncx
+    assert 'src="text/part1.xhtml#good"' in out_ncx
+    out_html = _read(out, "text/part1.xhtml")
+    assert 'lang="pt-BR" xml:lang="pt-BR"' in out_html
+    assert "<p class=\"calibre1\"><h1>" not in out_html
+    assert "<h1>Heading</h1><ul><li>Item</li></ul>" in out_html
+    assert 'alt=""' in out_html
+    assert 'id="good"' in out_html
+    assert 'name="1"' not in out_html
+    assert 'href="part1.xhtml#missing"' not in out_html
+    assert 'href="part1.xhtml#good"' in out_html

@@ -191,3 +191,53 @@ terms:
     confidence: confirmed
     first_appearance: assassins-apprentice
     approved: true
+  - source: Heart of the Pack
+    target: Coração da Matilha
+    category: title
+    policy: translate
+    notes: "Wit wolf leader title; canonical PT-BR rendering from O Assassino do Rei."
+    source_reference: "Official PT-BR editions, Calibre 92/71"
+    confidence: confirmed
+    first_appearance: royal-assassin
+    approved: true
+  - source: Mountain Kingdom
+    target: Reino da Montanha
+    category: location
+    policy: translate
+    forbidden: ["Reino das Montanhas"]
+    notes: "Kettricken's homeland; official PT-BR Farseer editions use singular Reino da Montanha."
+    source_reference: "Official PT-BR editions, Calibre 94/92/71"
+    confidence: confirmed
+    first_appearance: assassins-apprentice
+    approved: true
+  - source: Skill-road
+    target: Estrada do Talento
+    category: location
+    policy: translate
+    aliases: [Skill road]
+    alias_targets: {Skill road: Estrada do Talento}
+    notes: "Ancient Elderling road; canonical PT-BR rendering from A Fúria do Assassino."
+    source_reference: "Official PT-BR edition, Calibre 71"
+    confidence: confirmed
+    first_appearance: assassins-quest
+    approved: true
+  - source: Skillmaster
+    target: Mestre do Talento
+    category: title
+    policy: translate
+    aliases: [Skill-master]
+    alias_targets: {Skill-master: Mestre do Talento}
+    notes: "Royal Skill instructor title; canonical PT-BR rendering from Farseer 1–3."
+    source_reference: "Official PT-BR editions, Calibre 94/92/71"
+    confidence: confirmed
+    first_appearance: assassins-apprentice
+    approved: true
+  - source: Winterfest
+    target: Festa do Inverno
+    category: concept
+    policy: translate
+    notes: "Buckkeep seasonal feast; canonical PT-BR rendering from Farseer 2–3."
+    source_reference: "Official PT-BR editions, Calibre 92/71"
+    confidence: confirmed
+    first_appearance: assassins-apprentice
+    approved: true

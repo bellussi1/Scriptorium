@@ -10,3 +10,8 @@ rules:
       personal names or settlements and states, or organizations alongside formal titles
       and offices—unless the active glossary explicitly assigns a Portuguese form; render
       standalone lowercase common nouns and lowercase demonyms naturally according to the glossary.
+  - dimension: brazilian_prose
+    instruction: >-
+      Write natural Brazilian Portuguese rather than English syntactic calques; omit
+      redundant subject pronouns where verb inflection carries person, use Brazilian
+      progressive forms, and prefer idiomatic Portuguese collocations and word order.

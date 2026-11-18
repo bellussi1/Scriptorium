@@ -51,6 +51,7 @@ terms:
     target: Ghen
     category: character
     policy: keep
+    gender: male
     source_reference: "Source text (Howling Dark); name kept"
     confidence: provisional
     first_appearance: empire-of-silence
@@ -59,6 +60,7 @@ terms:
     target: Samir
     category: character
     policy: keep
+    gender: male
     source_reference: "Source text (Howling Dark); name kept"
     confidence: provisional
     first_appearance: howling-dark
@@ -67,6 +69,7 @@ terms:
     target: Crim
     category: character
     policy: keep
+    gender: male
     source_reference: "Source text (Howling Dark); name kept"
     confidence: provisional
     first_appearance: howling-dark
@@ -77,6 +80,7 @@ terms:
     policy: keep
     aliases: [Bassander, Lin]
     alias_targets: {Bassander: Bassander, Lin: Lin}
+    gender: male
     source_reference: "Source text (Howling Dark); name kept"
     confidence: provisional
     first_appearance: empire-of-silence
@@ -87,6 +91,7 @@ terms:
     policy: keep
     aliases: [Jinan]
     alias_targets: {Jinan: Jinan}
+    gender: female
     source_reference: "Source text (Howling Dark); name kept"
     confidence: provisional
     first_appearance: empire-of-silence
@@ -97,6 +102,7 @@ terms:
     policy: keep
     aliases: [Marius]
     alias_targets: {Marius: Marius}
+    gender: male
     source_reference: "Source text (Howling Dark); name kept"
     confidence: provisional
     first_appearance: howling-dark
@@ -107,6 +113,7 @@ terms:
     policy: keep
     aliases: [Bordelon]
     alias_targets: {Bordelon: Bordelon}
+    gender: male
     source_reference: "Source text (Howling Dark); name kept"
     confidence: provisional
     first_appearance: howling-dark
@@ -117,6 +124,7 @@ terms:
     policy: keep
     aliases: [Pallino of Trieste]
     alias_targets: {Pallino of Trieste: Pallino}
+    gender: male
     notes: "The official PT edition uses the short form Pallino."
     source_reference: "Official PT-BR edition, Calibre 436"
     confidence: reviewed

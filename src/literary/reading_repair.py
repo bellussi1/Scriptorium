@@ -102,26 +102,66 @@ def paragraph_text(inner: str) -> str:
     return re.sub(r"\s+", " ", html.unescape(strip_tags(inner))).strip()
 
 
+_NON_PROSE_EPUB_TYPE_RE = re.compile(
+    r'\bepub:type\s*=\s*["\'][^"\']*\b(?:title|toc|pagebreak|cover|frontmatter|backmatter|footnote|endnote|landmarks)\b',
+    re.IGNORECASE,
+)
+_NON_PROSE_CLASS_TOKENS = (
+    "title",
+    "head",
+    "chap",
+    "part",
+    "sub",
+    "toc",
+    "nav",
+    "copy",
+    "dedic",
+    "epigraph",
+    "quote",
+    "block",
+    "poem",
+    "verse",
+    "song",
+    "lyric",
+    "center",
+    "right",
+    "break",
+    "scene",
+    "ornament",
+    "fig",
+    "caption",
+    "image",
+    "cover",
+    "foot",
+    "endnote",
+    "note",
+    "ack",
+    "author",
+    "credit",
+    "letter",
+    "sign",
+    "date",
+)
+_EXPLICIT_BODY_CLASSES = ("x04-Body-Text", "x04-Body-Text-FL", "x03-CO-Body-Text")
+
+
 def _is_body(attrs: str) -> bool:
+    if _NON_PROSE_EPUB_TYPE_RE.search(attrs or ""):
+        return False
     match = CLASS_RE.search(attrs or "")
     if not match:
-        return False
+        return True
     classes = match.group(1).split()
-    return any(
-        name in classes
-        for name in ("x04-Body-Text", "x04-Body-Text-FL", "x03-CO-Body-Text")
+    if any(name in classes for name in _EXPLICIT_BODY_CLASSES):
+        return True
+    lower_classes = [name.lower() for name in classes]
+    return not any(
+        token in cls_name for cls_name in lower_classes for token in _NON_PROSE_CLASS_TOKENS
     )
 
 
 def _is_dialogue_body(attrs: str) -> bool:
-    match = CLASS_RE.search(attrs or "")
-    if not match:
-        return False
-    classes = match.group(1).split()
-    return any(
-        name in classes
-        for name in ("x04-Body-Text", "x04-Body-Text-FL", "x03-CO-Body-Text")
-    )
+    return _is_body(attrs)
 
 
 def _is_scene_break(text: str) -> bool:
@@ -266,6 +306,23 @@ def merge_split_paragraphs(raw: str) -> Tuple[str, int]:
             cursor = match.end()
             continue
         text = paragraph_text(inner)
+        if re.match(
+            r"^\s*<(?:b|strong)\b[^>]*>[^<]+</(?:b|strong)>\s*$", inner, re.IGNORECASE
+        ) or (
+            len(text) <= 120
+            and re.match(
+                r"^(?:CHAPTER|CAP[ÍI]TULO|PROLOGUE|PR[ÓO]LOGO|EPILOGUE|EP[ÍI]LOGO|"
+                r"(?:PART|PARTE|BOOK|LIVRO)\s+(?:[IVXLC]+|\d+|ONE|TWO|THREE|UM|DOIS|TR[ÊE]S|PRIMEIRO|SEGUNDO))\b",
+                text,
+                re.IGNORECASE,
+            )
+        ):
+            if previous is not None:
+                rendered.append(previous["prefix"] + render(previous))
+                previous = None
+            rendered.append(prefix + match.group(0))
+            cursor = match.end()
+            continue
         if previous is not None:
             mode = _apply_join_overrides(previous["text"], text) or _merge_mode(previous["text"], text)
             if mode:
@@ -727,7 +784,12 @@ def _book_text_fixes(queue_title: str) -> Dict[str, Any]:
     return _reader_repairs().get("book_text_fixes", {}).get(queue_title, {}) or {}
 
 
-def global_text_fixes(raw: str, book_fixes: Optional[Dict[str, Any]] = None) -> str:
+def global_text_fixes(
+    raw: str,
+    book_fixes: Optional[Dict[str, Any]] = None,
+    *,
+    apply_terms: bool = True,
+) -> str:
     """Simple text-node fixes that also apply to front/back matter.
 
     The copyright lines hold for every book. Book-specific pairs come from
@@ -743,8 +805,11 @@ def global_text_fixes(raw: str, book_fixes: Optional[Dict[str, Any]] = None) -> 
         return text
 
     raw = _map_text_nodes(raw, transform)
-    for old, new in _reader_repairs().get("reader_terms", []):
-        raw = _map_text_nodes(raw, lambda text, o=old, n=new: _replace_case_preserving(text, o, n))
+    if apply_terms:
+        for old, new in _reader_repairs().get("reader_terms", []):
+            raw = _map_text_nodes(
+                raw, lambda text, o=old, n=new: _replace_case_preserving(text, o, n)
+            )
     for old, new in fixes.get("raw", []):
         raw = raw.replace(old, new)
     for pattern, repl in fixes.get("raw_regex", []):
@@ -1109,6 +1174,8 @@ html {
 body {
     line-height: 1.5;
 }
+p,
+p.calibre1,
 p.x04-Body-Text,
 p.x04-Body-Text-FL,
 p.x03-CO-Body-Text {
@@ -1198,7 +1265,9 @@ def repair_reading_epub(
                     if apply_terms:
                         raw, _ = apply_sun_eater_terms(raw, term_counts)
                     raw, _ = clean_artefacts(raw, report.artefact_changes)
-                    raw = global_text_fixes(raw, _book_text_fixes(queue_title))
+                    raw = global_text_fixes(
+                        raw, _book_text_fixes(queue_title), apply_terms=apply_terms
+                    )
                     raw, heading_changes = fix_headings(raw, name, headings)
                     report.heading_changes.extend(heading_changes)
                     raw = localise_document_title(raw, name, chapter_titles)

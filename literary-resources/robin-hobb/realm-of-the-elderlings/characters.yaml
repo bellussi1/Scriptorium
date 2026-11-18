@@ -205,7 +205,8 @@ terms:
     target: Paragon
     category: character
     policy: keep
-    notes: "Liveship with a voice; keep the ship's name."
+    gender: male
+    notes: "Liveship with a voice; keep the ship's name and masculine agreement."
     source_reference: "Source text (Liveship Traders); name kept"
     confidence: provisional
     first_appearance: ship-of-magic
@@ -214,11 +215,43 @@ terms:
     target: Vivacia
     category: character
     policy: keep
-    notes: "Liveship with a voice; keep the ship's name."
+    gender: female
+    notes: "Liveship with a voice; keep the ship's name and feminine agreement."
     source_reference: "Source text (Liveship Traders); name kept"
     confidence: provisional
     first_appearance: ship-of-magic
     approved: false
+  - source: Nighteyes
+    target: Olhos-de-Noite
+    category: character
+    policy: translate
+    forbidden: ["Olhos da Noite", "Olhos Noturnos", "Nighteyes"]
+    gender: male
+    notes: "Fitz's Wit-bonded wolf; canonical PT-BR rendering from the official Farseer editions."
+    source_reference: "Official PT-BR editions, Calibre 92/71"
+    confidence: confirmed
+    first_appearance: royal-assassin
+    approved: true
+  - source: Starling Birdsong
+    target: Starling Birdsong
+    category: character
+    policy: keep
+    aliases: [Starling]
+    alias_targets: {Starling: Starling}
+    gender: female
+    source_reference: "Official PT-BR edition, Calibre 71"
+    confidence: confirmed
+    first_appearance: assassins-quest
+    approved: true
+  - source: Kettle
+    target: Kettle
+    category: character
+    policy: keep
+    gender: female
+    source_reference: "Official PT-BR edition, Calibre 71"
+    confidence: confirmed
+    first_appearance: assassins-quest
+    approved: true
   - source: Nettle
     target: Nettle
     category: character

@@ -292,3 +292,26 @@ def test_empty_paragraphs_without_an_id_are_still_dropped():
     assert 'class="x"' not in repaired
     assert 'class="y"' not in repaired
     assert "Text." in repaired
+
+
+def test_generic_calibre_paragraphs_merge_convert_dialogue_and_preserve_bold_headings():
+    raw = (
+        '<p class="calibre1"><b class="calibre3">CHAPTER ONE - OF PRIESTS AND PIRATES</b></p>'
+        '<p class="calibre1">“Morto?” ele perguntou</p>'
+        '<p class="calibre1">olhando para o cais.</p>'
+    )
+    repaired, merged = merge_split_paragraphs(raw)
+    assert merged == 1
+    assert "CHAPTER ONE - OF PRIESTS AND PIRATES" in repaired
+    assert repaired.count("<p") == 2
+    converted, count = convert_dialogue_quotes(repaired)
+    assert count == 1
+    assert "— Morto? — ele perguntou olhando para o cais." in paragraph_text(converted)
+
+
+def test_global_text_fixes_can_skip_sun_eater_terms():
+    raw = "<p>Ele treinava com a Chantry antes do incidente.</p>"
+    skipped = global_text_fixes(raw, apply_terms=False)
+    assert "Chantry" in skipped
+    applied = global_text_fixes(raw, apply_terms=True)
+    assert "Chantria" in applied
