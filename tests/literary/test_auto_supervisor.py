@@ -2,6 +2,8 @@
 from __future__ import annotations
 
 import importlib.util
+import json
+import os
 import time
 from datetime import datetime, timezone
 from pathlib import Path
@@ -104,3 +106,40 @@ def test_budget_blocks_after_the_hourly_limit():
     assert auto_queue._budget_exhausted(history, 3) is True
     assert auto_queue._budget_exhausted(history[:2], 3) is False
     assert auto_queue._budget_exhausted(old, 3) is False
+
+
+def test_heartbeat_age_matches_windows_venv_shim_ppid(monkeypatch, tmp_path):
+    status_path = tmp_path / "literary_queue.auto.json"
+    monkeypatch.setattr(auto_queue, "STATUS_PATH", status_path)
+    started = datetime.now(timezone.utc).isoformat(timespec="seconds")
+    status_path.write_text(
+        json.dumps({"pid": 99999, "ppid": 4242, "heartbeat": started}),
+        encoding="utf-8",
+    )
+
+    age = auto_queue._heartbeat_age(4242, started)
+    assert age is not None and age >= 0.0
+    assert auto_queue._status_matches_worker({"pid": 99999, "ppid": 4242}, 4242) is True
+    assert auto_queue._status_matches_worker({"pid": 99999, "ppid": 4242}, 1111) is False
+
+
+def test_atomic_write_retries_permission_error(monkeypatch, tmp_path):
+    target = tmp_path / "status.json"
+    real_replace = os.replace
+    attempts = {"count": 0}
+
+    def flaky_replace(src, dst):
+        attempts["count"] += 1
+        if attempts["count"] < 3:
+            raise PermissionError("simulated WinError 5")
+        return real_replace(src, dst)
+
+    monkeypatch.setattr(auto_queue.os, "replace", flaky_replace)
+    monkeypatch.setattr(auto_queue.time, "sleep", lambda _s: None)
+
+    auto_queue._atomic_write(target, {"ok": True})
+
+    assert attempts["count"] == 3
+    assert json.loads(target.read_text(encoding="utf-8")) == {"ok": True}
+    assert list(tmp_path.glob(".*.tmp")) == []
+

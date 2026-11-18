@@ -1,13 +1,18 @@
 # Active context
 
 Handoff between sessions. Read this first; update it before you stop. It must
-describe the real repository, not a plan. Status as of 2026-11-18 (02:01 local):
+describe the real repository, not a plan. Status as of 2026-11-18 (09:27 local):
 revalidate with `git status` and `git log` before acting. Older
 handoffs are in git history (this file was compacted on 2026-11-12).
 
 ## Now
 
-- **Overnight supervisor `scripts/auto_queue.py` active alongside live queue run (2026-11-18 02:01 local):**
+- **Continuous overnight queue active on `#2 Ship of Magic` after `#4 Fool's Errand` completed & exported (2026-11-18 09:27 local):**
+  - **Supervisor Windows shim & lock retry fix (`scripts/auto_queue.py`, `tests/literary/test_auto_supervisor.py`):** Fixed `_heartbeat_age` and exit status checks via `_status_matches_worker()` to match either `status["pid"]` or `status["ppid"]` against `worker.pid` (solving Windows `venv\Scripts\python.exe` launcher-shim PID mismatch that triggered false 600 s `worker_stalled` kills) and updated `_atomic_write()` to use per-thread/PID staging filenames + 20-attempt `PermissionError` backoff (`WinError 5` resilience). Verified `pytest -q tests/literary/test_auto_queue_gate.py tests/literary/test_auto_supervisor.py` (`17 passed`) and `ruff check` (`0` issues).
+  - **`#4 Fool's Errand` finished, TOC polished, approved & exported (`job #41`, `cli_93ddf44e`):** Completed `851/851` chunks (`4,656.4 s`, `gate_passed: true`, `reader_repair` merged `416`, splits `828`). Updated `literary-resources/robin-hobb/tawny-man/chapter-titles/fools-errand.yaml` (`Sangue Antigo`, `Cidade de Torre do Cervo`) and polished all 27 `<navLabel>` entries in `translated_files/Fool's Errand (pt-BR).refined.epub` `toc.ncx` from `part4_split_001.xhtml`..`part27_split_001.xhtml` headings (`validate_epub_pair` warnings reduced `26 -> 1`, `blocking: 0`, `EPUBCheck 0/0/0`); archived intermediates to `translated_files/archive/intermediates-2026-11-18/`. `auto_queue.py` ran deterministic `--no-cloud` audit (`data/audits/fool-s-errand-20261118T122627Z/audit.json` noted advisory glossary/forbidden warnings), approved `#4` via `--trust-runner-gate`, and exported `translated_files/kindle/Robin Hobb/The Tawny Man Trilogy/01 - Fool's Errand (pt-BR).epub` (`manifest.csv`).
+  - **Live run active (`#2 Ship of Magic`, `job #42`, `cli_5d36fffc`):** `scripts/auto_queue.py --max-books 0 --max-cloud-usd 0 --trust-runner-gate` running persistently (`supervisor.json`: `state: running`, `worker.heartbeat_age_s: 10.3`, `restarts: 0`), `auto.json` tracks `ppid == worker.pid`, and `#2 Ship of Magic` is translating (`gemini / gemini-3.8-flash`, `150` compiled glossary terms, `1063` total chunks across `11` files, chunk checkpointing active in `data/queue-runs/ship-of-magic.log`). Do **not** restart `translatebook-literary-dev` while running.
+
+- **Overnight supervisor configuration (`1c4abcd`, 2026-11-18 02:01 local):**
   - Updated `scripts/auto_queue.py`: added `--no-refine` and `--export-kindle` to `_queue_command`, added `--no-cloud` to `_audit_command` when `--max-cloud-usd <= 0`, and added `--trust-runner-gate` so deterministic runner validation (`gate_passed == true`, `EPUBCheck 0 errors`) plus deterministic audit + Kindle export advances the queue automatically while recording any advisory audit notes in `audit.md` (`tests/literary/test_auto_queue_gate.py`, `test_auto_supervisor.py`: `15 passed`; `ruff check`: `0` issues).
   - Launched `scripts/auto_queue.py --max-books 0 --max-cloud-usd 0 --trust-runner-gate`: `data/literary_queue.supervisor.json` reports `state: running` (`worker active`), `data/literary_queue.auto.json` reports `phase: waiting` (`title: Fool's Errand`, `274/851` chunks done on `job #41`).
 

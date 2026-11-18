@@ -105,12 +105,22 @@ def _read_json(path: Path) -> Dict[str, Any]:
 
 def _atomic_write(path: Path, data: Dict[str, Any]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    temporary = path.with_name(path.name + ".tmp")
-    temporary.write_text(
-        json.dumps(data, ensure_ascii=False, indent=2) + "\n",
-        encoding="utf-8",
+    payload = json.dumps(data, ensure_ascii=False, indent=2) + "\n"
+    temporary = path.with_name(
+        f".{path.name}.{os.getpid()}.{threading.get_ident()}.tmp"
     )
-    os.replace(temporary, path)
+    temporary.write_text(payload, encoding="utf-8")
+    try:
+        for attempt in range(20):
+            try:
+                os.replace(temporary, path)
+                return
+            except PermissionError:
+                if attempt == 19:
+                    raise
+                time.sleep(min(0.05 * (attempt + 1), 0.5))
+    finally:
+        temporary.unlink(missing_ok=True)
 
 
 _STATUS_LOCK = threading.Lock()
@@ -120,7 +130,12 @@ HEARTBEAT_INTERVAL = 30.0
 
 def _write_status(payload: Dict[str, Any]) -> None:
     with _STATUS_LOCK:
-        data = {"heartbeat": _now(), "pid": os.getpid(), **payload}
+        data = {
+            "heartbeat": _now(),
+            "pid": os.getpid(),
+            "ppid": os.getppid(),
+            **payload,
+        }
         _LAST_STATUS.clear()
         _LAST_STATUS.update(data)
         _atomic_write(STATUS_PATH, data)
@@ -866,9 +881,27 @@ def _read_worker_status() -> Dict[str, Any]:
     return _read_json(STATUS_PATH)
 
 
+def _status_matches_worker(status: Dict[str, Any], worker_pid: int) -> bool:
+    """Return True when status belongs to worker_pid or its Windows venv shim parent."""
+    try:
+        target = int(worker_pid)
+    except (TypeError, ValueError):
+        return False
+    if target <= 0:
+        return False
+    for key in ("pid", "ppid"):
+        try:
+            value = int(status.get(key) or 0)
+        except (TypeError, ValueError):
+            value = 0
+        if value == target:
+            return True
+    return False
+
+
 def _heartbeat_age(worker_pid: int, started_at: str) -> Optional[float]:
     status = _read_worker_status()
-    if int(status.get("pid") or 0) != int(worker_pid):
+    if not _status_matches_worker(status, int(worker_pid)):
         return None
     stamp = _parse_iso(status.get("heartbeat"))
     if stamp is None:
@@ -1158,7 +1191,7 @@ def run_supervisor(args: argparse.Namespace) -> int:
 
             exit_code = int(process.returncode if process.returncode is not None else -1)
             status = _read_worker_status()
-            if int(status.get("pid") or 0) != int(process.pid):
+            if not _status_matches_worker(status, int(process.pid)):
                 status = {}
             action, reason = _classify_exit(exit_code, status, stalled)
             log_handle.write(
