@@ -1,11 +1,17 @@
 # Active context
 
 Handoff between sessions. Read this first; update it before you stop. It must
-describe the real repository, not a plan. Status as of 2026-11-18 (19:31 local):
+describe the real repository, not a plan. Status as of 2026-11-18 (19:49 local):
 revalidate with `git status` and `git log` before acting. Older
 handoffs are in git history (this file was compacted on 2026-11-12).
 
 ## Now
+
+- **`unslop-ui --surface` Web UI pass applied & skill installed globally (`2026-11-18 19:49 local`; no Docker restart):**
+  - Installed `unslop-ui` (`felipebasurto/unslop-ui`) globally under `C:\Users\Bellussi\.gemini\config\skills\unslop-ui\`.
+  - **Copy & Chrome (`U3`–`U5`, `U11`, `unslop 13`):** Stripped decorative emojis from all `pt-BR`/`en` locale files (`86 -> 0` in `pt-BR`, `95 -> 0` in `en`) and UI renders in `src/web/static/js/` (`index.js`, `websocket-manager.js`, `sample-table.js`, `quick-test.js`, `resume-manager.js`, `translation-tracker.js`, `message-logger.js`); tightened verbose intros/help strings (`queue:intro_html`, `glossary:list_intro`, `style:tab_intro`, `files:artifact_help`, `translation:quicktest_intro`, `settings:ui_language_help`, `settings:notifications_save_and_test_help`); wired the TTS modal in `src/web/static/js/index.js` to existing `tts:*` / `common:cancel` i18n keys with `<label for>` bindings; and removed prose em-dashes in `en` locales (`40 -> 0`) and `translation_interface.html` (`25 -> 0`).
+  - **Surface (`U17`–`U20`):** Replaced non-skeleton `linear-gradient(...)` surfaces (`11 -> 0`), `font-weight: 800/900 -> 600` (`4 -> 0`), `transition: all` + decorative `hover:scale` (`13 -> 0`), and off-scale spacing (`59 -> 0` across SCSS, JS, and `translation_interface.html`); bumped `app.css?v=20261118-unslop` and rebuilt `src/web/static/css/app.css`.
+  - **Verification:** `npm.cmd run build:css`, `npm.cmd run typecheck`, `npm.cmd run test:js` (`7/7 passed`), and `venv\Scripts\python.exe -m pytest -q tests/test_frontend_i18n.py` (`22 passed`). Static CSS/JS/locales hot-reload without restarting `translatebook-literary-dev`.
 
 - **Hard `$40.00` monthly cloud cap enforced, `#5 Fool's Fate` finalized (`EPUBCheck 0/0/0`) & exported, queue resuming on `#16 Fool's Assassin` (`2026-11-18 19:31 local`):**
   - **Completed & exported (*The Liveship Traders* + *The Tawny Man Trilogy* — `6` books, `$20.00` spent / `$20.00` remaining of `$40.00` monthly GCP cap):**

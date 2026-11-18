@@ -100,7 +100,7 @@ function formatCost(cost) {
 function metricsLine(metrics) {
     if (!metrics) return '';
     const parts = [];
-    if (metrics.latency_ms != null) parts.push(`⏱ ${formatLatency(metrics.latency_ms)}`);
+    if (metrics.latency_ms != null) parts.push(formatLatency(metrics.latency_ms));
     if (metrics.prompt_tokens != null || metrics.completion_tokens != null) {
         parts.push(`⇄ ${metrics.prompt_tokens || 0}/${metrics.completion_tokens || 0}`);
     }

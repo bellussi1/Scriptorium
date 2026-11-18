@@ -355,7 +355,7 @@ function buildColumnCard(idx, col) {
         <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;">
             <strong>#${idx + 1}</strong>
             <div style="display: flex; gap: 6px;">
-                <button type="button" class="btn btn-secondary sample-apply-settings" data-i18n-attr="title:sample:apply_to_settings_title" title="${t('sample:apply_to_settings_title')}" style="padding: 0.3rem 0.6rem; font-size: 0.8125rem; gap: 5px;">
+                <button type="button" class="btn btn-secondary sample-apply-settings" data-i18n-attr="title:sample:apply_to_settings_title" title="${t('sample:apply_to_settings_title')}" style="padding: 0.3rem 0.6rem; font-size: 0.8125rem; gap: 4px;">
                     <span class="material-symbols-outlined" style="font-size: 1rem;">move_to_inbox</span>
                     <span data-i18n="sample:apply_to_settings">${t('sample:apply_to_settings')}</span>
                 </button>

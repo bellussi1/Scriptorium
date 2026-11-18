@@ -35,16 +35,16 @@
   "download_failed": "Falha ao baixar: {{error}}",
   "load_failed": "Erro ao carregar a lista de arquivos: {{error}}",
   "open_action": "Abrir arquivo",
-  "open_log": "📂 Arquivo aberto: {{name}}",
+  "open_log": "Arquivo aberto: {{name}}",
   "open_error": "Erro ao abrir o arquivo: {{error}}",
   "reveal_action": "Mostrar na pasta",
-  "reveal_log": "📁 Exibido na pasta: {{name}}",
+  "reveal_log": "Exibido na pasta: {{name}}",
   "reveal_error": "Erro ao exibir o arquivo: {{error}}",
   "download_action": "Baixar",
   "delete_action": "Excluir",
   "go_to_files_tab": "Ir para a aba Arquivos",
-  "folder_opened_log": "📁 Pasta de traduções aberta",
-  "folder_opened_log_with_path": "📁 Pasta de traduções aberta: {{path}}",
+  "folder_opened_log": "Pasta de traduções aberta",
+  "folder_opened_log_with_path": "Pasta de traduções aberta: {{path}}",
   "folder_open_error": "Erro ao abrir a pasta: {{error}}",
   "delete_default_msg": "{{name}} excluído",
   "file_too_large": "Arquivo grande demais: {{name}} ({{size}})",
@@ -62,5 +62,5 @@
   "badge_reader_legacy": "Leitor (antigo)",
   "show_all_versions": "Mostrar versões intermediárias",
   "final_only_status": "Mostrando a melhor edição por livro ({{visible}} de {{total}} arquivos).",
-  "artifact_help": "Final é a edição de leitura, pronta para ler ou importar. As versões Corrigido, Base (v2) e Tradução bruta são saídas intermediárias do processamento; o relatório de qualidade não é um livro."
+  "artifact_help": "Final é a edição pronta para leitura. Corrigido, Base (v2) e Tradução bruta são saídas intermediárias."
 }

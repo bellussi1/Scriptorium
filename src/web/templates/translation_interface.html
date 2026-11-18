@@ -71,7 +71,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
 
     <!-- Application styles, compiled from src/web/static/scss -->
-    <link rel="stylesheet" href="/static/css/app.css?v=20261118-desktop-std">
+    <link rel="stylesheet" href="/static/css/app.css?v=20261118-unslop">
 </head>
 <body>
     <div class="container">
@@ -221,7 +221,7 @@
                         <span class="material-symbols-outlined">auto_fix_high</span>
                     </div>
                     <h4 data-i18n="translation:drop_files_refine_title">Drop files to refine (already translated)</h4>
-                    <p data-i18n="translation:drop_files_refine_support">Polish an existing translation — same language in, same language out</p>
+                    <p data-i18n="translation:drop_files_refine_support">Polish an existing translation: same language in, same language out</p>
                     <input type="file" id="fileInputRefine" accept=".txt,.epub,.srt,.docx" style="display: none;" onchange="handleFileSelectRefine(event)" multiple>
                 </div>
 
@@ -345,15 +345,15 @@
                         </div>
 
                         <!-- Glossary Selector -->
-                        <div class="form-group" style="margin-bottom: 15px; margin-top: 15px;">
-                            <label data-i18n="settings:glossary_label" style="font-weight: 600; color: var(--text-dark); margin-bottom: 5px; display: block;">
+                        <div class="form-group" style="margin-bottom: 16px; margin-top: 16px;">
+                            <label data-i18n="settings:glossary_label" style="font-weight: 600; color: var(--text-dark); margin-bottom: 4px; display: block;">
                                 Glossary
                             </label>
-                            <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 5px;">
+                            <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 4px;">
                                 <div class="neu-inset-light" style="flex: 1;">
                                     <select id="glossarySelect" class="form-control" style="margin-bottom: 0;">
                                         <option value="" data-i18n="settings:select_none">None</option>
-                                        <option value="__auto__" data-i18n="settings:glossary_auto_option">Auto — build from this document</option>
+                                        <option value="__auto__" data-i18n="settings:glossary_auto_option">Auto: build from this document</option>
                                     </select>
                                 </div>
                                 <button type="button" id="glossaryRefreshBtn" class="btn btn-sm" data-i18n-attr="title:settings:refresh_list_title" style="padding: 6px 10px; background: var(--background-light); border: 1px solid var(--border-light); border-radius: 6px; cursor: pointer;" title="Refresh list">
@@ -364,21 +364,21 @@
                                 </button>
                             </div>
                             <div id="glossaryInfoCard" class="glossary-info-card" style="display: none;"></div>
-                            <p data-i18n-html="settings:glossary_help" style="margin: 5px 0 0 0; font-size: 0.8125rem; color: var(--text-muted-light);">
+                            <p data-i18n-html="settings:glossary_help" style="margin: 4px 0 0 0; font-size: 0.8125rem; color: var(--text-muted-light);">
                                 Inject a curated source-to-target term list into every chunk's prompt to keep entity translations consistent. Click <strong>Manage</strong> to create, edit or auto-extract terms.
                             </p>
                         </div>
 
                         <!-- Custom Instructions -->
-                        <div class="form-group" style="margin-bottom: 0; margin-top: 15px;">
-                            <label data-i18n="settings:custom_instructions_label" style="font-weight: 600; color: var(--text-dark); margin-bottom: 5px; display: block;">
+                        <div class="form-group" style="margin-bottom: 0; margin-top: 16px;">
+                            <label data-i18n="settings:custom_instructions_label" style="font-weight: 600; color: var(--text-dark); margin-bottom: 4px; display: block;">
                                 Custom Instructions
                             </label>
-                            <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 5px;">
+                            <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 4px;">
                                 <div class="neu-inset-light" style="flex: 1;">
                                     <select id="customInstructionSelect" class="form-control" style="margin-bottom: 0;">
                                         <option value="" data-i18n="settings:select_none">None</option>
-                                        <option value="__auto__" data-i18n="settings:style_auto_option">Auto — match this document's style</option>
+                                        <option value="__auto__" data-i18n="settings:style_auto_option">Auto: match this document's style</option>
                                         <!-- Options populated dynamically via JavaScript -->
                                     </select>
                                 </div>
@@ -389,7 +389,7 @@
                                     <span class="material-symbols-outlined icon--sm">settings</span>
                                 </button>
                             </div>
-                            <p data-i18n-html="settings:custom_instructions_help" style="margin: 5px 0 0 0; font-size: 0.8125rem; color: var(--text-muted-light);">
+                            <p data-i18n-html="settings:custom_instructions_help" style="margin: 4px 0 0 0; font-size: 0.8125rem; color: var(--text-muted-light);">
                                 Select custom instructions from the <code>Custom_Instructions/</code> folder. Use <code>.yaml</code> files with <code>translation:</code> and/or <code>refinement:</code> keys to scope a preset per phase. Legacy <code>.txt</code> files still work and apply to both phases.
                             </p>
                         </div>
@@ -400,7 +400,7 @@
                          behind the advice the user just acted on, or the locked message
                          during a run. Deliberately carries no data-i18n: which key
                          applies depends on runtime context. It sits outside
-                         #preflightPanel on purpose — the run lock collapses the panel,
+                         #preflightPanel on purpose: the run lock collapses the panel,
                          and the locked message has to stay readable when it does. -->
                     <p id="preflightPanelHelp" class="preflight-panel__help" hidden></p>
 
@@ -453,7 +453,7 @@
 
                     <!-- Expandable panel toggled by clicking the Fallbacks card.
                          Carries the mitigation guidance that used to live in a
-                         sticky alert / tooltip — easier to read inline. -->
+                         sticky alert / tooltip: easier to read inline. -->
                     <div id="fallbackRecommendationPanel" class="recommendation-panel" hidden></div>
 
                     <!-- OpenRouter Cost Display -->
@@ -497,7 +497,7 @@
                 </div>
 
                 <!-- Activity Log (Collapsible) -->
-                <div class="prompt-options-toggle" role="button" tabindex="0" aria-expanded="false" onclick="toggleActivityLog()" style="margin-top: 30px;">
+                <div class="prompt-options-toggle" role="button" tabindex="0" aria-expanded="false" onclick="toggleActivityLog()" style="margin-top: 32px;">
                     <span style="display: flex; align-items: center; gap: 0.75rem;">
                         <span class="material-symbols-outlined">terminal</span>
                         <span data-i18n="common:activity_log">Activity Log</span>
@@ -518,7 +518,7 @@
         </div>
 
         <!-- Resumable Jobs Section -->
-        <div class="main-card" id="resumableJobsSection" style="margin-top: 30px; display: none;">
+        <div class="main-card" id="resumableJobsSection" style="margin-top: 32px; display: none;">
             <div class="card-header">
                 <span class="material-symbols-outlined">pause_circle</span>
                 <h2 data-i18n="translation:paused_translations">Paused Translations</h2>
@@ -571,7 +571,7 @@
                         <span data-i18n="sample:title">Sample &amp; Compare</span>
                     </h2>
                     <p style="color: var(--text-muted-light); font-size: 0.875rem; margin-bottom: 1.25rem;" data-i18n="sample:subtitle">
-                        Run multiple LLM configurations side-by-side on a few extracts from your book — no full translation needed.
+                        Run multiple LLM configurations side-by-side on a few extracts from your book: no full translation needed.
                     </p>
 
                     <!-- File upload + languages -->
@@ -623,7 +623,7 @@
                     </div>
 
                     <!-- Mode toggle -->
-                    <div class="form-group" style="margin-top: 18px; margin-bottom: 12px;">
+                    <div class="form-group" style="margin-top: 16px; margin-bottom: 12px;">
                         <label style="font-weight: 600;" data-i18n="sample:mode_label">Mode</label>
                         <div id="sampleModeButtons" style="display: flex; gap: 8px; flex-wrap: wrap;">
                             <button type="button" class="btn btn-secondary sample-mode-btn sample-mode-btn-active" data-mode="translate" data-i18n="sample:mode_translate">Translate</button>
@@ -633,7 +633,7 @@
                     </div>
 
                     <!-- Sampling parameters -->
-                    <div class="sample-params" style="display: grid; grid-template-columns: 1fr 1fr auto; gap: 15px; align-items: end; margin-bottom: 15px;">
+                    <div class="sample-params" style="display: grid; grid-template-columns: 1fr 1fr auto; gap: 16px; align-items: end; margin-bottom: 16px;">
                         <div class="form-group" style="margin-bottom: 0;">
                             <label data-i18n="sample:n_samples_label">Number of samples (N)</label>
                             <div class="neu-inset-light">
@@ -688,7 +688,7 @@
                     <div id="sampleWarnings" style="margin-top: 14px;"></div>
 
                     <!-- Results -->
-                    <div id="sampleResults" style="margin-top: 18px;">
+                    <div id="sampleResults" style="margin-top: 16px;">
                         <p data-i18n="sample:no_results_yet" style="color: var(--text-muted-light); font-style: italic; text-align: center; padding: 20px;">No results yet. Pick a file, configure columns, and click Run.</p>
                     </div>
                 </div>
@@ -710,7 +710,7 @@
 
                 <div id="settingsOptionsSection">
                     <!-- Provider + API Settings Row -->
-                    <div id="providerRow" style="display: grid; grid-template-columns: 1fr 2fr; gap: 15px; margin-bottom: 15px; align-items: end;">
+                    <div id="providerRow" style="display: grid; grid-template-columns: 1fr 2fr; gap: 16px; margin-bottom: 16px; align-items: end;">
                         <div class="form-group" style="margin-bottom: 0;">
                             <label data-i18n="settings:ai_provider">AI Provider</label>
                             <div class="neu-inset-light">
@@ -746,7 +746,7 @@
                         <div class="form-group" id="geminiSettings" style="display: none; margin-bottom: 0;">
                             <label><span data-i18n="settings:api_key">API Key</span> <span id="geminiKeyStatus" class="key-status"></span></label>
                             <div class="neu-inset-light">
-                                <input type="password" class="form-control" id="geminiApiKey" data-i18n-attr="placeholder:settings:api_key_placeholder_gemini;title:settings:api_key_rotation_tip" placeholder="Enter Gemini API key" autocomplete="new-password" title="Tip: enter several keys separated by commas to enable automatic rotation on rate-limit (HTTP 429) — useful to chain free-tier accounts.">
+                                <input type="password" class="form-control" id="geminiApiKey" data-i18n-attr="placeholder:settings:api_key_placeholder_gemini;title:settings:api_key_rotation_tip" placeholder="Enter Gemini API key" autocomplete="new-password" title="Tip: enter several keys separated by commas to enable automatic rotation on rate-limit (HTTP 429): useful to chain free-tier accounts.">
                             </div>
                         </div>
 
@@ -754,7 +754,7 @@
                         <div class="form-group" id="openaiApiKeyGroup" style="display: none; margin-bottom: 0;">
                             <label><span data-i18n="settings:api_key">API Key</span> <span id="openaiKeyStatus" class="key-status"></span></label>
                             <div class="neu-inset-light">
-                                <input type="password" class="form-control" id="openaiApiKey" data-i18n-attr="placeholder:settings:api_key_placeholder_openai;title:settings:api_key_rotation_tip" placeholder="Enter OpenAI API key" autocomplete="new-password" title="Tip: enter several keys separated by commas to enable automatic rotation on rate-limit (HTTP 429) — useful to chain free-tier accounts.">
+                                <input type="password" class="form-control" id="openaiApiKey" data-i18n-attr="placeholder:settings:api_key_placeholder_openai;title:settings:api_key_rotation_tip" placeholder="Enter OpenAI API key" autocomplete="new-password" title="Tip: enter several keys separated by commas to enable automatic rotation on rate-limit (HTTP 429): useful to chain free-tier accounts.">
                             </div>
                         </div>
 
@@ -762,7 +762,7 @@
                         <div class="form-group" id="openrouterSettings" style="display: none; margin-bottom: 0;">
                             <label><span data-i18n="settings:api_key">API Key</span> <span id="openrouterKeyStatus" class="key-status"></span></label>
                             <div class="neu-inset-light">
-                                <input type="password" class="form-control" id="openrouterApiKey" data-i18n-attr="placeholder:settings:api_key_placeholder_openrouter;title:settings:api_key_rotation_tip" placeholder="sk-or-v1-..." autocomplete="new-password" title="Tip: enter several keys separated by commas to enable automatic rotation on rate-limit (HTTP 429) — useful to chain free-tier accounts.">
+                                <input type="password" class="form-control" id="openrouterApiKey" data-i18n-attr="placeholder:settings:api_key_placeholder_openrouter;title:settings:api_key_rotation_tip" placeholder="sk-or-v1-..." autocomplete="new-password" title="Tip: enter several keys separated by commas to enable automatic rotation on rate-limit (HTTP 429): useful to chain free-tier accounts.">
                             </div>
                         </div>
 
@@ -770,7 +770,7 @@
                         <div class="form-group" id="mistralSettings" style="display: none; margin-bottom: 0;">
                             <label><span data-i18n="settings:api_key">API Key</span> <span id="mistralKeyStatus" class="key-status"></span></label>
                             <div class="neu-inset-light">
-                                <input type="password" class="form-control" id="mistralApiKey" data-i18n-attr="placeholder:settings:api_key_placeholder_mistral;title:settings:api_key_rotation_tip" placeholder="Enter Mistral API key" autocomplete="new-password" title="Tip: enter several keys separated by commas to enable automatic rotation on rate-limit (HTTP 429) — useful to chain free-tier accounts.">
+                                <input type="password" class="form-control" id="mistralApiKey" data-i18n-attr="placeholder:settings:api_key_placeholder_mistral;title:settings:api_key_rotation_tip" placeholder="Enter Mistral API key" autocomplete="new-password" title="Tip: enter several keys separated by commas to enable automatic rotation on rate-limit (HTTP 429): useful to chain free-tier accounts.">
                             </div>
                         </div>
 
@@ -778,7 +778,7 @@
                         <div class="form-group" id="deepseekSettings" style="display: none; margin-bottom: 0;">
                             <label><span data-i18n="settings:api_key">API Key</span> <span id="deepseekKeyStatus" class="key-status"></span></label>
                             <div class="neu-inset-light">
-                                <input type="password" class="form-control" id="deepseekApiKey" data-i18n-attr="placeholder:settings:api_key_placeholder_deepseek;title:settings:api_key_rotation_tip" placeholder="Enter DeepSeek API key" autocomplete="new-password" title="Tip: enter several keys separated by commas to enable automatic rotation on rate-limit (HTTP 429) — useful to chain free-tier accounts.">
+                                <input type="password" class="form-control" id="deepseekApiKey" data-i18n-attr="placeholder:settings:api_key_placeholder_deepseek;title:settings:api_key_rotation_tip" placeholder="Enter DeepSeek API key" autocomplete="new-password" title="Tip: enter several keys separated by commas to enable automatic rotation on rate-limit (HTTP 429): useful to chain free-tier accounts.">
                             </div>
                         </div>
 
@@ -786,7 +786,7 @@
                         <div class="form-group" id="poeSettings" style="display: none; margin-bottom: 0;">
                             <label><span data-i18n="settings:api_key">API Key</span> <span id="poeKeyStatus" class="key-status"></span></label>
                             <div class="neu-inset-light">
-                                <input type="password" class="form-control" id="poeApiKey" data-i18n-attr="placeholder:settings:api_key_placeholder_poe;title:settings:api_key_rotation_tip" placeholder="Get key at poe.com/api_key" autocomplete="new-password" title="Tip: enter several keys separated by commas to enable automatic rotation on rate-limit (HTTP 429) — useful to chain free-tier accounts.">
+                                <input type="password" class="form-control" id="poeApiKey" data-i18n-attr="placeholder:settings:api_key_placeholder_poe;title:settings:api_key_rotation_tip" placeholder="Get key at poe.com/api_key" autocomplete="new-password" title="Tip: enter several keys separated by commas to enable automatic rotation on rate-limit (HTTP 429): useful to chain free-tier accounts.">
                             </div>
                         </div>
 
@@ -794,13 +794,13 @@
                         <div class="form-group" id="nimSettings" style="display: none; margin-bottom: 0;">
                             <label><span data-i18n="settings:api_key">API Key</span> <span id="nimKeyStatus" class="key-status"></span></label>
                             <div class="neu-inset-light">
-                                <input type="password" class="form-control" id="nimApiKey" data-i18n-attr="placeholder:settings:api_key_placeholder_nim;title:settings:api_key_rotation_tip" placeholder="Get key at build.nvidia.com" autocomplete="new-password" title="Tip: enter several keys separated by commas to enable automatic rotation on rate-limit (HTTP 429) — useful to chain free-tier accounts.">
+                                <input type="password" class="form-control" id="nimApiKey" data-i18n-attr="placeholder:settings:api_key_placeholder_nim;title:settings:api_key_rotation_tip" placeholder="Get key at build.nvidia.com" autocomplete="new-password" title="Tip: enter several keys separated by commas to enable automatic rotation on rate-limit (HTTP 429): useful to chain free-tier accounts.">
                             </div>
                         </div>
                     </div>
 
                     <!-- Model Selection Row (Full Width) -->
-                    <div style="display: grid; grid-template-columns: 1fr auto; gap: 15px; margin-bottom: 15px; align-items: end;">
+                    <div style="display: grid; grid-template-columns: 1fr auto; gap: 16px; margin-bottom: 16px; align-items: end;">
                         <div class="form-group" style="margin-bottom: 0;">
                             <label data-i18n="settings:model">Model Selection</label>
                             <div class="neu-inset-light">
@@ -819,7 +819,7 @@
                     </div>
 
                     <!-- OpenAI Endpoint Row (shown only for OpenAI provider) -->
-                    <div id="openaiEndpointRow" style="display: none; margin-bottom: 15px;">
+                    <div id="openaiEndpointRow" style="display: none; margin-bottom: 16px;">
                         <div class="form-group" style="margin-bottom: 0;">
                             <label>
                                 <span data-i18n="settings:api_endpoint">API Endpoint</span>
@@ -836,7 +836,7 @@
                     </div>
 
                     <!-- Output Filename Pattern -->
-                    <div class="form-group" style="margin-bottom: 15px;">
+                    <div class="form-group" style="margin-bottom: 16px;">
                         <label data-i18n="settings:naming_convention_label">Naming Convention</label>
                         <div class="neu-inset-light">
                             <input type="text" class="form-control" id="outputFilenamePattern" value="{originalName} ({targetLang}).{ext}" data-i18n-attr="title:settings:naming_convention_input_title" title="Use {originalName}, {targetLang}, {sourceLang}, {model}, {date}, {datetime}, {ext} as placeholders">
@@ -861,7 +861,7 @@
                     </div>
 
                     <!-- Parallel translation (cloud providers only) -->
-                    <div class="form-group" id="parallelWorkersGroup" style="margin-bottom: 15px; display: none;">
+                    <div class="form-group" id="parallelWorkersGroup" style="margin-bottom: 16px; display: none;">
                         <label data-i18n="settings:parallel_workers_label" for="parallelWorkers">Parallel requests</label>
                         <div class="neu-inset-light">
                             <input type="number" class="form-control" id="parallelWorkers" min="1" max="16" step="1" value="1" data-i18n-attr="title:settings:parallel_workers_input_title" title="Number of chunks translated at the same time">
@@ -872,7 +872,7 @@
                     </div>
 
                     <!-- Chunk size (token budget per LLM request) -->
-                    <div class="form-group" style="margin-bottom: 15px;">
+                    <div class="form-group" style="margin-bottom: 16px;">
                         <label data-i18n="settings:max_tokens_per_chunk_label" for="maxTokensPerChunk">Chunk size (tokens)</label>
                         <div class="neu-inset-light">
                             <input type="number" class="form-control" id="maxTokensPerChunk" min="50" step="50" value="450" data-i18n-attr="title:settings:max_tokens_per_chunk_input_title" title="Maximum tokens of source text sent to the LLM in a single chunk">
@@ -883,7 +883,7 @@
                     </div>
 
                     <!-- Save Settings Button -->
-                    <div class="form-group" style="margin-top: 20px; padding-top: 15px; border-top: 1px solid var(--border-light);">
+                    <div class="form-group" style="margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--border-light);">
                         <button type="button" id="saveSettingsBtn" class="btn btn-primary" style="width: 100%;" onclick="saveSettings()" disabled>
                             <span class="material-symbols-outlined">save</span>
                             <span data-i18n="settings:save_settings">Save Settings to .env</span>
@@ -905,15 +905,15 @@
                 </div>
 
                 <div id="notificationOptionsSection" class="hidden">
-                    <p data-i18n-html="settings:notifications_intro" style="margin: 5px 0 15px 0; font-size: 0.875rem; color: var(--text-muted-light); line-height: 1.5;">
+                    <p data-i18n-html="settings:notifications_intro" style="margin: 4px 0 15px 0; font-size: 0.875rem; color: var(--text-muted-light); line-height: 1.5;">
                         Get pinged on your phone, Discord channel, or any HTTP endpoint when a translation reaches a terminal state.
                         Useful for long-running jobs with local models. Compatible with <strong>ntfy</strong>, <strong>gotify</strong>, <strong>Discord</strong>, <strong>Slack</strong>, <strong>Healthchecks.io</strong>, or any custom webhook.
                         See <a href="https://github.com/hydropix/TranslateBooksWithLLMs/blob/main/docs/NOTIFICATIONS.md" target="_blank" rel="noopener" style="color: var(--primary-light);">docs/NOTIFICATIONS.md</a> for the full reference.
                     </p>
 
                     <!-- Quick presets -->
-                    <div class="form-group" style="margin-bottom: 15px;">
-                        <label data-i18n="settings:notifications_presets_label" style="font-weight: 600; color: var(--text-dark); margin-bottom: 5px; display: block;">Quick presets</label>
+                    <div class="form-group" style="margin-bottom: 16px;">
+                        <label data-i18n="settings:notifications_presets_label" style="font-weight: 600; color: var(--text-dark); margin-bottom: 4px; display: block;">Quick presets</label>
                         <p data-i18n="settings:notifications_presets_help" style="margin: 0 0 8px 0; font-size: 0.8125rem; color: var(--text-muted-light);">
                             Pick a service to pre-fill URL and payload, then edit the values to match your account.
                         </p>
@@ -928,7 +928,7 @@
                     </div>
 
                     <!-- URL + method row -->
-                    <div style="display: grid; grid-template-columns: 1fr 140px; gap: 15px; margin-bottom: 15px;">
+                    <div style="display: grid; grid-template-columns: 1fr 140px; gap: 16px; margin-bottom: 16px;">
                         <div class="form-group" style="margin-bottom: 0;">
                             <label data-i18n="settings:notifications_url">Webhook URL</label>
                             <div class="neu-inset-light">
@@ -951,7 +951,7 @@
                     </div>
 
                     <!-- Headers -->
-                    <div class="form-group" style="margin-bottom: 15px;">
+                    <div class="form-group" style="margin-bottom: 16px;">
                         <label data-i18n="settings:notifications_headers_label">Headers (JSON object, optional)</label>
                         <div class="neu-inset-light">
                             <textarea class="form-control" id="notifyWebhookHeaders" rows="2" placeholder='{"Authorization":"Bearer YOUR_TOKEN"}' style="font-family: monospace; font-size: 0.85rem;"></textarea>
@@ -962,7 +962,7 @@
                     </div>
 
                     <!-- Payload -->
-                    <div class="form-group" style="margin-bottom: 15px;">
+                    <div class="form-group" style="margin-bottom: 16px;">
                         <label data-i18n="settings:notifications_payload_label">Payload template (JSON, optional)</label>
                         <div class="neu-inset-light">
                             <textarea class="form-control" id="notifyWebhookPayload" rows="3" placeholder='{"title":"Translation {event}","message":"{file} in {duration_seconds:.0f}s"}' style="font-family: monospace; font-size: 0.85rem;"></textarea>
@@ -973,26 +973,26 @@
                     </div>
 
                     <!-- Events row -->
-                    <div class="form-group" style="margin-bottom: 15px;">
+                    <div class="form-group" style="margin-bottom: 16px;">
                         <label data-i18n="settings:notifications_trigger_events_label" style="font-weight: 600; color: var(--text-dark); margin-bottom: 8px; display: block;">Trigger events</label>
                         <div style="display: flex; flex-wrap: wrap; gap: 16px;">
                             <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
                                 <input type="checkbox" id="notifyOnSuccess" checked>
-                                <span data-i18n-html="settings:notifications_event_success"><strong>Success</strong> — translation completed</span>
+                                <span data-i18n-html="settings:notifications_event_success"><strong>Success</strong>: translation completed</span>
                             </label>
                             <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
                                 <input type="checkbox" id="notifyOnFailure" checked>
-                                <span data-i18n-html="settings:notifications_event_failure"><strong>Failure</strong> — fatal error</span>
+                                <span data-i18n-html="settings:notifications_event_failure"><strong>Failure</strong>: fatal error</span>
                             </label>
                             <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
                                 <input type="checkbox" id="notifyOnInterruption">
-                                <span data-i18n-html="settings:notifications_event_interruption"><strong>Interruption</strong> — paused / rate-limit</span>
+                                <span data-i18n-html="settings:notifications_event_interruption"><strong>Interruption</strong>: paused / rate-limit</span>
                             </label>
                         </div>
                     </div>
 
                     <!-- Timeout -->
-                    <div class="form-group" style="margin-bottom: 15px; max-width: 260px;">
+                    <div class="form-group" style="margin-bottom: 16px; max-width: 260px;">
                         <label data-i18n="settings:notifications_timeout_label">HTTP timeout (seconds)</label>
                         <div class="neu-inset-light">
                             <input type="number" class="form-control" id="notifyTimeoutSeconds" min="1" max="120" step="1" value="5">
@@ -1066,7 +1066,7 @@
                             <input type="checkbox" id="showAllArtifacts">
                             <span data-i18n="files:show_all_versions">Show intermediate versions</span>
                         </label>
-                        <label style="margin-left: auto; display: flex; align-items: center; gap: 5px; cursor: pointer;">
+                        <label style="margin-left: auto; display: flex; align-items: center; gap: 4px; cursor: pointer;">
                             <input type="checkbox" id="selectAllFiles">
                             <span data-i18n="files:select_all">Select All</span>
                         </label>
@@ -1183,7 +1183,7 @@
                 </div>
                 <div class="card-body">
                     <!-- Meta -->
-                    <div class="glossary-meta-row" style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 15px; margin-bottom: 20px; align-items: start;">
+                    <div class="glossary-meta-row" style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 16px; margin-bottom: 20px; align-items: start;">
                         <div class="form-group" style="margin-bottom: 0;">
                             <label><span data-i18n="glossary:name_label">Name</span> <span class="glossary-saved-indicator" id="glossaryEditorNameSaved"><span class="material-symbols-outlined">check_circle</span><span class="text" data-i18n="glossary:saved_indicator">Saved</span></span></label>
                             <div class="neu-inset-light"><input class="form-control" id="glossaryEditorName" type="text"></div>
@@ -1207,7 +1207,7 @@
                     </div>
 
                     <!-- Toolbar -->
-                    <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 15px; align-items: center;">
+                    <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; align-items: center;">
                         <button type="button" class="btn btn-primary btn-sm" id="glossaryAutoExtractBtn">
                             <span class="material-symbols-outlined">auto_fix_high</span>
                             <span data-i18n="glossary:auto_extract">Auto-extract</span>
@@ -1245,7 +1245,7 @@
                     <!-- Inflected-forms hint: source-cell convention -->
                     <div class="glossary-hint" role="note">
                         <span class="material-symbols-outlined" aria-hidden="true">info</span>
-                        <span data-i18n-html="glossary:inflected_forms_hint">Inflected forms: separate variants with <code>|</code> in the Source cell — e.g. <code>Москва|Москве|Москвы</code> → <code>Moscou</code>. Any form found in the text triggers the same translation.</span>
+                        <span data-i18n-html="glossary:inflected_forms_hint">Inflected forms: separate variants with <code>|</code> in the Source cell: e.g. <code>Москва|Москве|Москвы</code> → <code>Moscou</code>. Any form found in the text triggers the same translation.</span>
                     </div>
 
                     <!-- Bulk actions bar (shown only when rows are selected) -->
@@ -1296,7 +1296,7 @@
                         <thead>
                             <tr>
                                 <th class="col-center"><input type="checkbox" id="glossaryTermsSelectAll" data-i18n-attr="aria-label:glossary:select_all_aria" aria-label="Select all"></th>
-                                <th class="sortable" data-sort-key="source" data-i18n-attr="title:glossary:source_header_title" title="Source term. Use '|' to separate inflected forms (e.g. Москва|Москве|Москвы) — any form will match."><span data-i18n="glossary:source_header">Source</span> <span class="sort-indicator">⇅</span></th>
+                                <th class="sortable" data-sort-key="source" data-i18n-attr="title:glossary:source_header_title" title="Source term. Use '|' to separate inflected forms (e.g. Москва|Москве|Москвы): any form will match."><span data-i18n="glossary:source_header">Source</span> <span class="sort-indicator">⇅</span></th>
                                 <th class="sortable" data-sort-key="target"><span data-i18n="glossary:target_header">Target</span> <span class="sort-indicator">⇅</span></th>
                                 <th class="sortable" data-sort-key="category"><span data-i18n="glossary:category_header">Category</span> <span class="sort-indicator">⇅</span></th>
                                 <th class="sortable" data-sort-key="gender" data-i18n-attr="title:glossary:gender_header_title" title="Character gender. Injected into every chunk so the model keeps pronouns right even where the source omits the subject."><span data-i18n="glossary:gender_header">Gender</span> <span class="sort-indicator">⇅</span></th>
@@ -1305,7 +1305,7 @@
                         </thead>
                         <tbody id="glossaryTermsBody"></tbody>
                     </table>
-                    <div id="glossaryTermsEmpty" class="hidden" style="text-align: center; padding: 30px;">
+                    <div id="glossaryTermsEmpty" class="hidden" style="text-align: center; padding: 32px;">
                         <p data-i18n="glossary:terms_empty" style="color: var(--text-muted-light); margin: 0;">No terms yet. Use the toolbar above to add a term, auto-extract candidates, or import a file.</p>
                     </div>
 
@@ -1504,9 +1504,9 @@
                 </div>
                 <div class="card-body">
                     <p data-i18n-html="style:tab_intro" style="color: var(--text-muted-light); font-size: 0.9rem; margin: 0 0 15px; line-height: 1.5;">
-                        Give the model a <strong>reusable writing style</strong> — register, rhythm, imagery, dialogue conventions — extracted from books you already like or from a quick sample translation. <strong>Assign</strong> one below (or via <em>Settings → Translation Options</em>) to apply it to every chunk.
+                        Give the model a <strong>reusable writing style</strong>: register, rhythm, imagery, dialogue conventions: extracted from books you already like or from a quick sample translation. <strong>Assign</strong> one below (or via <em>Settings → Translation Options</em>) to apply it to every chunk.
                     </p>
-                    <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 15px;">
+                    <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px;">
                         <button type="button" class="btn btn-primary btn-sm" id="styleNewFromBooksBtn">
                             <span class="material-symbols-outlined">auto_stories</span>
                             <span data-i18n="style:new_from_books">New from books</span>
@@ -1641,7 +1641,7 @@
                     </div>
                     <div class="modal-body">
                         <p class="ner-modal-intro" data-i18n="style:extract_intro">
-                            Pick one or more books. The model reads sample excerpts and proposes a set of style rules — register, rhythm, imagery, dialogue conventions — that you can review before creating a reusable style.
+                            Pick one or more books. The model reads sample excerpts and proposes a set of style rules: register, rhythm, imagery, dialogue conventions: that you can review before creating a reusable style.
                         </p>
 
                         <div class="form-group">
@@ -1651,12 +1651,12 @@
                                     <input type="radio" name="styleExtractMode" id="styleExtractModeSource" checked>
                                     <span data-i18n="style:mode_source">From the source text</span>
                                 </label>
-                                <span class="ner-dropzone-hint" data-i18n="style:mode_source_hint" style="text-transform: none; letter-spacing: normal;">The books you upload are the text you are about to translate — the rules keep the translation reading like the original.</span>
+                                <span class="ner-dropzone-hint" data-i18n="style:mode_source_hint" style="text-transform: none; letter-spacing: normal;">The books you upload are the text you are about to translate: the rules keep the translation reading like the original.</span>
                                 <label style="display: inline-flex; align-items: center; gap: 6px; font-weight: normal;">
                                     <input type="radio" name="styleExtractMode" id="styleExtractModeModel">
                                     <span data-i18n="style:mode_model">From a reference author</span>
                                 </label>
-                                <span class="ner-dropzone-hint" data-i18n="style:mode_model_hint" style="text-transform: none; letter-spacing: normal;">The books you upload are a stylistic model — an unrelated text will be translated to read like them.</span>
+                                <span class="ner-dropzone-hint" data-i18n="style:mode_model_hint" style="text-transform: none; letter-spacing: normal;">The books you upload are a stylistic model: an unrelated text will be translated to read like them.</span>
                             </div>
                         </div>
 
@@ -1696,16 +1696,16 @@
                             </div>
                         </div>
 
-                        <div id="styleExtractLoading" class="hidden" data-i18n="style:extracting" style="margin-top: 15px; color: var(--text-muted-light);">Extracting...</div>
+                        <div id="styleExtractLoading" class="hidden" data-i18n="style:extracting" style="margin-top: 16px; color: var(--text-muted-light);">Extracting...</div>
                         <div id="styleExtractWarnings" class="ner-warnings hidden"></div>
 
-                        <div id="styleExtractResults" class="hidden" style="margin-top: 15px;">
+                        <div id="styleExtractResults" class="hidden" style="margin-top: 16px;">
                             <div class="ner-results-header">
                                 <h3 data-i18n="style:candidates_title" style="margin: 0;">Candidate rules</h3>
                                 <span class="ner-results-hint" data-i18n="style:candidates_hint">Uncheck any rule you don't want to keep.</span>
                             </div>
                             <p data-i18n="style:abstraction_notice" style="color: var(--text-muted-light); font-size: 0.85rem;">
-                                Rules that name specific words or quote the book are unchecked — reusing them makes the model repeat that vocabulary throughout the translation. Rewrite them abstractly or leave them out.
+                                Rules that name specific words or quote the book are unchecked: reusing them makes the model repeat that vocabulary throughout the translation. Rewrite them abstractly or leave them out.
                             </p>
                             <div class="form-group">
                                 <label for="styleExtractContext"><span data-i18n="style:context_label">Narrative setting</span></label>
@@ -1829,7 +1829,7 @@
                         <span class="ner-results-count-label">
                             <strong id="ner-results-count">0</strong> <span data-i18n="glossary:ner_candidates_count">candidates</span><span id="ner-results-new-count" class="ner-results-new-count"></span>
                         </span>
-                        <span class="ner-results-hint" data-i18n="glossary:ner_results_hint">Pairs where source = target are dimmed — click to include them.</span>
+                        <span class="ner-results-hint" data-i18n="glossary:ner_results_hint">Pairs where source = target are dimmed: click to include them.</span>
                     </div>
                     <div class="ner-results-table-wrap">
                         <table id="ner-candidates-table" class="file-table">
@@ -1911,7 +1911,7 @@
             </div>
             <div class="modal-body">
                 <p class="quick-test-intro" data-i18n="translation:quicktest_intro">
-                    A quick taste of how the selected LLM translates 5 excerpts from this file, using your current options. No commitment — just a preview before the full run.
+                    A quick taste of how the selected LLM translates 5 excerpts from this file, using your current options. No commitment: just a preview before the full run.
                 </p>
                 <div id="quickTestSummary" class="quick-test-summary"></div>
                 <button type="button" id="quickTestGoSettings" class="btn btn-secondary hidden" style="margin-bottom: 12px;">

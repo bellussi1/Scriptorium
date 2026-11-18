@@ -91,13 +91,13 @@ function formatJobCard(job, hasActiveTranslation, activeNames) {
     const origEndpoint = cfg.llm_api_endpoint || '';
 
     return `
-        <div class="resumable-job-card" style="border: 1px solid #e5e7eb; padding: 20px; margin-bottom: 15px; border-radius: 8px; background: #f9fafb;">
-            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 15px; gap: 15px;">
+        <div class="resumable-job-card" style="border: 1px solid #e5e7eb; padding: 20px; margin-bottom: 16px; border-radius: 8px; background: #f9fafb;">
+            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 16px; gap: 16px;">
                 <div style="flex: 1; min-width: 0;">
                     <div style="font-size: 18px; font-weight: 600; color: var(--text-dark); margin-bottom: 8px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${DomHelpers.escapeHtml(displayNameFormatted)}">
                         ${DomHelpers.escapeHtml(displayNameFormatted)}
                     </div>
-                    <div style="font-size: 14px; color: var(--text-muted-light); margin-bottom: 5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="→ ${DomHelpers.escapeHtml(outputFilename)}">
+                    <div style="font-size: 14px; color: var(--text-muted-light); margin-bottom: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="→ ${DomHelpers.escapeHtml(outputFilename)}">
                         → ${DomHelpers.escapeHtml(outputFilename)}
                     </div>
                     <div style="font-size: 12px; color: var(--text-muted-light); margin-top: 8px;">
@@ -120,7 +120,7 @@ function formatJobCard(job, hasActiveTranslation, activeNames) {
             </div>
 
             <div style="margin-bottom: 10px;">
-                <div style="display: flex; justify-content: space-between; font-size: 13px; color: var(--text-muted-light); margin-bottom: 5px;">
+                <div style="display: flex; justify-content: space-between; font-size: 13px; color: var(--text-muted-light); margin-bottom: 4px;">
                     <span>${t('translation:job_card_progress', { completed: completedChunks, total: totalChunks, percent: progressPercent })}</span>
                 </div>
                 <div style="width: 100%; background: var(--border-light); height: 4px; overflow: hidden;">
@@ -165,16 +165,11 @@ function createWarningBanner(activeJobs) {
     const activeNames = activeJobs.map(job => job.output_filename || t('translation:job_card_unknown')).join(', ');
 
     return `
-        <div class="active-translation-warning" style="background: #fef3c7; border: 1px solid #f59e0b; padding: 12px; margin-bottom: 15px; border-radius: 6px;">
-            <div style="display: flex; align-items: center; gap: 10px;">
-                <span style="font-size: 20px;">⚠️</span>
-                <div style="flex: 1;">
-                    <strong style="color: #92400e;">${t('translation:active_translation_warning_title')}</strong>
-                    <p style="margin: 5px 0 0 0; font-size: 13px; color: #78350f;">
-                        ${t('translation:active_translation_warning_desc', { names: DomHelpers.escapeHtml(activeNames) })}
-                    </p>
-                </div>
-            </div>
+        <div class="active-translation-warning" style="background: #fef3c7; border: 1px solid #f59e0b; padding: 12px; margin-bottom: 16px; border-radius: 6px;">
+            <strong style="color: #92400e;">${t('translation:active_translation_warning_title')}</strong>
+            <p style="margin: 4px 0 0 0; font-size: 13px; color: #78350f;">
+                ${t('translation:active_translation_warning_desc', { names: DomHelpers.escapeHtml(activeNames) })}
+            </p>
         </div>
     `;
 }
@@ -402,7 +397,7 @@ export const ResumeManager = {
                     t('translation:cannot_resume_with_list', { list: activeList }),
                     'error'
                 );
-                MessageLogger.addLog(`⚠️ ${error.data.message}`);
+                MessageLogger.addLog(error.data.message);
             } else {
                 MessageLogger.showMessage(t('translation:resume_error', { error: error.message }), 'error');
                 MessageLogger.addLog(t('translation:resume_network_error_log', { error: error.message }));

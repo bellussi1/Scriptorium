@@ -51,7 +51,7 @@ export const WebSocketManager = {
 
         socket.on('checkpoint_created', (data) => {
             console.log('Checkpoint created:', data);
-            MessageLogger.addLog(`⏸️ ${data.message || t('common:checkpoint_created_default')}`);
+            MessageLogger.addLog(data.message || t('common:checkpoint_created_default'));
             this.emit('checkpoint_created', data);
         });
 

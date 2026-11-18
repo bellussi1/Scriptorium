@@ -1,7 +1,7 @@
 {
   "tab": "Queue",
   "title": "Persistent Queue",
-  "intro_html": "View of <code>data/literary_queue.db</code>. The queue is written by the local CLI and the translation wrapper; this page can enqueue inventory books, reorder pending entries, and request a pause after the current book. The runner itself starts and validates jobs.",
+  "intro_html": "Queue books from the library, reorder pending entries, and request a pause after the current book.",
   "refresh": "Refresh",
   "updated": "Updated {{time}}",
   "book": "Book",

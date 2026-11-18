@@ -1551,16 +1551,11 @@ export const TranslationTracker = {
         if (hasActive) {
             const activeNames = activeJobs.map(job => job.output_filename || t('translation:job_card_unknown')).join(', ');
             const bannerHtml = `
-                <div class="active-translation-warning" style="background: #fef3c7; border: 1px solid #f59e0b; padding: 12px; margin-bottom: 15px; border-radius: 6px;">
-                    <div style="display: flex; align-items: center; gap: 10px;">
-                        <span style="font-size: 20px;">⚠️</span>
-                        <div style="flex: 1;">
-                            <strong style="color: #92400e;">${t('translation:active_translation_warning_title')}</strong>
-                            <p style="margin: 5px 0 0 0; font-size: 13px; color: #78350f;">
-                                ${t('translation:active_translation_warning_desc', { names: DomHelpers.escapeHtml(activeNames) })}
-                            </p>
-                        </div>
-                    </div>
+                <div class="active-translation-warning" style="background: #fef3c7; border: 1px solid #f59e0b; padding: 12px; margin-bottom: 16px; border-radius: 6px;">
+                    <strong style="color: #92400e;">${t('translation:active_translation_warning_title')}</strong>
+                    <p style="margin: 4px 0 0 0; font-size: 13px; color: #78350f;">
+                        ${t('translation:active_translation_warning_desc', { names: DomHelpers.escapeHtml(activeNames) })}
+                    </p>
                 </div>
             `;
 

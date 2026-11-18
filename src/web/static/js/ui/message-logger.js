@@ -325,7 +325,7 @@ export const MessageLogger = {
         if (logContainer) {
             DomHelpers.clearChildren(logContainer);
             this.resetProgressTracking();
-            this.addLog(`📝 ${t('common:activity_log_cleared')}`);
+            this.addLog(t('common:activity_log_cleared'));
         }
     },
 
@@ -398,7 +398,7 @@ export const MessageLogger = {
         let summaryHtml = `<span class="log-timestamp">[${timestamp}]</span> `;
 
         if (fileName) {
-            summaryHtml += `<strong style="color: #22c55e;">✅ ${DomHelpers.escapeHtml(fileName)}</strong><br>`;
+            summaryHtml += `<strong style="color: #22c55e;">${DomHelpers.escapeHtml(fileName)}</strong><br>`;
         }
 
         // Group messages by type
@@ -503,7 +503,7 @@ export const MessageLogger = {
             translatedText = translatedText.trim();
         }
 
-        const previewHtml = `<div style="background: #ffffff; border-left: 3px solid #22c55e; padding: 15px; color: #000000; white-space: pre-wrap; line-height: 1.6;">${DomHelpers.escapeHtml(translatedText)}</div>`;
+        const previewHtml = `<div style="background: #ffffff; border-left: 3px solid #22c55e; padding: 16px; color: #000000; white-space: pre-wrap; line-height: 1.6;">${DomHelpers.escapeHtml(translatedText)}</div>`;
 
         DomHelpers.setHtml(previewElement, previewHtml);
 

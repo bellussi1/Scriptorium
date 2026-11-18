@@ -35,16 +35,16 @@
   "download_failed": "Failed to download: {{error}}",
   "load_failed": "Error loading file list: {{error}}",
   "open_action": "Open file",
-  "open_log": "📂 Opened file: {{name}}",
+  "open_log": "Opened file: {{name}}",
   "open_error": "Error opening file: {{error}}",
   "reveal_action": "Reveal in folder",
-  "reveal_log": "📁 Revealed in folder: {{name}}",
+  "reveal_log": "Revealed in folder: {{name}}",
   "reveal_error": "Error revealing file: {{error}}",
   "download_action": "Download",
   "delete_action": "Delete",
   "go_to_files_tab": "Go to Files tab",
-  "folder_opened_log": "📁 Opened translations folder",
-  "folder_opened_log_with_path": "📁 Opened translations folder: {{path}}",
+  "folder_opened_log": "Opened translations folder",
+  "folder_opened_log_with_path": "Opened translations folder: {{path}}",
   "folder_open_error": "Error opening folder: {{error}}",
   "delete_default_msg": "Deleted {{name}}",
   "file_too_large": "File too large: {{name}} ({{size}})",
@@ -62,5 +62,5 @@
   "badge_reader_legacy": "Reader (old)",
   "show_all_versions": "Show intermediate versions",
   "final_only_status": "Showing the best edition per book ({{visible}} of {{total}} files).",
-  "artifact_help": "Final is the reader edition, ready to read or import. Fixed, corrected base and raw are intermediate pipeline outputs; the quality report is not a book."
+  "artifact_help": "Final is the reading edition. Fixed, Base (v2), and Raw translation are intermediate outputs."
 }

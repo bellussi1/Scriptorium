@@ -118,7 +118,7 @@ function handleTtsUpdate(data) {
                 const chunkInfo = current_chunk && total_chunks
                     ? ` (${current_chunk}/${total_chunks})`
                     : '';
-                ttsStatusText.textContent = `🔊 ${message || t('tts:processing_default')}${chunkInfo}`;
+                ttsStatusText.textContent = `${message || t('tts:processing_default')}${chunkInfo}`;
             }
             break;
 
@@ -152,7 +152,7 @@ function handleTtsUpdate(data) {
             if (ttsStatusText) {
                 if (isFFmpegError) {
                     ttsStatusText.innerHTML = `
-                        <span style="color: #ef4444;">❌ ${t('tts:ffmpeg_required')}</span>
+                        <span style="color: #ef4444;">${t('tts:ffmpeg_required')}</span>
                         <div style="margin-top: 10px;">
                             <button id="installFFmpegBtn" class="btn btn-primary" style="margin-right: 10px;" onclick="window.installFFmpeg()">
                                 <span class="material-symbols-outlined" style="font-size: 18px; vertical-align: middle;">download</span>
@@ -197,7 +197,7 @@ window.installFFmpeg = async function() {
         if (result.success) {
             if (ttsStatusText) {
                 ttsStatusText.innerHTML = `
-                    <span style="color: #22c55e;">✅ ${result.message}</span>
+                    <span style="color: #22c55e;">${result.message}</span>
                     <p style="margin-top: 8px; font-size: 0.8rem; color: var(--text-secondary);">
                         ${t('tts:ffmpeg_restart_needed')}
                     </p>
@@ -207,7 +207,7 @@ window.installFFmpeg = async function() {
         } else {
             if (ttsStatusText) {
                 ttsStatusText.innerHTML = `
-                    <span style="color: #ef4444;">❌ ${t('tts:ffmpeg_install_failed', { error: result.error })}</span>
+                    <span style="color: #ef4444;">${t('tts:ffmpeg_install_failed', { error: result.error })}</span>
                     <div style="margin-top: 10px;">
                         <a href="https://ffmpeg.org/download.html" target="_blank" class="btn btn-secondary" style="text-decoration: none;">
                             ${t('tts:ffmpeg_manual')}
@@ -220,7 +220,7 @@ window.installFFmpeg = async function() {
     } catch (err) {
         if (ttsStatusText) {
             ttsStatusText.innerHTML = `
-                <span style="color: #ef4444;">❌ ${t('tts:ffmpeg_install_error', { error: err.message })}</span>
+                <span style="color: #ef4444;">${t('tts:ffmpeg_install_error', { error: err.message })}</span>
                 <div style="margin-top: 10px;">
                     <a href="https://ffmpeg.org/download.html" target="_blank" class="btn btn-secondary" style="text-decoration: none;">
                         ${t('tts:ffmpeg_manual')}
@@ -539,7 +539,7 @@ window.interruptCurrentTranslation = async () => {
         MessageLogger.showMessage(t('translation:interrupt_error', { error: error.message }), 'error');
         if (interruptBtn) {
             interruptBtn.disabled = false;
-            DomHelpers.setText(interruptBtn, `⏹️ ${t('translation:interrupt_batch')}`);
+            DomHelpers.setText(interruptBtn, t('translation:interrupt_batch'));
         }
     }
 };
@@ -646,41 +646,41 @@ async function showTTSModal(filename, filepath) {
         <div id="ttsModal" class="modal-overlay">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h3>🎧 Generate Audiobook</h3>
-                    <button class="close-btn" id="ttsModalClose">&times;</button>
+                    <h3>${DomHelpers.escapeHtml(t('tts:modal_title'))}</h3>
+                    <button class="close-btn" id="ttsModalClose" aria-label="${DomHelpers.escapeHtml(t('common:close'))}">&times;</button>
                 </div>
                 <div class="modal-body">
-                    <p style="margin: 0 0 20px 0; color: #a3adb3; font-size: 14px;">
-                        Generate audio narration for: <strong style="color: #79CDDE;">${DomHelpers.escapeHtml(filename)}</strong>
+                    <p style="margin: 0 0 20px 0; color: var(--text-muted-light); font-size: 14px;">
+                        ${DomHelpers.escapeHtml(t('tts:modal_subtitle', { filename }))}
                     </p>
 
                     <!-- Provider Selection -->
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px;">
                         <div class="form-group" style="margin-bottom: 0;">
-                            <label style="font-size: 13px;">TTS Provider</label>
+                            <label for="ttsModalProvider" style="font-size: 13px;">${DomHelpers.escapeHtml(t('tts:provider'))}</label>
                             <select id="ttsModalProvider" class="form-control" style="font-size: 13px;">
-                                <option value="edge-tts">Edge TTS (Cloud)</option>
+                                <option value="edge-tts">${DomHelpers.escapeHtml(t('tts:provider_edge'))}</option>
                                 <option value="chatterbox" ${!isChatterboxAvailable ? 'disabled' : ''}>
-                                    Chatterbox TTS ${!isChatterboxAvailable ? '(Not Available)' : '(Local GPU)'}
+                                    ${DomHelpers.escapeHtml(!isChatterboxAvailable ? t('tts:provider_chatterbox_full_unavailable') : t('tts:provider_chatterbox_full_local'))}
                                 </option>
                             </select>
                         </div>
 
                         <!-- GPU Status (shown when Chatterbox selected) -->
                         <div id="ttsModalGpuStatus" class="form-group" style="margin-bottom: 0; display: none;">
-                            <label style="font-size: 13px;">GPU Status</label>
+                            <label style="font-size: 13px;">${DomHelpers.escapeHtml(t('tts:gpu_status'))}</label>
                             <div class="gpu-status ${gpuStatus.cuda_available ? 'gpu-available' : 'gpu-unavailable'}">
                                 <span class="status-dot ${gpuStatus.cuda_available ? 'available' : 'unavailable'}"></span>
-                                <span>${gpuStatus.cuda_available ? (gpuStatus.gpu_name || 'CUDA GPU') : 'CPU Mode'}</span>
+                                <span>${DomHelpers.escapeHtml(gpuStatus.cuda_available ? (gpuStatus.gpu_name || t('tts:gpu_cuda')) : t('tts:gpu_cpu'))}</span>
                             </div>
                         </div>
                     </div>
 
                     <!-- Edge-TTS Options -->
                     <div id="ttsModalEdgeOptions">
-                        <div style="display: grid; gap: 15px;">
+                        <div style="display: grid; gap: 16px;">
                             <div class="form-group" style="margin-bottom: 0;">
-                                <label style="font-size: 13px;">Target Language</label>
+                                <label for="ttsModalLanguage" style="font-size: 13px;">${DomHelpers.escapeHtml(t('tts:target_language'))}</label>
                                 <select id="ttsModalLanguage" class="form-control" style="font-size: 13px;">
                                     <!-- Most Common -->
                                     <option value="Chinese">Chinese (中文)</option>
@@ -733,40 +733,40 @@ async function showTTSModal(filename, filepath) {
                             </div>
 
                             <div class="form-group" style="margin-bottom: 0;">
-                                <label style="font-size: 13px;">Voice (optional)</label>
-                                <input type="text" id="ttsModalVoice" class="form-control" placeholder="e.g., zh-CN-XiaoxiaoNeural" style="font-size: 13px;">
-                                <small style="color: #6b7280;">Leave empty for auto-selection based on language</small>
+                                <label for="ttsModalVoice" style="font-size: 13px;">${DomHelpers.escapeHtml(t('tts:voice_optional'))}</label>
+                                <input type="text" id="ttsModalVoice" class="form-control" placeholder="${DomHelpers.escapeHtml(t('tts:voice_placeholder'))}" style="font-size: 13px;">
+                                <small style="color: var(--text-muted-light);">${DomHelpers.escapeHtml(t('tts:voice_auto_hint'))}</small>
                             </div>
 
-                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
                                 <div class="form-group" style="margin-bottom: 0;">
-                                    <label style="font-size: 13px;">Speech Rate</label>
+                                    <label for="ttsModalRate" style="font-size: 13px;">${DomHelpers.escapeHtml(t('tts:speech_rate'))}</label>
                                     <select id="ttsModalRate" class="form-control" style="font-size: 13px;">
-                                        <option value="-20%">Slower (-20%)</option>
-                                        <option value="-10%">Slightly slower (-10%)</option>
-                                        <option value="+0%" selected>Normal</option>
-                                        <option value="+10%">Slightly faster (+10%)</option>
-                                        <option value="+20%">Faster (+20%)</option>
-                                        <option value="+30%">Much faster (+30%)</option>
+                                        <option value="-20%">${DomHelpers.escapeHtml(t('tts:rate_slower'))}</option>
+                                        <option value="-10%">${DomHelpers.escapeHtml(t('tts:rate_slightly_slower'))}</option>
+                                        <option value="+0%" selected>${DomHelpers.escapeHtml(t('tts:rate_normal'))}</option>
+                                        <option value="+10%">${DomHelpers.escapeHtml(t('tts:rate_slightly_faster'))}</option>
+                                        <option value="+20%">${DomHelpers.escapeHtml(t('tts:rate_faster'))}</option>
+                                        <option value="+30%">${DomHelpers.escapeHtml(t('tts:rate_much_faster'))}</option>
                                     </select>
                                 </div>
 
                                 <div class="form-group" style="margin-bottom: 0;">
-                                    <label style="font-size: 13px;">Audio Format</label>
+                                    <label for="ttsModalFormat" style="font-size: 13px;">${DomHelpers.escapeHtml(t('tts:audio_format'))}</label>
                                     <select id="ttsModalFormat" class="form-control" style="font-size: 13px;">
-                                        <option value="opus" selected>Opus (compact)</option>
-                                        <option value="mp3">MP3 (compatible)</option>
+                                        <option value="opus" selected>${DomHelpers.escapeHtml(t('tts:audio_format_opus'))}</option>
+                                        <option value="mp3">${DomHelpers.escapeHtml(t('tts:audio_format_mp3'))}</option>
                                     </select>
                                 </div>
                             </div>
 
                             <div class="form-group" style="margin-bottom: 0;">
-                                <label style="font-size: 13px;">Audio Bitrate</label>
+                                <label for="ttsModalBitrate" style="font-size: 13px;">${DomHelpers.escapeHtml(t('tts:audio_bitrate'))}</label>
                                 <select id="ttsModalBitrate" class="form-control" style="font-size: 13px;">
-                                    <option value="48k">48k (smaller file)</option>
-                                    <option value="64k" selected>64k (balanced)</option>
-                                    <option value="96k">96k (higher quality)</option>
-                                    <option value="128k">128k (best quality)</option>
+                                    <option value="48k">${DomHelpers.escapeHtml(t('tts:bitrate_48'))}</option>
+                                    <option value="64k" selected>${DomHelpers.escapeHtml(t('tts:bitrate_64'))}</option>
+                                    <option value="96k">${DomHelpers.escapeHtml(t('tts:bitrate_96'))}</option>
+                                    <option value="128k">${DomHelpers.escapeHtml(t('tts:bitrate_128'))}</option>
                                 </select>
                             </div>
                         </div>
@@ -774,38 +774,38 @@ async function showTTSModal(filename, filepath) {
 
                     <!-- Chatterbox Options (hidden by default) -->
                     <div id="ttsModalChatterboxOptions" style="display: none;">
-                        <div style="background: #2a2a2a; border-radius: 8px; padding: 15px; margin-bottom: 15px; border: 1px solid #fbbf24;">
-                            <h4 style="margin: 0 0 12px 0; font-size: 14px; color: #fbbf24;">🎤 Voice Cloning</h4>
+                        <div style="background: var(--surface-light); border-radius: 8px; padding: 16px; margin-bottom: 16px; border: 1px solid var(--border-light);">
+                            <h4 style="margin: 0 0 12px 0; font-size: 14px;">${DomHelpers.escapeHtml(t('tts:voice_cloning'))}</h4>
                             <div class="form-group" style="margin-bottom: 0;">
-                                <label style="font-size: 13px;">Voice Prompt</label>
+                                <label for="ttsModalVoicePrompt" style="font-size: 13px;">${DomHelpers.escapeHtml(t('tts:voice_prompt'))}</label>
                                 <select id="ttsModalVoicePrompt" class="form-control" style="font-size: 13px;">
-                                    <option value="">Default voice (no cloning)</option>
+                                    <option value="">${DomHelpers.escapeHtml(t('tts:voice_prompt_default'))}</option>
                                     ${voicePromptsOptions}
                                 </select>
-                                <small style="color: #6b7280;">Select a previously uploaded voice sample</small>
+                                <small style="color: var(--text-muted-light);">${DomHelpers.escapeHtml(t('tts:voice_prompt_hint'))}</small>
                             </div>
                         </div>
 
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px;">
                             <div class="form-group" style="margin-bottom: 0;">
-                                <label style="font-size: 13px;">
-                                    Exaggeration <span id="ttsModalExaggerationValue" style="color: #fbbf24;">0.50</span>
+                                <label for="ttsModalExaggeration" style="font-size: 13px;">
+                                    ${DomHelpers.escapeHtml(t('tts:exaggeration'))} <span id="ttsModalExaggerationValue">0.50</span>
                                 </label>
                                 <input type="range" id="ttsModalExaggeration" min="0" max="1" step="0.05" value="0.5" class="tts-slider">
-                                <small style="color: #6b7280;">Higher = more expressive</small>
+                                <small style="color: var(--text-muted-light);">${DomHelpers.escapeHtml(t('tts:exaggeration_hint'))}</small>
                             </div>
                             <div class="form-group" style="margin-bottom: 0;">
-                                <label style="font-size: 13px;">
-                                    CFG Weight <span id="ttsModalCfgValue" style="color: #fbbf24;">0.50</span>
+                                <label for="ttsModalCfgWeight" style="font-size: 13px;">
+                                    ${DomHelpers.escapeHtml(t('tts:cfg_weight'))} <span id="ttsModalCfgValue">0.50</span>
                                 </label>
                                 <input type="range" id="ttsModalCfgWeight" min="0" max="1" step="0.05" value="0.5" class="tts-slider">
-                                <small style="color: #6b7280;">Prompt adherence</small>
+                                <small style="color: var(--text-muted-light);">${DomHelpers.escapeHtml(t('tts:cfg_weight_hint'))}</small>
                             </div>
                         </div>
 
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
                             <div class="form-group" style="margin-bottom: 0;">
-                                <label style="font-size: 13px;">Target Language</label>
+                                <label for="ttsModalChatterboxLang" style="font-size: 13px;">${DomHelpers.escapeHtml(t('tts:target_language'))}</label>
                                 <select id="ttsModalChatterboxLang" class="form-control" style="font-size: 13px;">
                                     <!-- Most Common -->
                                     <option value="en">English</option>
@@ -838,11 +838,11 @@ async function showTTSModal(filename, filepath) {
                                 </select>
                             </div>
                             <div class="form-group" style="margin-bottom: 0;">
-                                <label style="font-size: 13px;">Audio Format</label>
+                                <label for="ttsModalChatterboxFormat" style="font-size: 13px;">${DomHelpers.escapeHtml(t('tts:audio_format'))}</label>
                                 <select id="ttsModalChatterboxFormat" class="form-control" style="font-size: 13px;">
-                                    <option value="wav">WAV (lossless)</option>
-                                    <option value="mp3" selected>MP3 (compatible)</option>
-                                    <option value="opus">Opus (compact)</option>
+                                    <option value="wav">${DomHelpers.escapeHtml(t('tts:audio_format_wav'))}</option>
+                                    <option value="mp3" selected>${DomHelpers.escapeHtml(t('tts:audio_format_mp3'))}</option>
+                                    <option value="opus">${DomHelpers.escapeHtml(t('tts:audio_format_opus'))}</option>
                                 </select>
                             </div>
                         </div>
@@ -850,10 +850,8 @@ async function showTTSModal(filename, filepath) {
                 </div>
 
                 <div class="modal-footer">
-                    <button id="ttsModalCancel" class="btn btn-secondary">Cancel</button>
-                    <button id="ttsModalGenerate" class="btn btn-primary" style="background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);">
-                        🎧 Generate Audio
-                    </button>
+                    <button id="ttsModalCancel" class="btn btn-secondary">${DomHelpers.escapeHtml(t('common:cancel'))}</button>
+                    <button id="ttsModalGenerate" class="btn btn-primary">${DomHelpers.escapeHtml(t('tts:generate_audio'))}</button>
                 </div>
             </div>
         </div>
@@ -956,7 +954,7 @@ async function showTTSModal(filename, filepath) {
         } catch (error) {
             MessageLogger.showMessage(t('tts:tts_error', { error: error.message }), 'error');
             generateBtn.disabled = false;
-            generateBtn.textContent = `🎧 ${t('tts:generate_audio')}`;
+            generateBtn.textContent = t('tts:generate_audio');
         }
     });
 }

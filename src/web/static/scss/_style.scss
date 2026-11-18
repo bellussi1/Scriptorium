@@ -214,7 +214,7 @@ html.dark .message.info {
 }
 
 html.dark #ttsOptions {
-    background: linear-gradient(135deg, rgba(52, 211, 153, 0.15) 0%, rgba(52, 211, 153, 0.08) 100%);
+    background: rgba(52, 211, 153, 0.1);
     border-color: rgba(52, 211, 153, 0.4);
 }
 
@@ -257,7 +257,7 @@ body {
     box-shadow: inset 0 0 0 1px var(--border-light);
     border: 2px solid rgba(54, 118, 216, 0.15);
     border-radius: $radius-xl;
-    transition: all 0.3s ease;
+    transition: border-color 150ms ease-out;
 }
 
 .neu-inset-light:hover {
@@ -305,11 +305,11 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: all 0.3s ease;
+    transition: background-color 150ms ease-out, border-color 150ms ease-out, color 150ms ease-out;
 }
 
 .header #themeToggleBtn:hover {
-    transform: scale(1.08) rotate(15deg);
+    border-color: var(--primary-light);
 }
 
 .header #themeToggleBtn .material-symbols-outlined {
@@ -596,7 +596,7 @@ body {
     font-size: 1rem;
     font-family: var(--font-text);
     line-height: 2.75rem;
-    transition: all 0.3s;
+    transition: border-color 150ms ease-out, background-color 150ms ease-out;
     font-weight: 600;
     vertical-align: middle;
 }
@@ -672,18 +672,17 @@ select.form-control {
     box-shadow: 0 0 0 1px var(--border-light);
     text-align: center;
     cursor: pointer;
-    transition: all 0.3s;
+    transition: border-color 150ms ease-out, background-color 150ms ease-out;
     position: relative;
 }
 
 .file-upload:hover {
     border-color: rgba(54, 118, 216, 0.6);
-    transform: scale(1.01);
 }
 
 .file-upload.dragging {
     border-color: var(--primary-light);
-    background: linear-gradient(135deg, rgba(54, 118, 216, 0.05), rgba(54, 118, 216, 0.1));
+    background: rgba(54, 118, 216, 0.08);
 }
 
 .file-upload .upload-icon {
@@ -695,11 +694,6 @@ select.form-control {
     align-items: center;
     justify-content: center;
     margin: 0 auto $space-5;
-    transition: transform 0.3s;
-}
-
-.file-upload:hover .upload-icon {
-    transform: scale(1.1);
 }
 
 .file-upload .material-symbols-outlined {
@@ -710,7 +704,7 @@ select.form-control {
 .file-upload h3 {
     color: var(--text-dark);
     font-size: 1.5rem;
-    font-weight: 900;
+    font-weight: 600;
     margin-bottom: $space-2;
 }
 
@@ -751,7 +745,7 @@ select.form-control {
 .file-upload-secondary h4 {
     color: var(--text-dark);
     font-size: 1.125rem;
-    font-weight: 900;
+    font-weight: 600;
     margin-bottom: $space-1;
 }
 
@@ -830,7 +824,7 @@ select.form-control {
 .term-fix-panel h4 {
     color: var(--text-dark);
     font-size: 1rem;
-    font-weight: 800;
+    font-weight: 600;
     margin-bottom: $space-1;
 }
 
@@ -940,7 +934,7 @@ select.form-control {
 
 .progress-bar {
     height: 100%;
-    background: linear-gradient(90deg, var(--primary-light), #5a8ee8);
+    background: var(--primary-light);
     transition: width 0.3s;
     display: flex;
     align-items: center;
@@ -982,7 +976,7 @@ select.form-control {
 .stat-card h3 {
     font-size: 1.25rem;
     color: var(--primary-light);
-    font-weight: 900;
+    font-weight: 600;
     margin-bottom: 0.15rem;
 }
 
@@ -1747,7 +1741,7 @@ input[type="checkbox"] {
     cursor: pointer;
     color: var(--primary-light);
     font-weight: 600;
-    transition: all 0.2s;
+    transition: color 150ms ease-out;
     display: flex;
     align-items: center;
     min-width: 0;
@@ -1768,7 +1762,7 @@ input[type="checkbox"] {
     cursor: pointer;
     font-size: 1rem;
     font-weight: 600;
-    transition: all 0.2s;
+    transition: background-color 150ms ease-out, border-color 150ms ease-out, color 150ms ease-out;
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -1934,7 +1928,7 @@ input[type="checkbox"] {
 #ttsOptions {
     margin-top: $space-4;
     padding: $space-5;
-    background: linear-gradient(135deg, rgba(34, 197, 94, 0.1) 0%, rgba(34, 197, 94, 0.05) 100%);
+    background: rgba(34, 197, 94, 0.08);
     border: 1px solid rgba(34, 197, 94, 0.3);
     border-radius: 1.5rem;
 }
@@ -1946,23 +1940,23 @@ input[type="checkbox"] {
     padding: $space-3 $space-4;
     border-radius: $radius-xl;
     font-size: 0.875rem;
-    transition: all 0.3s ease;
+    transition: background-color 150ms ease-out, border-color 150ms ease-out, color 150ms ease-out;
 }
 
 .gpu-status.gpu-available {
-    background: linear-gradient(135deg, rgba(34, 197, 94, 0.2) 0%, rgba(22, 163, 74, 0.15) 100%);
+    background: rgba(34, 197, 94, 0.14);
     border: 1px solid rgba(34, 197, 94, 0.4);
     color: #16a34a;
 }
 
 .gpu-status.gpu-unavailable {
-    background: linear-gradient(135deg, rgba(239, 68, 68, 0.2) 0%, rgba(185, 28, 28, 0.15) 100%);
+    background: rgba(239, 68, 68, 0.14);
     border: 1px solid rgba(239, 68, 68, 0.4);
     color: #dc2626;
 }
 
 .gpu-status.gpu-checking {
-    background: linear-gradient(135deg, rgba(251, 191, 36, 0.2) 0%, rgba(245, 158, 11, 0.15) 100%);
+    background: rgba(251, 191, 36, 0.14);
     border: 1px solid rgba(251, 191, 36, 0.4);
     color: #f59e0b;
 }
@@ -2019,11 +2013,7 @@ input[type="checkbox"] {
     background: var(--primary-light);
     cursor: pointer;
     box-shadow: 0 0 0 1px var(--border-light);
-    transition: all 0.2s;
-}
-
-.tts-slider::-webkit-slider-thumb:hover {
-    transform: scale(1.1);
+    transition: background-color 150ms ease-out;
 }
 
 .tts-slider::-moz-range-thumb {
@@ -2034,11 +2024,7 @@ input[type="checkbox"] {
     cursor: pointer;
     border: none;
     box-shadow: 0 0 0 1px var(--border-light);
-    transition: all 0.2s;
-}
-
-.tts-slider::-moz-range-thumb:hover {
-    transform: scale(1.1);
+    transition: background-color 150ms ease-out;
 }
 
 /* ========================================
@@ -2505,7 +2491,7 @@ input[type="range"]::-moz-range-thumb {
     background: var(--background-light);
     border: 1px solid var(--border-light);
     border-radius: $radius-lg;
-    transition: all 0.2s ease;
+    transition: border-color 150ms ease-out, background-color 150ms ease-out;
     position: relative;
     overflow: hidden;
 }
@@ -2541,7 +2527,7 @@ input[type="range"]::-moz-range-thumb {
 .file-item.file-active {
     border-color: var(--primary-light);
     border-width: 2px;
-    background: linear-gradient(135deg, rgba(54, 118, 216, 0.05) 0%, rgba(54, 118, 216, 0.02) 100%);
+    background: rgba(54, 118, 216, 0.04);
 }
 
 .file-item.file-active::before {
@@ -2619,7 +2605,7 @@ input[type="range"]::-moz-range-thumb {
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: all 0.2s ease;
+    transition: background-color 150ms ease-out, color 150ms ease-out;
     flex-shrink: 0;
 }
 
@@ -2640,7 +2626,7 @@ html.dark .file-item {
 
 html.dark .file-item.file-active {
     border-color: var(--primary-light);
-    background: linear-gradient(135deg, rgba(90, 142, 232, 0.12) 0%, rgba(90, 142, 232, 0.05) 100%);
+    background: rgba(90, 142, 232, 0.1);
 }
 
 html.dark .file-active-badge {
@@ -2824,7 +2810,7 @@ html.dark .file-info {
     cursor: pointer;
     color: var(--text-muted-light);
     border-radius: 50%;
-    transition: all 0.2s;
+    transition: background-color 150ms ease-out, color 150ms ease-out;
 }
 
 .searchable-select-clear:hover {
@@ -3074,7 +3060,7 @@ html.dark .searchable-select-group {
 .app-toast .app-toast-icon {
     font-size: 1.15rem;
     line-height: 1;
-    margin-top: 1px;
+    margin-top: 2px;
 }
 .app-toast .app-toast-text {
     flex: 1;
@@ -4473,7 +4459,7 @@ html.dark .sample-badge-fallback {
     font-size: 0.75rem;
     font-weight: 600;
     line-height: 1.4;
-    transition: all 0.2s ease;
+    transition: background-color 150ms ease-out, border-color 150ms ease-out, color 150ms ease-out;
     flex-shrink: 0;
 }
 .file-test-btn + .file-remove-btn { margin-left: 8px; }

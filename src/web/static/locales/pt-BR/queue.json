@@ -1,7 +1,7 @@
 {
   "tab": "Fila",
   "title": "Fila persistente",
-  "intro_html": "Visão de <code>data/literary_queue.db</code>. A fila é escrita pela CLI local e pelo wrapper de tradução; esta página pode enfileirar livros do inventário, reordenar entradas pendentes e solicitar uma pausa após o livro atual. O executor é quem inicia e valida as tarefas.",
+  "intro_html": "Enfileire livros do inventário, reordene entradas pendentes e solicite pausa após o livro atual.",
   "refresh": "Atualizar",
   "updated": "Atualizado {{time}}",
   "book": "Livro",
