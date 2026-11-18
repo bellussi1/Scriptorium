@@ -6,6 +6,7 @@ from src.literary.source_prep import (
     inspect_source_epub,
     prepare_source_epub,
     prepared_source_path,
+    repair_translated_pdftohtml_epub,
 )
 
 
@@ -234,3 +235,72 @@ def test_toc_r1_rebuilds_ncx_with_relative_paths(tmp_path: Path):
         assert 'src="OEBPS/Text/book_c01_r1.htm"' in ncx
         assert "#missing" not in ncx
         assert 'playOrder="2"' in ncx
+
+
+def test_repair_translated_pdftohtml_epub_cleans_headers_joins_splits_and_builds_toc(tmp_path: Path):
+    src = tmp_path / "Ship of Magic (pt-BR) - fixed-v2.epub"
+    header_repeats = "\n".join(
+        '<p class="calibre1">Hobb, Robin - Navio de Magia</p>' for _ in range(6)
+    )
+    doc0 = (
+        '<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang=""><head>'
+        '<title>file:///C|/Ship.txt</title></head><body>'
+        '<p class="calibre1"><b class="calibre3">PRÓLOGO - O ENROLAMENTO</b></p>'
+        '<p class="calibre1"><b class="calibre3">CAPÍTULO VINTE E CINCO -</b></p>'
+        '<p class="calibre1"><b class="calibre3">CIDADE DAS VELAS</b></p>'
+        '<p class="calibre1">Ela continuou file:///C|/Ship.html (386 de 1064)12/11/2005 20:46</p>'
+        '<p class="calibre1">Hobb, Robin - Navio de Magia</p>'
+        '<p class="calibre1">caminhando pelo cais.</p>'
+        + header_repeats
+        + '<p class="calibre1">O estalar de pés calçados sobre as rochas arenosas o despertou.</p>'
+        "</body></html>"
+    )
+    doc_outline = (
+        '<html xmlns="http://www.w3.org/1999/xhtml"><head><title>x</title></head><body>'
+        '<p class="calibre1"><h1 id="calibre_pb_0">Document Outline</h1>'
+        '<ul><li>Local Disk</li></ul></p></body></html>'
+    )
+    opf = (
+        '<opf:package xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:opf="http://www.idpf.org/2007/opf" '
+        'unique-identifier="missing_uid" version="2.0">'
+        '<opf:metadata><dc:identifier id="cal" opf:scheme="calibre">u-1</dc:identifier>'
+        '<opf:meta property="belongs-to-collection">Realm</opf:meta></opf:metadata>'
+        '<opf:manifest><opf:item href="index_split_000.html" id="d0" media-type="application/xhtml+xml"/>'
+        '<opf:item href="index_split_001.html" id="d1" media-type="application/xhtml+xml"/>'
+        '<opf:item href="toc.ncx" id="ncx" media-type="application/x-dtbncx+xml"/></opf:manifest>'
+        '<opf:spine toc="ncx"><opf:itemref idref="d0"/><opf:itemref idref="d1"/></opf:spine>'
+        '<opf:guide /></opf:package>'
+    )
+    ncx = (
+        '<ncx><head><meta content="old" name="dtb:uid"/></head><navMap>'
+        '<navPoint id="p0" playOrder="0"><navLabel><text>Start</text></navLabel>'
+        '<content src="index_split_000.html#1"/></navPoint></navMap></ncx>'
+    )
+    _write_epub(
+        src,
+        {
+            "mimetype": "application/epub+zip",
+            "content.opf": opf,
+            "toc.ncx": ncx,
+            "index_split_000.html": doc0,
+            "index_split_001.html": doc_outline,
+        },
+    )
+    out = tmp_path / "out.epub"
+    res = repair_translated_pdftohtml_epub(src, out, book_title="Ship of Magic")
+
+    assert res["removed_files"] == ["index_split_001.html"]
+    assert res["nav_entries_built"] == 3
+    with zipfile.ZipFile(out) as zf:
+        assert "index_split_001.html" not in zf.namelist()
+        html_out = zf.read("index_split_000.html").decode("utf-8")
+        assert 'lang="pt-BR" xml:lang="pt-BR"' in html_out
+        assert "file:///" not in html_out
+        assert "Hobb, Robin" not in html_out
+        assert "Ela continuou caminhando pelo cais." in html_out
+        assert "CAPÍTULO VINTE E CINCO — CANDLETOWN" in html_out
+        assert "CAPÍTULO NOVE — UMA MUDANÇA DE SORTE" in html_out
+        ncx_out = zf.read("toc.ncx").decode("utf-8")
+        assert 'content="u-1"' in ncx_out
+        assert 'playOrder="3"' in ncx_out
+        assert "CAPÍTULO NOVE — UMA MUDANÇA DE SORTE" in ncx_out

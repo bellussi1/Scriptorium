@@ -82,10 +82,15 @@ class GeminiProvider(LLMProvider):
         return any(tag in model_lower for tag in ("2.5", "gemini-3", "gemini-4"))
 
     def _get_thinking_config(self) -> dict:
-        """Return thinkingConfig to disable thinking for supported models."""
-        if self._is_thinking_model():
-            return {"thinkingConfig": {"thinkingBudget": 0}}
-        return {}
+        """Return thinkingConfig appropriate for the configured Gemini model."""
+        if not self._is_thinking_model():
+            return {}
+        model_lower = self.model.lower()
+        if "2.5-pro" in model_lower:
+            return {"thinkingConfig": {"thinkingBudget": 128}}
+        if "pro" in model_lower:
+            return {}
+        return {"thinkingConfig": {"thinkingBudget": 0}}
 
     async def get_available_models(self) -> list[dict]:
         """
@@ -258,7 +263,9 @@ class GeminiProvider(LLMProvider):
                 # Extract token usage if available
                 usage_metadata = response_json.get("usageMetadata", {})
                 prompt_tokens = usage_metadata.get("promptTokenCount", 0)
-                completion_tokens = usage_metadata.get("candidatesTokenCount", 0)
+                completion_tokens = usage_metadata.get("candidatesTokenCount", 0) + usage_metadata.get(
+                    "thoughtsTokenCount", 0
+                )
 
                 return LLMResponse(
                     content=response_text,
@@ -292,6 +299,14 @@ class GeminiProvider(LLMProvider):
                             self._key_pool, current_key, e.response.headers,
                             rate_limit_events, MAX_TRANSLATION_ATTEMPTS,
                         )
+                        continue
+
+                    if (
+                        e.response.status_code == 400
+                        and "thinking" in error_body.lower()
+                        and "thinkingConfig" in payload.get("generationConfig", {})
+                    ):
+                        payload["generationConfig"].pop("thinkingConfig", None)
                         continue
 
                     print(f"Gemini API HTTP Error (attempt {attempt + 1}/{MAX_TRANSLATION_ATTEMPTS}): {e}")

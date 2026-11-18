@@ -24,7 +24,10 @@ LEGACY_NAME_ATTR_RE = re.compile(
     re.IGNORECASE,
 )
 TITLE_FILE_URI_RE = re.compile(r"(<title[^>]*>)\s*file:///[^<]+(</title>)", re.IGNORECASE)
-P_BLOCK_RE = re.compile(r"(<p\b[^>]*>)(.*?)(</p>)", re.IGNORECASE | re.DOTALL)
+P_BLOCK_RE = re.compile(
+    r"(<p(?:\s+[^>]*(?<!/))?>)(.*?)(</p>)",
+    re.IGNORECASE | re.DOTALL,
+)
 TAG_STRIP_RE = re.compile(r"<[^>]+>")
 CHAPTER_HEADING_RE = re.compile(
     r"^(?:PROLOGUE(?:\s*[-—:]\s*.*)?|EPILOGUE(?:\s*[-—:]\s*.*)?|"
@@ -141,7 +144,15 @@ def _clean_opf_epub2_hygiene(opf_text: str) -> str:
 
 
 def _is_doc_outline_html(text: str) -> bool:
-    return "Document Outline" in text and ("<ul" in text or "Local Disk" in text)
+    markers = (
+        "Document Outline",
+        "Esboço do Documento",
+        "Sumário do Documento",
+        "Contorno do Documento",
+    )
+    return any(m in text for m in markers) and (
+        "<ul" in text or "Local Disk" in text or "Disco Local" in text
+    )
 
 
 def _html_entries_in_reading_order(
@@ -899,4 +910,428 @@ def prepare_source_epub(
         if extract_headings
         else (len(nav_entries) if ncx_path and inspection["needs_ncx_rebuild"] else 0),
         "inspection": inspection,
+    }
+
+
+PT_CHAPTER_HEADING_RE = re.compile(
+    r"^(?:PR[ÓO]LOGO(?:\s*[-—–:]\s*.*)?|EP[ÍI]LOGO(?:\s*[-—–:]\s*.*)?|"
+    r"CAP[ÍI]TULO\s+[A-ZÀ-Ÿ0-9-]+(?:\s+(?:[Ee]\s+)?[A-ZÀ-Ÿ0-9-]+){0,2}"
+    r"(?:\s*[-—–:]\s*.*)?)$",
+    re.IGNORECASE,
+)
+_PT_HEADER_RE = re.compile(
+    r'(?:[:\d]*["“]?\s*,?\s*Hobb\s*,\s*Robin|,\s*Robin)\s*[—–-]\s*'
+    r'(?:Em\s*\*?Navio de Magia\*?|(?:O\s+)?Navio\s+d[ae]\s+Magia|Nave\s+d[ae]\s+Magia|Ship\s+of(?:\s+Magic)?|Mad\s+Ship|Ship\s+of\s+Destiny)[*"]*',
+    re.IGNORECASE,
+)
+_PT_FOOTER_INLINE_RE = re.compile(
+    r'(?:\s*\bfile)?\s*:///[^\n<]+'
+    r'|\s*\(\s*\d+\s+(?:of|de)\s+\d+\s*\)\s*\d{1,2}/\d{1,2}/\d{4}(?:\s*\d{1,2}:\d{2}(?::\d{2})?)?(?:\s*Hobb\b)?'
+    r'|\s*\d+\)\s*\d{1,2}/\d{1,2}/\d{4}(?:\s*\d{1,2}:\d{2}(?::\d{2})?)?(?:\s*Hobb\b)?',
+    re.IGNORECASE,
+)
+
+_LIVESHIP_PT_HEADING_FIXES: tuple[tuple[str, str], ...] = (
+    ("CAPÍTULO DOIS - NAVIOS VIVOS", "CAPÍTULO DOIS — LIVESHIPS"),
+    ("CAPÍTULO VENTEI E UM - VISITANTES", "CAPÍTULO VINTE E UM — VISITANTES"),
+    (
+        "CAPÍTULO VINTÉSIMO QUATRO - CHUVA COMERCIANDES SELVAGENS",
+        "CAPÍTULO VINTE E QUATRO — RAIN WILD TRADERS",
+    ),
+    ("CAPÍTULO VINTE E CINCO - CIDADE DAS VELAS", "CAPÍTULO VINTE E CINCO — CANDLETOWN"),
+    ("CAPÍTULO VINTE E SEIS - PRESENTESE", "CAPÍTULO VINTE E SEIS — PRESENTES"),
+    ("CAPÍTULO TRINTA E UM - NAUs E SERPENTES", "CAPÍTULO TRINTA E UM — NAVIOS E SERPENTES"),
+    ("CAPÍTULO TRINTA E CINCO — PIRATAS E CAPRIVOS", "CAPÍTULO TRINTA E CINCO — PIRATAS E CATIVOS"),
+    ("CAPÍTULO TRINTA E SEIS - AQUELA QUE SE LEMBRA", "CAPÍTULO TRINTA E SEIS — SHE WHO REMEMBERS"),
+    ("CAPÍTULO QUATROZE", "CAPÍTULO QUATORZE"),
+    ("CAPÍTULO DEZENOVENCO", "CAPÍTULO DEZENOVE"),
+    ("CAPÍTULO DEZENOVÊ — NEGOCIAÇÕES EM BINGTOWN", "CAPÍTULO DEZESSETE — NEGOCIAÇÕES EM BINGTOWN"),
+    ("CAPÍTULO VINTA", "CAPÍTULO VINTE"),
+    ("A VONTADE DE UM DRAGON", "A VONTADE DE UM DRAGÃO"),
+)
+
+
+def _apply_liveship_pt_prefixes(text: str, title_lower: str) -> str:
+    updated = text
+    if title_lower == "ship of magic":
+        updated = re.sub(
+            r'<p\b[^>]*>[:\d\s]*Hobb,\s*Robin\s*-\s*Ship\s+of</p>\s*'
+            r'<p\b[^>]*><b\b[^>]*>\s*MagicCAP[ÍI]TULO\s+QUATORZE\s*-\s*QUEST[ÕO]ES\s*</b></p>\s*'
+            r'<p\b[^>]*><b\b[^>]*>\s*DE\s*</b></p>\s*'
+            r'<p\b[^>]*>\s*FAM[ÍI]LIAKENNIT\s+N[ÃA]O\s+LEVOU',
+            '<p class="calibre1"><b class="calibre3">CAPÍTULO QUATORZE — ASSUNTOS DE FAMÍLIA</b></p>\n'
+            '<p class="calibre1">KENNIT NÃO LEVOU',
+            updated,
+            flags=re.IGNORECASE,
+        )
+        updated = re.sub(
+            r'<p\b[^>]*><b\b[^>]*>CAP[ÍI]TULO\s+DEZESSETE\s*-\s*A\s*</b></p>\s*'
+            r'<p\b[^>]*><b\b[^>]*>PROSTITUA\s*</b></p>\s*'
+            r'<p\b[^>]*>\s*DE\s+KENNIT\s+AS\s+CHUVAS',
+            '<p class="calibre1"><b class="calibre3">CAPÍTULO DEZESSETE — A PROSTITUTA DE KENNIT</b></p>\n'
+            '<p class="calibre1">AS CHUVAS',
+            updated,
+            flags=re.IGNORECASE,
+        )
+        updated = re.sub(
+            r'<p\b[^>]*><b\b[^>]*>(\s*direção do som\. Quem quer)</b></p>\s*'
+            r'<p\b[^>]*><b\b[^>]*>(\s*que)</b></p>',
+            r'<p class="calibre1">\1</p>\n<p class="calibre1">\2</p>',
+            updated,
+        )
+        if "CAPÍTULO NOVE — UMA MUDANÇA DE SORTE" not in updated:
+            updated = updated.replace(
+                '<p class="calibre1">O estalar de pés calçados sobre as rochas arenosas o despertou.',
+                '<p class="calibre1"><b class="calibre3">CAPÍTULO NOVE — UMA MUDANÇA DE SORTE</b></p>\n'
+                '<p class="calibre1">O estalar de pés calçados sobre as rochas arenosas o despertou.',
+                1,
+            )
+        updated = re.sub(
+            r'<p\b[^>]*><b\b[^>]*>(\s*resposta que eu dê)</b></p>',
+            r'<p class="calibre1">\1</p>',
+            updated,
+        )
+        if "CAPÍTULO DEZENOVE — TESTEMUNHO" not in updated:
+            updated = updated.replace(
+                '<p class="calibre1">“Dói muito?” “Você consegue sentir dor?”',
+                '<p class="calibre1"><b class="calibre3">CAPÍTULO DEZENOVE — TESTEMUNHO</b></p>\n'
+                '<p class="calibre1">“Dói muito?” “Você consegue sentir dor?”',
+                1,
+            )
+        updated = re.sub(
+            r'<p\b[^>]*><b\b[^>]*>(\s*a água em ondas desagradáveis)</b></p>\s*'
+            r'<p\b[^>]*><b\b[^>]*>(,)</b></p>',
+            r'<p class="calibre1">\1</p>\n<p class="calibre1">\2</p>',
+            updated,
+        )
+        if "CAPÍTULO TRINTA — DESAFIO E ALIANÇA" not in updated:
+            updated = updated.replace(
+                '<p class="calibre1">O primeiro morto entre os escravos de Vivacia ocorreu no início da tarde.',
+                '<p class="calibre1"><b class="calibre3">CAPÍTULO TRINTA — DESAFIO E ALIANÇA</b></p>\n'
+                '<p class="calibre1">O primeiro morto entre os escravos de Vivacia ocorreu no início da tarde.',
+                1,
+            )
+    elif title_lower == "the mad ship":
+        updated = re.sub(
+            r'(\.)?\s*CAP[ÍI]TULO\s+TRINTA\s+E\s+CINCO\s*</p>\s*<p\b[^>]*>\s*[-—–]\s*Trehaug(?="EU GOSTO DE ESTAR)',
+            lambda m: (m.group(1) or "")
+            + '</p>\n<p class="calibre1">CAPÍTULO TRINTA E CINCO — Trehaug</p>\n<p class="calibre1">',
+            updated,
+            flags=re.IGNORECASE,
+        )
+    elif title_lower == "ship of destiny":
+        if "CAPÍTULO DEZOITO" not in updated:
+            updated = updated.replace(
+                '<p class="calibre1">Kennit olhou para o pergaminho em sua mão.',
+                '<p class="calibre1">CAPÍTULO DEZOITO — Lealdades</p>\n'
+                '<p class="calibre1">Kennit olhou para o pergaminho em sua mão.',
+                1,
+            )
+    return updated
+
+
+def _is_pt_heading(plain: str, inner: str) -> bool:
+    if not plain or len(plain) > 100 or plain.endswith((".", "!", "?")):
+        return False
+    if not PT_CHAPTER_HEADING_RE.match(plain):
+        return False
+    return bool(
+        BOLD_ONLY_RE.match(inner)
+        or "-" in plain
+        or "—" in plain
+        or "–" in plain
+        or ":" in plain
+        or len(plain) <= 25
+    )
+
+
+def _can_join_pt_bold_heading(first_plain: str, first_inner: str, next_inner: str) -> bool:
+    if not (BOLD_ONLY_RE.match(first_inner) and BOLD_ONLY_RE.match(next_inner)):
+        return False
+    if not _is_pt_heading(first_plain, first_inner):
+        return False
+    next_plain = _strip_tags(next_inner)
+    if not next_plain or len(next_plain) > 70 or PT_CHAPTER_HEADING_RE.match(next_plain):
+        return False
+    letters = [ch for ch in next_plain if ch.isalpha()]
+    return bool(letters) and all(ch.isupper() for ch in letters)
+
+
+def _normalize_pt_heading_text(inner: str) -> str:
+    updated = inner
+    for old, new in _LIVESHIP_PT_HEADING_FIXES:
+        updated = updated.replace(old, new)
+    if re.fullmatch(r"\s*(?:<b\b[^>]*>\s*)?EPILOGO(?:\s*</b>)?\s*", updated, re.IGNORECASE):
+        updated = re.sub(r"EPILOGO", "EPÍLOGO", updated, flags=re.IGNORECASE)
+    return updated
+
+
+def repair_translated_pdftohtml_epub(
+    source_path: Path | str,
+    output_path: Path | str,
+    *,
+    book_title: str = "",
+) -> Dict[str, Any]:
+    """Repair a translated ``pdftohtml`` EPUB (headers, footers, headings, TOC, OPF/NCX)."""
+    src = Path(source_path)
+    out = Path(output_path)
+    if not src.exists():
+        raise FileNotFoundError(f"translated EPUB not found: {src}")
+
+    with zipfile.ZipFile(src, "r") as zin:
+        names = zin.namelist()
+        raw_bytes = {name: zin.read(name) for name in names}
+
+    opf_path = next((n for n in names if n.lower().endswith(".opf")), None)
+    ncx_path = next((n for n in names if n.lower().endswith(".ncx")), None)
+    opf_text = raw_bytes[opf_path].decode("utf-8", "replace") if opf_path else ""
+    ncx_text = raw_bytes[ncx_path].decode("utf-8", "replace") if ncx_path else ""
+    title = book_title or ""
+    if not title and opf_text:
+        t_m = re.search(r"<dc:title\b[^>]*>(.*?)</dc:title>", opf_text, re.DOTALL)
+        if t_m:
+            title = _strip_tags(t_m.group(1))
+    title_lower = title.lower().strip()
+
+    html_files = _html_entries_in_reading_order(names, opf_path, opf_text)
+    removed_files = {
+        h for h in html_files if _is_doc_outline_html(raw_bytes[h].decode("utf-8", "replace"))
+    }
+    kept_html = [h for h in html_files if h not in removed_files]
+
+    html_pre = {}
+    for h in kept_html:
+        doc = raw_bytes[h].decode("utf-8", "replace")
+        doc = _apply_liveship_pt_prefixes(doc, title_lower)
+        doc = re.sub(
+            r"<p\b(?![^>]*\bid\s*=)[^>]*/>\s*",
+            "",
+            doc,
+            flags=re.IGNORECASE,
+        )
+        doc = re.sub(
+            r"&lt;/?KTRANSLATION(?:&gt;|>)?;?\s*|</?KTRANSLATION>\s*",
+            "",
+            doc,
+            flags=re.IGNORECASE,
+        )
+        doc = re.sub(
+            r"(<title\b[^>]*>)\s*(?:file:///[^<]+|Hobb,\s*Robin\s*[—–-]\s*[^<]+)(</title>)",
+            rf"\1{html.escape(title or 'Book')}\2",
+            doc,
+            flags=re.IGNORECASE,
+        )
+        doc = re.sub(
+            r'\b((?:xml:)?lang\s*=\s*)(["\'])\s*\2',
+            r"\1\g<2>pt-BR\g<2>",
+            doc,
+            flags=re.IGNORECASE,
+        )
+        doc = re.sub(r"\s*<meta\b[^>]*pdftohtml[^>]*/?>", "", doc, flags=re.IGNORECASE)
+        doc = _upgrade_legacy_anchors_and_imgs(doc)
+        html_pre[h] = doc
+
+    running_headers = _collect_running_headers(html_pre, title)
+    anchor_counter = [0]
+    extracted_headings: List[Tuple[str, str, str]] = []
+    cleaned_html: Dict[str, str] = {}
+    stats = {"stripped_artefacts": 0, "merged_splits": 0, "headings_anchored": 0}
+
+    for h in kept_html:
+        raw_doc = html_pre[h]
+        tokens: List[Tuple[bool, str, str, str]] = []
+        pos = 0
+        for m in P_BLOCK_RE.finditer(raw_doc):
+            if m.start() > pos:
+                tokens.append((False, raw_doc[pos : m.start()], "", ""))
+            tokens.append((True, m.group(1), m.group(2), m.group(3)))
+            pos = m.end()
+        if pos < len(raw_doc):
+            tokens.append((False, raw_doc[pos:], "", ""))
+
+        processed: List[Tuple[bool, str, str, str, bool]] = []
+        for is_p, head, inner, tail in tokens:
+            if not is_p:
+                processed.append((False, head, "", "", False))
+                continue
+            new_inner = inner
+            had_break = False
+            if _PT_FOOTER_INLINE_RE.search(new_inner):
+                new_inner = _PT_FOOTER_INLINE_RE.sub("", new_inner)
+                had_break = True
+                stats["stripped_artefacts"] += 1
+            if _PT_HEADER_RE.search(new_inner):
+                new_inner = _PT_HEADER_RE.sub("", new_inner)
+                had_break = True
+                stats["stripped_artefacts"] += 1
+            plain_after = _strip_tags(new_inner)
+            if plain_after in running_headers or (
+                plain_after.lower() == "file" and "<img" not in new_inner.lower()
+            ):
+                processed.append((True, head, "", tail, True))
+                stats["stripped_artefacts"] += 1
+                continue
+            processed.append((True, head, new_inner, tail, had_break))
+
+        merged: List[Tuple[bool, str, str, str]] = []
+        i = 0
+        saw_break = False
+        while i < len(processed):
+            is_p, head, inner, tail, had_break = processed[i]
+            if not is_p:
+                if head.strip():
+                    saw_break = False
+                merged.append((False, head, "", ""))
+                i += 1
+                continue
+
+            plain = _strip_tags(inner)
+            if not plain and "<img" not in inner.lower():
+                if had_break:
+                    saw_break = True
+                if not had_break and not saw_break:
+                    merged.append((True, head, inner, tail))
+                i += 1
+                continue
+
+            if saw_break and merged:
+                prev_idx = len(merged) - 1
+                while prev_idx >= 0 and (
+                    (not merged[prev_idx][0] and not merged[prev_idx][1].strip())
+                    or (
+                        merged[prev_idx][0]
+                        and not _strip_tags(merged[prev_idx][2])
+                        and "<img" not in merged[prev_idx][2].lower()
+                    )
+                ):
+                    prev_idx -= 1
+                if prev_idx >= 0 and merged[prev_idx][0]:
+                    prev_open, prev_inner, prev_close = (
+                        merged[prev_idx][1],
+                        merged[prev_idx][2],
+                        merged[prev_idx][3],
+                    )
+                    prev_plain = _strip_tags(prev_inner)
+                    if (
+                        not _is_pt_heading(prev_plain, prev_inner)
+                        and not _is_pt_heading(plain, inner)
+                        and _should_merge_continued_paragraph(prev_plain, plain)
+                    ):
+                        merged[prev_idx] = (
+                            True,
+                            prev_open,
+                            prev_inner.rstrip() + " " + inner.lstrip(),
+                            prev_close,
+                        )
+                        del merged[prev_idx + 1 :]
+                        stats["merged_splits"] += 1
+                        saw_break = had_break
+                        i += 1
+                        continue
+
+            saw_break = had_break
+            if _is_pt_heading(plain, inner) and BOLD_ONLY_RE.match(inner):
+                j = i + 1
+                while j < len(processed) and (
+                    (not processed[j][0] and not processed[j][1].strip())
+                    or (
+                        processed[j][0]
+                        and not _strip_tags(processed[j][2])
+                        and "<img" not in processed[j][2].lower()
+                    )
+                ):
+                    j += 1
+                if j < len(processed) and processed[j][0]:
+                    next_inner = processed[j][2]
+                    if _can_join_pt_bold_heading(plain, inner, next_inner):
+                        m1 = BOLD_ONLY_RE.match(inner)
+                        m2 = BOLD_ONLY_RE.match(next_inner)
+                        if m1 and m2:
+                            inner = f"<b{m1.group(1)}>{m1.group(2).rstrip()} {m2.group(2).lstrip()}</b>"
+                            saw_break = processed[j][4]
+                            i = j
+
+            if _is_pt_heading(_strip_tags(inner), inner):
+                inner = _normalize_pt_heading_text(inner)
+            merged.append((True, head, inner, tail))
+            i += 1
+
+        pending_epilogue_only: Optional[Tuple[int, str]] = None
+        for idx, (is_p, head, inner, tail) in enumerate(merged):
+            if not is_p:
+                continue
+            plain = _strip_tags(inner)
+            if not _is_pt_heading(plain, inner):
+                pending_epilogue_only = None
+                continue
+            anchor_m = re.search(r'\bid\s*=\s*(["\'])([^"\']+)\1', head)
+            if anchor_m:
+                anchor_id = anchor_m.group(2)
+            else:
+                anchor_counter[0] += 1
+                anchor_id = f"ch_{anchor_counter[0]:03d}"
+                head = head[:-1] + f' id="{anchor_id}">'
+                merged[idx] = (True, head, inner, tail)
+            stats["headings_anchored"] += 1
+            if plain.upper() == "EPÍLOGO":
+                pending_epilogue_only = (len(extracted_headings), anchor_id)
+                extracted_headings.append((h, anchor_id, plain))
+                continue
+            if pending_epilogue_only is not None and plain.upper().startswith("CAPÍTULO "):
+                prev_idx, prev_anchor = pending_epilogue_only
+                extracted_headings[prev_idx] = (h, prev_anchor, f"EPÍLOGO — {plain}")
+                pending_epilogue_only = None
+                continue
+            pending_epilogue_only = None
+            extracted_headings.append((h, anchor_id, plain))
+
+        cleaned_html[h] = "".join(
+            item[1] if not item[0] else f"{item[1]}{item[2]}{item[3]}" for item in merged
+        )
+
+    opf_uid_value = ""
+    if opf_path:
+        opf_text = _remove_files_from_opf(opf_text, opf_path, sorted(removed_files))
+        opf_text = _clean_opf_epub2_hygiene(opf_text)
+        opf_text = _fix_opf_unique_identifier(opf_text)
+        opf_uid_value = _extract_opf_uid_value(opf_text)
+
+    if ncx_path:
+        nav_entries: List[Tuple[str, str]] = []
+        ncx_dir = posixpath.dirname(ncx_path)
+        for doc_p, anchor_id, label in extracted_headings:
+            rel = posixpath.relpath(doc_p, ncx_dir) if ncx_dir else doc_p
+            nav_entries.append((label, f"{rel}#{anchor_id}"))
+        ncx_text = _rebuild_ncx(
+            ncx_path,
+            ncx_text,
+            title or "Livros",
+            nav_entries,
+            opf_uid_value=opf_uid_value,
+        )
+
+    out.parent.mkdir(parents=True, exist_ok=True)
+    tmp_out = out.with_name(f".{out.stem}.{os.getpid()}.tmp.epub")
+    with zipfile.ZipFile(tmp_out, "w") as zout:
+        if "mimetype" in raw_bytes:
+            zout.writestr(zipfile.ZipInfo("mimetype"), raw_bytes["mimetype"], compress_type=zipfile.ZIP_STORED)
+        for name in names:
+            if name == "mimetype" or name in removed_files:
+                continue
+            if name in cleaned_html:
+                data = cleaned_html[name].encode("utf-8")
+            elif name == opf_path:
+                data = opf_text.encode("utf-8")
+            elif name == ncx_path:
+                data = ncx_text.encode("utf-8")
+            else:
+                data = raw_bytes[name]
+            zout.writestr(name, data, compress_type=zipfile.ZIP_DEFLATED)
+
+    os.replace(tmp_out, out)
+    return {
+        "out": str(out),
+        "removed_files": sorted(removed_files),
+        "nav_entries_built": len(extracted_headings),
+        **stats,
     }

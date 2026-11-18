@@ -82,3 +82,53 @@ async def test_empty_parts_list_yields_empty_content():
         assert result is None or result.content == ""
     finally:
         await provider.close()
+
+
+def test_pro_models_do_not_send_zero_thinking_budget():
+    p25 = GeminiProvider(api_key="test-key", model="gemini-2.5-pro")
+    assert p25._get_thinking_config() == {"thinkingConfig": {"thinkingBudget": 128}}
+
+    p31 = GeminiProvider(api_key="test-key", model="gemini-3.1-pro-preview")
+    assert p31._get_thinking_config() == {}
+
+    p38 = GeminiProvider(api_key="test-key", model="gemini-3.8-flash")
+    assert p38._get_thinking_config() == {"thinkingConfig": {"thinkingBudget": 0}}
+
+
+@pytest.mark.asyncio
+async def test_gemini_retries_without_thinking_config_on_400_and_counts_thoughts():
+    import json as _json
+
+    calls = []
+
+    def handler(request):
+        body = _json.loads(request.content.decode("utf-8"))
+        calls.append(body)
+        if len(calls) == 1:
+            return httpx.Response(
+                400,
+                json={"error": {"message": "Budget 0 is invalid. This model only works in thinking mode."}},
+            )
+        return httpx.Response(
+            200,
+            json={
+                "candidates": [{"content": {"parts": [{"text": "Resposta"}]}, "finishReason": "STOP"}],
+                "usageMetadata": {
+                    "promptTokenCount": 100,
+                    "candidatesTokenCount": 25,
+                    "thoughtsTokenCount": 75,
+                },
+            },
+        )
+
+    provider = GeminiProvider(api_key="test-key", model="gemini-2.5-pro")
+    provider._client = httpx.AsyncClient(transport=httpx.MockTransport(handler))
+    try:
+        result = await provider.generate("prompt")
+        assert len(calls) == 2
+        assert "thinkingConfig" in calls[0]["generationConfig"]
+        assert "thinkingConfig" not in calls[1]["generationConfig"]
+        assert result.content == "Resposta"
+        assert result.completion_tokens == 100
+    finally:
+        await provider.close()

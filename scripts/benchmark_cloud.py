@@ -42,6 +42,20 @@ MODELS: Dict[str, Dict[str, str]] = {
         "pricing_provider": "gemini",
         "pricing_model": "gemini-3.8-flash",
     },
+    "gemini-2.5-pro": {
+        "provider": "gemini",
+        "model": "gemini-2.5-pro",
+        "label": "Gemini 2.5 Pro",
+        "pricing_provider": "gemini",
+        "pricing_model": "gemini-2.5-pro",
+    },
+    "gemini-3.1-pro-preview": {
+        "provider": "gemini",
+        "model": "gemini-3.1-pro-preview",
+        "label": "Gemini 3.1 Pro Preview",
+        "pricing_provider": "gemini",
+        "pricing_model": "gemini-3.1-pro-preview",
+    },
     "deepseek-flash": {
         "provider": "deepseek",
         "model": "deepseek-flash",
@@ -129,11 +143,16 @@ async def run(args: argparse.Namespace) -> int:
         "corpus": str(Path(args.corpus).resolve()),
         "models": args.models,
         "excerpts": len(corpus),
+        "max_cost_usd": args.max_cost_usd,
         "run_dir": str(out_dir),
         "results": [],
     }
+    cumulative_cost = 0.0
 
     for key in args.models:
+        if args.max_cost_usd > 0 and cumulative_cost >= args.max_cost_usd:
+            print(f"budget cap reached (${cumulative_cost:.4f} >= ${args.max_cost_usd:.4f}); skipping {key}")
+            break
         if key not in MODELS:
             raise SystemExit(f"unknown cloud model: {key}")
         spec = MODELS[key]
@@ -143,6 +162,29 @@ async def run(args: argparse.Namespace) -> int:
 
         async def process(index: int, excerpt: Any) -> tuple[int, Dict[str, Any]]:
             async with semaphore:
+                if args.max_cost_usd > 0 and cumulative_cost >= args.max_cost_usd:
+                    return index, {
+                        "_index": index,
+                        "id": excerpt.id,
+                        "book": excerpt.book,
+                        "author": excerpt.author,
+                        "category": excerpt.category,
+                        "model": key,
+                        "model_label": spec["label"],
+                        "provider": spec["provider"],
+                        "provider_model": spec["model"],
+                        "generation": {
+                            "text": "",
+                            "latency_s": 0.0,
+                            "prompt_tokens": 0,
+                            "output_tokens": 0,
+                            "cost_usd": 0.0,
+                            "error": "skipped: max_cost_usd cap reached",
+                            "finish_reason": None,
+                        },
+                        "metrics": {"chrf": 0.0},
+                        "source_chars": len(excerpt.text),
+                    }
                 started = time.time()
                 error = ""
                 content = ""
@@ -202,12 +244,14 @@ async def run(args: argparse.Namespace) -> int:
         rows: List[Dict[str, Any]] = []
         for completed in asyncio.as_completed(tasks):
             index, row = await completed
+            cumulative_cost += float(row["generation"].get("cost_usd", 0.0) or 0.0)
             rows.append(row)
             print(
                 f"{key} {index:02d}/{len(corpus)} {row['category']:14s} "
                 f"chrF={row['metrics'].get('chrf'):.4f} "
                 f"lat={row['generation']['latency_s']:.1f}s "
                 f"cost=${row['generation']['cost_usd']:.5f} "
+                f"total=${cumulative_cost:.5f} "
                 f"err={bool(row['generation']['error'])}",
                 flush=True,
             )
@@ -236,6 +280,7 @@ def main() -> int:
     parser.add_argument("--limit", type=int, default=0)
     parser.add_argument("--timeout", type=int, default=300)
     parser.add_argument("--concurrency", type=int, default=4)
+    parser.add_argument("--max-cost-usd", type=float, default=0.50)
     parser.add_argument("--out-root", default="data/benchmark/cloud")
     parser.add_argument("--resource-author", default="robin-hobb")
     parser.add_argument("--resource-universe", default="realm-of-the-elderlings")

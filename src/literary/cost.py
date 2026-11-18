@@ -108,6 +108,20 @@ PRICING: Dict[str, Pricing] = {
         source="https://ai.google.dev/gemini-api/docs/pricing",
         notes="Preview; verify availability.",
     ),
+    "gemini:gemini-2.5-pro": Pricing(
+        "gemini", "gemini-2.5-pro", 1.25, 10.00, 0.125, 0.0,
+        batch_multiplier=0.5, context_window=1_048_576,
+        data_policy="Paid tier: content not used to improve products.",
+        source="https://ai.google.dev/gemini-api/docs/pricing",
+        notes="Standard <=200k prompt; thinking tokens billed at output rate.",
+    ),
+    "gemini:gemini-3.1-pro-preview": Pricing(
+        "gemini", "gemini-3.1-pro-preview", 1.25, 10.00, 0.125, 0.0,
+        batch_multiplier=0.5, context_window=1_048_576,
+        data_policy="Paid tier: content not used to improve products.",
+        source="https://ai.google.dev/gemini-api/docs/pricing",
+        notes="Preview Pro pricing estimate <=200k prompt.",
+    ),
 
     # OpenAI official API.
     "openai:gpt-6-luna": Pricing(
