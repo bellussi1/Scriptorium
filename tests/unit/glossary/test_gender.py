@@ -219,6 +219,35 @@ class TestChunkPromptSection:
         }
         assert _build_chunk_glossary_block("天气很好。", options) == ""
 
+    def test_english_source_filters_cast_to_surrounding_context(self):
+        """English marks pronouns explicitly, so unrelated universe entities stay out of CAST."""
+        options = {
+            "glossary_terms": {
+                "Malta": "Malta",
+                "Althea": "Althea",
+                "Kennit": "Kennit",
+            },
+            "glossary_term_metadata": {
+                "Malta": {"category": "character", "gender": "female"},
+                "Althea": {"category": "character", "gender": "female"},
+                "Kennit": {"category": "character", "gender": "male"},
+            },
+        }
+        section = _build_chunk_glossary_block(
+            "She asked Malta to wait on deck.",
+            options,
+            source_language="English",
+            context_text="Althea stood by the rail.",
+        )
+        # Malta is already in the chunk glossary with [character, female], so not repeated in CAST.
+        assert "Malta -> Malta  [character, female]" in section
+        # Althea appeared only in surrounding context, so she stays in CAST for pronoun continuity.
+        assert "  - Althea — female" in section
+        # Kennit appeared in neither the chunk nor surrounding context.
+        assert "Kennit" not in section
+        assert "Malta — female" not in section
+
+
 
 class TestStoreGender:
     def test_roundtrip(self, store):

@@ -11,8 +11,11 @@ from src.literary.queue_insights import (
     kindle_zip,
     quality_payload,
     quality_sidecar_path,
+    read_budget_summary,
     tail_lines,
 )
+from src.literary.reading_repair import convert_dialogue_quotes, merge_split_paragraphs
+from src.literary.repair import _hygiene_fix_html_structure
 
 from .conftest import make_epub
 
@@ -177,3 +180,70 @@ def test_epub_metrics_reports_pt_pt_and_review_samples(tmp_path: Path, monkeypat
     assert any(hit["form"] == "navio vivo" and hit["count"] == 1 for hit in result["forbidden_hits"])
     assert any(sample["kind"] == "forbidden" and sample["match"] == "navio vivo" for sample in result["review_samples"])
     assert any(sample["kind"] == "pt_pt_blocking" and sample["href"] == "ch1.xhtml" for sample in result["review_samples"])
+
+
+def test_read_budget_summary_calibrates_usd_and_brl(tmp_path: Path):
+    budgets_file = tmp_path / "budgets.json"
+    budgets_file.write_text(
+        json.dumps(
+            {
+                "gemini": {
+                    "currency": "USD",
+                    "usd_to_brl": 5.75,
+                    "cap_usd": 45.0,
+                    "rate_per_m_words_uncached": 13.02,
+                    "rate_per_m_words_optimized": 10.80,
+                }
+            }
+        ),
+        encoding="utf-8",
+    )
+    books = [
+        {"id": 1, "provider": "gemini", "state": "completed", "word_count": 300_000, "estimated_cost": 2.76, "priority": 30},
+        {"id": 6, "provider": "gemini", "state": "translating", "word_count": 260_000, "estimated_cost": 2.30, "priority": 25},
+        {"id": 5, "provider": "gemini", "state": "pending", "word_count": 300_000, "estimated_cost": 2.76, "priority": 24},
+        {"id": 99, "provider": "gemini", "state": "pending", "word_count": 0, "estimated_cost": 1.25, "priority": 10},
+    ]
+
+    summary = read_budget_summary(books, budgets_path=budgets_file)
+
+    assert summary["completed_usd"] == 3.91
+    assert summary["active_usd"] == 3.39
+    assert summary["core_remaining_usd"] == 3.24
+    assert summary["total_remaining_usd"] == 4.49
+    assert summary["remaining_cap_usd"] == 37.7
+    assert summary["usd_to_brl"] == 5.75
+    assert summary["completed_brl"] == round(3.91 * 5.75, 2)
+    assert summary["active_brl"] == round(3.39 * 5.75, 2)
+    assert summary["core_remaining_brl"] == round(3.24 * 5.75, 2)
+    assert summary["total_remaining_brl"] == round(4.49 * 5.75, 2)
+    assert summary["cap_brl"] == round(45.0 * 5.75, 2)
+    assert summary["remaining_cap_brl"] == round(37.7 * 5.75, 2)
+
+
+def test_hygiene_fix_unwraps_nested_ceps_paragraph():
+    raw = (
+        '<p class="ceps">— <small class="calibre5">DE “<small class="calibre5">'
+        'VIAGENS</small>”,</small>\n\n'
+        '<p class="cotx">DE WINFRODA</p><small class="calibre5"/>Fiz meu caminho.</p>'
+    )
+    fixed, changes = _hygiene_fix_html_structure(raw)
+
+    assert changes == 1
+    assert '</small> <small class="calibre5">DE WINFRODA</small></p>' in fixed
+    assert '\n\n<p class="cotx">Fiz meu caminho.</p>' in fixed
+
+
+def test_reading_repair_preserves_bantam_ceps_epigraph_attribution():
+    raw = (
+        '<p class="ceps">— <small class="calibre5">“A CONSPIRAÇÃO DOS MALHADOS”, '
+        'DE ROWELL</small></p>\n\n'
+        '<p class="cotx">A guarda havia mudado.</p>'
+    )
+    merged_html, merged = merge_split_paragraphs(raw)
+    quoted_html, quotes = convert_dialogue_quotes(merged_html)
+
+    assert merged == 0
+    assert quotes == 0
+    assert '<p class="ceps">— <small class="calibre5">“A CONSPIRAÇÃO DOS MALHADOS”, DE ROWELL</small></p>' in quoted_html
+    assert '<p class="cotx">A guarda havia mudado.</p>' in quoted_html

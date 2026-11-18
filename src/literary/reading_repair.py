@@ -141,7 +141,18 @@ _NON_PROSE_CLASS_TOKENS = (
     "letter",
     "sign",
     "date",
+    "cepi",
+    "ceps",
+    "cfmh",
+    "fmh",
+    "corn",
+    "crt",
+    "acl",
+    "acmh",
+    "acsh",
+    "ccn",
 )
+_NON_PROSE_EXACT_CLASSES = {"ct", "cn", "ls", "ill"}
 _EXPLICIT_BODY_CLASSES = ("x04-Body-Text", "x04-Body-Text-FL", "x03-CO-Body-Text")
 
 
@@ -155,6 +166,8 @@ def _is_body(attrs: str) -> bool:
     if any(name in classes for name in _EXPLICIT_BODY_CLASSES):
         return True
     lower_classes = [name.lower() for name in classes]
+    if any(cls_name in _NON_PROSE_EXACT_CLASSES for cls_name in lower_classes):
+        return False
     return not any(
         token in cls_name for cls_name in lower_classes for token in _NON_PROSE_CLASS_TOKENS
     )

@@ -11,9 +11,8 @@ from __future__ import annotations
 
 import re
 import zipfile
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Dict, List, Tuple
-
 
 _DROPCAP_RE = re.compile(
     r'(<span[^>]*class="[^"]*\bdropcap\b[^"]*"[^>]*>)(.*?)(</span>)(.{0,200})',
@@ -236,6 +235,10 @@ _A_NAME_NO_ID_RE = re.compile(
     r'(<a\b(?![^>]*\bid\s*=)[^>]*?)\s*\bname\s*=\s*(["\'])([^"\']+)\2([^>]*>)',
     re.IGNORECASE,
 )
+_NESTED_CEPS_P_RE = re.compile(
+    r'(<p\b[^>]*\bclass="ceps"[^>]*>(?:(?!</p>).)*?)\s*<p\b([^>]*)>\s*([^<]*?)\s*</p>\s*[\'’]?\s*(?:<small\b[^>]*/>\s*)*',
+    re.IGNORECASE | re.DOTALL,
+)
 _XML_NCNAME_RE = re.compile(r"^[A-Za-z_][A-Za-z0-9_.:-]*$")
 
 
@@ -345,6 +348,11 @@ def _hygiene_fix_html_structure(text: str, *, default_lang: str = "pt-BR") -> tu
     changes += img_count
     text, unwrap_count = _P_BLOCK_WRAP_RE.subn(r"\1", text)
     changes += unwrap_count
+    text, ceps_unwrap_count = _NESTED_CEPS_P_RE.subn(
+        r'\1 <small class="calibre5">\3</small></p>\n\n<p\2>',
+        text,
+    )
+    changes += ceps_unwrap_count
 
     def _replace_name(match: re.Match[str]) -> str:
         nonlocal changes

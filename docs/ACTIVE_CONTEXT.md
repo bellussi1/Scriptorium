@@ -1,11 +1,20 @@
 # Active context
 
 Handoff between sessions. Read this first; update it before you stop. It must
-describe the real repository, not a plan. Status as of 2026-11-18 (12:41 local):
+describe the real repository, not a plan. Status as of 2026-11-18 (16:47 local):
 revalidate with `git status` and `git log` before acting. Older
 handoffs are in git history (this file was compacted on 2026-11-12).
 
 ## Now
+
+- **`#6 The Golden Fool` repaired, validated (`EPUBCheck 0/0/0`), approved & exported; `#5 Fool's Fate` translating with `# CAST` optimization (`2026-11-18 16:47 local`):**
+  - **Completed & exported:** `#4 Fool's Errand` (`job #41`), `#2 Ship of Magic` (`job #42`), `#3 The Mad Ship` (`job #43`), `#1 Ship of Destiny` (`job #44`, closing *Liveship Traders*), and `#6 The Golden Fool` (`job #45`, `911/911` chunks, `94.39%` glossary coverage, `EPUBCheck 0/0/0`, exported to `translated_files/kindle/Robin Hobb/The Tawny Man Trilogy/02 - The Golden Fool (pt-BR).epub`).
+  - **EPUB & Reader repair fixes (`src/literary/repair.py`, `src/literary/reading_repair.py`, `tests/literary/test_queue_insights.py`):**
+    - Added `_NESTED_CEPS_P_RE` in `_hygiene_fix_html_structure()` to unwrap `<p class="cotx">` nested inside `<p class="ceps">` (resolving the 2 `RSC-005` EPUBCheck errors in `c06_r1.htm` and `c21_r1.htm` of *The Golden Fool*) and cleaned up unused `dataclasses.field` / blank line in `src/literary/repair.py` (`ruff check` `0` errors).
+    - Excluded Bantam non-prose/epigraph/heading classes (`ceps`, `cepi`, `cfmh`, `fmh`, `corn`, `crt`, `acl`, `acmh`, `acsh`, `ccn` tokens and exact classes `ct`, `cn`, `ls`, `ill`) from `_is_body()` in `src/literary/reading_repair.py`, preventing `merge_split_paragraphs` from merging `<p class="ceps">` epigraph attributions into the opening `<p class="cotx">` body paragraph and preventing `convert_dialogue_quotes` from turning quoted epigraph titles into travessões. Rebuilt `The Golden Fool (pt-BR).refined.epub` cleanly from archived `fixed-v2.epub` and re-exported Kindle.
+  - **Live run active (`#5 Fool's Fate`, `job #46`, `cli_622120c0`):** Automatically launched by `scripts/auto_queue.py` after `#6` approval — first run picking up the English per-chunk `# CAST` filter optimization (`src/core/translator.py`). Do **not** restart `translatebook-literary-dev` while running.
+  - **Per-chunk prompt optimization & calibrated budget (`src/core/translator.py`, `data/budgets.json`, `src/literary/queue_insights.py`, `data/literary_queue.db`, `src/web/static/js/queue/queue-manager.js`, `tests/unit/glossary/test_gender.py`):** English sources filter `# CAST` to nearby `context_text` entities not already in the chunk glossary (`2,830 -> 741` chars on sample chunk); `read_budget_summary()` and `books.estimated_cost` calibrated to `$13.02 / 1M` uncached (`#1–#4, #6`) and `$10.80 / 1M` optimized for remaining books, with USD + BRL (`usd_to_brl: 5.75`) rendered in `.queue-budget-stat strong`.
+  - **Verification:** `PYTHONPATH=".;src" venv\Scripts\python.exe -m pytest -q tests/unit/glossary/test_gender.py tests/unit/glossary/test_integration_translator.py tests/literary/test_compiled_glossary_wiring.py tests/literary/test_queue_insights.py tests/literary/test_reading_repair.py tests/unit/test_literary_queue_routes.py tests/test_frontend_i18n.py` (`162 passed`); `npm.cmd run typecheck` and `npm.cmd run test:js` (`7/7 passed`); `ruff check src/literary/queue_insights.py src/literary/repair.py tests/unit/glossary/test_gender.py tests/literary/test_queue_insights.py` (`0` errors; `src/literary/reading_repair.py` and `src/core/translator.py` retain only pre-existing baseline findings); `EPUBCheck` `0/0/0` on `The Golden Fool (pt-BR).refined.epub` and its Kindle EPUB (`long_ceps == []`).
 
 - **Queue & Translation UI/UX improvements live + `#2 Ship of Magic` completed & exported, `#3 The Mad Ship` actively translating (2026-11-18 12:41 local):**
   - **`#2 Ship of Magic` completed & exported (`job #42`, `cli_5d36fffc`):** Finished `1,063/1,063` chunks (`305,561` words in PT-BR, length ratio `0.9887`, `EPUBCheck 0/0/0`), auto-approved by `scripts/auto_queue.py`, and exported to `translated_files/kindle/Robin Hobb/The Liveship Traders/01 - Ship of Magic (pt-BR).epub` (`manifest.csv`).

@@ -41,6 +41,8 @@ def _build_chunk_glossary_block(
     runtime_state: Optional[dict] = None,
     *,
     target_language: str = "",
+    source_language: str = "",
+    context_text: str = "",
 ) -> str:
     """
     Filter the active glossary against the current chunk and render a prompt block.
@@ -51,9 +53,12 @@ def _build_chunk_glossary_block(
     entity.
 
     Two sections may be emitted:
-      - the cast block (gendered entities), which is NOT chunk-filtered, since
-        a passage referring to a character by pronoun alone contains no match
-        yet is exactly where the model would otherwise guess the gender;
+      - the cast block (gendered entities): for sources that omit subject
+        gender (e.g. CJK or empty/unknown source_language), this includes the
+        whole cast because pronouns do not carry gender; for English sources,
+        pronouns mark gender and `build_glossary_block` already attaches
+        gender hints to matched terms, so only gendered entities appearing in
+        `context_text` and not already in the chunk glossary are emitted.
       - the glossary block, restricted to terms present in this chunk.
 
     When the per-chunk cap is hit and `warn_on_cap` is enabled, logs a single
@@ -67,6 +72,11 @@ def _build_chunk_glossary_block(
             `build_glossary_block`. The fork targets Brazilian Portuguese, so
             the block needs no target-side inflection line. Defaults to "" for
             compatibility with existing callers.
+        source_language: the job's source language. When English, restricts
+            the cast block to nearby `context_text` entities not already
+            matched in `chunk_content`.
+        context_text: surrounding context paragraphs checked for gendered
+            entities when `source_language` is English.
     """
     if not prompt_options:
         return ""
@@ -99,8 +109,20 @@ def _build_chunk_glossary_block(
 
     metadata = prompt_options.get("glossary_term_metadata") or None
 
+    src_norm = (source_language or "").strip().lower()
+    is_english_source = src_norm == "en" or src_norm.startswith("english")
+    if is_english_source:
+        context_matches, _ = (
+            filter_glossary(context_text, terms, config)
+            if context_text and context_text.strip()
+            else ({}, False)
+        )
+        cast_terms = {k: v for k, v in context_matches.items() if k not in filtered}
+    else:
+        cast_terms = terms
+
     cast_block, cast_capped = build_cast_block(
-        terms,
+        cast_terms,
         term_metadata=metadata,
         max_entries=getattr(config, "max_cast_entries", None) or 0,
     )
@@ -267,10 +289,15 @@ async def _make_llm_request_with_adaptive_context(
 
     while current_content.strip():
         try:
+            surrounding_context = "\n".join(
+                part for part in (context_before, context_after, previous_translation_context)
+                if part and part.strip()
+            )
             # Build the per-chunk glossary block (empty if no glossary configured)
             glossary_block = _build_chunk_glossary_block(
                 current_content, prompt_options, log_callback=log_callback,
                 runtime_state=runtime_state, target_language=target_language,
+                source_language=source_language, context_text=surrounding_context,
             )
 
             # Generate prompts

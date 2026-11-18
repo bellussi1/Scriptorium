@@ -361,6 +361,15 @@ function formatUsd(amount) {
     return `$${value.toFixed(2)}`;
 }
 
+function formatUsdWithBrl(usd, brl, rate = 5.75) {
+    const usdVal = Number(usd || 0);
+    const fxRate = Number(rate || 5.75);
+    const brlVal = brl !== undefined && brl !== null && Number.isFinite(Number(brl))
+        ? Number(brl)
+        : usdVal * fxRate;
+    return `${formatUsd(usdVal)} · R$ ${Math.round(brlVal)}`;
+}
+
 function renderInsightsBar(data) {
     const host = ensureQueueContainer('queueInsightsBar', 'queue-insights-bar', '.queue-toolbar', '#queueDistribution');
     if (!host) return;
@@ -443,15 +452,15 @@ function renderInsightsBar(data) {
             <div class="queue-budget-card__stats">
                 <div class="queue-budget-stat">
                     <span>${escapeHtml(t('queue:budget_completed'))}</span>
-                    <strong>${escapeHtml(formatUsd(budget.completed_usd))}</strong>
+                    <strong>${escapeHtml(formatUsdWithBrl(budget.completed_usd, budget.completed_brl, budget.usd_to_brl))}</strong>
                 </div>
                 <div class="queue-budget-stat">
                     <span>${escapeHtml(t('queue:budget_active'))}</span>
-                    <strong>${escapeHtml(formatUsd(budget.active_usd))}</strong>
+                    <strong>${escapeHtml(formatUsdWithBrl(budget.active_usd, budget.active_brl, budget.usd_to_brl))}</strong>
                 </div>
                 <div class="queue-budget-stat">
                     <span>${escapeHtml(t('queue:budget_core_remaining'))}</span>
-                    <strong>${escapeHtml(formatUsd(budget.core_remaining_usd))}</strong>
+                    <strong>${escapeHtml(formatUsdWithBrl(budget.core_remaining_usd, budget.core_remaining_brl, budget.usd_to_brl))}</strong>
                 </div>
             </div>
         </div>

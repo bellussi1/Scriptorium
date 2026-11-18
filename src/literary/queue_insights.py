@@ -621,20 +621,28 @@ def read_budget_summary(
     books: Sequence[Dict[str, Any]],
     budgets_path: Path = DEFAULT_BUDGETS_PATH,
 ) -> Dict[str, Any]:
-    """Compute catalog-rate USD spend/estimate and remaining credit cap."""
+    """Compute calibrated USD/BRL spend estimates and remaining credit cap."""
     budgets = read_json(budgets_path)
     gemini_cfg = budgets.get("gemini") if isinstance(budgets.get("gemini"), dict) else {}
     cap_usd = float(gemini_cfg.get("cap_usd") or gemini_cfg.get("cap") or 45.0)
+    usd_to_brl = float(gemini_cfg.get("usd_to_brl") or 5.75)
+    rate_uncached = float(gemini_cfg.get("rate_per_m_words_uncached") or 13.02) / 1_000_000.0
+    rate_optimized = float(gemini_cfg.get("rate_per_m_words_optimized") or 10.80) / 1_000_000.0
 
-    def _est_usd(book: Dict[str, Any]) -> float:
+    def _est_usd(book: Dict[str, Any], state: str) -> float:
         actual = float(book.get("actual_cost") or 0.0)
         if actual > 0:
             return actual
-        est = float(book.get("estimated_cost") or 0.0)
-        if est > 0:
-            return est
         words = int(book.get("word_count") or 0)
-        return round(words * 0.0000092029, 2) if words > 0 else 0.0
+        if words > 0:
+            rate = (
+                rate_uncached
+                if state in {"completed", "needs_review"} or int(book.get("id") or 0) == 6
+                else rate_optimized
+            )
+            return round(words * rate, 2)
+        est = float(book.get("estimated_cost") or 0.0)
+        return est if est > 0 else 0.0
 
     completed_usd = 0.0
     active_usd = 0.0
@@ -645,8 +653,8 @@ def read_budget_summary(
         provider = str(book.get("provider") or "gemini").strip().lower()
         if provider and provider != "gemini":
             continue
-        cost = _est_usd(book)
         state = str(book.get("state") or book.get("status") or "pending").lower()
+        cost = _est_usd(book, state)
         if state in {"completed", "needs_review"}:
             completed_usd += cost
         elif state in active_states:
@@ -670,6 +678,13 @@ def read_budget_summary(
         "core_remaining_usd": core_remaining_usd,
         "total_remaining_usd": total_remaining_usd,
         "remaining_cap_usd": remaining_cap_usd,
+        "usd_to_brl": round(usd_to_brl, 2),
+        "completed_brl": round(completed_usd * usd_to_brl, 2),
+        "active_brl": round(active_usd * usd_to_brl, 2),
+        "core_remaining_brl": round(core_remaining_usd * usd_to_brl, 2),
+        "total_remaining_brl": round(total_remaining_usd * usd_to_brl, 2),
+        "cap_brl": round(cap_usd * usd_to_brl, 2),
+        "remaining_cap_brl": round(remaining_cap_usd * usd_to_brl, 2),
         "is_estimated": True,
     }
 
