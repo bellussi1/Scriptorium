@@ -2254,7 +2254,19 @@ function applyInitialQueueState() {
     }
 }
 
+const STYLE_VERSION = '20261118-desktop-std';
+
+function ensureFreshStylesheet() {
+    const link = document.querySelector('link[rel="stylesheet"][href*="/static/css/app.css"]');
+    if (!link) return;
+    const expected = `/static/css/app.css?v=${STYLE_VERSION}`;
+    if (link.getAttribute('href') !== expected) {
+        link.setAttribute('href', expected);
+    }
+}
+
 function initialize() {
+    ensureFreshStylesheet();
     applyInitialQueueState();
     ensureGlobalQualityDrawer();
     const button = byId('queueRefreshBtn');

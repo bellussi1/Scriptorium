@@ -49,7 +49,8 @@
     --rule-strong: #c4ccc7;
     --data-accent: #0f5f56;
     --data-accent-soft: #e3efec;
-    --radius: 2px;
+    --radius: 6px;
+    --control-radius: 4px;
 
     /* Remap the incumbent tokens so the whole app follows the theme. */
     --primary-light: #15191a;
@@ -344,10 +345,10 @@ label,
 .queue-stat-label,
 .fixed-language-pair__label {
     text-transform: none;
-    letter-spacing: 0;
+    letter-spacing: 0.01em;
     font-family: var(--font-ui);
-    font-size: 11.5px;
-    font-weight: 500;
+    font-size: 11px;
+    font-weight: 600;
     color: var(--muted);
 }
 
@@ -355,13 +356,50 @@ label,
 
 .btn {
     min-height: 32px;
-    padding: 5px $space-3;
+    padding: 0 12px;
+    border-radius: var(--control-radius);
+    font-family: var(--font-ui);
     font-size: 12.5px;
+    font-weight: 600;
+    box-shadow: none;
+}
+
+.btn-primary {
+    background: var(--data-accent);
+    border-color: var(--data-accent);
+    color: #ffffff;
+}
+
+.btn-primary:hover:not(:disabled) {
+    background: color-mix(in srgb, var(--data-accent) 88%, #000);
+    border-color: color-mix(in srgb, var(--data-accent) 88%, #000);
+}
+
+.btn-secondary {
+    background: var(--surface-strong);
+    border-color: var(--rule-strong);
+    color: var(--ink);
+}
+
+.btn-secondary:hover:not(:disabled) {
+    background: var(--paper);
+    border-color: var(--ink-soft);
+}
+
+html.dark .btn-primary {
+    background: var(--primary-light);
+    border-color: var(--primary-light);
+    color: #ffffff;
+}
+
+html.dark .btn-primary:hover:not(:disabled) {
+    background: color-mix(in srgb, var(--primary-light) 88%, #000);
+    border-color: color-mix(in srgb, var(--primary-light) 88%, #000);
 }
 
 .btn-sm {
     min-height: 26px;
-    padding: 3px $space-2;
+    padding: 0 10px;
     font-size: 11.5px;
 }
 
@@ -610,24 +648,26 @@ textarea.form-control {
 
 .queue-stat-value {
     font-family: var(--font-display);
-    font-size: 18px;
-    font-weight: 500;
+    font-size: 19px;
+    font-weight: 600;
     letter-spacing: -0.02em;
     line-height: 1.1;
     color: var(--ink);
 }
 
 .queue-stat-label {
-    font-size: 10.5px;
-    font-weight: 400;
+    font-family: var(--font-ui);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.01em;
     color: var(--muted);
     margin-top: 2px;
 }
 
 .queue-toolbar {
-    margin-bottom: $space-2;
+    margin-bottom: $space-3;
     padding-bottom: $space-2;
-    gap: 6px;
+    gap: 8px;
 }
 
 .queue-updated {
@@ -643,33 +683,36 @@ textarea.form-control {
 
 .queue-filters {
     margin-bottom: $space-2;
-    gap: 6px;
+    gap: 8px;
 }
 
 .queue-chip {
-    padding: 3px 8px;
+    display: inline-flex;
+    align-items: center;
+    min-height: 26px;
+    padding: 0 10px;
     border: 1px solid var(--rule);
-    border-radius: var(--radius);
-    background: transparent;
+    border-radius: var(--control-radius);
+    background: var(--surface-strong);
     color: var(--muted);
     font-family: var(--font-ui);
-    font-size: 11px;
+    font-size: 11.5px;
     font-weight: 500;
 }
 
 .queue-chip.is-active,
 .queue-chip[aria-pressed="true"] {
-    background: var(--ink);
-    border-color: var(--ink);
-    color: var(--paper);
+    background: var(--data-accent);
+    border-color: var(--data-accent);
+    color: #ffffff;
 }
 
 .queue-filter-select,
 .queue-filter-search {
     border: 1px solid var(--rule);
-    border-radius: var(--radius);
+    border-radius: var(--control-radius);
     background: var(--surface-strong);
-    padding: 4px 8px;
+    padding: 4px 10px;
     font-size: 12px;
     min-height: 30px;
 }
@@ -686,7 +729,13 @@ textarea.form-control {
 }
 
 .queue-events-title {
-    margin: $space-3 0 $space-1;
+    margin: $space-3 0 $space-2;
+    font-family: var(--font-ui);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    text-transform: none;
+    color: var(--muted);
 }
 
 .queue-events {
@@ -704,23 +753,25 @@ textarea.form-control {
 }
 
 .queue-table th {
-    padding: 6px 8px;
+    padding: 8px 10px;
     background: transparent;
     border: 0;
     border-bottom: 1px solid var(--rule);
     color: var(--muted);
     font-family: var(--font-ui);
-    font-size: 10.5px;
-    font-weight: 500;
-    letter-spacing: 0;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.01em;
     text-transform: none;
     text-align: left;
 }
 
 .queue-table td {
-    padding: 6px 8px;
+    padding: 8px 10px;
     border: 0;
     border-bottom: 1px solid var(--rule);
+    font-size: 12.5px;
+    line-height: 1.4;
     vertical-align: middle;
 }
 
@@ -734,9 +785,10 @@ textarea.form-control {
 
 .queue-table .queue-book-title {
     font-family: var(--font-display);
-    font-size: 13px;
-    font-weight: 500;
+    font-size: 13.5px;
+    font-weight: 600;
     letter-spacing: -0.01em;
+    color: var(--ink);
 }
 
 .queue-table .queue-book-author,
@@ -1144,9 +1196,17 @@ html.dark .queue-table tbody tr:hover {
 }
 
 .queue-chip.active {
-    background: var(--ink);
-    border-color: var(--ink);
-    color: var(--paper) !important;
+    background: var(--data-accent);
+    border-color: var(--data-accent);
+    color: #ffffff !important;
+}
+
+html.dark .queue-chip.active,
+html.dark .queue-chip.is-active,
+html.dark .queue-chip[aria-pressed="true"] {
+    background: var(--primary-light);
+    border-color: var(--primary-light);
+    color: #ffffff !important;
 }
 
 .queue-chip:hover {
@@ -1155,7 +1215,7 @@ html.dark .queue-table tbody tr:hover {
 }
 
 .queue-chip.active:hover {
-    color: var(--paper) !important;
+    color: #ffffff !important;
 }
 
 /* ---------- Tables shared by Files, Glossaries and Styles ---------- */
@@ -1462,10 +1522,18 @@ h4 {
 
 .thinking-model-warning {
     margin-top: $space-2;
-    padding: $space-2 $space-3;
+    padding: 8px 10px;
     background: var(--danger-light-bg);
-    border-left: 3px solid var(--danger-light-border);
-    border-radius: var(--radius);
+    border: 1px solid var(--danger-light-border);
+    border-radius: var(--control-radius);
+}
+
+.queue-action-status.is-error,
+.queue-control-status.is-error {
+    padding: 4px 8px;
+    border: 1px solid var(--danger-light-border);
+    border-left-width: 1px;
+    border-radius: var(--control-radius);
 }
 
 .thinking-model-warning-text {
@@ -1478,7 +1546,7 @@ h4 {
 .notify-status-badge {
     padding: 2px $space-2;
     border: 1px solid var(--success-light);
-    border-radius: var(--radius);
+    border-radius: var(--control-radius);
     background: var(--success-light-bg);
     color: var(--success-light);
     font-size: 0.7rem;
@@ -1488,10 +1556,12 @@ h4 {
 .card-header h2,
 .card-header h3 {
     font-size: 17px;
+    font-weight: 600;
 }
 
 .queue-stat-value {
-    font-size: 18px;
+    font-size: 19px;
+    font-weight: 600;
 }
 
 .file-upload h3 {
@@ -1503,7 +1573,34 @@ h4 {
 }
 
 .queue-table .queue-book-title {
-    font-size: 13px;
+    font-size: 13.5px;
+    font-weight: 600;
+}
+
+.file-table th {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+}
+
+.file-table td {
+    padding: 8px 10px;
+    font-size: 12.5px;
+    line-height: 1.4;
+}
+
+.modal-content {
+    border-radius: var(--radius);
+    border: 1px solid var(--rule);
+    box-shadow: none;
+}
+
+.queue-card,
+.queue-inset,
+.queue-metric,
+.queue-log,
+.queue-progress {
+    box-shadow: none;
 }
 
 /* ---------- Native controls ---------- */
