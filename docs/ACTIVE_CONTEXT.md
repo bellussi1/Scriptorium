@@ -1,11 +1,17 @@
 # Active context
 
 Handoff between sessions. Read this first; update it before you stop. It must
-describe the real repository, not a plan. Status as of 2026-11-18 (early
-morning local): revalidate with `git status` and `git log` before acting. Older
+describe the real repository, not a plan. Status as of 2026-11-18 (01:36 local):
+revalidate with `git status` and `git log` before acting. Older
 handoffs are in git history (this file was compacted on 2026-11-12).
 
 ## Now
+
+- **Gemini 3.8 Flash funded, Farseer official alignment complete, and `#4 Fool's Errand` actively translating (2026-11-18 01:36 local):**
+  - **Billing & guard fix:** Funded `GEMINI_API_KEY` (`R$ 30` Prepay wallet top-up + `US$ 40` Google Developer Program monthly credit; `data/budgets.json` `gemini.cap_usd = 45.0`), verified `HTTP 200 OK` on `gemini-3.8-flash` (`thinkingBudget: 0`), and fixed `src/core/llm/providers/gemini.py` so HTTP `402` / `"prepayment"` / `"billing"` errors never raise `ContextOverflowError` (failing fast instead of chunk-splitting). Also fixed `compile_for_book` in `src/literary/resources.py` to match apostrophe/hyphen slug variants (`fool-s-errand` -> `fools-errand` order `7.0`) and added `the-rain-wild-chronicles` (`order: 13`) to `realm-of-the-elderlings/series.yaml`.
+  - **Official Brazilian *Farseer Trilogy* editorial alignment:** Audited the official PT-BR editions (`Calibre 94/92/71`) and aligned `literary-resources/robin-hobb/realm-of-the-elderlings/` (`glossary.yaml`, `characters.yaml`, `style.yaml`, `tawny-man/`, `fitz-and-the-fool/`): `White Prophet` -> `Profeta Branco`, `Catalyst` -> `Catalisador`, `Old Blood` -> `Sangue Antigo`, `Piebald` -> `Malhado` (`Piebald Prince` -> `Príncipe Malhado`), `Changer` -> `Alterador`, `Withywoods` -> `Floresta Mirrada`, `Tilth` -> `Lavra`, `Neatbay` -> `Baía Limpa`, `Moonseye` -> `Olho da Lua`, `Blue Lake` -> `Lago Azul`, `Sooty` -> `Fuligem`, `Girl-on-a-Dragon` -> `Garota no Dragão`, `Verity-as-Dragon` -> `O Dragão de Verity`, `Skill-coterie` -> `círculo de Talento`, `Sacrifice` -> `Sacrifício`, `The Fool` -> `O Bobo`/`Bobo`, lowercase Six Duchies titles (`rei`, `príncipe`, `rainha`, `lorde`, `Lorde Golden`, keeping `Lady Patience`), Brazilian `travessão` dialogue formatting, and bare `<i>...</i>` italics for *Talento*/*Manha* telepathy. Resource validation passes with `0` errors (`python -m pytest -q tests/literary tests/unit/test_gemini_response_parts.py`: `421 passed`).
+  - **Live 10-excerpt verification pilot (`gemini-3.8-flash`):** `data/benchmark/hobb-pilot-cloud/20261118T043032Z/gemini-3.8-flash.jsonl` scored **`name_recall = 1.0000`**, `chrF = 0.7298`, `0` errors, `4.65 s` latency, `$0.02617` total (`$13.02 / 1M` words), documented in `docs/project/reviews/hobb-gemini-pilot-2026-11-18.md`.
+  - **Queue switched & live run started:** Retired partial Ollama `job #40` (`cli_bcf8480f`) on book `#4`, switched all `7` pending *Realm of the Elderlings* queue books (`#4, #6, #5, #16, #17, #18, #33`, `2.40M` words, estimated `$22.10` total) to `gemini` / `gemini-3.8-flash`, and launched `scripts/queue_runner_agent.py` + `request_run(mode="next")` (`--max-books 1 --stop-on-review --parallel 1`). **`#4 Fool's Errand` (`job #41`, `translation_id: cli_93ddf44e`) is actively translating** from `data/calibre/prepared/fool-s-errand.epub` (`chunk 1/851` fresh); do **not** restart `translatebook-literary-dev` while running.
 
 - **Liveship Traders polish & Robin Hobb Gemini comparative pilot (2026-11-18 early morning local):**
   - **Restored queue & stopped redundant job:** Per user instruction, cancelled the fresh `Ship of Magic` re-translation (`job #41`), restored the pre-reset DB (`data/literary_queue.db`), queue logs (`83` files), and completed artifacts (`Sun Eater 2–7`, `Lonesome Dove`, `Liveship 1–3`), and updated `13` defective DB rows (`source_path`/`source_hash`) to point to the sanitized EPUBs in `data/calibre/prepared/`.
@@ -284,12 +290,12 @@ handoffs are in git history (this file was compacted on 2026-11-12).
 | Ship of Destiny (Realm, Liveship 3) | 1, completed | polished + standardized (2026-11-18) | `42` chapters in NCX, Ch 17/18/20 + `&lt;/?KTRANSLATION&gt;` fixed, `EPUBCheck 0/0/0`; in `translated_files/kindle/`. |
 | Sun Eater 2–7 (Howling Dark .. Shadows Upon Time) | 10, 8, 11, 7, 9, 13 | completed | All `6` exported in `translated_files/kindle/` (`10` total completed books with Lonesome Dove + Liveship 1–3). |
 | Lonesome Dove | 32, completed | completed | Exported in `translated_files/kindle/`. |
-| Fool's Errand (Realm, Tawny Man 1) | 4, paused (priority 20) | Index (`source_path` -> `fool-s-errand.epub`) | Sanitized prepared source wired; paused waiting for user decision after Gemini pilot (`402` on `.env` keys). |
-| The Golden Fool, Fool's Fate | 6, 5 (priorities 19, 18) | pending | Sanitized under `data/calibre/prepared/` (`toc_r1` NCX `33` / `43`, `EPUBCheck 0/0/0`). |
-| Fool's Assassin, Fool's Quest, Assassin's Fate | 16, 17, 18 (priorities 17..15) | pending | Sanitized under `data/calibre/prepared/` (`OPF-030` / `<img alt="">` fixed). |
-| The Rain Wild Chronicles | 33, priority 14 | pending | Sanitized `data/calibre/prepared/the-rain-wild-chronicles.epub` (`OPF-030` fixed). |
-| Malice, A Time of Dread, A Little Hatred | 29, 30, 31 (priorities 13..11) | pending | Sanitized under `data/calibre/prepared/` (`OPF-030` fixed). |
-| Farseer trilogy (Assassin's Apprentice, Royal Assassin, Assassin's Quest) | not queued | reference EN/PT-BR pairs in `data/editorial_samples/farseer3_{en,pt}/` | Official Farseer core terms stay in `realm-of-the-elderlings/`. |
+| Fool's Errand (Realm, Tawny Man 1) | 4, translating (`job #41`, priority 20) | `gemini` / `gemini-3.8-flash` (`cli_93ddf44e`) | Fresh run from chunk `1/851` on `data/calibre/prepared/fool-s-errand.epub` (old Ollama `job #40` retired); estimated `$2.20`. |
+| The Golden Fool, Fool's Fate | 6, 5 (priorities 19, 18) | pending (`gemini-3.8-flash`) | Sanitized under `data/calibre/prepared/` (`toc_r1` NCX `33` / `43`, `EPUBCheck 0/0/0`). |
+| Fool's Assassin, Fool's Quest, Assassin's Fate | 16, 17, 18 (priorities 17..15) | pending (`gemini-3.8-flash`) | Sanitized under `data/calibre/prepared/` (`OPF-030` / `<img alt="">` fixed). |
+| The Rain Wild Chronicles | 33, priority 14 | pending (`gemini-3.8-flash`) | Sanitized `data/calibre/prepared/the-rain-wild-chronicles.epub` (`order: 13`, `116` compiled terms). |
+| Malice, A Time of Dread, A Little Hatred | 29, 30, 31 (priorities 13..11) | pending (`ollama` / Index-9B) | Sanitized under `data/calibre/prepared/` (`OPF-030` fixed). |
+| Farseer trilogy (Assassin's Apprentice, Royal Assassin, Assassin's Quest) | not queued | reference EN/PT-BR pairs in Calibre & `data/editorial_samples/` | Canonical official PT-BR terms & style synced into `realm-of-the-elderlings/`. |
 | Malazan | 19..28 (priorities 10..1) | pending | Zero glossary terms; inherits global `proper_nouns` and `brazilian_prose` style rules. |
 
 ## Procedures
@@ -415,13 +421,12 @@ documents). Do not re-run it on finals; see
 
 ## Model policy and evidence
 
-- Local Index-Translate 9B for Sun Eater and Realm (Hy-MT2 Q4 as fallback).
-  Cloud only when funded again. Evidence:
+- **Gemini 3.8 Flash (`gemini` / `gemini-3.8-flash`, `thinkingBudget: 0`) for active *Realm of the Elderlings* queue (`#4, #6, #5, #16..#18, #33`):** funded by `US$ 40` Google Developer Program monthly credit + `R$ 30` Prepay wallet top-up on `GEMINI_API_KEY`; live Hobb verification scored `100%` `name_recall` and `$13.02 / 1M` words (`docs/project/reviews/hobb-gemini-pilot-2026-11-18.md`).
+- Local `Index-Translate-9B` remains default for completed *Sun Eater* / *Liveship Traders* and later non-Hobb series (`Malazan`, `Gwynne`, `Abercrombie`). Evidence:
   `docs/project/reviews/sun-eater-model-selection-2026-11-10.md`,
   `docs/project/reviews/local-model-benchmark-2026-11-10.md`,
   `docs/project/reviews/local-model-ceiling-2026-11-12.md`.
-- Balances (snapshot 2026-11-10): Anthropic US$ 1.54, DeepSeek US$ 1.38, Gemini
-  exhausted. Ledger: `data/cost_ledger.jsonl`.
+- Balances / Caps (`data/budgets.json`): Gemini `cap_usd: 45.0` (snapshot `2026-11-18`), Anthropic `US$ 1.54`, DeepSeek `US$ 1.38` (snapshot `2026-11-10`). Ledger: `data/cost_ledger.jsonl`.
 
 ## Repository
 

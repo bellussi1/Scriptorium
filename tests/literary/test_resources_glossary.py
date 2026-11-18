@@ -162,3 +162,38 @@ def test_write_glossary_json_shape(tmp_path: Path):
     payload = json.loads(out.read_text(encoding="utf-8"))
     assert payload["terms"][0]["source"] == "Keep"
     assert payload["terms"][0]["target"] == "Manter"
+
+
+def test_compile_for_book_matches_apostrophe_slug_and_filters_spoilers(tmp_path: Path):
+    root = tmp_path / "literary-resources"
+    _write(
+        root / "robin-hobb" / "realm-of-the-elderlings" / "series.yaml",
+        {
+            "name": "Realm of the Elderlings",
+            "books": [
+                {"slug": "fools-errand", "title": "Fool's Errand", "order": 7},
+                {"slug": "fools-fate", "title": "Fool's Fate", "order": 9},
+            ],
+        },
+    )
+    _write(
+        root / "robin-hobb" / "realm-of-the-elderlings" / "tawny-man" / "glossary.yaml",
+        {
+            "terms": [
+                {"source": "EarlyTerm", "target": "TermoInicial", "first_appearance": "fools-errand"},
+                {"source": "SpoilerTerm", "target": "TermoSpoiler", "first_appearance": "fools-fate"},
+            ]
+        },
+    )
+    compiled = compile_for_book(
+        load_tree(root),
+        "robin-hobb",
+        "realm-of-the-elderlings",
+        "tawny-man",
+        "Fool's Errand",
+    )
+    assert compiled.book is not None
+    assert compiled.book.order == 7
+    sources = {term.source for term in compiled.glossary.terms}
+    assert "EarlyTerm" in sources
+    assert "SpoilerTerm" not in sources

@@ -71,6 +71,8 @@ terms:
     category: organization
     policy: transliterate
     aliases: [Chyurdas]
+    alias_targets:
+      Chyurdas: chyurdas
     notes: >-
       Ethnic group; the official PT edition uses lowercase chyurda / chyurdas.
       Do not capitalize in mid-sentence unless the source does.
@@ -238,6 +240,157 @@ terms:
     policy: translate
     notes: "Buckkeep seasonal feast; canonical PT-BR rendering from Farseer 2–3."
     source_reference: "Official PT-BR editions, Calibre 92/71"
+    confidence: confirmed
+    first_appearance: assassins-apprentice
+    approved: true
+  - source: White Prophet
+    target: Profeta Branco
+    category: title
+    policy: translate
+    aliases: [White Prophets]
+    alias_targets:
+      White Prophets: Profetas Brancos
+    forbidden: ["White Prophet", "White Prophets"]
+    notes: "Canonical PT-BR rendering from A Fúria do Assassino (Profeta Branco)."
+    source_reference: "Official PT-BR edition, Calibre 71"
+    confidence: confirmed
+    first_appearance: assassins-quest
+    approved: true
+  - source: Catalyst
+    target: Catalisador
+    category: title
+    policy: translate
+    aliases: [Catalysts]
+    alias_targets:
+      Catalysts: Catalisadores
+    forbidden: ["Catalyst"]
+    notes: "Canonical PT-BR rendering from official Farseer editions."
+    source_reference: "Official PT-BR editions, Calibre 94/92/71"
+    confidence: confirmed
+    first_appearance: assassins-apprentice
+    approved: true
+  - source: Old Blood
+    target: Sangue Antigo
+    category: concept
+    policy: translate
+    aliases: [Old Bloods]
+    alias_targets:
+      Old Bloods: Sangue Antigo
+    forbidden: ["Old Blood", "Velho Sangue"]
+    notes: "Canonical PT-BR rendering from A Fúria do Assassino (Sangue Antigo)."
+    source_reference: "Official PT-BR edition, Calibre 71"
+    confidence: confirmed
+    first_appearance: assassins-quest
+    approved: true
+  - source: Piebald
+    target: Malhado
+    category: organization
+    policy: translate
+    aliases: [Piebalds, Piebald Prince]
+    alias_targets:
+      Piebalds: Malhados
+      Piebald Prince: Príncipe Malhado
+    forbidden: ["Piebald", "Piebalds"]
+    notes: "Canonical PT-BR rendering from O Assassino do Rei (príncipe Malhado)."
+    source_reference: "Official PT-BR edition, Calibre 92"
+    confidence: confirmed
+    first_appearance: royal-assassin
+    approved: true
+  - source: Changer
+    target: Alterador
+    category: title
+    policy: translate
+    forbidden: ["Cambiante", "Transmorfo", "Mutante", "Trocado", "Changer"]
+    notes: "Nighteyes's Wit-name for Fitz in A Fúria do Assassino and later trilogies."
+    source_reference: "Official PT-BR edition, Calibre 71"
+    confidence: confirmed
+    first_appearance: assassins-quest
+    approved: true
+  - source: Withywoods
+    target: Floresta Mirrada
+    category: location
+    policy: translate
+    forbidden: ["Withywoods"]
+    notes: "Chivalry's and later Fitz's estate; canonical PT-BR rendering from O Aprendiz de Assassino."
+    source_reference: "Official PT-BR edition, Calibre 94"
+    confidence: confirmed
+    first_appearance: assassins-apprentice
+    approved: true
+  - source: Tilth
+    target: Lavra
+    category: location
+    policy: translate
+    forbidden: ["Tilth"]
+    notes: "Inland duchy of the Six Duchies; canonical PT-BR rendering from Farseer 1-3."
+    source_reference: "Official PT-BR editions, Calibre 94/92/71"
+    confidence: confirmed
+    first_appearance: assassins-apprentice
+    approved: true
+  - source: Neatbay
+    target: Baía Limpa
+    category: location
+    policy: translate
+    forbidden: ["Neatbay"]
+    notes: "Coastal port in Rippon Duchy; canonical PT-BR rendering from Farseer 1-3."
+    source_reference: "Official PT-BR editions, Calibre 94/92/71"
+    confidence: confirmed
+    first_appearance: assassins-apprentice
+    approved: true
+  - source: Moonseye
+    target: Olho da Lua
+    category: location
+    policy: translate
+    forbidden: ["Moonseye"]
+    notes: "Mountain settlement; canonical PT-BR rendering from O Aprendiz / A Fúria do Assassino."
+    source_reference: "Official PT-BR editions, Calibre 94/71"
+    confidence: confirmed
+    first_appearance: assassins-apprentice
+    approved: true
+  - source: Blue Lake
+    target: Lago Azul
+    category: location
+    policy: translate
+    notes: "Canonical PT-BR rendering from A Fúria do Assassino."
+    source_reference: "Official PT-BR edition, Calibre 71"
+    confidence: confirmed
+    first_appearance: assassins-quest
+    approved: true
+  - source: Girl-on-a-Dragon
+    target: Garota no Dragão
+    category: item
+    policy: translate
+    notes: "Elderling stone dragon sculpture; canonical PT-BR rendering from A Fúria do Assassino."
+    source_reference: "Official PT-BR edition, Calibre 71"
+    confidence: confirmed
+    first_appearance: assassins-quest
+    approved: true
+  - source: Verity-as-Dragon
+    target: O Dragão de Verity
+    category: character
+    policy: translate
+    notes: "Canonical PT-BR rendering from A Fúria do Assassino."
+    source_reference: "Official PT-BR edition, Calibre 71"
+    confidence: confirmed
+    first_appearance: assassins-quest
+    approved: true
+  - source: Skill-coterie
+    target: círculo de Talento
+    category: organization
+    policy: translate
+    aliases: [Skill-coteries]
+    alias_targets:
+      Skill-coteries: círculos de Talento
+    notes: "Group of Skilled users; canonical PT-BR rendering from Farseer 1-3."
+    source_reference: "Official PT-BR editions, Calibre 94/92/71"
+    confidence: confirmed
+    first_appearance: assassins-apprentice
+    approved: true
+  - source: Sacrifice
+    target: Sacrifício
+    category: title
+    policy: translate
+    notes: "Mountain Kingdom ruler's title; render as Sacrifício."
+    source_reference: "Official PT-BR editions, Calibre 94/92/71"
     confidence: confirmed
     first_appearance: assassins-apprentice
     approved: true

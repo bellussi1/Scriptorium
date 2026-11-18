@@ -18,17 +18,17 @@ terms:
     first_appearance: fools-errand
     approved: false
   - source: Lord Golden
-    target: Lord Golden
+    target: Lorde Golden
     category: character
-    policy: keep
+    policy: translate
     aliases: [Golden]
     alias_targets: {Golden: Golden}
     gender: male
     notes: >-
-      The Fool's Tawny Man persona. Keep both title Lord and name Golden in
-      English and use masculine agreement for the Lord persona unless a passage
-      deliberately withholds it.
-    source_reference: "User preference; English title and name kept"
+      The Fool's Tawny Man persona. Use Lorde Golden (matching Lorde Bright /
+      lorde FitzChivalry in the official Farseer editions) and masculine agreement
+      for the Lorde persona unless a passage deliberately withholds it.
+    source_reference: "Official PT-BR Farseer title convention, Calibre 71"
     confidence: reviewed
     first_appearance: fools-errand
     approved: true

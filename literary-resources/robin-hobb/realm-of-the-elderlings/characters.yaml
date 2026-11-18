@@ -48,10 +48,12 @@ terms:
     target: Verity
     category: character
     policy: keep
-    aliases: [Prince Verity]
-    alias_targets: {Prince Verity: Prince Verity}
+    aliases: [Prince Verity, King Verity]
+    alias_targets:
+      Prince Verity: príncipe Verity
+      King Verity: rei Verity
     gender: male
-    source_reference: "Official PT-BR edition, Calibre 94; title kept in English per user rule"
+    source_reference: "Official PT-BR editions, Calibre 94/92/71"
     confidence: confirmed
     first_appearance: assassins-apprentice
     approved: true
@@ -60,9 +62,9 @@ terms:
     category: character
     policy: keep
     aliases: [Prince Regal]
-    alias_targets: {Prince Regal: Prince Regal}
+    alias_targets: {Prince Regal: príncipe Regal}
     gender: male
-    source_reference: "Official PT-BR edition, Calibre 94; title kept in English per user rule"
+    source_reference: "Official PT-BR editions, Calibre 94/92/71"
     confidence: confirmed
     first_appearance: assassins-apprentice
     approved: true
@@ -71,9 +73,9 @@ terms:
     category: character
     policy: keep
     aliases: [King Shrewd]
-    alias_targets: {King Shrewd: King Shrewd}
+    alias_targets: {King Shrewd: rei Shrewd}
     gender: male
-    source_reference: "Official PT-BR edition, Calibre 94; title kept in English per user rule"
+    source_reference: "Official PT-BR editions, Calibre 94/92/71"
     confidence: confirmed
     first_appearance: assassins-apprentice
     approved: true
@@ -81,9 +83,10 @@ terms:
     target: Patience
     category: character
     policy: keep
-    aliases: []
+    aliases: [Lady Patience]
+    alias_targets: {Lady Patience: Lady Patience}
     gender: female
-    source_reference: "Official PT-BR edition, Calibre 94"
+    source_reference: "Official PT-BR editions, Calibre 94/92/71 (keeps Lady Patience)"
     confidence: confirmed
     first_appearance: assassins-apprentice
     approved: true
@@ -92,9 +95,9 @@ terms:
     category: character
     policy: keep
     aliases: [Prince Chivalry]
-    alias_targets: {Prince Chivalry: Prince Chivalry}
+    alias_targets: {Prince Chivalry: príncipe Chivalry}
     gender: male
-    source_reference: "Official PT-BR edition, Calibre 94; title kept in English per user rule"
+    source_reference: "Official PT-BR editions, Calibre 94/92/71"
     confidence: confirmed
     first_appearance: assassins-apprentice
     approved: true
@@ -123,16 +126,28 @@ terms:
     confidence: confirmed
     first_appearance: assassins-apprentice
     approved: true
+  - source: Sooty
+    target: Fuligem
+    category: character
+    policy: translate
+    gender: female
+    notes: "Fitz's mare at Buckkeep; canonical PT-BR rendering from official Farseer editions."
+    source_reference: "Official PT-BR editions, Calibre 94/92/71"
+    confidence: confirmed
+    first_appearance: assassins-apprentice
+    approved: true
   - source: The Fool
-    target: Bobo
+    target: O Bobo
     category: character
     policy: translate
     aliases: [Fool]
+    alias_targets: {Fool: Bobo}
     gender: ""
     notes: >-
-      The official PT edition uses Bobo. The character's gender and nature are
-      deliberately ambiguous; do not force a gendered reading in passages where
-      the source withholds it.
+      The official PT edition uses Bobo (O Bobo when "The Fool" begins a phrase
+      or needs the article). The character's gender and nature are deliberately
+      ambiguous; do not force a gendered reading in passages where the source
+      withholds it.
     source_reference: "Official PT-BR editions, Calibre 94/92/71"
     confidence: confirmed
     first_appearance: assassins-apprentice
@@ -266,9 +281,9 @@ terms:
     category: character
     policy: keep
     aliases: [Prince Dutiful]
-    alias_targets: {Prince Dutiful: Prince Dutiful}
+    alias_targets: {Prince Dutiful: príncipe Dutiful}
     gender: male
-    source_reference: "Source text (Tawny Man); name and title kept"
+    source_reference: "Source text (Tawny Man); aligned with official PT-BR Farseer royal title convention"
     confidence: reviewed
     first_appearance: fools-errand
     approved: true
@@ -276,6 +291,8 @@ terms:
     target: Kettricken
     category: character
     policy: keep
+    aliases: [Queen Kettricken]
+    alias_targets: {Queen Kettricken: rainha Kettricken}
     gender: female
     source_reference: "Official PT-BR editions, Calibre 94/92/71"
     confidence: confirmed

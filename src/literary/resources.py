@@ -373,7 +373,17 @@ def compile_for_book(
             break
     current_book: Optional[SeriesBook] = None
     if series and book:
-        current_book = next((b for b in series.books if b.slug == book), None)
+        book_compact = book.replace("-", "")
+        current_book = next(
+            (
+                b
+                for b in series.books
+                if b.slug == book
+                or slugify(b.title) == book
+                or b.slug.replace("-", "") == book_compact
+            ),
+            None,
+        )
     if book_order is None and current_book is not None:
         book_order = current_book.order
 

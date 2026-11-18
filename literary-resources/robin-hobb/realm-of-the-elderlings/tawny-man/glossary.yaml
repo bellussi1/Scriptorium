@@ -3,52 +3,11 @@ scope: subseries
 source_language: en
 target_language: pt-BR
 notes: >-
-  Tawny Man terminology. Core official Farseer canon (Manha, Talento,
-  ilhéu/ilhéus) stays intact; new Tawny Man capitalized concepts, groups, and
-  titles (Old Blood, Piebalds, Catalyst, White Prophet) stay in English.
+  Tawny Man terminology. Inherits canonical official Farseer universe
+  renderings (Manha, Talento, Sangue Antigo, Malhados, Catalisador,
+  Profeta Branco, Olhos-de-Noite, Alterador, Floresta Mirrada) and adds
+  Outislander places/titles introduced in Tawny Man.
 terms:
-  - source: Old Blood
-    target: Old Blood
-    category: concept
-    policy: keep
-    aliases: [Old Bloods]
-    alias_targets: {Old Bloods: Old Bloods}
-    notes: "The old Wit-blooded families; keep capitalized term in English."
-    source_reference: "User preference; English proper/capitalized term kept"
-    confidence: reviewed
-    first_appearance: fools-errand
-    approved: true
-  - source: Piebalds
-    target: Piebalds
-    category: organization
-    policy: keep
-    aliases: [Piebald]
-    alias_targets: {Piebald: Piebald}
-    notes: "The militant Wit-user group; keep capitalized name in English."
-    source_reference: "User preference; English organization name kept"
-    confidence: reviewed
-    first_appearance: fools-errand
-    approved: true
-  - source: Catalyst
-    target: Catalyst
-    category: title
-    policy: keep
-    notes: "The White Prophet's counterpart; keep capitalized title in English."
-    source_reference: "User preference; English title kept"
-    confidence: reviewed
-    first_appearance: fools-errand
-    approved: true
-  - source: White Prophet
-    target: White Prophet
-    category: title
-    policy: keep
-    aliases: [White Prophets]
-    alias_targets: {White Prophets: White Prophets}
-    notes: "Capitalized title; keep in English."
-    source_reference: "User preference; English title kept"
-    confidence: reviewed
-    first_appearance: fools-errand
-    approved: true
   - source: Hetgurd
     target: Hetgurd
     category: organization

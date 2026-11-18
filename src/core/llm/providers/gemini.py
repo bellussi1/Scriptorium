@@ -309,6 +309,19 @@ class GeminiProvider(LLMProvider):
                         payload["generationConfig"].pop("thinkingConfig", None)
                         continue
 
+                    error_body_lower = error_body.lower()
+                    is_billing_error = (
+                        e.response.status_code == 402
+                        or "prepayment" in error_body_lower
+                        or "billing" in error_body_lower
+                    )
+                    if e.response.status_code == 402:
+                        print(
+                            "Gemini API billing credits exhausted (HTTP 402): "
+                            f"{error_body[:200]}"
+                        )
+                        return None
+
                     print(f"Gemini API HTTP Error (attempt {attempt + 1}/{MAX_TRANSLATION_ATTEMPTS}): {e}")
                     if error_body:
                         print(f"Response details: Status {e.response.status_code}, Body: {error_body[:200]}...")
@@ -316,7 +329,7 @@ class GeminiProvider(LLMProvider):
                     # Detect context overflow errors (Gemini uses "RESOURCE_EXHAUSTED" or token limits)
                     context_overflow_keywords = ["resource_exhausted", "token limit", "input too long",
                                                   "maximum input", "context length", "too many tokens"]
-                    if any(keyword in error_message.lower() for keyword in context_overflow_keywords):
+                    if not is_billing_error and any(keyword in error_message.lower() for keyword in context_overflow_keywords):
                         raise ContextOverflowError(f"Gemini context overflow: {error_message}")
 
                     # Client errors (404 model retired, 400/401/403) won't recover

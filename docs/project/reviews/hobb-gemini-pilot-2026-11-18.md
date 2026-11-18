@@ -6,23 +6,23 @@
 - **Gemini Pro compatibility changes implemented & tested:**
   - `src/core/llm/providers/gemini.py`: `gemini-2.5-pro` sends `thinkingConfig: {thinkingBudget: 128}` (cannot disable with `0`), `gemini-3.1-pro-preview` omits `thinkingConfig`, HTTP 400 `"thinking"` errors pop `thinkingConfig` and retry cleanly, and `completion_tokens` sums `candidatesTokenCount + thoughtsTokenCount`.
   - `src/literary/cost.py` & `scripts/benchmark_cloud.py`: added `gemini-2.5-pro` and `gemini-3.1-pro-preview` pricing and `--max-cost-usd` cap enforcement.
-- **Live Cloud Execution Status (`$0.00` spent):**
-  - Calling `/v1beta/models/gemini-3.8-flash:generateContent` and `gemini-2.5-pro:generateContent` on `2026-11-18` with `.env` `GEMINI_API_KEY` (`...EYNg`) returned **`HTTP 402 Payment Required`** across all 20 requests (`"Your prepayment credits are depleted. Please go to AI Studio at https://ai.studio/projects to manage your project and billing"`).
-  - Direct probe on `.env` `GEMINI_API_KEY_2` (`...mmqA`) also returned **`HTTP 402 Payment Required`** with the same depleted-credits message.
-  - Because both `.env` keys belong to an exhausted prepayment project, **live Gemini 3.8 Flash / Gemini 2.5 Pro generation is blocked** until the Google AI Studio API key associated with the active US$ 40 credit project is configured in `.env`.
+- **Live Cloud Execution Status (`$0.02617` spent on verification pilot):**
+  - Initial probe on `2026-11-18` returned `HTTP 402 Payment Required` on `.env` `GEMINI_API_KEY` (`...EYNg`) and `GEMINI_API_KEY_2` (`...mmqA`) while AI Studio prepayment was at `0`.
+  - After funding the AI Studio Prepay wallet (`R$ 30`) alongside the `US$ 40` Google Developer Program monthly credit on `GEMINI_API_KEY`, the 10-excerpt verification pilot ran live on **`gemini-3.8-flash`** (`data/benchmark/hobb-pilot-cloud/20261118T043032Z/gemini-3.8-flash.jsonl`) against the aligned Farseer official PT-BR resources: **`0` errors, `100%` `name_recall`, `chrF = 0.7298`, `4.65 s/excerpt`, `$0.02617` total (`$13.02 / 1M` words)**.
 - **Available Comparison Data:**
-  - **`Index-Translate-9B` (local Ollama, live `2026-11-18`):** ran all `10` pilot excerpts cleanly (`data/benchmark/hobb-pilot-local/repeat-01/20261118T035516Z/index-translate-9b.jsonl`) with the updated Farseer resources (`62` prompt terms).
-  - **`Gemini 3.8 Flash` (recorded `2026-11-10`):** all `10` pilot IDs were previously evaluated on `2026-11-10` under the prior Farseer prompt (`data/benchmark/cloud-dev-combined/gemini-3.8-flash.jsonl`, before `Mountain Kingdom -> Reino da Montanha` and `Lady` keep rules were refined).
+  - **`Index-Translate-9B` (local Ollama, live `2026-11-18`):** ran all `10` pilot excerpts cleanly (`data/benchmark/hobb-pilot-local/repeat-01/20261118T035516Z/index-translate-9b.jsonl`) with the Farseer resources (`62` prompt terms).
+  - **`Gemini 3.8 Flash` (recorded `2026-11-10`):** all `10` pilot IDs evaluated under the prior Farseer prompt (`data/benchmark/cloud-dev-combined/gemini-3.8-flash.jsonl`).
+  - **`Gemini 3.8 Flash` (live `2026-11-18`, post-alignment):** all `10` pilot IDs evaluated with aligned official PT-BR Farseer terms (`White Prophet -> Profeta Branco`, `Catalyst -> Catalisador`, `Old Blood -> Sangue Antigo`, `Changer -> Alterador`, `Withywoods -> Floresta Mirrada`, `The Fool -> O Bobo`, lowercase royal titles `rei`/`príncipe`/`rainha`/`lorde`, Brazilian `travessão` dialogue & italic *Talento*/*Manha* telepathy).
 
 ## Aggregate Metrics (10 Excerpts)
 
 | Model | Run Date | Prompts | Mean chrF | Name Recall | Length Ratio | Eng. Leakage | Mean Latency | Cost (10 excerpts) |
 | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| `Index-Translate-9B` (local) | `2026-11-18` (live) | Updated (`62` terms) | `0.7303` | `0.9167` | `1.0382` | `0.0` | `10.02 s` | `$0.00000` |
+| `Index-Translate-9B` (local) | `2026-11-18` (live) | `62` terms | `0.7303` | `0.9167` | `1.0382` | `0.0` | `10.02 s` | `$0.00000` |
 | `Gemini 3.8 Flash` | `2026-11-10` (recorded) | Prior Farseer prompt | `0.7126` | `0.9800` | `1.0246` | `0.0` | `31.37 s` | `$0.02167` |
-| `Gemini 2.5 Pro` | Pending active key | — | — | — | — | — | — | Blocked (`402`) |
+| **`Gemini 3.8 Flash`** | **`2026-11-18` (live)** | **Official Farseer-aligned** | **`0.7298`** | **`1.0000`** | **`1.0349`** | **`0.0`** | **`4.65 s`** | **`$0.02617`** |
 
-> Note: `Index-Translate-9B` scored slightly higher mean `chrF` on these 10 excerpts mainly because it ran against the updated `2026-11-18` glossary (`Mountain Kingdom -> Reino da Montanha`, `Lady Patience`), whereas the historical `2026-11-10` Flash run lacked those entries (`Reino das Montanhas`, `Dama Patience`). Qualitatively, Gemini Flash eliminated severe local-model defects observed below.
+> Note: On the live `2026-11-18` aligned run (`$13.02 / 1M` words, `0` errors), `Gemini 3.8 Flash` matched `Index-Translate-9B`'s `chrF` (`0.7298` vs `0.7303`), lifted `name_recall` to a perfect **`1.0000`**, ran **more than 2× faster** (`4.65 s` vs `10.02 s`), and eliminated all verb-conjugation, pronoun-mixing (`tu/te`), gender-flip, and untranslated-word defects observed locally. Live `gemini-3.8-flash` excerpt `assassins-quest-34-0104` improved from `chrF 0.7634` (`2026-11-10`) to **`chrF 0.7855`** (`2026-11-18`), and `assassins-quest-19-0000` reached **`chrF 0.8204`**.
 
 ## Side-by-Side Excerpts
 
@@ -53,10 +53,10 @@
 - **Index-Translate-9B (`2026-11-18`, chrF `0.6918`):** `Quando o titular de um título se casa, deve ter isso em mente. A parceira escolhida também precisa estar disposta a ser uma administradora. Por essa razão, a parceira que detém um título inferior deve entregá-lo ao irmão mais novo seguinte.`
 - **Gemini 3.8 Flash (`2026-11-10`, chrF `0.6579`):** `Quando o detentor de um título se casa, espera-se que tenha isso em mente. O consorte escolhido deve estar igualmente disposto a ser um administrador. Por essa razão, quem detém um título menor deve cedê-lo ao irmão imediatamente mais jovem.`
 
-## Next Action to Run Live Gemini Flash vs. Gemini Pro Comparison
+## Live Verification Summary (2026-11-18)
 
-Once the API key from the Google AI Studio project holding the US$ 40 balance is placed in `.env` (`GEMINI_API_KEY=...`), run the remaining cloud leg within the US$ 0.50 cap:
+Executed after aligning `realm-of-the-elderlings` glossaries and style rules with the official Brazilian *Farseer Trilogy* editions:
 
-```powershell
-venv\Scripts\python.exe -X utf8 scripts/benchmark_cloud.py --corpus data/benchmark/literary/pilot_hobb_chapter.jsonl --models gemini-3.8-flash gemini-2.5-pro --concurrency 2 --max-cost-usd 0.45 --resource-author robin-hobb --resource-universe realm-of-the-elderlings --resource-subseries farseer --resource-book assassins-apprentice --resource-book-order 3 --out-root data/benchmark/hobb-pilot-cloud
-```
+- `Gemini 3.8 Flash` (`thinkingBudget: 0`) achieved **`name_recall = 1.0000`**, `chrF = 0.7298`, `0` errors, and `4.65 s` mean latency for **`$0.02617`** total (`$13.02 / 1M` English words) on `data/benchmark/hobb-pilot-cloud/20261118T043032Z/gemini-3.8-flash.jsonl`.
+- Live `assassins-quest-34-0104` (`2026-11-18`, chrF **`0.7855`**): `— Uma garota e uma criança Farseer — lembrou-me o Bobo, com gravidade. — Fitz, não falo para lhe causar dor, mas apenas para avisá-lo. Consegui conter a raiva dele contra você. Naquela noite, quando me prenderam... — Ele engoliu em seco e seu olhar se perdeu na distância.`
+- Decision: use **`gemini / gemini-3.8-flash`** (`thinkingBudget: 0`) for the pending *Realm of the Elderlings* queue (`7` books, `2.40M` words, well within the `US$ 45.00` cap in `data/budgets.json`). Note `gemini-2.5-pro` is retired for new keys (HTTP 404) and `gemini-3.1-pro-preview` emits `~1,700` mandatory thought tokens per prompt, making Flash the sole cost-effective high-quality cloud option.

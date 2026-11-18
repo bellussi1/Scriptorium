@@ -94,6 +94,12 @@ books:
     kind: novel
     status: deferred
     notes: "Rain Wild 4. Deferred by the user on 2026-11-07; do not queue."
+  - slug: the-rain-wild-chronicles
+    title: The Rain Wild Chronicles
+    order: 13
+    kind: omnibus
+    status: source
+    notes: "Rain Wild 1-4 omnibus (Calibre 331)."
   - slug: fools-assassin
     title: Fool's Assassin
     order: 14

@@ -4,17 +4,9 @@ source_language: en
 target_language: pt-BR
 notes: >-
   Fitz and the Fool locations, titles, and recurring Realm terminology.
-  Maintains continuity with Farseer, Liveship Traders, and Tawny Man terms.
+  Maintains continuity with official PT-BR Farseer/Tawny Man terminology and
+  with the completed Liveship Traders editions.
 terms:
-  - source: Withywoods
-    target: Withywoods
-    category: location
-    policy: keep
-    notes: "Fitz and Molly's estate in Buck Duchy; keep the English estate name."
-    source_reference: "Source text (Fool's Assassin); name kept"
-    confidence: provisional
-    first_appearance: fools-errand
-    approved: false
   - source: Clerres
     target: Clerres
     category: location
@@ -25,14 +17,16 @@ terms:
     first_appearance: fools-assassin
     approved: false
   - source: Whites
-    target: Whites
+    target: Brancos
     category: other
-    policy: keep
+    policy: translate
     aliases: [White Prophet, White Prophets]
-    alias_targets: {White Prophet: White Prophet, White Prophets: White Prophets}
-    notes: "Capitalized collective and titles (White Prophet / White Prophets); keep in English."
-    source_reference: "User preference; English capitalized term/title kept"
-    confidence: reviewed
+    alias_targets:
+      White Prophet: Profeta Branco
+      White Prophets: Profetas Brancos
+    notes: "Aligned with official Farseer PT-BR Profeta Branco / Profetas Brancos."
+    source_reference: "Official PT-BR edition, Calibre 71"
+    confidence: confirmed
     first_appearance: fools-errand
     approved: true
   - source: Skill-pillar
@@ -173,22 +167,4 @@ terms:
     source_reference: "User preference; English title/office kept"
     confidence: reviewed
     first_appearance: ship-of-magic
-    approved: true
-  - source: Old Blood
-    target: Old Blood
-    category: concept
-    policy: keep
-    aliases: [Old Bloods]
-    alias_targets: {Old Bloods: Old Bloods}
-    source_reference: "User preference; English capitalized term kept"
-    confidence: reviewed
-    first_appearance: fools-errand
-    approved: true
-  - source: Catalyst
-    target: Catalyst
-    category: title
-    policy: keep
-    source_reference: "User preference; English title kept"
-    confidence: reviewed
-    first_appearance: fools-errand
     approved: true

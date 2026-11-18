@@ -132,3 +132,23 @@ async def test_gemini_retries_without_thinking_config_on_400_and_counts_thoughts
         assert result.completion_tokens == 100
     finally:
         await provider.close()
+
+
+@pytest.mark.asyncio
+async def test_gemini_http_402_resource_exhausted_returns_none_not_context_overflow():
+    """HTTP 402 prepayment depletion with RESOURCE_EXHAUSTED must return None quickly."""
+    provider = _provider_returning(
+        {
+            "error": {
+                "code": 402,
+                "message": "Your prepayment credits are depleted. Please go to AI Studio at https://ai.studio/projects to manage your project and billing.",
+                "status": "RESOURCE_EXHAUSTED",
+            }
+        },
+        status_code=402,
+    )
+    try:
+        result = await provider.generate("prompt")
+        assert result is None
+    finally:
+        await provider.close()

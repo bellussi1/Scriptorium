@@ -4,6 +4,8 @@ description: Close interiority, formal retrospective narration, and material fan
 mode: source
 context: A pre-industrial secondary world of coastal and inland duchies, where literacy, animal husbandry, and household craft coexist with inherited magic and a rigid court hierarchy. Travel is slow, medicine is herbal, and ships, horses, and messengers carry information.
 rules:
+  - dimension: proper_nouns
+    instruction: Keep character personal names in English unless the active glossary specifies an official Brazilian form (Bobo, Olhos-de-Noite, Ferreirinho, Fuligem, Alterador); translate Six Duchies royal and noble titles (rei, rainha, príncipe, princesa, duque, duquesa, lorde, while keeping Lady as in Lady Patience), and follow every active glossary target strictly.
   - dimension: narrative_voice
     instruction: Anchor narration in a single perceiving consciousness, whether first person or limited third, and let a retrospective or reflective cast color what is seen; do not drift into omniscient summary beyond what that consciousness could know or later reconstruct.
   - dimension: register
@@ -11,7 +13,7 @@ rules:
   - dimension: sentence_rhythm
     instruction: Build long subordinate sentences that accumulate sensory and emotional detail, then cut against them with short declarative or verbless sentences at moments of shock, exhaustion, or realization; preserve the uneven distribution.
   - dimension: dialogue
-    instruction: Keep speech tags plain and unobtrusive; differentiate speakers through syntax, address, and habitual reticence rather than phonetic spelling, and preserve evasions, riddles, and unfinished sentences instead of completing them for clarity.
+    instruction: Format spoken dialogue with Brazilian travessões (—) and lowercase speech-verb attributions (— disse o Bobo.); preserve <i>...</i> italics without added quotes or dashes for silent Talento (Skill) and Manha (Wit) telepathic exchanges (<i>Estou dormindo, Alterador.</i>); differentiate speakers through syntax, address, and habitual reticence, keeping evasions, riddles, and unfinished sentences intact.
   - dimension: imagery
     instruction: Draw figurative language from animal husbandry and weather, household craft, and bodily sensation; prefer homely tactile comparisons to ornamental or epic ones, and let a physical detail recur when the scene itself returns to it.
   - dimension: lexicon
@@ -21,7 +23,7 @@ rules:
   - dimension: formatting
     instruction: Let paragraphs follow shifts in attention rather than topic sentences, allow a single line to stand alone for an emotional beat, and preserve chapter-opening documents, epigraphs, and framed retrospectives as distinct registers.
   - dimension: target_variety
-    instruction: Write Brazilian Portuguese rather than European variants; use Brazilian object-pronoun placement, Brazilian progressive gerunds, and Brazilian spelling throughout, avoiding European contractions or vocabulary.
+    instruction: Match the official Brazilian Farseer prose standard in natural pt-BR—use Brazilian travessões (—) with lowercase speech verbs for spoken dialogue and preserve <i>...</i> italics without quotes or dashes for silent Talento and Manha telepathy; use natural Brazilian pronoun placement and você without mixing tu/te/ti, always write Brazilian progressive gerunds (estava observando, never estava a observar), and avoid European contractions or vocabulary.
   - dimension: grammatical_gender
     instruction: Track grammatical gender consistently for every character, dragon, and living ship according to the glossary and source pronouns; keep adjectives, articles, and participles aligned across sentences.
 notes: "Evidence includes the three sampled Farseer books (EN/PT); the base is deliberately broad so third-person subseries can inherit it without importing the first-person memoir voice."
