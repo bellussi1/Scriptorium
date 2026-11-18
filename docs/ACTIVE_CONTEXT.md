@@ -1,11 +1,19 @@
 # Active context
 
 Handoff between sessions. Read this first; update it before you stop. It must
-describe the real repository, not a plan. Status as of 2026-11-15 (late
+describe the real repository, not a plan. Status as of 2026-11-18 (early
 morning local): revalidate with `git status` and `git log` before acting. Older
 handoffs are in git history (this file was compacted on 2026-11-12).
 
 ## Now
+
+- **Full quality & source-prep upgrade + queue reset from 0 (2026-11-18 early morning local):**
+  - **Source EPUB preparation (`src/literary/source_prep.py`):** Non-destructive pre-pass that leaves Calibre originals (`C:\Users\Bellussi\Biblioteca do calibre`) read-only and writes cleaned English EPUBs under `data/calibre/prepared/<slug>.epub` whenever structural defects exist. Strips `pdftohtml 0.36` running headers/footers (`file:///C|/...`), rejoins mid-sentence paragraphs broken across stripped page footers, merges two-line bold chapter headings (`CHAPTER ELEVEN - ` + `CONSEQUENCES AND REFLECTIONS`), removes invalid `Document Outline` spine entries, rebuilds `toc.ncx` from extracted headings or `_toc_r1.htm` relative links (`playOrder="1"..N`), syncs NCX `dtb:uid` with OPF `unique-identifier`, fills empty `<html lang="" xml:lang="">`, strips EPUB 3 `property=`/`refines=` `<meta>` tags and empty `<guide/>` in EPUB 2.0 OPFs, adds `alt=""` to images without `alt`, and upgrades valid legacy `<a name="...">` to `id`. Verified `EPUBCheck` `0/0/0` (0 fatals, 0 errors, 0 warnings) on `ship-of-magic.epub` (37 chapters), `the-mad-ship.epub` (41), `ship-of-destiny.epub` (42), `the-golden-fool.epub` (33), and `fool-s-fate.epub` (43), and generated clean prepared files for all 13 defective queue books (`Fool's Errand`, `Fool's Assassin`, `Fool's Quest`, `Assassin's Fate`, `The Rain Wild Chronicles`, `Malice`, `A Time of Dread`, `A Little Hatred`).
+  - **EPUBCheck hygiene & reader repair across all series:** Added `repair_epubcheck_hygiene_in_epub` in `src/literary/repair.py` and wired both `prepare_source_epub` and `repair_epubcheck_hygiene_in_epub` into `src/literary/queue_runner.py`. Expanded `PROGRESSIVE_GERUNDS` + added `_infinitive_to_gerund` morphological fallback and `NON_INFINITIVE_AFTER_A` stoplist in `src/literary/progressive_repair.py`. Generalized `_is_body`, `_is_dialogue_body`, bold/chapter heading boundary handling in `merge_split_paragraphs`, `READING_CSS`, and `apply_terms` in `src/literary/reading_repair.py`, and removed the Sun Eater-only skip in `src/literary/polish.py` and `src/literary/queue_runner.py` (passing `apply_terms=_is_sun_eater(book)`).
+  - **Editorial alignment from official EN/PT-BR Calibre editions:** Refreshed `data/calibre/targets.json` (`47` books including `Empire of Silence` id `439`) and extracted reference samples in `data/editorial_samples/` (`sun1_en`, `farseer3_en`, `farseer3_pt`). Added `brazilian_prose` rule in `literary-resources/global/style.yaml`; added `target_variety`, `grammatical_gender`, `Nighteyes -> Olhos-de-Noite`, `Starling Birdsong`, `Kettle`, `Heart of the Pack`, `Mountain Kingdom -> Reino da Montanha`, `Skill-road`, `Skillmaster`, `Winterfest`, `Lord Golden`, `Civil Bresinga`, `Swift`, `Laurel`, `Paragon`/`Vivacia` genders in `realm-of-the-elderlings/`; added missing `gender` attributes and sample references in `sun-eater/` (keeping all 49 editorial files valid under `literary-resources validate`).
+  - **Gemini thinking models:** Updated `GeminiProvider._is_thinking_model` (`src/core/llm/providers/gemini.py`) to match `("2.5", "gemini-3", "gemini-4")`. Queue execution stays on local `ollama` (`hf.co/IndexTeam/Index-Translate-9B-GGUF:Q4_K_M`, `--no-refine`, `$0` cloud spend) until an explicit USD cap is set.
+  - **Archive & queue reset from 0:** Archived prior outputs (`16` EPUBs + `kindle/`) to `translated_files/archive/before-full-reset-2026-11-17/`, queue logs (`83` files) to `data/tmp/queue-runs-before-reset-2026-11-17/`, and pre-reset DB to `data/tmp/literary_queue.before-reset-2026-11-17.db`. Reset `data/literary_queue.db` to `pending` with prepared/Calibre English sources in strict priority order: Realm of the Elderlings (`100..91`) -> The Sun Eater 2–7 (`80..75`) -> Lonesome Dove (`70`) -> Backlog (`30..28`, `20..11`). Started `scripts/queue_runner_agent.py` and triggered `#2 Ship of Magic` (job #41, running).
+  - **Verification:** `ruff check` on new/modified `source_prep.py`, `progressive_repair.py`, `polish.py`, `queue_runner.py`, and tests passed (`All checks passed!`); `pytest -q tests/literary tests/unit/test_literary_queue_routes.py tests/unit/test_gemini_response_parts.py` passed (`448 passed`).
 
 - **Fixed badge column alignment in `#files` (`5a0bd29`, 2026-11-15; no Docker restart):**
   - Switched `.file-name-cell` in `src/web/static/scss/_ui-polish.scss` to a 3-column CSS Grid (`minmax(180px, 42ch) 58px 144px`), pinning `.is-final` (`Final`) to track 2 and role badges (`.file-artifact-badge:not(.is-final)`) to track 3 with centered pill widths so badges form vertical columns across every row regardless of filename length.
@@ -271,21 +279,19 @@ handoffs are in git history (this file was compacted on 2026-11-12).
 
 | Book | Queue | State | Notes |
 | --- | --- | --- | --- |
-| Demon in White (Sun Eater 3) | 8, completed | refined, post-passed, polish pass done 2026-11-14 | EPUBCheck 0/0/0, `audit_book --no-cloud` passed; in `translated_files/kindle/`. |
-| Howling Dark (Sun Eater 2) | 10, completed | no refine, polish pass done 2026-11-14 | EPUBCheck 0/0/0, `audit_book --no-cloud` passed; in `translated_files/kindle/`. |
-| Kingdoms of Death (Sun Eater 4) | 11, completed | no refine, polish pass done 2026-11-14 | EPUBCheck 0/0/0, `audit_book --no-cloud` passed; in `translated_files/kindle/`. |
-| Ashes of Man (Sun Eater 5) | 7, completed | no refine, polish pass + ch. 19 header/TOC fix 2026-11-14 | EPUBCheck 0/0/1 (OPF `xsd` warning), `audit_book --no-cloud` passed; in `translated_files/kindle/`. |
-| Disquiet Gods (Sun Eater 6) | 9, completed | EPUB 3.0 source, polish pass done 2026-11-14 | EPUBCheck 0/0/0, `audit_book --no-cloud` passed; in `translated_files/kindle/`. |
-| Shadows Upon Time (Sun Eater 7) | 13, completed | polish pass + ch. 13 header/TOC fix 2026-11-14 | EPUBCheck 0/0/1, `audit_book --no-cloud` passed; in `translated_files/kindle/`. |
-| Lonesome Dove | 32, completed | Job 36 finished + polish pass done 2026-11-14 | 123 blockquotes converted to `<p>`, `toc.ncx` localized, 2p/pt-PT/Bolívar fixed; EPUBCheck 0/0/0, `audit_book --no-cloud` passed; in `translated_files/kindle/`. |
-| Ship of Magic (Realm 1) | 2, translating | Index-Translate-9B (active run) | Previous Hy-MT2 archive in `translated_files/archive-hy-mt2-2026-11-12/`. Let finish, then normalize early `navio vivo`/`Comerciante`/`Sátrapa`/`Ilhas Piratas` terms + run `chapter_headings`. |
-| Fool's Errand (Realm, Tawny Man 1) | 4, pending | Index (`61` terms, `issues: []`) | English capitalized terms/titles updated 2026-11-15. Run post-pass (roman numerals, `fools-errand.yaml`) after completion. |
-| The Mad Ship, Ship of Destiny | 3, 1, pending | Index (`78` / `79` terms, `issues: []`) | Updated 2026-11-15 (`Liveships`, `Trader(s)`, `Pirate Isles`, `Satrap Cosgo`, etc. kept in EN); run `chapter_headings` post-pass. |
-| The Golden Fool, Fool's Fate | 6, 5, pending | Index (`58` / `61` terms, `issues: []`) | Updated 2026-11-15 (`Old Blood`, `Piebalds`, `Catalyst`, `White Prophet`, titles kept in EN). |
-| Fool's Assassin, Fool's Quest, Assassin's Fate | 16, 17, 18, pending | Index (`74` terms, `issues: []`) | Updated 2026-11-15 with cross-subseries EN `keep` terms; style stays provisional. |
-| The Rain Wild Chronicles | 33, pending | Index (`93` terms, `issues: []`, 672,555 words, priority 13) | Updated 2026-11-15 (`Liveships`, `Traders`, `Pirate Isles`, `Captain Leftrin` kept in EN). Omnibus of 4 books. |
-| Farseer trilogy (Assassin's Apprentice, Royal Assassin, Assassin's Quest) | not queued | — | In the library; the owner decided not to queue it (2026-11-14). Official Farseer core terms stay in `realm-of-the-elderlings/glossary.yaml`. |
-| Malazan | not queued (Gardens of the Moon, 19, is `pending` at priority 12 with no model) | — | Zero glossary terms; inherits global `proper_nouns` style rule (`1` rule). Needs a glossary build before running. |
+| Ship of Magic (Realm, Liveship 1) | 2, priority 100 | translating (fresh reset from 0, 2026-11-18) | Sanitized source `data/calibre/prepared/ship-of-magic.epub` (37 chapters, `pdftohtml`/Outline stripped, EPUBCheck 0/0/0). Index-Translate-9B. |
+| The Mad Ship (Realm, Liveship 2) | 3, priority 99 | pending | Sanitized `data/calibre/prepared/the-mad-ship.epub` (41 NCX entries, EPUBCheck 0/0/0). |
+| Ship of Destiny (Realm, Liveship 3) | 1, priority 98 | pending | Sanitized `data/calibre/prepared/ship-of-destiny.epub` (42 NCX entries, EPUBCheck 0/0/0). |
+| Fool's Errand (Realm, Tawny Man 1) | 4, priority 97 | pending | Sanitized `data/calibre/prepared/fool-s-errand.epub`. |
+| The Golden Fool (Realm, Tawny Man 2) | 6, priority 96 | pending | Sanitized `data/calibre/prepared/the-golden-fool.epub` (33 NCX entries from `_toc_r1.htm`, EPUBCheck 0/0/0). |
+| Fool's Fate (Realm, Tawny Man 3) | 5, priority 95 | pending | Sanitized `data/calibre/prepared/fool-s-fate.epub` (43 NCX entries from `_toc_r1.htm`, EPUBCheck 0/0/0). |
+| The Rain Wild Chronicles | 33, priority 94 | pending | Sanitized `data/calibre/prepared/the-rain-wild-chronicles.epub` (`OPF-030` fixed). |
+| Fool's Assassin, Fool's Quest, Assassin's Fate | 16, 17, 18 (priorities 93..91) | pending | Sanitized under `data/calibre/prepared/` (`OPF-030` / `<img alt="">` fixed). |
+| Howling Dark .. Shadows Upon Time (Sun Eater 2–7) | 10, 8, 11, 7, 9, 13 (priorities 80..75) | pending (reset from 0) | Clean Calibre EPUBs; prior completed outputs archived in `translated_files/archive/before-full-reset-2026-11-17/`. |
+| Lonesome Dove | 32, priority 70 | pending (reset from 0) | Clean Calibre EPUB; prior completed output archived in `translated_files/archive/before-full-reset-2026-11-17/`. |
+| Malice, A Time of Dread, A Little Hatred | 29, 30, 31 (priorities 30..28) | pending | Sanitized under `data/calibre/prepared/` (`OPF-030` fixed). |
+| Farseer trilogy (Assassin's Apprentice, Royal Assassin, Assassin's Quest) | not queued | reference EN/PT-BR pairs in `data/editorial_samples/farseer3_{en,pt}/` | Official Farseer core terms stay in `realm-of-the-elderlings/`. |
+| Malazan | 19..28 (priorities 20..11) | pending | Zero glossary terms; inherits global `proper_nouns` and `brazilian_prose` style rules. |
 
 ## Procedures
 
