@@ -22,12 +22,23 @@ import re
 import sqlite3
 import subprocess
 import sys
+import threading
 import time
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional
 
 ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
+from src.literary.queue_insights import (  # noqa: E402
+    live_translation_progress,
+    read_book_quality_summaries,
+    read_budget_summary,
+    read_process_telemetry,
+)
+
 QUEUE_DB = ROOT / "data" / "literary_queue.db"
 MIRROR_DB = ROOT / "data" / "jobs.mirror.db"
 MIRROR_JSON = ROOT / "data" / "jobs.mirror.json"
@@ -72,9 +83,42 @@ def _format_duration(seconds: float) -> str:
 
 def _write_health(payload: Dict[str, Any]) -> None:
     HEALTH_PATH.parent.mkdir(parents=True, exist_ok=True)
-    tmp = HEALTH_PATH.with_name(HEALTH_PATH.name + ".tmp")
-    tmp.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-    os.replace(tmp, HEALTH_PATH)
+    text = json.dumps(payload, ensure_ascii=False, indent=2) + "\n"
+    tmp = HEALTH_PATH.with_name(
+        f".{HEALTH_PATH.name}.{os.getpid()}.{threading.get_ident()}.tmp"
+    )
+    tmp.write_text(text, encoding="utf-8")
+    try:
+        for attempt in range(20):
+            try:
+                os.replace(tmp, HEALTH_PATH)
+                return
+            except PermissionError:
+                if attempt == 19:
+                    raise
+                time.sleep(min(0.05 * (attempt + 1), 0.5))
+    finally:
+        tmp.unlink(missing_ok=True)
+
+
+def _all_books_for_insights() -> List[Dict[str, Any]]:
+    if not QUEUE_DB.exists():
+        return []
+    con = sqlite3.connect(f"file:{QUEUE_DB.as_posix()}?mode=ro", uri=True, timeout=10)
+    con.row_factory = sqlite3.Row
+    try:
+        rows = con.execute(
+            """
+            SELECT id, title, author, series, series_index, status, word_count,
+                   provider, model, priority, estimated_cost, actual_cost
+            FROM books
+            """
+        ).fetchall()
+        return [dict(row) for row in rows]
+    except sqlite3.Error:
+        return []
+    finally:
+        con.close()
 
 
 def _active_book() -> tuple[Optional[Dict[str, Any]], Optional[Dict[str, Any]]]:
@@ -371,12 +415,18 @@ def _terminate(book: Dict[str, Any]) -> Dict[str, Any]:
 
 def collect(stall_minutes: int, live_health: Dict[str, Any]) -> Dict[str, Any]:
     book, job = _active_book()
+    all_books = _all_books_for_insights()
+    telemetry = read_process_telemetry(QUEUE_DB)
     payload: Dict[str, Any] = {
         "timestamp": _iso(),
         "active": bool(book),
         "stall_minutes": stall_minutes,
         "queue_integrity": _queue_integrity(),
         "live_db": live_health,
+        "supervisor": telemetry["supervisor"],
+        "auto_worker": telemetry["auto_worker"],
+        "budget": read_budget_summary(all_books),
+        "book_quality": read_book_quality_summaries(all_books),
     }
     sidecar = _mirror_sidecar()
     generated = _parse_time(sidecar.get("generated_at"))
@@ -393,11 +443,24 @@ def collect(stall_minutes: int, live_health: Dict[str, Any]) -> Dict[str, Any]:
 
     translation_id = str((job or {}).get("translation_id") or "")
     mirror = _mirror_state(translation_id)
-    started = _parse_time((job or {}).get("created_at"))
-    last = _parse_time(mirror.get("last_checkpoint_at"))
+    live_progress = live_translation_progress(
+        str(book.get("title") or ""),
+        translation_id,
+    )
+    checkpoint_count = mirror.get("checkpoint_count")
+    if live_progress.get("checkpoint_count") is not None:
+        checkpoint_count = max(
+            int(checkpoint_count or 0),
+            int(live_progress["checkpoint_count"]),
+        )
+    last_cp_iso = live_progress.get("last_checkpoint_at") or mirror.get("last_checkpoint_at")
+    last = _parse_time(last_cp_iso)
     if last is None:
         last = _parse_time((job or {}).get("updated_at"))
     age = (_now() - last).total_seconds() if last else None
+    if live_progress.get("last_checkpoint_age_seconds") is not None:
+        live_age = float(live_progress["last_checkpoint_age_seconds"])
+        age = min(age, live_age) if age is not None else live_age
     process_alive = _process_alive(book)
     stalled = bool(
         age is not None
@@ -412,15 +475,16 @@ def collect(stall_minutes: int, live_health: Dict[str, Any]) -> Dict[str, Any]:
         "job_id": (job or {}).get("id"),
         "job_state": (job or {}).get("state"),
         "started_at": (job or {}).get("created_at"),
-        "checkpoint_count": mirror.get("checkpoint_count"),
+        "checkpoint_count": checkpoint_count,
         "chunk_rows": mirror.get("chunk_rows"),
-        "total_chunks": mirror.get("total_chunks"),
-        "last_checkpoint_at": mirror.get("last_checkpoint_at"),
+        "total_chunks": live_progress.get("total_chunks") or mirror.get("total_chunks"),
+        "last_checkpoint_at": last_cp_iso,
         "last_checkpoint_age_seconds": round(age, 1) if age is not None else None,
         "process_alive": process_alive,
         "stalled": stalled,
         "eta_seconds": mirror.get("eta_seconds"),
         "eta_human": mirror.get("eta_human"),
+        "live_progress": live_progress,
     })
     return payload
 
@@ -486,12 +550,14 @@ def main() -> int:
                     eta_seconds = int((total - last_count) * span / delta)
                     payload["eta_seconds"] = eta_seconds
                     payload["eta_human"] = _format_duration(eta_seconds)
+        if payload.get("active"):
+            current_audit_key = f"{payload.get('book_id')}:{payload.get('translation_id')}"
+            if current_audit_key != audit_key:
+                audit_key = current_audit_key
+                last_audit_count = 0
+                last_audit = {}
         if not args.no_audit and payload.get("active"):
             count = int(payload.get("checkpoint_count") or 0)
-            key = f"{payload.get('book_id')}:{payload.get('translation_id')}"
-            if key != audit_key:
-                audit_key = key
-                last_audit_count = 0
             if count > 0 and count >= last_audit_count + max(1, args.audit_every):
                 result = _run_audit(
                     int(payload.get("book_id") or 0),

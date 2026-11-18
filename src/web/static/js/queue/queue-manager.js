@@ -51,6 +51,10 @@ let activeFilter = 'all';
 let activeSeries = '';
 let searchTerm = '';
 let qualityBookId = null;
+let lastQualityPayload = null;
+let lastHeroLogLines = [];
+let logFilter = 'all';
+let logAutoScroll = true;
 let logPreviewRequest = 0;
 let controlState = {
     pause_after_book: false,
@@ -108,9 +112,38 @@ function formatDuration(seconds) {
 const RATE_WINDOW_MS = 10 * 60 * 1000;
 const progressHistory = new Map();
 
-function progressSamples(book) {
+function resolveSupervisor(data) {
+    return data?.supervisor || data?.health?.supervisor || null;
+}
+
+function resolveAutoWorker(data) {
+    return data?.auto_worker || data?.health?.auto_worker || null;
+}
+
+function resolveBudget(data) {
+    return data?.budget || data?.health?.budget || null;
+}
+
+function resolveLiveProgress(book, data) {
+    if (book?.live_progress && Object.keys(book.live_progress).length) {
+        return book.live_progress;
+    }
+    const health = data?.health;
+    if (health && health.book_id === book?.id && health.live_progress) {
+        return health.live_progress;
+    }
+    return null;
+}
+
+function resolveQualitySummary(book, data) {
+    if (book?.quality_summary) return book.quality_summary;
+    const map = data?.book_quality || data?.health?.book_quality;
+    return map && book?.id != null ? (map[String(book.id)] || null) : null;
+}
+
+function progressSamples(book, liveCurrent = null) {
     const key = String(book.translation_id || `book-${book.id || 0}`);
-    const count = Number(book.current_chapter || 0);
+    const count = Number(liveCurrent != null ? liveCurrent : (book.current_chapter || 0));
     const now = Date.now();
     let samples = progressHistory.get(key);
     if (!samples) {
@@ -124,8 +157,8 @@ function progressSamples(book) {
     return samples;
 }
 
-function rollingRate(book) {
-    const samples = progressSamples(book);
+function rollingRate(book, liveCurrent = null) {
+    const samples = progressSamples(book, liveCurrent);
     if (samples.length < 2) return 0;
     const first = samples[0];
     const last = samples[samples.length - 1];
@@ -135,8 +168,8 @@ function rollingRate(book) {
     return delta / minutes;
 }
 
-function averageRate(book) {
-    const current = Number(book.current_chapter || 0);
+function averageRate(book, liveCurrent = null) {
+    const current = Number(liveCurrent != null ? liveCurrent : (book.current_chapter || 0));
     const created = book.job_created_at;
     if (!created || current <= 0) return 0;
     const raw = String(created);
@@ -163,12 +196,12 @@ function formatStarted(value) {
     ).format(date);
 }
 
-function estimateEta(book) {
-    const current = Number(book.current_chapter || 0);
-    const total = Number(book.total_chapters || 0);
+function estimateEta(book, liveCurrent = null, liveTotal = null) {
+    const current = Number(liveCurrent != null ? liveCurrent : (book.current_chapter || 0));
+    const total = Number(liveTotal != null ? liveTotal : (book.total_chapters || 0));
     if (current <= 0 || total <= 0 || current >= total) return '';
     // Both rates are chunks per minute, while formatDuration expects seconds.
-    const ratePerMinute = rollingRate(book) || averageRate(book);
+    const ratePerMinute = rollingRate(book, current) || averageRate(book, current);
     if (ratePerMinute <= 0) return '';
     return formatDuration(((total - current) / ratePerMinute) * 60);
 }
@@ -295,9 +328,203 @@ function renderSummary(data) {
         `)
         .join('');
     renderDistribution(summary, running);
+    renderInsightsBar(data);
+    renderProcessBar(data);
     byId('queueUpdatedAt').textContent = data.generated_at
         ? t('queue:updated', { time: formatDate(data.generated_at) })
         : '';
+}
+
+function ensureQueueContainer(id, className, insertBeforeSelector, insertAfterSelector) {
+    let el = byId(id);
+    if (el) return el;
+    const queueTab = byId('tab-queue');
+    if (!queueTab) return null;
+    el = document.createElement('div');
+    el.id = id;
+    el.className = `${className} hidden`;
+    const before = insertBeforeSelector ? queueTab.querySelector(insertBeforeSelector) : null;
+    if (before && before.parentElement) {
+        before.parentElement.insertBefore(el, before);
+        return el;
+    }
+    const after = insertAfterSelector ? queueTab.querySelector(insertAfterSelector) : null;
+    if (after && after.parentElement) {
+        after.insertAdjacentElement('afterend', el);
+        return el;
+    }
+    return null;
+}
+
+function formatUsd(amount) {
+    const value = Number(amount || 0);
+    return `$${value.toFixed(2)}`;
+}
+
+function renderInsightsBar(data) {
+    const host = ensureQueueContainer('queueInsightsBar', 'queue-insights-bar', '.queue-toolbar', '#queueDistribution');
+    if (!host) return;
+    const books = Array.isArray(data?.books) ? data.books : [];
+    const budget = resolveBudget(data);
+    if (!books.length && !budget) {
+        host.classList.add('hidden');
+        host.innerHTML = '';
+        return;
+    }
+
+    const groups = new Map();
+    for (const book of books) {
+        const key = String(book.series || book.author || '').trim();
+        if (!key) continue;
+        let entry = groups.get(key);
+        if (!entry) {
+            entry = {
+                name: key,
+                total: 0,
+                done: 0,
+                active: 0,
+                wordsTotal: 0,
+                wordsDone: 0,
+            };
+            groups.set(key, entry);
+        }
+        entry.total += 1;
+        const words = Number(book.word_count || 0);
+        entry.wordsTotal += words;
+        const st = statusKey(book);
+        if (st === 'completed' || st === 'needs_review') {
+            entry.done += 1;
+            entry.wordsDone += words;
+        } else if (RUNNING_STATES.has(st) || book.live) {
+            entry.active += 1;
+            const tot = Number(book.total_chapters || 0);
+            const cur = Number(book.current_chapter || 0);
+            if (tot > 0 && words > 0) {
+                entry.wordsDone += Math.round(words * Math.min(1, cur / tot));
+            }
+        }
+    }
+
+    const seriesCards = [...groups.values()]
+        .filter((entry) => entry.total > 0)
+        .map((entry) => {
+            const pct = entry.wordsTotal > 0
+                ? Math.round((entry.wordsDone / entry.wordsTotal) * 100)
+                : Math.round((entry.done / entry.total) * 100);
+            const selected = activeSeries === entry.name;
+            const hint = t('queue:series_filter_hint', { series: entry.name });
+            return `
+                <button type="button" class="queue-series-card${selected ? ' is-selected' : ''}${entry.active ? ' is-active' : ''}"
+                        data-series-card="${escapeHtml(entry.name)}" title="${escapeHtml(hint)}" aria-pressed="${selected ? 'true' : 'false'}">
+                    <div class="queue-series-card__top">
+                        <span class="queue-series-card__name">${escapeHtml(entry.name)}</span>
+                        <span class="queue-series-card__pct">${pct}%</span>
+                    </div>
+                    <div class="queue-progress queue-progress--compact" aria-hidden="true">
+                        <span class="queue-progress__fill" style="width: ${pct}%"></span>
+                    </div>
+                    <div class="queue-series-card__meta">
+                        <span>${escapeHtml(t('queue:series_books_done', { done: entry.done, total: entry.total }))}</span>
+                    </div>
+                </button>
+            `;
+        })
+        .join('');
+
+    const budgetHtml = budget ? `
+        <div class="queue-budget-card">
+            <div class="queue-budget-card__head">
+                <span class="queue-budget-card__title">${escapeHtml(t('queue:budget_title'))}</span>
+                <span class="queue-budget-card__cap">${escapeHtml(t('queue:budget_cap', {
+                    cap: Number(budget.cap_usd || 0).toFixed(0),
+                    left: Number(budget.remaining_cap_usd || 0).toFixed(2),
+                }))}</span>
+            </div>
+            <div class="queue-budget-card__stats">
+                <div class="queue-budget-stat">
+                    <span>${escapeHtml(t('queue:budget_completed'))}</span>
+                    <strong>${escapeHtml(formatUsd(budget.completed_usd))}</strong>
+                </div>
+                <div class="queue-budget-stat">
+                    <span>${escapeHtml(t('queue:budget_active'))}</span>
+                    <strong>${escapeHtml(formatUsd(budget.active_usd))}</strong>
+                </div>
+                <div class="queue-budget-stat">
+                    <span>${escapeHtml(t('queue:budget_core_remaining'))}</span>
+                    <strong>${escapeHtml(formatUsd(budget.core_remaining_usd))}</strong>
+                </div>
+            </div>
+        </div>
+    ` : '';
+
+    host.innerHTML = `
+        <div class="queue-insights-grid">
+            ${seriesCards ? `
+                <div class="queue-series-section">
+                    <div class="queue-insights-label">${escapeHtml(t('queue:series_progress_title'))}</div>
+                    <div class="queue-series-grid">${seriesCards}</div>
+                </div>
+            ` : ''}
+            ${budgetHtml}
+        </div>
+    `;
+    host.classList.remove('hidden');
+}
+
+function renderProcessBar(data) {
+    const host = ensureQueueContainer('queueProcessBar', 'queue-process-bar', '.queue-toolbar', '#queueInsightsBar');
+    if (!host) return;
+    const sup = resolveSupervisor(data);
+    const autoWorker = resolveAutoWorker(data);
+    const agent = data?.agent || {};
+    const health = data?.health || {};
+    const activeBook = (data?.books || []).find((book) => RUNNING_STATES.has(statusKey(book)) || book.live);
+    const liveProgress = activeBook ? resolveLiveProgress(activeBook, data) : null;
+    const cpAge = liveProgress?.last_checkpoint_age_seconds ?? activeBook?.last_checkpoint_age_seconds;
+    const dbState = activeBook?.db_integrity || health?.queue_integrity || '';
+
+    const pills = [];
+    if (sup?.online) {
+        pills.push(healthBadge('success', t('queue:proc_supervisor_online', { pid: sup.pid ?? '?' })));
+        pills.push(healthBadge('', t('queue:proc_restarts', {
+            count: sup.restarts_last_hour ?? 0,
+            max: sup.max_restarts_per_hour ?? 3,
+        })));
+    } else {
+        pills.push(healthBadge('warning', t('queue:proc_supervisor_offline')));
+    }
+
+    if (autoWorker?.online) {
+        const rawPhase = String(autoWorker.phase || 'waiting').toLowerCase();
+        const phaseKey = ['starting', 'waiting', 'auditing', 'approved', 'retrying', 'blocked', 'idle'].includes(rawPhase)
+            ? `queue:phase_${rawPhase}`
+            : 'queue:phase_waiting';
+        pills.push(healthBadge(
+            rawPhase === 'blocked' ? 'danger' : 'info',
+            t('queue:proc_worker_phase', {
+                phase: t(phaseKey),
+                age: formatDuration(autoWorker.heartbeat_age_s ?? 0),
+            }),
+        ));
+    }
+
+    pills.push(healthBadge(
+        agent.online ? 'success' : 'neutral',
+        t(agent.online ? 'queue:proc_agent_online' : 'queue:proc_agent_offline'),
+    ));
+
+    if (cpAge !== undefined && cpAge !== null) {
+        pills.push(healthBadge('', t('queue:proc_checkpoint_age', { age: formatDuration(Number(cpAge)) })));
+    }
+    if (dbState) {
+        pills.push(healthBadge(
+            String(dbState).toLowerCase() === 'ok' ? 'success' : 'danger',
+            t('queue:proc_db_ok', { state: dbState }),
+        ));
+    }
+
+    host.innerHTML = `<div class="queue-badges queue-badges--flush">${pills.join('')}</div>`;
+    host.classList.remove('hidden');
 }
 
 function renderDistribution(summary, running) {
@@ -373,23 +600,35 @@ function ensureGlobalQualityDrawer() {
 // Only the layout differs: the hero adds stats, health and the activity log,
 // and the queue panel adds Remove.
 
-function stallInfo(book, isActive) {
-    const samples = progressSamples(book);
+function stallInfo(book, isActive, liveProgress = null, liveCurrent = null) {
+    const samples = progressSamples(book, liveCurrent);
     const lastSample = samples[samples.length - 1];
     const sampleIdleMs = lastSample ? Date.now() - lastSample.t : 0;
-    const apiLast = book.last_checkpoint_at ? Date.parse(book.last_checkpoint_at) : NaN;
+    const apiLast = (liveProgress?.last_checkpoint_at || book.last_checkpoint_at)
+        ? Date.parse(liveProgress?.last_checkpoint_at || book.last_checkpoint_at)
+        : NaN;
     const apiIdleMs = Number.isFinite(apiLast) ? Date.now() - apiLast : 0;
-    const apiAgeMs = Number(book.last_checkpoint_age_seconds) > 0
-        ? Number(book.last_checkpoint_age_seconds) * 1000
-        : apiIdleMs;
+    const liveAgeSec = liveProgress?.last_checkpoint_age_seconds;
+    const bookAgeSec = book.last_checkpoint_age_seconds;
+    let apiAgeMs = 0;
+    if (liveAgeSec !== undefined && liveAgeSec !== null && Number(liveAgeSec) >= 0) {
+        apiAgeMs = Number(liveAgeSec) * 1000;
+    } else if (bookAgeSec !== undefined && bookAgeSec !== null && Number(bookAgeSec) >= 0) {
+        apiAgeMs = Number(bookAgeSec) * 1000;
+    } else if (apiIdleMs > 0) {
+        apiAgeMs = apiIdleMs;
+    }
+    const hasFreshApiAge = (liveAgeSec !== undefined && liveAgeSec !== null)
+        || (bookAgeSec !== undefined && bookAgeSec !== null)
+        || Number.isFinite(apiLast);
+    const effectiveIdleMs = hasFreshApiAge ? apiAgeMs : sampleIdleMs;
     const processDead = book.process_alive === false;
     const stalled = isActive && (
         Boolean(book.stalled)
         || processDead
-        || apiAgeMs > 5 * 60 * 1000
-        || sampleIdleMs > 5 * 60 * 1000
+        || effectiveIdleMs > 10 * 60 * 1000
     );
-    return { stalled, stallMs: apiAgeMs > 0 ? apiAgeMs : sampleIdleMs };
+    return { stalled, stallMs: effectiveIdleMs };
 }
 
 function nowStatusBadge(state, label) {
@@ -494,6 +733,130 @@ function nowActions(book, state, isActive, placement) {
     return buttons.join('');
 }
 
+function cleanLogLines(lines) {
+    const cleaned = [];
+    for (const rawLine of lines || []) {
+        const line = String(rawLine || '');
+        if (/^\[\d{4}-\d{2}-\d{2}[^\]]*\]\s*sync:\s*checked=/.test(line)) continue;
+        if (line.includes('prompt_options={') && line.length > 300) {
+            const head = line.split('(prompt_options={', 1)[0].trimEnd();
+            cleaned.push(`${head}`);
+            continue;
+        }
+        if ((line.includes("'category':") || line.includes("'forbidden':")) && line.length > 300) {
+            cleaned.push(`${line.slice(0, 180)} …`);
+            continue;
+        }
+        cleaned.push(line);
+    }
+    return cleaned;
+}
+
+function classifyLogLine(line) {
+    const text = String(line || '');
+    if (/error|traceback|failed|retry|402|429|stalled|warning/i.test(text)) return 'warning';
+    if (/Checkpoint|Translating file|Resuming/i.test(text)) return 'checkpoint';
+    if (/repair|EPUBCheck|validation|audit|series metadata|finished|approved|export/i.test(text)) return 'repair';
+    return 'info';
+}
+
+function filterLogLines(lines, filter) {
+    if (!filter || filter === 'all') return lines;
+    return lines.filter((line) => {
+        const kind = classifyLogLine(line);
+        if (filter === 'checkpoints') return kind === 'checkpoint';
+        if (filter === 'repairs') return kind === 'repair';
+        if (filter === 'warnings') return kind === 'warning';
+        return true;
+    });
+}
+
+function renderLogToolbar(total, shown, scope) {
+    const filters = [
+        ['all', 'log_filter_all'],
+        ['checkpoints', 'log_filter_checkpoints'],
+        ['repairs', 'log_filter_repairs'],
+        ['warnings', 'log_filter_warnings'],
+    ];
+    const buttons = filters
+        .map(([value, key]) => `
+            <button type="button" class="queue-log-chip${logFilter === value ? ' is-active' : ''}"
+                    data-log-filter="${value}" data-log-scope="${scope}">
+                ${escapeHtml(t(`queue:${key}`))}
+            </button>
+        `)
+        .join('');
+    return `
+        <div class="queue-log-toolbar">
+            <div class="queue-log-chips">${buttons}</div>
+            <div class="queue-log-meta">
+                <span>${escapeHtml(t('queue:log_lines_count', { shown, total }))}</span>
+                <label class="queue-log-autoscroll">
+                    <input type="checkbox" data-log-autoscroll="1" ${logAutoScroll ? 'checked' : ''}>
+                    <span>${escapeHtml(t('queue:log_autoscroll'))}</span>
+                </label>
+            </div>
+        </div>
+    `;
+}
+
+function renderLogHtml(lines) {
+    if (!lines.length) return `<span class="queue-muted">${escapeHtml(t('queue:log_empty'))}</span>`;
+    return lines
+        .map((line) => `<div class="queue-log-line is-${classifyLogLine(line)}">${escapeHtml(line)}</div>`)
+        .join('');
+}
+
+function applyLogViewer(containerId, toolbarId, rawLines, scope) {
+    const pre = byId(containerId);
+    const toolbar = byId(toolbarId);
+    const cleaned = cleanLogLines(rawLines);
+    const filtered = filterLogLines(cleaned, logFilter);
+    if (toolbar) {
+        toolbar.innerHTML = renderLogToolbar(cleaned.length, filtered.length, scope);
+    }
+    if (pre) {
+        pre.innerHTML = renderLogHtml(filtered);
+        if (logAutoScroll) pre.scrollTop = pre.scrollHeight;
+    }
+}
+
+function pipelineStageIndex(state, isActive, liveProgress, autoWorker) {
+    const phase = String(autoWorker?.phase || '').toLowerCase();
+    const stage = String(liveProgress?.pipeline_stage || '').toLowerCase();
+    if (state === 'completed') return 5;
+    if (phase === 'auditing' || phase === 'approved' || stage === 'auditing' || state === 'reviewing' || state === 'needs_review') return 4;
+    if (stage === 'validating' || state === 'validating') return 3;
+    if (stage === 'repairing') return 2;
+    if (stage === 'translating' || state === 'translating') return 1;
+    if (isActive || state === 'preparing') return 0;
+    return -1;
+}
+
+function renderPipelineStepper(book, state, isActive, liveProgress, autoWorker, pct) {
+    const activeIdx = pipelineStageIndex(state, isActive, liveProgress, autoWorker);
+    if (activeIdx < 0) return '';
+    const fileTag = liveProgress?.current_file_index && liveProgress?.total_files
+        ? `${liveProgress.current_file_index}/${liveProgress.total_files}`
+        : `${pct}%`;
+    const steps = [
+        t('queue:stage_preparing'),
+        t('queue:stage_translating', { file: fileTag }),
+        t('queue:stage_repairing'),
+        t('queue:stage_validating'),
+        t('queue:stage_auditing'),
+    ];
+    const items = steps
+        .map((label, idx) => {
+            const cls = idx < activeIdx
+                ? 'is-done'
+                : (idx === activeIdx ? 'is-current' : 'is-pending');
+            return `<li class="queue-step ${cls}"><span class="queue-step__dot" aria-hidden="true"></span><span>${escapeHtml(label)}</span></li>`;
+        })
+        .join('');
+    return `<ol class="queue-stepper">${items}</ol>`;
+}
+
 function renderTranslateHero(container, book, ctx) {
     if (!container) return;
     const attention = ctx.state === 'needs_review'
@@ -505,14 +868,18 @@ function renderTranslateHero(container, book, ctx) {
         return;
     }
 
+    const wasLogOpen = Boolean(container.querySelector('details.queue-disclosure')?.open);
+    const liveProgress = ctx.liveProgress;
+    const autoWorker = resolveAutoWorker(lastSnapshot);
     const { stalled, stallMs } = ctx.stall;
-    const rate = rollingRate(book) || averageRate(book);
+    const rate = rollingRate(book, ctx.current) || averageRate(book, ctx.current);
     const rateLabel = formatRate(rate);
     // A failed or paused job has no live rate; the historical average would
     // imply progress that is not happening.
     const showRate = ctx.isActive || ctx.state === 'completed' || ctx.state === 'needs_review';
     const started = formatStarted(book.job_created_at);
     const etaLabel = book.eta_human || ctx.eta;
+    const cpAgeSec = liveProgress?.last_checkpoint_age_seconds ?? book.last_checkpoint_age_seconds;
     const stats = [
         {
             label: t('queue:now_chunks_label'),
@@ -531,8 +898,20 @@ function renderTranslateHero(container, book, ctx) {
             value: escapeHtml(started || t('queue:now_value_unknown')),
         },
     ];
+    if (liveProgress?.current_file_index && liveProgress?.total_files) {
+        stats.push({
+            label: t('queue:now_file_label'),
+            value: escapeHtml(t('queue:now_file_value', {
+                index: liveProgress.current_file_index,
+                total: liveProgress.total_files,
+                chunk: liveProgress.file_chunk ?? 0,
+                chunks: liveProgress.file_total_chunks ?? 0,
+            })),
+            title: liveProgress.current_file_name || '',
+        });
+    }
     const statsHtml = stats.map((stat) => `
-        <div class="queue-metric">
+        <div class="queue-metric"${stat.title ? ` title="${escapeHtml(stat.title)}"` : ''}>
             <span class="queue-metric__label">${escapeHtml(stat.label)}</span>
             <strong class="queue-metric__value">${stat.value}</strong>
         </div>
@@ -545,10 +924,10 @@ function renderTranslateHero(container, book, ctx) {
             t(book.process_alive ? 'queue:now_health_alive' : 'queue:now_health_dead'),
         ));
     }
-    if (book.last_checkpoint_age_seconds !== undefined && book.last_checkpoint_age_seconds !== null) {
+    if (cpAgeSec !== undefined && cpAgeSec !== null) {
         healthItems.push(healthBadge(
             '',
-            `${t('queue:now_health_checkpoint')}: ${formatDuration(Number(book.last_checkpoint_age_seconds))}`,
+            `${t('queue:now_health_checkpoint')}: ${formatDuration(Number(cpAgeSec))}`,
         ));
     }
     if (book.db_integrity) {
@@ -566,6 +945,8 @@ function renderTranslateHero(container, book, ctx) {
         ? `<div class="queue-badges">${healthItems.join('')}</div>`
         : '';
 
+    const stepperHtml = renderPipelineStepper(book, ctx.state, ctx.isActive, liveProgress, autoWorker, ctx.pct);
+
     container.innerHTML = `
         <div class="translate-hero__top">
             <div class="translate-hero__identity">
@@ -578,6 +959,7 @@ function renderTranslateHero(container, book, ctx) {
                 ${nowStatusBadge(ctx.state, ctx.nowStatusLabel)}
             </div>
         </div>
+        ${stepperHtml}
         ${nowProgressBar(ctx.pct, 'lg')}
         <div class="queue-metrics">${statsHtml}</div>
         ${healthRow}
@@ -585,11 +967,15 @@ function renderTranslateHero(container, book, ctx) {
         ${ctx.showError ? nowCallout('danger', t('queue:now_error', { message: book.error })) : ''}
         ${ctx.hasLog ? nowLogRow('translateQueueNowLogLine') : ''}
         <div class="translate-hero__actions">${nowActions(book, ctx.state, ctx.isActive, 'hero')}</div>
-        <details class="queue-disclosure">
+        <details class="queue-disclosure"${wasLogOpen ? ' open' : ''}>
             <summary>${escapeHtml(t('common:activity_log'))}</summary>
+            <div id="translateQueueLogToolbar"></div>
             <pre id="translateQueueLog" class="queue-inset queue-quality-log"></pre>
         </details>
     `;
+    if (lastHeroLogLines.length) {
+        applyLogViewer('translateQueueLog', 'translateQueueLogToolbar', lastHeroLogLines, 'hero');
+    }
     container.classList.toggle('is-active', ctx.isActive);
     container.classList.remove('hidden');
 }
@@ -617,26 +1003,37 @@ function renderNow(data) {
         return;
     }
     const isActive = Boolean(active);
+    const liveProgress = resolveLiveProgress(book, data);
+    const autoWorker = resolveAutoWorker(data);
     const rawState = statusKey(book);
     const state = isActive && rawState === 'paused' ? 'translating' : rawState;
     const nowStatusLabel = rawState === 'paused' && isActive
         ? t('queue:status_translating')
         : stateLabel(book);
-    const total = Number(book.total_chapters || 0);
-    const current = Number(book.current_chapter || 0);
+    const total = Number(liveProgress?.total_chunks || book.total_chapters || 0);
+    const current = Math.max(Number(book.current_chapter || 0), Number(liveProgress?.checkpoint_count || 0));
     const pct = total > 0 ? Math.max(0, Math.min(100, Math.round((current / total) * 100))) : 0;
-    const eta = isActive ? estimateEta(book) : '';
+    const eta = isActive ? estimateEta(book, current, total) : '';
     const series = book.series
         ? `${escapeHtml(book.series)} #${escapeHtml(book.series_index ?? '')}`
         : '';
     const showError = (state === 'failed' || state === 'needs_review') && book.error;
     const hasLog = isActive || RETRY_STATES.has(state);
-    const stall = stallInfo(book, isActive);
+    const stall = stallInfo(book, isActive, liveProgress, current);
+    const fileLabel = liveProgress?.current_file_index && liveProgress?.total_files
+        ? ` · ${escapeHtml(t('queue:now_file_value', {
+            index: liveProgress.current_file_index,
+            total: liveProgress.total_files,
+            chunk: liveProgress.file_chunk ?? 0,
+            chunks: liveProgress.file_total_chunks ?? 0,
+        }))}`
+        : '';
+    const stepperHtml = renderPipelineStepper(book, state, isActive, liveProgress, autoWorker, pct);
     const progress = total > 0
         ? `
             ${nowProgressBar(pct)}
             <div class="queue-progress-line">
-                <span>${escapeHtml(t('queue:chunks', { current, total }))}</span>
+                <span>${escapeHtml(t('queue:chunks', { current, total }))}${fileLabel}</span>
                 <span>${escapeHtml(eta ? t('queue:now_eta', { time: eta }) : t('queue:now_unknown_eta'))}</span>
             </div>
         `
@@ -650,6 +1047,7 @@ function renderNow(data) {
             <div class="queue-now-main">
                 <h3 class="queue-title">${escapeHtml(book.title)}</h3>
                 ${nowMeta(book, series)}
+                ${stepperHtml}
                 ${progress}
                 ${hasLog ? nowLogRow('queueNowLogLine') : ''}
                 ${stall.stalled ? nowCallout('warning', t('queue:now_stalled', { time: formatDuration(stall.stallMs / 1000) })) : ''}
@@ -671,6 +1069,7 @@ function renderNow(data) {
         showError,
         hasLog,
         stall,
+        liveProgress,
     });
     if (hasLog && book.id) loadNowLog(book.id);
 }
@@ -678,31 +1077,21 @@ function renderNow(data) {
 async function loadNowLog(bookId) {
     const requestId = ++logPreviewRequest;
     try {
-        const response = await fetch(`${ADD_URL}/${bookId}/log?lines=30`, {
+        const response = await fetch(`${ADD_URL}/${bookId}/log?lines=120`, {
             headers: apiHeaders(),
             cache: 'no-store',
         });
         if (!response.ok) return;
         const payload = await response.json();
-        const lines = Array.isArray(payload.lines) ? payload.lines : [];
+        const lines = cleanLogLines(Array.isArray(payload.lines) ? payload.lines : []);
         if (requestId !== logPreviewRequest) return;
-        // The run log also carries the queue agent's 30-second "sync:" lines.
-        // Prefer a real translation/checkpoint line for the one-line preview;
-        // the drawer still shows the full tail.
-        const meaningful = lines.filter((line) => (
-            line && !/^\[\d{4}-\d{2}-\d{2}[^\]]*\]\s*sync:/.test(line)
-        ));
-        const value = meaningful.length
-            ? meaningful[meaningful.length - 1]
-            : (lines.length ? lines[lines.length - 1] : t('queue:log_empty'));
+        lastHeroLogLines = lines;
+        const value = lines.length ? lines[lines.length - 1] : t('queue:log_empty');
         const target = byId('queueNowLogLine');
         if (target) target.textContent = value;
         const translateTarget = byId('translateQueueNowLogLine');
         if (translateTarget) translateTarget.textContent = value;
-        const translateLog = byId('translateQueueLog');
-        if (translateLog) {
-            translateLog.textContent = lines.length ? lines.join('\n') : t('queue:log_empty');
-        }
+        applyLogViewer('translateQueueLog', 'translateQueueLogToolbar', lines, 'hero');
     } catch (error) {
         // A missing log must not break the queue view.
     }
@@ -776,6 +1165,31 @@ function actionButtons(book, isFirst, isLast) {
     return buttons.length ? buttons.join('') : '<span class="queue-muted">—</span>';
 }
 
+function renderRowQualityBadges(book) {
+    const qs = resolveQualitySummary(book, lastSnapshot);
+    if (!qs) return '';
+    const pills = [];
+    if (qs.epubcheck_ok === true) {
+        pills.push(`<span class="queue-row-pill is-ok">${escapeHtml(t('queue:badge_epubcheck_ok'))}</span>`);
+    } else if (qs.epubcheck_ok === false) {
+        pills.push(`<span class="queue-row-pill is-warn">${escapeHtml(t('queue:badge_epubcheck_err', { errors: qs.epubcheck_errors ?? '?' }))}</span>`);
+    }
+    if (qs.glossary_coverage != null) {
+        const pct = Math.round(Number(qs.glossary_coverage) * 100);
+        pills.push(`<span class="queue-row-pill${pct >= 90 ? ' is-ok' : ''}">${escapeHtml(t('queue:badge_glossary', { pct }))}</span>`);
+    }
+    if (qs.kindle_exported) {
+        pills.push(`<span class="queue-row-pill is-ok">${escapeHtml(t('queue:badge_kindle'))}</span>`);
+    }
+    if ((qs.reader_merged || 0) > 0 || (qs.reader_splits || 0) > 0) {
+        pills.push(`<span class="queue-row-pill">${escapeHtml(t('queue:badge_repairs', {
+            merged: qs.reader_merged ?? 0,
+            splits: qs.reader_splits ?? 0,
+        }))}</span>`);
+    }
+    return pills.length ? `<div class="queue-row-badges">${pills.join('')}</div>` : '';
+}
+
 function renderRows() {
     const body = byId('queueTableBody');
     const empty = byId('queueEmpty');
@@ -817,6 +1231,7 @@ function renderRows() {
                     <td>
                         ${title}
                         <div class="queue-book-author">${escapeHtml(book.author || '')} ${nextBadge}</div>
+                        ${renderRowQualityBadges(book)}
                     </td>
                     <td class="queue-series-col">${series}</td>
                     <td><span class="queue-status queue-status-${escapeHtml(statusKey(book))}">${escapeHtml(statusLabel(book))}</span></td>
@@ -975,6 +1390,11 @@ function applySnapshot(data) {
         runner: data.runner || {},
         run_request: data.run_request || null,
         intents: data.intents || {},
+        supervisor: data.supervisor || null,
+        auto_worker: data.auto_worker || null,
+        budget: data.budget || null,
+        book_quality: data.book_quality || null,
+        health: data.health || null,
     };
     lastBooks = lastSnapshot.books;
     renderSummary(data);
@@ -992,13 +1412,19 @@ function renderRunnerStatus(data) {
 
     const agent = data.agent || {};
     const runner = data.runner || {};
+    const sup = resolveSupervisor(data);
+    const autoWorker = resolveAutoWorker(data);
     const online = Boolean(agent.online);
-    const running = Boolean(runner.running);
+    const supervisorRunning = Boolean((sup?.online && sup?.worker_running) || (autoWorker?.online && autoWorker?.running));
+    const running = Boolean(runner.running) || supervisorRunning;
     const pending = (data.books || []).some((book) => statusKey(book) === 'pending');
 
     let label = t('queue:runner_offline');
     let cls = 'is-offline';
-    if (online) {
+    if (supervisorRunning) {
+        label = t('queue:supervisor_active_status');
+        cls = 'is-running';
+    } else if (online) {
         label = running ? t('queue:runner_running') : t('queue:runner_online');
         cls = running ? 'is-running' : 'is-online';
     }
@@ -1378,6 +1804,7 @@ function qualityMetric(label, value) {
 }
 
 function renderQuality(payload) {
+    lastQualityPayload = payload;
     const body = byId('queueQualityBody');
     if (!body) return;
     const book = payload.book || {};
@@ -1532,10 +1959,12 @@ function renderQuality(payload) {
         </section>` : ''}
         <section class="queue-quality-section">
             <h5>${escapeHtml(t('queue:quality_log'))}</h5>
-            <pre class="queue-inset queue-quality-log">${escapeHtml((log.lines || []).join('\n') || t('queue:log_empty'))}</pre>
+            <div id="queueQualityLogToolbar"></div>
+            <pre id="queueQualityLog" class="queue-inset queue-quality-log"></pre>
         </section>
         <div class="queue-quality-actions">${actionButtonsHtml}</div>
     `;
+    applyLogViewer('queueQualityLog', 'queueQualityLogToolbar', log.lines || [], 'drawer');
 }
 
 async function openQuality(bookId) {
@@ -1564,6 +1993,7 @@ function closeQuality() {
     const overlay = byId('queueQualityDrawer');
     if (overlay) overlay.classList.add('hidden');
     qualityBookId = null;
+    lastQualityPayload = null;
 }
 
 const INTENT_URL = '/api/literary/queue/intents';
@@ -1877,6 +2307,38 @@ function initialize() {
     if (kindleZip) kindleZip.addEventListener('click', downloadKindleZip);
 
     const handleNowClick = (event) => {
+        const seriesCard = event.target.closest('[data-series-card]');
+        if (seriesCard) {
+            const name = seriesCard.dataset.seriesCard || '';
+            activeSeries = activeSeries === name ? '' : name;
+            const seriesSelect = byId('queueSeriesFilter');
+            if (seriesSelect) seriesSelect.value = activeSeries;
+            if (lastRaw) renderInsightsBar(lastRaw);
+            renderRows();
+            return;
+        }
+        const filterBtn = event.target.closest('[data-log-filter]');
+        if (filterBtn) {
+            logFilter = filterBtn.dataset.logFilter || 'all';
+            if (lastHeroLogLines.length) {
+                applyLogViewer('translateQueueLog', 'translateQueueLogToolbar', lastHeroLogLines, 'hero');
+            }
+            if (lastQualityPayload?.log?.lines) {
+                applyLogViewer('queueQualityLog', 'queueQualityLogToolbar', lastQualityPayload.log.lines, 'drawer');
+            }
+            return;
+        }
+        const autoToggle = event.target.closest('[data-log-autoscroll]');
+        if (autoToggle) {
+            logAutoScroll = Boolean(autoToggle.checked);
+            if (lastHeroLogLines.length) {
+                applyLogViewer('translateQueueLog', 'translateQueueLogToolbar', lastHeroLogLines, 'hero');
+            }
+            if (lastQualityPayload?.log?.lines) {
+                applyLogViewer('queueQualityLog', 'queueQualityLogToolbar', lastQualityPayload.log.lines, 'drawer');
+            }
+            return;
+        }
         const queueLink = event.target.closest('[data-now-queue]');
         if (queueLink) {
             if (typeof window.switchTopTab === 'function') window.switchTopTab('queue');

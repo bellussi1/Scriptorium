@@ -1,11 +1,22 @@
 # Active context
 
 Handoff between sessions. Read this first; update it before you stop. It must
-describe the real repository, not a plan. Status as of 2026-11-18 (09:27 local):
+describe the real repository, not a plan. Status as of 2026-11-18 (12:41 local):
 revalidate with `git status` and `git log` before acting. Older
 handoffs are in git history (this file was compacted on 2026-11-12).
 
 ## Now
+
+- **Queue & Translation UI/UX improvements live + `#2 Ship of Magic` completed & exported, `#3 The Mad Ship` actively translating (2026-11-18 12:41 local):**
+  - **`#2 Ship of Magic` completed & exported (`job #42`, `cli_5d36fffc`):** Finished `1,063/1,063` chunks (`305,561` words in PT-BR, length ratio `0.9887`, `EPUBCheck 0/0/0`), auto-approved by `scripts/auto_queue.py`, and exported to `translated_files/kindle/Robin Hobb/The Liveship Traders/01 - Ship of Magic (pt-BR).epub` (`manifest.csv`).
+  - **Live run active (`#3 The Mad Ship`, `job #43`, `cli_4dc58393`):** Automatically started after `#2` and resumed seamlessly from checkpoint `70/1,071` after the computer shutdown; currently translating `gemini / gemini-3.8-flash` (`696+/1,071` chunks, file `7/9` `index_split_006.html`) under `scripts/auto_queue.py --max-books 0 --max-cloud-usd 0 --trust-runner-gate`, `scripts/queue_runner_agent.py`, and `scripts/watch_translation.py --interval 15 --no-audit --no-snapshots`. Do **not** restart `translatebook-literary-dev` while running.
+  - **5 Queue & Translation UI/UX improvements shipped hot-reload safe:**
+    1. Live per-5-chunk progress, current internal XHTML file (`X/Y · chunk/file_total`), and 10-minute stall threshold (`src/literary/queue_insights.py`: `live_translation_progress`, `scripts/watch_translation.py`, `src/web/static/js/queue/queue-manager.js`). Also fixed `watch_translation.py` to reset stale `last_audit` entries when `book_id:translation_id` changes.
+    2. Live process status strip (`Supervisor`, `Worker` phase/heartbeat, `Runner Agent`, checkpoint age, queue DB integrity) via `read_process_telemetry`.
+    3. 5-stage pipeline stepper (`Prep -> Translation -> Typography -> EPUBCheck -> Audit & Kindle`) in both `#translateQueueNow` and `#queueNow`.
+    4. Cleaned/filtered/color-coded activity & quality log viewer (`clean_log_lines`, All/Checkpoints/Repairs & Audit/Warnings & Errors filters, auto-scroll toggle, and preserved `<details>` open state across 10s polls).
+    5. Clickable series/trilogy progress cards (`read_book_quality_summaries`), Gemini credit budget forecast (`read_budget_summary`), and inline table quality pills (`EPUBCheck 0/0`, glossary coverage %, `Kindle ✓`, `reader_repair` counts).
+  - **Verification:** `npm.cmd run build:css`, `npm.cmd run typecheck`, `npm.cmd run test:js` (`7/7 passed`), `pytest -q tests/test_frontend_i18n.py tests/unit/test_literary_queue_routes.py tests/literary/test_queue_insights.py` (`66 passed`), `ruff check` (`0` issues), and live HTTP `200` checks on `http://localhost:5000` serving updated static JS/CSS/locales + live `health` telemetry (Jinja template in container keeps cached HTML until next restart; JS dynamically ensures new containers via `ensureQueueContainer()`).
 
 - **Continuous overnight queue active on `#2 Ship of Magic` after `#4 Fool's Errand` completed & exported (2026-11-18 09:27 local):**
   - **Supervisor Windows shim & lock retry fix (`scripts/auto_queue.py`, `tests/literary/test_auto_supervisor.py`):** Fixed `_heartbeat_age` and exit status checks via `_status_matches_worker()` to match either `status["pid"]` or `status["ppid"]` against `worker.pid` (solving Windows `venv\Scripts\python.exe` launcher-shim PID mismatch that triggered false 600 s `worker_stalled` kills) and updated `_atomic_write()` to use per-thread/PID staging filenames + 20-attempt `PermissionError` backoff (`WinError 5` resilience). Verified `pytest -q tests/literary/test_auto_queue_gate.py tests/literary/test_auto_supervisor.py` (`17 passed`) and `ruff check` (`0` issues).

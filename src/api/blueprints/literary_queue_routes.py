@@ -28,20 +28,24 @@ from src.literary import queue_intents
 from src.literary.models import BookRecord
 from src.literary.queue import hash_config, hash_file
 from src.literary.queue_control import read_control, set_pause, set_pause_now
-from src.literary.queue_run_control import (
-    read_agent_status,
-    read_run_request,
-    read_runner_info,
-    request_run,
-)
 from src.literary.queue_insights import (
     DEFAULT_KINDLE_DIR,
     DEFAULT_PILOT_DIR,
     DEFAULT_RUN_DIR,
     find_log,
     kindle_zip,
+    live_translation_progress,
     quality_payload,
+    read_book_quality_summaries,
+    read_budget_summary,
+    read_process_telemetry,
     tail_lines,
+)
+from src.literary.queue_run_control import (
+    read_agent_status,
+    read_run_request,
+    read_runner_info,
+    request_run,
 )
 
 MAX_BOOKS_PER_ADD = 100
@@ -284,6 +288,7 @@ def build_queue_snapshot(db_path: str | Path) -> Dict[str, Any]:
         except ValueError:
             health_fresh = False
 
+    telemetry = read_process_telemetry(path)
     if not path.exists():
         return {
             "status": "empty",
@@ -295,6 +300,10 @@ def build_queue_snapshot(db_path: str | Path) -> Dict[str, Any]:
             "runner": read_runner_info(path),
             "run_request": read_run_request(path),
             "intents": queue_intents.pending_summary(path),
+            "supervisor": telemetry["supervisor"],
+            "auto_worker": telemetry["auto_worker"],
+            "budget": read_budget_summary([]),
+            "book_quality": {},
             "health": health,
         }
 
@@ -308,7 +317,7 @@ def build_queue_snapshot(db_path: str | Path) -> Dict[str, Any]:
                 SELECT
                     b.id, b.calibre_id, b.title, b.author, b.series,
                     b.series_index, b.status, b.word_count, b.model, b.provider,
-                    b.reviewed_at,
+                    b.priority, b.reviewed_at,
                     j.id AS job_id, j.state AS job_state, j.translation_id,
                     j.current_chapter, j.total_chapters, j.error,
                     j.created_at AS job_created_at,
@@ -393,11 +402,36 @@ def build_queue_snapshot(db_path: str | Path) -> Dict[str, Any]:
             book["db_integrity"] = live_db.get("integrity")
             book["journal_mode"] = live_db.get("journal_mode")
             if health.get("checkpoint_count") is not None:
-                book["current_chapter"] = int(health["checkpoint_count"])
+                book["current_chapter"] = max(
+                    int(book.get("current_chapter") or 0),
+                    int(health["checkpoint_count"]),
+                )
+            if isinstance(health.get("live_progress"), dict) and health.get("live_progress"):
+                book["live_progress"] = health["live_progress"]
             if health.get("process_alive") is False or health.get("stalled"):
                 book["live"] = False
             else:
                 book["live"] = True
+        if book["live"] and not book.get("live_progress"):
+            live_prog = live_translation_progress(
+                str(book.get("title") or ""),
+                str(book.get("translation_id") or ""),
+                run_dir=_run_dir(),
+                pilot_dir=_pilot_dir(),
+            )
+            if live_prog:
+                book["live_progress"] = live_prog
+                if live_prog.get("checkpoint_count") is not None:
+                    live_count = int(live_prog["checkpoint_count"])
+                    if live_count > int(book.get("current_chapter") or 0):
+                        book["current_chapter"] = live_count
+                if live_prog.get("last_checkpoint_at") and not book.get("last_checkpoint_at"):
+                    book["last_checkpoint_at"] = live_prog["last_checkpoint_at"]
+                if (
+                    live_prog.get("last_checkpoint_age_seconds") is not None
+                    and book.get("last_checkpoint_age_seconds") is None
+                ):
+                    book["last_checkpoint_age_seconds"] = live_prog["last_checkpoint_age_seconds"]
         if state == "pending":
             position += 1
             book["position"] = position
@@ -406,6 +440,17 @@ def build_queue_snapshot(db_path: str | Path) -> Dict[str, Any]:
             book["position"] = None
             book["is_next"] = False
         by_status[state] = by_status.get(state, 0) + 1
+
+    book_quality = read_book_quality_summaries(
+        books,
+        run_dir=_run_dir(),
+        pilot_dir=_pilot_dir(),
+        kindle_dir=_kindle_dir(),
+    )
+    for book in books:
+        q_summary = book_quality.get(str(book["id"]))
+        if q_summary is not None:
+            book["quality_summary"] = q_summary
 
     return {
         "status": "ok",
@@ -421,6 +466,10 @@ def build_queue_snapshot(db_path: str | Path) -> Dict[str, Any]:
         "runner": read_runner_info(path),
         "run_request": read_run_request(path),
         "intents": queue_intents.pending_summary(path),
+        "supervisor": telemetry["supervisor"],
+        "auto_worker": telemetry["auto_worker"],
+        "budget": read_budget_summary(books),
+        "book_quality": book_quality,
         "health": health,
     }
 

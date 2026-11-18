@@ -709,3 +709,118 @@ def test_await_intent_does_not_hold_the_request_when_runner_is_offline(tmp_path:
 
     assert literary_queue_routes._await_intent(tmp_path / "literary_queue.db", "a" * 32) is None
     assert time.monotonic() - started < 5
+
+
+def test_clean_log_lines_strips_sync_and_giant_prompt_options():
+    from src.literary.queue_insights import clean_log_lines
+
+    giant_prompt = "[12:00:00]  Refinement enabled: False (prompt_options={'preserve_technical_content': True, 'custom_instructions': '" + ("x" * 400) + "'})"
+    raw = [
+        "[2026-11-18 12:00:00] sync: checked=42 matched=24 updated=1",
+        giant_prompt,
+        "[12:00:25]  💾 Checkpoint saved: chunk 5/78",
+    ]
+    cleaned = clean_log_lines(raw)
+
+    assert len(cleaned) == 2
+    assert cleaned[0].startswith("[12:00:00]  Refinement enabled: False")
+    assert len(cleaned[0]) < 120
+    assert "Checkpoint saved: chunk 5/78" in cleaned[1]
+
+
+def test_live_translation_progress_parses_file_and_stage(tmp_path: Path):
+    from src.literary.queue_insights import live_translation_progress
+
+    run_dir = tmp_path / "runs"
+    run_dir.mkdir()
+    uploads_dir = tmp_path / "uploads"
+    states_dir = uploads_dir / "cli_abc123" / "xhtml_states"
+    states_dir.mkdir(parents=True)
+    (states_dir / "index_split_002.html.json").write_text("{}", encoding="utf-8")
+
+    (run_dir / "the-mad-ship.log").write_text(
+        "\n".join([
+            "[2026-11-18 11:31:18] resuming translation_id cli_abc123",
+            "TRANSLATION STARTED",
+            "[14:31:20]  Translating file 3/9: index_split_002.html (120 chunks)",
+            "Checkpoint chunks (xhtml state): 285/1071 (file rows: 2)",
+            "[14:35:00]  💾 Checkpoint saved: chunk 45/120",
+        ]),
+        encoding="utf-8",
+    )
+
+    progress = live_translation_progress(
+        "The Mad Ship",
+        "cli_abc123",
+        run_dir=run_dir,
+        pilot_dir=tmp_path / "pilots",
+        uploads_dir=uploads_dir,
+    )
+
+    assert progress["checkpoint_count"] == 285
+    assert progress["total_chunks"] == 1071
+    assert progress["current_file_index"] == 3
+    assert progress["total_files"] == 9
+    assert progress["current_file_name"] == "index_split_002.html"
+    assert progress["file_chunk"] == 45
+    assert progress["file_total_chunks"] == 120
+    assert progress["pipeline_stage"] == "translating"
+    assert progress["last_checkpoint_age_seconds"] >= 0.0
+
+
+def test_snapshot_includes_telemetry_budget_and_live_progress(tmp_path: Path, monkeypatch):
+    db = tmp_path / "queue.db"
+    _queue_db(db)
+    run_dir = tmp_path / "runs"
+    run_dir.mkdir()
+    (run_dir / "howling-dark.log").write_text(
+        "\n".join([
+            "resuming translation_id cli_test",
+            "TRANSLATION STARTED",
+            "Translating file 2/5: part2.xhtml (40 chunks)",
+            "Checkpoint chunks (xhtml state): 55/100 (file rows: 1)",
+            "[12:00:00]  💾 Checkpoint saved: chunk 15/40",
+        ]),
+        encoding="utf-8",
+    )
+    now_iso = time.strftime("%Y-%m-%dT%H:%M:%S+00:00", time.gmtime())
+    (tmp_path / "literary_queue.supervisor.json").write_text(
+        json.dumps({
+            "pid": 1234,
+            "heartbeat": now_iso,
+            "state": "running",
+            "worker": {"pid": 5678, "running": True, "heartbeat_age_s": 5.0},
+            "restart": {"attempts_last_hour": 1, "max_per_hour": 3},
+        }),
+        encoding="utf-8",
+    )
+    (tmp_path / "literary_queue.auto.json").write_text(
+        json.dumps({
+            "pid": 9999,
+            "ppid": 5678,
+            "heartbeat": now_iso,
+            "running": True,
+            "phase": "starting",
+            "book_id": 1,
+            "title": "Howling Dark",
+        }),
+        encoding="utf-8",
+    )
+
+    monkeypatch.setenv("LITERARY_RUN_DIR", str(run_dir))
+    monkeypatch.setenv("LITERARY_PILOT_DIR", str(tmp_path / "pilots"))
+    monkeypatch.setenv("LITERARY_KINDLE_DIR", str(tmp_path / "kindle"))
+
+    snapshot = build_queue_snapshot(db)
+
+    assert snapshot["supervisor"]["online"] is True
+    assert snapshot["supervisor"]["pid"] == 1234
+    assert snapshot["supervisor"]["restarts_last_hour"] == 1
+    assert snapshot["auto_worker"]["online"] is True
+    assert snapshot["auto_worker"]["phase"] == "starting"
+    assert snapshot["budget"]["cap_usd"] > 0
+    first = snapshot["books"][0]
+    assert first["current_chapter"] == 55
+    assert first["live_progress"]["current_file_index"] == 2
+    assert first["live_progress"]["file_chunk"] == 15
+

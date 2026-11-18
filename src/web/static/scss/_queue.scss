@@ -874,7 +874,7 @@ html.dark {
 
 .queue-metrics {
     display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
     gap: var(--q-space-3);
     margin-top: var(--q-space-5);
 }
@@ -1294,4 +1294,325 @@ html.dark {
 .queue-table .queue-progress-text {
     white-space: normal;
 }
+
+/* Pipeline stepper inside Translate hero & Queue Now card. */
+.queue-stepper {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--q-space-2);
+    list-style: none;
+    margin: var(--q-space-3) 0 0;
+    padding: 0;
+}
+
+.queue-step {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 3px 9px;
+    border-radius: var(--q-radius-pill);
+    background: var(--q-tone-neutral-bg);
+    color: var(--q-tone-neutral-fg);
+    font-size: var(--q-text-xs);
+    font-weight: 600;
+    line-height: 1.25;
+}
+
+.queue-step__dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+    opacity: 0.5;
+}
+
+.queue-step.is-done {
+    background: var(--q-tone-success-bg);
+    color: var(--q-tone-success-fg);
+}
+
+.queue-step.is-done .queue-step__dot {
+    opacity: 1;
+}
+
+.queue-step.is-current {
+    background: var(--q-tone-info-bg);
+    color: var(--q-tone-info-fg);
+    box-shadow: 0 0 0 1px currentColor inset;
+}
+
+.queue-step.is-current .queue-step__dot {
+    opacity: 1;
+}
+
+.queue-step.is-pending {
+    opacity: 0.65;
+}
+
+/* Process status strip above the queue toolbar. */
+.queue-process-bar {
+    margin: 0 0 $space-2;
+    padding: $space-2;
+    border: 1px solid var(--border-light);
+    border-radius: $radius-md;
+    background: var(--background-light);
+}
+
+.queue-badges--flush {
+    margin-top: 0;
+}
+
+/* Series progress & budget insights panel. */
+.queue-insights-bar {
+    margin: 0 0 $space-3;
+}
+
+.queue-insights-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.8fr) minmax(240px, 1fr);
+    gap: $space-3;
+    align-items: stretch;
+}
+
+@media (max-width: 900px) {
+    .queue-insights-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.queue-series-section,
+.queue-budget-card {
+    padding: $space-2 $space-3;
+    border: 1px solid var(--border-light);
+    border-radius: $radius-md;
+    background: var(--background-light);
+}
+
+.queue-insights-label {
+    margin: 0 0 $space-2;
+    color: var(--text-muted-light);
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.queue-series-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(155px, 1fr));
+    gap: $space-2;
+}
+
+.queue-series-card {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    padding: 7px 9px;
+    border: 1px solid var(--border-light);
+    border-radius: $radius-sm;
+    background: transparent;
+    color: var(--text-dark);
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+}
+
+.queue-series-card:hover {
+    border-color: var(--primary-light);
+}
+
+.queue-series-card.is-selected {
+    border-color: var(--primary-light);
+    box-shadow: 0 0 0 1px var(--primary-light) inset;
+}
+
+.queue-series-card.is-active .queue-series-card__pct {
+    color: var(--q-tone-info-fg);
+}
+
+.queue-series-card__top {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 6px;
+}
+
+.queue-series-card__name {
+    font-size: 0.76rem;
+    font-weight: 600;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.queue-series-card__pct {
+    flex: 0 0 auto;
+    font-size: 0.72rem;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    color: var(--text-muted-light);
+}
+
+.queue-series-card__meta {
+    font-size: 0.69rem;
+    color: var(--text-muted-light);
+}
+
+.queue-series-card .queue-progress--compact {
+    width: 100%;
+    max-width: none;
+}
+
+.queue-budget-card {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: $space-2;
+}
+
+.queue-budget-card__head {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: $space-1;
+}
+
+.queue-budget-card__title {
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-muted-light);
+}
+
+.queue-budget-card__cap {
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--q-tone-success-fg);
+    font-variant-numeric: tabular-nums;
+}
+
+.queue-budget-card__stats {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: $space-2;
+}
+
+.queue-budget-stat {
+    padding: 5px 7px;
+    border-radius: $radius-sm;
+    background: var(--q-surface-inset);
+}
+
+.queue-budget-stat span {
+    display: block;
+    font-size: 0.66rem;
+    color: var(--text-muted-light);
+}
+
+.queue-budget-stat strong {
+    display: block;
+    margin-top: 2px;
+    font-size: 0.85rem;
+    font-variant-numeric: tabular-nums;
+    color: var(--text-dark);
+}
+
+/* Inline per-row quality pills in queue table. */
+.queue-row-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-top: 4px;
+}
+
+.queue-row-pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 1px 6px;
+    border-radius: 999px;
+    background: var(--q-tone-neutral-bg);
+    color: var(--q-tone-neutral-fg);
+    font-size: 0.66rem;
+    font-weight: 600;
+    line-height: 1.35;
+}
+
+.queue-row-pill.is-ok {
+    background: var(--q-tone-success-bg);
+    color: var(--q-tone-success-fg);
+}
+
+.queue-row-pill.is-warn {
+    background: var(--q-tone-warning-bg);
+    color: var(--q-tone-warning-fg);
+}
+
+/* Filtered log toolbar and colored log lines. */
+.queue-log-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--q-space-2);
+    margin: var(--q-space-2) 0;
+}
+
+.queue-log-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+}
+
+.queue-log-chip {
+    padding: 2px 8px;
+    border: 1px solid var(--border-light);
+    border-radius: var(--q-radius-pill);
+    background: transparent;
+    color: var(--text-muted-light);
+    font: inherit;
+    font-size: 0.7rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.queue-log-chip.is-active {
+    border-color: var(--primary-light);
+    background: var(--primary-light);
+    color: var(--paper);
+}
+
+.queue-log-meta {
+    display: flex;
+    align-items: center;
+    gap: var(--q-space-3);
+    font-size: 0.7rem;
+    color: var(--text-muted-light);
+}
+
+.queue-log-autoscroll {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    cursor: pointer;
+}
+
+.queue-log-line {
+    padding: 1px 0;
+}
+
+.queue-log-line.is-checkpoint {
+    color: var(--q-tone-info-fg);
+}
+
+.queue-log-line.is-repair {
+    color: var(--q-tone-success-fg);
+}
+
+.queue-log-line.is-warning {
+    color: var(--q-tone-warning-fg);
+}
+
 

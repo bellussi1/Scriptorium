@@ -7,11 +7,13 @@ summary.  Nothing here mutates the queue or the artifacts.
 """
 from __future__ import annotations
 
+import csv
 import io
 import json
 import re
 import time
 import zipfile
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Optional, Sequence
 
@@ -22,6 +24,19 @@ DEFAULT_RUN_DIR = Path("data/queue-runs")
 DEFAULT_PILOT_DIR = Path("data/pilots")
 DEFAULT_KINDLE_DIR = Path("translated_files/kindle")
 DEFAULT_COMPILED_DIR = Path("data/compiled")
+DEFAULT_AUDITS_DIR = Path("data/audits")
+DEFAULT_BUDGETS_PATH = Path("data/budgets.json")
+DEFAULT_UPLOADS_DIR = Path("data/uploads")
+
+_SYNC_LINE_RE = re.compile(r"(?:^|\]\s*)sync:\s*checked=")
+_CHECKPOINT_CHUNKS_RE = re.compile(r"Checkpoint chunks \(xhtml state\):\s*(\d+)/(\d+)")
+_TRANSLATING_FILE_RE = re.compile(
+    r"Translating file (\d+)/(\d+):\s*([^\s(]+)\s*\((\d+)\s+chunks\)"
+)
+_FILE_CHUNK_RE = re.compile(
+    r"(?:Checkpoint saved: chunk|Resuming '[^']+' from chunk)\s+(\d+)/(\d+)"
+)
+_CLI_ID_RE = re.compile(r"\bcli_[0-9a-f]+\b")
 
 
 def slug(value: str) -> str:
@@ -68,6 +83,24 @@ def find_report(
     return candidates[0] if candidates else None
 
 
+def clean_log_lines(lines: Sequence[str]) -> List[str]:
+    """Strip noisy periodic sync heartbeats and giant option/glossary dumps."""
+    cleaned: List[str] = []
+    for raw in lines:
+        line = str(raw)
+        if _SYNC_LINE_RE.search(line):
+            continue
+        if "prompt_options={" in line and len(line) > 300:
+            head = line.split("(prompt_options={", 1)[0].rstrip()
+            cleaned.append(f"{head} (custom instructions + glossary active)")
+            continue
+        if ("'category':" in line or "'forbidden':" in line) and len(line) > 300:
+            cleaned.append(f"{line[:200]} … [glossary truncated]")
+            continue
+        cleaned.append(line)
+    return cleaned
+
+
 def tail_lines(path: Optional[Path], limit: int = 80, *, skip_sync: bool = False) -> List[str]:
     if path is None or not path.is_file():
         return []
@@ -77,7 +110,7 @@ def tail_lines(path: Optional[Path], limit: int = 80, *, skip_sync: bool = False
     except OSError:
         return []
     if skip_sync:
-        lines = [line for line in lines if "sync: checked=" not in line]
+        lines = clean_log_lines(lines)
     return lines[-limit:]
 
 
@@ -369,3 +402,374 @@ def kindle_zip(folder: str | Path = DEFAULT_KINDLE_DIR) -> io.BytesIO:
             archive.write(path, path.relative_to(folder).as_posix())
     buffer.seek(0)
     return buffer
+
+
+def _read_head_and_tail(path: Path, *, head_bytes: int = 4096, tail_bytes: int = 131072) -> str:
+    try:
+        size = path.stat().st_size
+        with path.open("rb") as fh:
+            if size <= tail_bytes:
+                return fh.read().decode("utf-8", "replace")
+            head = fh.read(head_bytes).decode("utf-8", "replace")
+            fh.seek(-tail_bytes, 2)
+            tail = fh.read().decode("utf-8", "replace")
+            return head + "\n" + tail
+    except OSError:
+        return ""
+
+
+def _parse_iso_datetime(value: Any) -> Optional[datetime]:
+    if not value:
+        return None
+    text = str(value).strip().replace("Z", "+00:00")
+    if "T" not in text and " " in text:
+        text = text.replace(" ", "T", 1)
+    try:
+        parsed = datetime.fromisoformat(text)
+    except ValueError:
+        return None
+    if parsed.tzinfo is None:
+        parsed = parsed.replace(tzinfo=timezone.utc)
+    return parsed.astimezone(timezone.utc)
+
+
+def live_translation_progress(
+    title: str,
+    translation_id: str = "",
+    *,
+    run_dir: Path = DEFAULT_RUN_DIR,
+    pilot_dir: Path = DEFAULT_PILOT_DIR,
+    uploads_dir: Path = DEFAULT_UPLOADS_DIR,
+) -> Dict[str, Any]:
+    """Read live per-5-chunk XHTML progress, current file, and pipeline stage."""
+    tid = str(translation_id or "").strip()
+    log_path = find_log(title, run_dir, pilot_dir) if title else None
+    states_dir = Path(uploads_dir) / tid / "xhtml_states" if tid else None
+    has_states = bool(states_dir and states_dir.is_dir())
+
+    if log_path is not None and tid:
+        sample_text = _read_head_and_tail(log_path)
+        found_ids = set(_CLI_ID_RE.findall(sample_text))
+        if not has_states and found_ids and tid not in found_ids:
+            log_path = None
+
+    newest_mtime: Optional[float] = None
+    if has_states and states_dir is not None:
+        for state_file in states_dir.glob("*.json"):
+            try:
+                mtime = state_file.stat().st_mtime
+                if newest_mtime is None or mtime > newest_mtime:
+                    newest_mtime = mtime
+            except OSError:
+                continue
+
+    tail_lines_raw: List[str] = []
+    if log_path is not None and log_path.is_file():
+        try:
+            mtime = log_path.stat().st_mtime
+            if newest_mtime is None or mtime > newest_mtime:
+                newest_mtime = mtime
+        except OSError:
+            pass
+        text = _read_head_and_tail(log_path, head_bytes=0, tail_bytes=131072)
+        tail_lines_raw = text.splitlines()[-300:]
+
+    if not tail_lines_raw and not has_states:
+        return {}
+
+    checkpoint_count: Optional[int] = None
+    total_chunks: Optional[int] = None
+    current_file_index: Optional[int] = None
+    total_files: Optional[int] = None
+    current_file_name = ""
+    file_chunk: Optional[int] = None
+    file_total_chunks: Optional[int] = None
+
+    start_idx = 0
+    for idx, line in enumerate(tail_lines_raw):
+        if "queue run for book" in line or "TRANSLATION STARTED" in line:
+            start_idx = idx
+    run_lines = tail_lines_raw[start_idx:]
+
+    stage = "preparing"
+    for line in run_lines:
+        if "TRANSLATION STARTED" in line:
+            stage = "translating"
+        m_file = _TRANSLATING_FILE_RE.search(line)
+        if m_file:
+            current_file_index = int(m_file.group(1))
+            total_files = int(m_file.group(2))
+            current_file_name = m_file.group(3)
+            file_total_chunks = int(m_file.group(4))
+            file_chunk = 0
+            stage = "translating"
+            continue
+        m_chunk = _FILE_CHUNK_RE.search(line)
+        if m_chunk:
+            file_chunk = int(m_chunk.group(1))
+            file_total_chunks = int(m_chunk.group(2))
+            stage = "translating"
+        m_total = _CHECKPOINT_CHUNKS_RE.search(line)
+        if m_total:
+            checkpoint_count = int(m_total.group(1))
+            total_chunks = int(m_total.group(2))
+            stage = "translating"
+        if (
+            "translation process exited with 0" in line
+            or "repairing dropcaps" in line
+            or "rewriting pt-PT" in line
+        ):
+            stage = "repairing"
+        elif "validation passed" in line or "reader repair:" in line:
+            stage = "validating"
+        elif "EPUBCheck" in line or "series metadata" in line or "finished; report=" in line:
+            stage = "auditing"
+
+    if (
+        stage == "translating"
+        and checkpoint_count is not None
+        and total_chunks
+        and checkpoint_count >= total_chunks
+    ):
+        stage = "repairing"
+
+    now = time.time()
+    last_cp_iso = (
+        datetime.fromtimestamp(newest_mtime, timezone.utc).isoformat(timespec="seconds")
+        if newest_mtime is not None
+        else None
+    )
+    last_cp_age = round(max(0.0, now - newest_mtime), 1) if newest_mtime is not None else None
+
+    result: Dict[str, Any] = {
+        "pipeline_stage": stage,
+        "last_checkpoint_at": last_cp_iso,
+        "last_checkpoint_age_seconds": last_cp_age,
+        "log_filename": log_path.name if log_path else "",
+    }
+    if checkpoint_count is not None:
+        result["checkpoint_count"] = checkpoint_count
+    if total_chunks is not None:
+        result["total_chunks"] = total_chunks
+    if current_file_index is not None:
+        result["current_file_index"] = current_file_index
+    if total_files is not None:
+        result["total_files"] = total_files
+    if current_file_name:
+        result["current_file_name"] = current_file_name
+    if file_chunk is not None:
+        result["file_chunk"] = file_chunk
+    if file_total_chunks is not None:
+        result["file_total_chunks"] = file_total_chunks
+    return result
+
+
+def read_process_telemetry(db_path: str | Path) -> Dict[str, Any]:
+    """Read live host supervisor and worker process status next to the queue DB."""
+    path = Path(db_path)
+    now = time.time()
+
+    def _file_age(file_path: Path, data: Dict[str, Any]) -> Optional[float]:
+        stamp = _parse_iso_datetime(data.get("heartbeat"))
+        if stamp is not None:
+            return round(max(0.0, now - stamp.timestamp()), 1)
+        try:
+            return round(max(0.0, now - file_path.stat().st_mtime), 1)
+        except OSError:
+            return None
+
+    sup_path = path.with_name("literary_queue.supervisor.json")
+    sup_data = read_json(sup_path)
+    sup_age = _file_age(sup_path, sup_data) if sup_data else None
+    sup_online = bool(sup_data and sup_age is not None and sup_age <= 45.0)
+    worker_raw = sup_data.get("worker") if isinstance(sup_data.get("worker"), dict) else {}
+    restart_raw = sup_data.get("restart") if isinstance(sup_data.get("restart"), dict) else {}
+    sup_info: Dict[str, Any] = {
+        "online": sup_online,
+        "state": sup_data.get("state") if sup_online else ("offline" if sup_data else "stopped"),
+        "pid": sup_data.get("pid"),
+        "heartbeat_age_s": sup_age,
+        "worker_pid": worker_raw.get("pid"),
+        "worker_running": bool(worker_raw.get("running")) if sup_online else False,
+        "worker_heartbeat_age_s": worker_raw.get("heartbeat_age_s"),
+        "restarts_last_hour": int(restart_raw.get("attempts_last_hour") or 0),
+        "max_restarts_per_hour": int(restart_raw.get("max_per_hour") or 3),
+        "last_restart_reason": restart_raw.get("last_reason"),
+        "message": sup_data.get("message") or "",
+    }
+
+    auto_path = path.with_name("literary_queue.auto.json")
+    auto_data = read_json(auto_path)
+    auto_age = _file_age(auto_path, auto_data) if auto_data else None
+    auto_online = bool(auto_data and auto_age is not None and auto_age <= 75.0)
+    auto_info: Dict[str, Any] = {
+        "online": auto_online,
+        "pid": auto_data.get("pid"),
+        "ppid": auto_data.get("ppid"),
+        "running": bool(auto_data.get("running")) if auto_online else False,
+        "phase": auto_data.get("phase") or "",
+        "reason": auto_data.get("reason") or "",
+        "book_id": auto_data.get("book_id"),
+        "title": auto_data.get("title") or "",
+        "heartbeat_age_s": auto_age,
+        "message": auto_data.get("message") or "",
+    }
+    return {"supervisor": sup_info, "auto_worker": auto_info}
+
+
+def read_budget_summary(
+    books: Sequence[Dict[str, Any]],
+    budgets_path: Path = DEFAULT_BUDGETS_PATH,
+) -> Dict[str, Any]:
+    """Compute catalog-rate USD spend/estimate and remaining credit cap."""
+    budgets = read_json(budgets_path)
+    gemini_cfg = budgets.get("gemini") if isinstance(budgets.get("gemini"), dict) else {}
+    cap_usd = float(gemini_cfg.get("cap_usd") or gemini_cfg.get("cap") or 45.0)
+
+    def _est_usd(book: Dict[str, Any]) -> float:
+        actual = float(book.get("actual_cost") or 0.0)
+        if actual > 0:
+            return actual
+        est = float(book.get("estimated_cost") or 0.0)
+        if est > 0:
+            return est
+        words = int(book.get("word_count") or 0)
+        return round(words * 0.0000092029, 2) if words > 0 else 0.0
+
+    completed_usd = 0.0
+    active_usd = 0.0
+    core_remaining_usd = 0.0
+    total_remaining_usd = 0.0
+    active_states = {"preparing", "translating", "reviewing", "validating"}
+    for book in books:
+        provider = str(book.get("provider") or "gemini").strip().lower()
+        if provider and provider != "gemini":
+            continue
+        cost = _est_usd(book)
+        state = str(book.get("state") or book.get("status") or "pending").lower()
+        if state in {"completed", "needs_review"}:
+            completed_usd += cost
+        elif state in active_states:
+            active_usd += cost
+        elif state in {"pending", "paused", "failed"}:
+            total_remaining_usd += cost
+            if int(book.get("priority") or 0) >= 20:
+                core_remaining_usd += cost
+
+    completed_usd = round(completed_usd, 2)
+    active_usd = round(active_usd, 2)
+    core_remaining_usd = round(core_remaining_usd, 2)
+    total_remaining_usd = round(total_remaining_usd, 2)
+    remaining_cap_usd = round(max(0.0, cap_usd - completed_usd - active_usd), 2)
+    return {
+        "provider": "gemini",
+        "currency": str(gemini_cfg.get("currency") or "USD"),
+        "cap_usd": round(cap_usd, 2),
+        "completed_usd": completed_usd,
+        "active_usd": active_usd,
+        "core_remaining_usd": core_remaining_usd,
+        "total_remaining_usd": total_remaining_usd,
+        "remaining_cap_usd": remaining_cap_usd,
+        "is_estimated": True,
+    }
+
+
+def _exported_kindle_ids(kindle_dir: Path) -> set[int]:
+    manifest = Path(kindle_dir) / "manifest.csv"
+    if not manifest.is_file():
+        return set()
+    exported: set[int] = set()
+    try:
+        with manifest.open(encoding="utf-8", newline="") as fh:
+            for row in csv.DictReader(fh):
+                try:
+                    exported.add(int(row.get("book_id") or 0))
+                except (TypeError, ValueError):
+                    continue
+    except OSError:
+        return set()
+    return exported
+
+
+def read_book_quality_summaries(
+    books: Sequence[Dict[str, Any]],
+    *,
+    run_dir: Path = DEFAULT_RUN_DIR,
+    pilot_dir: Path = DEFAULT_PILOT_DIR,
+    audits_dir: Path = DEFAULT_AUDITS_DIR,
+    kindle_dir: Path = DEFAULT_KINDLE_DIR,
+) -> Dict[str, Dict[str, Any]]:
+    """Return compact EPUBCheck / audit / Kindle badges for completed or reviewed books."""
+    exported_ids = _exported_kindle_ids(Path(kindle_dir))
+    audits_root = Path(audits_dir)
+    summaries: Dict[str, Dict[str, Any]] = {}
+
+    for book in books:
+        book_id = int(book.get("id") or 0)
+        state = str(book.get("state") or book.get("status") or "pending").lower()
+        if not book_id or (not book.get("artifact") and state not in {"completed", "needs_review"}):
+            continue
+        title = str(book.get("title") or "")
+        book_slug = slug(title)
+        report_data = read_json(find_report(title, run_dir, pilot_dir)) if title else {}
+
+        audit_data: Dict[str, Any] = {}
+        if audits_root.is_dir() and book_slug:
+            candidates = sorted(
+                audits_root.glob(f"{book_slug}-*/audit.json"),
+                key=lambda item: item.stat().st_mtime,
+                reverse=True,
+            )
+            if candidates:
+                audit_data = read_json(candidates[0])
+
+        epubcheck = (
+            report_data.get("refined_epubcheck")
+            or report_data.get("epubcheck")
+            or {}
+        )
+        errors = epubcheck.get("errors")
+        fatals = epubcheck.get("fatals")
+        warnings = epubcheck.get("warnings")
+        if errors is None and isinstance(audit_data.get("gate"), dict):
+            errors = audit_data["gate"].get("epubcheck_errors")
+            fatals = 0 if errors == 0 else None
+        epubcheck_ok: Optional[bool] = None
+        if errors is not None:
+            epubcheck_ok = int(errors or 0) == 0 and int(fatals or 0) == 0
+
+        glossary = audit_data.get("glossary") if isinstance(audit_data.get("glossary"), dict) else {}
+        per_file_totals = (
+            (audit_data.get("per_file") or {}).get("totals")
+            if isinstance(audit_data.get("per_file"), dict)
+            else {}
+        )
+        cov = glossary.get("coverage")
+        if cov is None and isinstance(per_file_totals, dict):
+            cov = per_file_totals.get("glossary_coverage")
+        forbidden_raw = glossary.get("forbidden_hits")
+        forbidden_hits = len(forbidden_raw) if isinstance(forbidden_raw, list) else forbidden_raw
+
+        reader = (
+            report_data.get("reader_repair")
+            if isinstance(report_data.get("reader_repair"), dict)
+            else {}
+        )
+        splits = (
+            (reader.get("artifact_changes") or {}).get("split_dialogue_paragraphs")
+            if isinstance(reader.get("artifact_changes"), dict)
+            else None
+        )
+
+        summaries[str(book_id)] = {
+            "epubcheck_ok": epubcheck_ok,
+            "epubcheck_errors": int(errors) if errors is not None else None,
+            "epubcheck_warnings": int(warnings) if warnings is not None else None,
+            "gate_passed": report_data.get("gate_passed"),
+            "glossary_coverage": float(cov) if cov is not None else None,
+            "forbidden_hits": int(forbidden_hits) if forbidden_hits is not None else None,
+            "reader_merged": reader.get("merged"),
+            "reader_splits": splits,
+            "kindle_exported": book_id in exported_ids,
+        }
+    return summaries

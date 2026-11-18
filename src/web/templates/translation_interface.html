@@ -71,7 +71,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
 
     <!-- Application styles, compiled from src/web/static/scss -->
-    <link rel="stylesheet" href="/static/css/app.css?v=20261115-files-cols">
+    <link rel="stylesheet" href="/static/css/app.css?v=20261118-queue-ui">
 </head>
 <body>
     <div class="container">
@@ -1343,6 +1343,8 @@
                     </div>
                     <div id="queueSummary" class="queue-summary" aria-live="polite"></div>
                     <div id="queueDistribution" class="queue-distribution hidden" role="img"></div>
+                    <div id="queueInsightsBar" class="queue-insights-bar hidden"></div>
+                    <div id="queueProcessBar" class="queue-process-bar hidden" aria-live="polite"></div>
                     <div class="queue-toolbar">
                         <button type="button" id="queueRunBtn" class="btn btn-primary"
                                 data-i18n-attr="title:queue:run_next_title"
@@ -1958,7 +1960,7 @@
 
     <!-- Scripts -->
     <script src="/static/js/vendor/socket.io.min.js"></script>
-    <script type="module" src="/static/js/index.js?v=20261113-slop-pass"></script>
+    <script type="module" src="/static/js/index.js?v=20261118-queue-ui"></script>
     <script id="initial-queue" type="application/json">{{ initial_queue|tojson if initial_queue else 'null' }}</script>
 </body>
 </html>
