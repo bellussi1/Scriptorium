@@ -743,6 +743,24 @@ def run_worker(args: argparse.Namespace) -> int:
                 return 0
 
             book = pending[0]
+            sys.path.insert(0, str(ROOT))
+            from src.literary.queue_insights import check_cloud_budget_gate
+
+            budget_gate = check_cloud_budget_gate(book, args.db)
+            if not budget_gate.get("allowed", True):
+                _write_status(
+                    {
+                        "running": False,
+                        "phase": "blocked",
+                        "reason": "budget",
+                        "book_id": book["id"],
+                        "title": book["title"],
+                        "message": budget_gate["message"],
+                        "budget": budget_gate,
+                    }
+                )
+                print(f"auto queue: {budget_gate['message']}", flush=True)
+                return 0
             _write_status(
                 {
                     "running": True,

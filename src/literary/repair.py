@@ -366,6 +366,100 @@ def _hygiene_fix_html_structure(text: str, *, default_lang: str = "pt-BR") -> tu
     return text, changes
 
 
+_NCX_MINOR_PT_WORDS = {
+    "a", "as", "à", "às", "ao", "aos", "com", "da", "das", "de", "do", "dos",
+    "e", "em", "na", "nas", "no", "nos", "o", "os", "ou", "para", "pela",
+    "pelas", "pelo", "pelos", "por", "sem", "sob", "sobre", "um", "uma",
+}
+
+
+def _format_pt_toc_part(part: str) -> str:
+    cleaned = re.sub(r"\s+", " ", part).strip()
+    if not cleaned:
+        return ""
+    if cleaned.isupper() or cleaned.islower():
+        words = cleaned.split(" ")
+        formatted = []
+        for idx, word in enumerate(words):
+            low = word.casefold()
+            if idx > 0 and low in _NCX_MINOR_PT_WORDS:
+                formatted.append(low)
+            elif "-" in low:
+                formatted.append(
+                    "-".join(
+                        seg
+                        if (idx > 0 and i > 0 and seg in _NCX_MINOR_PT_WORDS)
+                        else seg[:1].upper() + seg[1:]
+                        for i, seg in enumerate(low.split("-"))
+                    )
+                )
+            else:
+                formatted.append(low[:1].upper() + low[1:])
+        return " ".join(formatted)
+    return cleaned
+
+
+def _hygiene_fix_bloated_ncx_labels(
+    ncx_text: str, ncx_name: str, texts: Dict[str, str]
+) -> tuple[str, int]:
+    """Replace prose-bloated NCX labels (>120 chars) with short headings from the target file."""
+    import html
+    import posixpath
+
+    ncx_dir = posixpath.dirname(ncx_name)
+    changes = 0
+    heading_re = re.compile(
+        r"<h[1-4]\b[^>]*>(.*?)</h[1-4]>|"
+        r'<p\b[^>]*\bclass="[^"]*\b(?:cn|ccn|fmh|cfmh|ct|acmh)\b[^"]*"[^>]*>(.*?)</p>',
+        re.IGNORECASE | re.DOTALL,
+    )
+    point_re = re.compile(
+        r'(<navLabel>\s*<text>)(.*?)(</text>\s*</navLabel>\s*<content\b[^>]*\bsrc\s*=\s*(["\'])([^"\']+)\4)',
+        re.IGNORECASE | re.DOTALL,
+    )
+
+    def _repl(match: re.Match[str]) -> str:
+        nonlocal changes
+        prefix, raw_label, suffix, _quote, src = match.groups()
+        plain = re.sub(r"\s+", " ", html.unescape(raw_label)).strip()
+        if len(plain) <= 120:
+            return match.group(0)
+
+        rel_href = src.split("#", 1)[0]
+        href_file = posixpath.normpath(
+            posixpath.join(ncx_dir, rel_href) if ncx_dir else rel_href
+        )
+        low_href = href_file.lower()
+        clean_label = ""
+        if low_href.endswith(("_adc_r1.htm", "_adc_r1.html", "adc.xhtml", "adc.htm")):
+            clean_label = "Obras do Autor"
+        elif low_href.endswith(("_cop_r1.htm", "_cop_r1.html", "cop.xhtml", "cop.htm")):
+            clean_label = "Créditos"
+        else:
+            doc_html = texts.get(href_file) or texts.get(rel_href) or ""
+            parts: List[str] = []
+            for h_m in heading_re.finditer(doc_html):
+                raw_h = h_m.group(1) if h_m.group(1) is not None else h_m.group(2)
+                text_h = re.sub(
+                    r"\s+", " ", html.unescape(_TAG_RE.sub("", raw_h or ""))
+                ).strip()
+                if text_h and len(text_h) <= 90:
+                    parts.append(_format_pt_toc_part(text_h))
+                    if len(parts) >= 2:
+                        break
+            if parts:
+                clean_label = " — ".join(parts)
+
+        if not clean_label:
+            clean_label = (plain[:77].rstrip() + "...") if len(plain) > 80 else plain
+
+        changes += 1
+        return f"{prefix}{html.escape(clean_label, quote=False)}{suffix}"
+
+    updated = point_re.sub(_repl, ncx_text)
+    return updated, changes
+
+
 def repair_epubcheck_hygiene_in_epub(source_path: str, output_path: str) -> Dict[str, object]:
     """Fix common structural EPUBCheck hygiene errors in ``source_path``."""
     import posixpath
@@ -488,6 +582,10 @@ def repair_epubcheck_hygiene_in_epub(source_path: str, output_path: str) -> Dict
                 name, ncx_text, r'(<content\b[^>]*\bsrc\s*=\s*)(["\'])([^"\']+)\2([^>]*/?>)'
             )
             ncx_changes += href_count
+            ncx_text, label_count = _hygiene_fix_bloated_ncx_labels(
+                ncx_text, name, texts
+            )
+            ncx_changes += label_count
             if ncx_changes:
                 texts[name] = ncx_text
                 changes[name] = changes.get(name, 0) + ncx_changes

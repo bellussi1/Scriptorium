@@ -27,7 +27,9 @@ from .queue_control import (
     honor_pause_now,
     pause_now_requested,
     set_pause,
+    set_pause_now,
 )
+from .queue_insights import check_cloud_budget_gate
 
 # The queue runner is launched from the host. `src.config` is not imported on
 # this path, so load the repo .env explicitly: QUEUE_ALLOW_CLOUD and the cloud
@@ -685,6 +687,24 @@ def run_queue_book(
         raise ValueError(
             f"book {book.id} uses cloud provider {provider}; set QUEUE_ALLOW_CLOUD=true to allow it"
         )
+    if provider in CLOUD_PROVIDERS and not dry_run and not resume_id:
+        budget_gate = check_cloud_budget_gate(book, db_path)
+        if not budget_gate.get("allowed", True):
+            set_pause_now(db_path, True)
+            honor_pause_now(db_path, {"id": book.id, "title": book.title})
+            store = QueueStore(db_path)
+            try:
+                store.add_event(budget_gate["message"], book_id=book.id, level="warning")
+            finally:
+                store.close()
+            return {
+                "book": book.to_dict(),
+                "paused": True,
+                "budget_blocked": True,
+                "queue_state": "pending",
+                "budget": budget_gate,
+                "message": budget_gate["message"],
+            }
 
     plan = build_run_plan(book, resources_root=resources_root)
     assets = _compile_assets(book, resources_root)

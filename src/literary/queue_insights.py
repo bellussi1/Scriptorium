@@ -624,7 +624,7 @@ def read_budget_summary(
     """Compute calibrated USD/BRL spend estimates and remaining credit cap."""
     budgets = read_json(budgets_path)
     gemini_cfg = budgets.get("gemini") if isinstance(budgets.get("gemini"), dict) else {}
-    cap_usd = float(gemini_cfg.get("cap_usd") or gemini_cfg.get("cap") or 45.0)
+    cap_usd = float(gemini_cfg.get("cap_usd") or gemini_cfg.get("cap") or 40.0)
     usd_to_brl = float(gemini_cfg.get("usd_to_brl") or 5.75)
     rate_uncached = float(gemini_cfg.get("rate_per_m_words_uncached") or 13.02) / 1_000_000.0
     rate_optimized = float(gemini_cfg.get("rate_per_m_words_optimized") or 10.80) / 1_000_000.0
@@ -686,6 +686,82 @@ def read_budget_summary(
         "cap_brl": round(cap_usd * usd_to_brl, 2),
         "remaining_cap_brl": round(remaining_cap_usd * usd_to_brl, 2),
         "is_estimated": True,
+    }
+
+
+_CLOUD_BUDGET_PROVIDERS = {
+    "gemini",
+    "openai",
+    "deepseek",
+    "openrouter",
+    "mistral",
+    "poe",
+    "nim",
+    "litellm",
+}
+
+
+def check_cloud_budget_gate(
+    book: Any,
+    db_path: Any,
+    budgets_path: Optional[Path] = None,
+) -> Dict[str, Any]:
+    """Return whether starting ``book`` stays within the hard monthly cloud USD cap."""
+    book_dict = book.to_dict() if hasattr(book, "to_dict") else dict(book)
+    provider = str(book_dict.get("provider") or "ollama").strip().lower()
+    if provider not in _CLOUD_BUDGET_PROVIDERS:
+        return {"allowed": True, "provider": provider, "message": "local provider"}
+
+    if budgets_path is None:
+        sibling = Path(db_path).with_name("budgets.json")
+        resolved_budgets = sibling if sibling.is_file() else DEFAULT_BUDGETS_PATH
+    else:
+        resolved_budgets = Path(budgets_path)
+
+    from .queue import QueueStore
+
+    store = QueueStore(str(db_path))
+    try:
+        all_books = [item.to_dict() for item in store.list_books(limit=500)]
+    finally:
+        store.close()
+
+    budgets = read_json(resolved_budgets)
+    gemini_cfg = budgets.get("gemini") if isinstance(budgets.get("gemini"), dict) else {}
+    book_id = int(book_dict.get("id") or 0)
+    other_books = [item for item in all_books if int(item.get("id") or 0) != book_id]
+    other_summary = read_budget_summary(other_books, budgets_path=resolved_budgets)
+    spent_usd = round(
+        float(other_summary["completed_usd"]) + float(other_summary["active_usd"]), 2
+    )
+    cap_usd = float(other_summary["cap_usd"])
+
+    words = int(book_dict.get("word_count") or 0)
+    rate_uncached = float(gemini_cfg.get("rate_per_m_words_uncached") or 13.02) / 1_000_000.0
+    book_cost_usd = (
+        round(words * rate_uncached, 2)
+        if words > 0
+        else round(float(book_dict.get("estimated_cost") or 0.0), 2)
+    )
+    projected_usd = round(spent_usd + book_cost_usd, 2)
+    allowed = projected_usd <= cap_usd
+    return {
+        "allowed": allowed,
+        "provider": provider,
+        "cap_usd": cap_usd,
+        "spent_usd": spent_usd,
+        "book_cost_usd": book_cost_usd,
+        "projected_usd": projected_usd,
+        "remaining_cap_usd": round(max(0.0, cap_usd - spent_usd), 2),
+        "message": (
+            "within monthly cloud budget cap"
+            if allowed
+            else (
+                f"monthly cloud budget cap (${cap_usd:.2f}) reached: "
+                f"spent ${spent_usd:.2f} + ${book_cost_usd:.2f} for "
+                f"'{book_dict.get('title')}' = ${projected_usd:.2f} > ${cap_usd:.2f}"
+            )
+        ),
     }
 
 

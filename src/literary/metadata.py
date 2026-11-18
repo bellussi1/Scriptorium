@@ -211,7 +211,10 @@ def tags_for(
 def standardized_title(book: Any, current_title: str = "") -> str:
     """Keep distinct translated titles; disambiguate identical titles with `` (PT-BR)``."""
     source_title = str(getattr(book, "title", "") or "").strip()
+    author = str(getattr(book, "author", "") or "").casefold()
     candidate = (current_title or "").strip()
+    if "hobb" in author and candidate:
+        candidate = re.sub(r"\bbufão\b", "bobo", re.sub(r"\bBufão\b", "Bobo", candidate))
     if candidate and candidate.casefold().endswith("(pt-br)"):
         return candidate
     if not candidate or (source_title and candidate.casefold() == source_title.casefold()):

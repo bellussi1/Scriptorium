@@ -4,8 +4,13 @@ from __future__ import annotations
 import json
 import zipfile
 from pathlib import Path
+from types import SimpleNamespace
 
+from src.literary.metadata import standardized_title
+from src.literary.models import BookRecord
+from src.literary.queue import QueueStore
 from src.literary.queue_insights import (
+    check_cloud_budget_gate,
     epub_metrics,
     find_log,
     kindle_zip,
@@ -15,7 +20,10 @@ from src.literary.queue_insights import (
     tail_lines,
 )
 from src.literary.reading_repair import convert_dialogue_quotes, merge_split_paragraphs
-from src.literary.repair import _hygiene_fix_html_structure
+from src.literary.repair import (
+    _hygiene_fix_bloated_ncx_labels,
+    _hygiene_fix_html_structure,
+)
 
 from .conftest import make_epub
 
@@ -190,7 +198,7 @@ def test_read_budget_summary_calibrates_usd_and_brl(tmp_path: Path):
                 "gemini": {
                     "currency": "USD",
                     "usd_to_brl": 5.75,
-                    "cap_usd": 45.0,
+                    "cap_usd": 40.0,
                     "rate_per_m_words_uncached": 13.02,
                     "rate_per_m_words_optimized": 10.80,
                 }
@@ -211,14 +219,93 @@ def test_read_budget_summary_calibrates_usd_and_brl(tmp_path: Path):
     assert summary["active_usd"] == 3.39
     assert summary["core_remaining_usd"] == 3.24
     assert summary["total_remaining_usd"] == 4.49
-    assert summary["remaining_cap_usd"] == 37.7
+    assert summary["cap_usd"] == 40.0
+    assert summary["remaining_cap_usd"] == 32.7
     assert summary["usd_to_brl"] == 5.75
     assert summary["completed_brl"] == round(3.91 * 5.75, 2)
     assert summary["active_brl"] == round(3.39 * 5.75, 2)
     assert summary["core_remaining_brl"] == round(3.24 * 5.75, 2)
     assert summary["total_remaining_brl"] == round(4.49 * 5.75, 2)
-    assert summary["cap_brl"] == round(45.0 * 5.75, 2)
-    assert summary["remaining_cap_brl"] == round(37.7 * 5.75, 2)
+    assert summary["cap_brl"] == round(40.0 * 5.75, 2)
+    assert summary["remaining_cap_brl"] == round(32.7 * 5.75, 2)
+
+
+def test_check_cloud_budget_gate_blocks_when_next_book_exceeds_40_usd_cap(tmp_path: Path):
+    db_file = tmp_path / "literary_queue.db"
+    budgets_file = tmp_path / "budgets.json"
+    budgets_file.write_text(
+        json.dumps(
+            {
+                "gemini": {
+                    "currency": "USD",
+                    "usd_to_brl": 5.75,
+                    "cap_usd": 40.0,
+                    "rate_per_m_words_uncached": 13.02,
+                    "rate_per_m_words_optimized": 10.80,
+                }
+            }
+        ),
+        encoding="utf-8",
+    )
+    store = QueueStore(str(db_file))
+    try:
+        done_id = store.add_book(
+            BookRecord(calibre_id=1, title="Done Book", epub_path=str(tmp_path / "done.epub"), word_count=300_000),
+            provider="gemini",
+            model="gemini-3.8-flash",
+        )
+        with store._connect() as conn:
+            conn.execute(
+                "UPDATE books SET status = 'completed', actual_cost = ? WHERE id = ?",
+                (37.0, done_id),
+            )
+            conn.commit()
+        fits_id = store.add_book(
+            BookRecord(calibre_id=2, title="Fits Cap", epub_path=str(tmp_path / "fits.epub"), word_count=200_000),
+            provider="gemini",
+            model="gemini-3.8-flash",
+        )
+        over_id = store.add_book(
+            BookRecord(calibre_id=3, title="Exceeds Cap", epub_path=str(tmp_path / "over.epub"), word_count=250_000),
+            provider="gemini",
+            model="gemini-3.8-flash",
+        )
+        local_id = store.add_book(
+            BookRecord(calibre_id=4, title="Local Ollama", epub_path=str(tmp_path / "local.epub"), word_count=500_000),
+            provider="ollama",
+            model="hy-mt2-7b",
+        )
+        fits_book = store.get_book(fits_id)
+        over_book = store.get_book(over_id)
+        local_book = store.get_book(local_id)
+    finally:
+        store.close()
+
+    assert check_cloud_budget_gate(fits_book, db_file, budgets_path=budgets_file)["allowed"] is True
+    blocked = check_cloud_budget_gate(over_book, db_file, budgets_path=budgets_file)
+    assert blocked["allowed"] is False
+    assert blocked["cap_usd"] == 40.0
+    assert blocked["projected_usd"] > 40.0
+    assert check_cloud_budget_gate(local_book, db_file, budgets_path=budgets_file)["allowed"] is True
+
+
+def test_hygiene_fix_bloated_ncx_labels_and_hobb_title():
+    ncx = (
+        '<ncx><navMap>'
+        '<navPoint id="n1" playOrder="1"><navLabel><text>'
+        + ("capítulo 1 LAGARTOS " + ("Texto longo. " * 20))
+        + '</text></navLabel><content src="Text/ch1.htm#c01"/></navPoint>'
+        '</navMap></ncx>'
+    )
+    texts = {
+        "Text/ch1.htm": '<p class="cn"><em>capítulo</em> 1</p><p class="ct">NO REINO DA MULHER PÁLIDA</p>',
+    }
+    updated, count = _hygiene_fix_bloated_ncx_labels(ncx, "toc.ncx", texts)
+    assert count == 1
+    assert "<text>Capítulo 1 — No Reino da Mulher Pálida</text>" in updated
+
+    hobb = SimpleNamespace(title="Fool's Fate", author="Robin Hobb")
+    assert standardized_title(hobb, "O Destino do Bufão") == "O Destino do Bobo"
 
 
 def test_hygiene_fix_unwraps_nested_ceps_paragraph():

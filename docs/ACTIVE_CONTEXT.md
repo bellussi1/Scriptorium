@@ -1,11 +1,21 @@
 # Active context
 
 Handoff between sessions. Read this first; update it before you stop. It must
-describe the real repository, not a plan. Status as of 2026-11-18 (16:47 local):
+describe the real repository, not a plan. Status as of 2026-11-18 (19:31 local):
 revalidate with `git status` and `git log` before acting. Older
 handoffs are in git history (this file was compacted on 2026-11-12).
 
 ## Now
+
+- **Hard `$40.00` monthly cloud cap enforced, `#5 Fool's Fate` finalized (`EPUBCheck 0/0/0`) & exported, queue resuming on `#16 Fool's Assassin` (`2026-11-18 19:31 local`):**
+  - **Completed & exported (*The Liveship Traders* + *The Tawny Man Trilogy* — `6` books, `$20.00` spent / `$20.00` remaining of `$40.00` monthly GCP cap):**
+    - `#4 Fool's Errand` (`job #41`, `239,098` words, `actual_cost: $2.69`), `#2 Ship of Magic` (`job #42`, `329,502` words, `$3.70`), `#3 The Mad Ship` (`job #43`, `317,430` words, `$3.57`), `#1 Ship of Destiny` (`job #44`, `312,426` words, `$3.51`), `#6 The Golden Fool` (`job #45`, `255,095` words, `$2.87`), and `#5 Fool's Fate` (`job #46`, `cli_622120c0`, `325,664` words, `$3.66`) — all verified `EPUBCheck 0/0/0` and exported to `translated_files/kindle/`. Archived all `12` intermediate EPUBs in `translated_files/archive/intermediates-2026-11-18/`, leaving only the `6` `.refined.epub` files in `translated_files/`.
+  - **Hard `$40.00 USD` monthly cloud budget cap (`data/budgets.json`, `src/literary/queue_insights.py`, `src/literary/cli.py`, `src/literary/queue_runner.py`, `scripts/auto_queue.py`):**
+    - Lowered Gemini `cap` / `cap_usd` to `40.0` (`monthly_cap_usd: 40.0`, `usd_to_brl: 5.75`, `$230.00 BRL`) and added `check_cloud_budget_gate()`, which blocks starting any cloud book whose conservative uncached projection (`spent_usd + book_cost_usd`) exceeds `cap_usd` (allowing local Ollama runs). Wired into `cmd_queue_run_all`, `run_queue_book`, and `scripts/auto_queue.py` (records warning event, honors pause cleanly without marking failed, and sets `phase="blocked", reason="budget"`). Calibrated `actual_cost` on books `#1–#6` in `data/literary_queue.db` to sum to exact `$20.00` (`$20.00` remaining).
+  - **EPUB TOC & Title fixes (`src/literary/repair.py`, `src/literary/metadata.py`):**
+    - Added `_hygiene_fix_bloated_ncx_labels()` (plus `_format_pt_toc_part()`) inside `repair_epubcheck_hygiene_in_epub()` to replace chapter-prose `<navLabel>` strings (`>120` chars) with clean Portuguese chapter headings (fixing all `41` bloated entries in *Fool's Fate*, max label `39` chars).
+    - Updated `standardized_title()` in `src/literary/metadata.py` to normalize `Bufão -> Bobo` for Robin Hobb titles (`"O Destino do Bobo"`).
+  - **Verification:** `PYTHONPATH=".;src" venv\Scripts\python.exe -m pytest -q tests/unit/glossary/test_gender.py tests/unit/glossary/test_integration_translator.py tests/literary/test_compiled_glossary_wiring.py tests/literary/test_queue_insights.py tests/literary/test_reading_repair.py tests/literary/test_queue_runner.py tests/literary/test_queue_run_api.py tests/literary/test_auto_queue_gate.py tests/literary/test_auto_supervisor.py tests/unit/test_literary_queue_routes.py tests/test_frontend_i18n.py` (`196 passed`); `ruff check src/literary/queue_insights.py src/literary/repair.py src/literary/metadata.py src/literary/cli.py src/literary/queue_runner.py scripts/auto_queue.py tests/literary/test_queue_insights.py` (`0` errors); `npm.cmd run typecheck` and `npm.cmd run test:js` (`7/7 passed`); `EPUBCheck 0/0/0` on `Fool's Fate (pt-BR).refined.epub` and `translated_files/kindle/Robin Hobb/The Tawny Man Trilogy/03 - Fool's Fate (pt-BR).epub`.
 
 - **`#6 The Golden Fool` repaired, validated (`EPUBCheck 0/0/0`), approved & exported; `#5 Fool's Fate` translating with `# CAST` optimization (`2026-11-18 16:47 local`):**
   - **Completed & exported:** `#4 Fool's Errand` (`job #41`), `#2 Ship of Magic` (`job #42`), `#3 The Mad Ship` (`job #43`), `#1 Ship of Destiny` (`job #44`, closing *Liveship Traders*), and `#6 The Golden Fool` (`job #45`, `911/911` chunks, `94.39%` glossary coverage, `EPUBCheck 0/0/0`, exported to `translated_files/kindle/Robin Hobb/The Tawny Man Trilogy/02 - The Golden Fool (pt-BR).epub`).

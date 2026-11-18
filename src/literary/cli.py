@@ -31,7 +31,14 @@ from .cost import (
 from .epub import update_opf_metadata, validate_epub_structure
 from .models import BookRecord, Severity
 from .queue import QueueStore
-from .queue_control import honor_pause, pause_requested, set_pause, set_pause_now
+from .queue_control import (
+    honor_pause,
+    honor_pause_now,
+    pause_requested,
+    set_pause,
+    set_pause_now,
+)
+from .queue_insights import check_cloud_budget_gate
 from .refine_epub import refine_epub
 from .refine_runner import (
     find_flagged_segments,
@@ -312,6 +319,24 @@ def cmd_queue_run_all(args: argparse.Namespace) -> int:
         finally:
             store.close()
         if not book:
+            break
+        budget_gate = check_cloud_budget_gate(book, args.db)
+        if not budget_gate.get("allowed", True):
+            set_pause_now(args.db, True)
+            honor_pause_now(args.db, {"id": book.id, "title": book.title})
+            store = QueueStore(args.db)
+            try:
+                store.add_event(budget_gate["message"], book_id=book.id, level="warning")
+            finally:
+                store.close()
+            results.append(
+                {
+                    "paused": "budget_cap",
+                    "book_id": book.id,
+                    "title": book.title,
+                    "budget": budget_gate,
+                }
+            )
             break
         store = QueueStore(args.db)
         try:
