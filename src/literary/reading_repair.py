@@ -152,7 +152,7 @@ _NON_PROSE_CLASS_TOKENS = (
     "acsh",
     "ccn",
 )
-_NON_PROSE_EXACT_CLASSES = {"ct", "cn", "ls", "ill"}
+_NON_PROSE_EXACT_CLASSES = {"ct", "cn", "ls", "ill", "ep", "epf", "ept"}
 _EXPLICIT_BODY_CLASSES = ("x04-Body-Text", "x04-Body-Text-FL", "x03-CO-Body-Text")
 
 
@@ -336,7 +336,7 @@ def merge_split_paragraphs(raw: str) -> Tuple[str, int]:
             rendered.append(prefix + match.group(0))
             cursor = match.end()
             continue
-        if previous is not None:
+        if previous is not None and not prefix.strip():
             mode = _apply_join_overrides(previous["text"], text) or _merge_mode(previous["text"], text)
             if mode:
                 previous["inner"] = _join_inner(previous["inner"], inner, mode)

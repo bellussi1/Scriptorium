@@ -472,7 +472,7 @@ def repair_epubcheck_hygiene_in_epub(source_path: str, output_path: str) -> Dict
     texts: Dict[str, str] = {
         name: contents[name].decode("utf-8", "replace")
         for name in contents
-        if name.lower().endswith(TEXT_ENTRY_SUFFIXES)
+        if name.lower().endswith(TEXT_ENTRY_SUFFIXES + (".css",))
     }
     changes: Dict[str, int] = {}
 
@@ -534,15 +534,80 @@ def repair_epubcheck_hygiene_in_epub(source_path: str, output_path: str) -> Dict
 
         return re.sub(attr_pattern, _repl, text, flags=re.IGNORECASE), count
 
+    def _fix_html_href_extensions(doc_name: str, text: str) -> tuple[str, int]:
+        doc_dir = posixpath.dirname(doc_name)
+        count = 0
+
+        def _repl(match: re.Match[str]) -> str:
+            nonlocal count
+            prefix, quote, raw_ref, suffix = match.groups()
+            if raw_ref.startswith(("http://", "https://", "mailto:", "data:", "javascript:", "#")):
+                return match.group(0)
+            doc_part, sep, frag = raw_ref.partition("#")
+            if not doc_part or not doc_part.lower().endswith(html_suffixes):
+                return match.group(0)
+            target = posixpath.normpath(posixpath.join(doc_dir, doc_part) if doc_dir else doc_part)
+            if target in contents:
+                return match.group(0)
+            stem, _ext = posixpath.splitext(target)
+            part_stem, _part_ext = posixpath.splitext(doc_part)
+            for alt_ext in html_suffixes:
+                if f"{stem}{alt_ext}" in contents:
+                    count += 1
+                    new_ref = f"{part_stem}{alt_ext}{sep}{frag}"
+                    return f"{prefix}{quote}{new_ref}{quote}{suffix}"
+            return match.group(0)
+
+        return (
+            re.sub(
+                r'(<a\b[^>]*\bhref\s*=\s*)(["\'])([^"\']+)\2([^>]*>)',
+                _repl,
+                text,
+                flags=re.IGNORECASE,
+            ),
+            count,
+        )
+
+    def _hygiene_drop_missing_font_faces(css_name: str, css_text: str) -> tuple[str, int]:
+        css_dir = posixpath.dirname(css_name)
+        count = 0
+
+        def _repl(match: re.Match[str]) -> str:
+            nonlocal count
+            block = match.group(0)
+            urls = re.findall(r'url\(\s*["\']?([^"\')\s]+)["\']?\s*\)', block, flags=re.IGNORECASE)
+            if not urls:
+                return block
+            for raw_url in urls:
+                if raw_url.startswith(("http://", "https://", "data:")):
+                    continue
+                target = posixpath.normpath(posixpath.join(css_dir, raw_url) if css_dir else raw_url)
+                if target in contents:
+                    return block
+            count += 1
+            return ""
+
+        updated = re.sub(r"@font-face\s*\{[^}]*\}", _repl, css_text, flags=re.IGNORECASE | re.DOTALL)
+        return updated, count
+
     for name in list(texts):
         low = name.lower()
         if low.endswith(html_suffixes):
+            updated, ext_count = _fix_html_href_extensions(name, texts[name])
+            if ext_count:
+                texts[name] = updated
+                changes[name] = changes.get(name, 0) + ext_count
             updated, count = _strip_dangling_hrefs(
                 name, texts[name], r'(<a\b[^>]*\bhref\s*=\s*)(["\'])([^"\']+)\2([^>]*>)'
             )
             if count:
                 texts[name] = updated
                 changes[name] = changes.get(name, 0) + count
+        elif low.endswith(".css"):
+            updated, css_count = _hygiene_drop_missing_font_faces(name, texts[name])
+            if css_count:
+                texts[name] = updated
+                changes[name] = changes.get(name, 0) + css_count
         elif low.endswith(".ncx"):
             ncx_text = texts[name]
             ncx_changes = 0
