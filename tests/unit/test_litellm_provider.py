@@ -368,12 +368,40 @@ async def test_generic_api_error_with_client_status_fails_fast(litellm_stub, no_
     is the request's fault and is not retried either."""
     from src.core.llm.providers.litellm import LiteLLMProvider
 
-    exc = FakeAPIError("Payment required")
-    exc.status_code = 402
+    exc = FakeAPIError("Bad request shape")
+    exc.status_code = 422
     litellm_stub.acompletion.side_effect = exc
 
     provider = LiteLLMProvider(model="openai/gpt-4o", api_key="k")
     assert await provider.generate("Hello") is None
+    assert litellm_stub.acompletion.call_count == 1
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "message, status_code",
+    [
+        ("Payment required", 402),
+        ("Something unrelated", 402),
+        ("Your credit balance is too low to access the Anthropic API", 400),
+    ],
+)
+async def test_depleted_wallet_raises_billing_exhausted(
+    litellm_stub, no_sleep, message, status_code
+):
+    """An empty wallet is fatal for the run: raise at once, never retry or
+    return None (the chunk fallback would keep the source text)."""
+    from src.core.llm.exceptions import BillingExhaustedError
+    from src.core.llm.providers.litellm import LiteLLMProvider
+
+    exc = FakeAPIError(message)
+    exc.status_code = status_code
+    litellm_stub.acompletion.side_effect = exc
+
+    provider = LiteLLMProvider(model="anthropic/claude-haiku-5-5", api_key="k")
+    with pytest.raises(BillingExhaustedError) as excinfo:
+        await provider.generate("Hello")
+    assert excinfo.value.provider == "litellm"
     assert litellm_stub.acompletion.call_count == 1
 
 
@@ -425,3 +453,52 @@ async def test_context_window_exceeded_error_raises_overflow(litellm_stub, no_sl
     with pytest.raises(ContextOverflowError):
         await provider.generate("way too long")
     assert litellm_stub.acompletion.call_count == 1
+
+
+@pytest.mark.asyncio
+async def test_cost_cap_records_spend_and_aborts_before_the_next_request(
+    litellm_stub, monkeypatch, tmp_path
+):
+    """LLM_MAX_COST_USD: every paid call lands in the ledger, and once the cap
+    is spent the provider raises instead of sending another request."""
+    import json
+
+    from src.core.llm.exceptions import BillingExhaustedError
+    from src.core.llm.providers.litellm import LiteLLMProvider
+
+    ledger = tmp_path / "ledger.jsonl"
+    monkeypatch.setenv("LLM_MAX_COST_USD", "0.50")
+    monkeypatch.setenv("LLM_COST_BOOK", "Capped Book")
+    monkeypatch.setenv("LLM_COST_STAGE", "translate-rescue")
+    monkeypatch.setenv("LLM_COST_LEDGER", str(ledger))
+    # 1M output tokens at US$ 0.50/1M: one call spends the whole cap.
+    litellm_stub.acompletion.return_value = _mock_response(
+        "ok", prompt_tokens=0, completion_tokens=1_000_000
+    )
+
+    provider = LiteLLMProvider(model="anthropic/claude-haiku-5-5", api_key="k")
+    assert (await provider.generate("first")).content == "ok"
+
+    with pytest.raises(BillingExhaustedError):
+        await provider.generate("second")
+
+    assert litellm_stub.acompletion.call_count == 1
+    (row,) = [json.loads(line) for line in ledger.read_text(encoding="utf-8").splitlines()]
+    assert row["book"] == "Capped Book"
+    assert row["cost_usd"] == pytest.approx(0.50)
+    assert row["cap_usd"] == 0.50
+
+
+@pytest.mark.asyncio
+async def test_no_cost_cap_leaves_the_provider_unguarded(litellm_stub, monkeypatch, tmp_path):
+    from src.core.llm.providers.litellm import LiteLLMProvider
+
+    monkeypatch.delenv("LLM_MAX_COST_USD", raising=False)
+    monkeypatch.setenv("LLM_COST_LEDGER", str(tmp_path / "ledger.jsonl"))
+    litellm_stub.acompletion.return_value = _mock_response("ok")
+
+    provider = LiteLLMProvider(model="anthropic/claude-haiku-5-5", api_key="k")
+    await provider.generate("hello")
+
+    assert provider._cost_guard is None
+    assert not (tmp_path / "ledger.jsonl").exists()

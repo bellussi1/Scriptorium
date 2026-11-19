@@ -135,20 +135,43 @@ async def test_gemini_retries_without_thinking_config_on_400_and_counts_thoughts
 
 
 @pytest.mark.asyncio
-async def test_gemini_http_402_resource_exhausted_returns_none_not_context_overflow():
-    """HTTP 402 prepayment depletion with RESOURCE_EXHAUSTED must return None quickly."""
-    provider = _provider_returning(
-        {
+async def test_gemini_http_402_raises_billing_exhausted_not_context_overflow():
+    """HTTP 402 prepayment depletion is fatal for the run: it must raise
+    BillingExhaustedError at once (no retry, not a context overflow) instead of
+    returning None, which the chunk fallback would turn into source text."""
+    from src.core.llm.exceptions import BillingExhaustedError
+
+    calls = []
+
+    def handler(request):
+        calls.append(request)
+        return httpx.Response(402, json={
             "error": {
                 "code": 402,
                 "message": "Your prepayment credits are depleted. Please go to AI Studio at https://ai.studio/projects to manage your project and billing.",
                 "status": "RESOURCE_EXHAUSTED",
             }
-        },
-        status_code=402,
+        })
+
+    provider = _provider_returning({}, status_code=402)
+    provider._client = httpx.AsyncClient(transport=httpx.MockTransport(handler))
+    try:
+        with pytest.raises(BillingExhaustedError) as excinfo:
+            await provider.generate("prompt")
+        assert excinfo.value.provider == "gemini"
+        assert len(calls) == 1
+    finally:
+        await provider.close()
+
+
+@pytest.mark.asyncio
+async def test_gemini_non_billing_client_error_still_returns_none():
+    """A retired model (404) is the request's fault, not an empty wallet."""
+    provider = _provider_returning(
+        {"error": {"code": 404, "message": "models/gone is not found", "status": "NOT_FOUND"}},
+        status_code=404,
     )
     try:
-        result = await provider.generate("prompt")
-        assert result is None
+        assert await provider.generate("prompt") is None
     finally:
         await provider.close()

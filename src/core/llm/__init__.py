@@ -18,7 +18,7 @@ Example usage:
 """
 
 # Exceptions
-from .exceptions import ContextOverflowError, RepetitionLoopError, RateLimitError
+from .exceptions import BillingExhaustedError, ContextOverflowError, RepetitionLoopError, RateLimitError
 
 # Base classes
 from .base import LLMProvider, LLMResponse
@@ -46,6 +46,7 @@ from .factory import create_llm_provider
 
 __all__ = [
     # Exceptions
+    'BillingExhaustedError',
     'ContextOverflowError',
     'RepetitionLoopError',
     'RateLimitError',

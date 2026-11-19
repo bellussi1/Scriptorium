@@ -27,7 +27,7 @@ from src.core.epub.xhtml_translation_state import (
     unfinished_chunk_indices,
 )
 from src.core.common.parallel import aclosing, iter_ordered_concurrent
-from src.core.llm.exceptions import RateLimitError
+from src.core.llm.exceptions import BillingExhaustedError, RateLimitError
 from src.prompts.prompts import PLAIN_TEXT_EXPECTED_PARAGRAPHS_OPTION
 
 
@@ -779,6 +779,11 @@ async def translate_paragraphs_plain(
             if isinstance(result, RateLimitError):
                 rate_limit_error = result
                 break
+
+            # An empty wallet has nothing to retry with: stop the run instead
+            # of keeping every remaining chunk in the source language.
+            if isinstance(result, BillingExhaustedError):
+                raise result
 
             if isinstance(result, Exception):
                 if log_callback:

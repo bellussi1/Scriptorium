@@ -21,7 +21,7 @@ from src.config import (
     GEMINI_SAFETY_THRESHOLD,
 )
 from ..base import LLMProvider, LLMResponse, is_output_limit_finish
-from ..exceptions import ContextOverflowError
+from ..exceptions import BillingExhaustedError, ContextOverflowError
 from ..rate_limit_handler import handle_rate_limit, is_retryable_http_status
 
 # Four harm categories returned by the Gemini API. By default Gemini blocks
@@ -315,12 +315,20 @@ class GeminiProvider(LLMProvider):
                         or "prepayment" in error_body_lower
                         or "billing" in error_body_lower
                     )
-                    if e.response.status_code == 402:
+                    if is_billing_error:
+                        # No credit left: retrying is pointless and the chunk
+                        # fallback would save the English source as if it were
+                        # translated (the Rain Wild run lost 15 chapters to
+                        # this). Abort the run; the checkpoint survives.
                         print(
-                            "Gemini API billing credits exhausted (HTTP 402): "
-                            f"{error_body[:200]}"
+                            "Gemini API billing credits exhausted "
+                            f"(HTTP {e.response.status_code}): {error_body[:200]}"
                         )
-                        return None
+                        raise BillingExhaustedError(
+                            f"Gemini API billing credits exhausted "
+                            f"(HTTP {e.response.status_code}): {error_body[:200]}",
+                            provider="gemini",
+                        )
 
                     print(f"Gemini API HTTP Error (attempt {attempt + 1}/{MAX_TRANSLATION_ATTEMPTS}): {e}")
                     if error_body:

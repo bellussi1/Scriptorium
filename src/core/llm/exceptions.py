@@ -53,3 +53,29 @@ class RateLimitError(Exception):
         self.retry_after = retry_after
         self.provider = provider
         self.partial_result = partial_result
+
+
+# Exit code of translate.py when a run is aborted by BillingExhaustedError. The
+# queue runner (host side, no src.core import) mirrors this value to pause the
+# book instead of finalizing a partial output.
+BILLING_EXHAUSTED_EXIT_CODE = 3
+
+
+class BillingExhaustedError(Exception):
+    """
+    Raised when the provider account has no spendable credit left.
+
+    Providers signal this as HTTP 402 (Payment Required), "prepayment credits
+    are depleted", "insufficient balance" or an equivalent billing error.
+    Retrying cannot help and the per-chunk fallback would silently save the
+    source text as if it were translated, so the translation pipeline must let
+    this propagate and stop the run. Top up the provider wallet and resume from
+    the saved checkpoint.
+
+    Attributes:
+        provider: Name of the LLM provider that ran out of credit.
+    """
+
+    def __init__(self, message: str, provider: str = None):
+        super().__init__(message)
+        self.provider = provider

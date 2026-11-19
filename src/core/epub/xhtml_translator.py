@@ -64,6 +64,7 @@ from .exceptions import (
 from .placeholder_validator import PlaceholderValidator
 from .container import TranslationContainer
 from ..translator import generate_translation_request
+from src.core.llm.exceptions import BillingExhaustedError
 from ..context_optimizer import AdaptiveContextManager, INITIAL_CONTEXT_SIZE, CONTEXT_STEP, MAX_CONTEXT_SIZE
 from src.config import (
     PLACEHOLDER_PATTERN,
@@ -375,9 +376,10 @@ async def attempt_placeholder_correction(
             return translated_text, False
 
         except Exception as e:
-            # Re-raise RateLimitError to trigger auto-pause
+            # Re-raise fatal errors: a rate limit auto-pauses, an empty wallet
+            # has nothing to retry with.
             from ..llm import ContextOverflowError, RepetitionLoopError, RateLimitError
-            if isinstance(e, RateLimitError):
+            if isinstance(e, (BillingExhaustedError, RateLimitError)):
                 raise
 
             # Try to increase context if we have a manager and hit overflow/repetition errors
@@ -621,6 +623,10 @@ async def translate_chunk_with_fallback(
                 causes.append("placeholder")
                 _log_error(log_callback, "phase2_validation_failed", "✗ Phase 2 validation failed")
 
+        except BillingExhaustedError:
+            # No credit left: saving the English chunk as if it were
+            # translated is worse than stopping. Let the run abort.
+            raise
         except Exception as e:
             _log_error(log_callback, "phase2_error", f"✗ Phase 2 error: {str(e)}")
 
@@ -1908,9 +1914,10 @@ async def _refine_epub_chunks(
                 _log_error(log_callback, "epub_refinement_failed", f"Chunk {idx + 1}/{total_chunks}: refinement failed, using original")
 
         except Exception as e:
-            # Re-raise RateLimitError to trigger auto-pause
+            # Re-raise fatal errors: a rate limit auto-pauses, an empty wallet
+            # has nothing to retry with.
             from src.core.llm.exceptions import RateLimitError as _RLE
-            if isinstance(e, _RLE):
+            if isinstance(e, (BillingExhaustedError, _RLE)):
                 raise
             # Fallback to original translation on error
             refined_chunks.append(translated_text)

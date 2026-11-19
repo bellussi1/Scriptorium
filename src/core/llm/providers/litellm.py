@@ -23,7 +23,8 @@ from typing import Optional, Union, List
 
 from src.config import REQUEST_TIMEOUT, MAX_TRANSLATION_ATTEMPTS, TEMPERATURE
 from ..base import LLMProvider, LLMResponse, is_output_limit_finish
-from ..exceptions import ContextOverflowError
+from ..cost_guard import CostGuard
+from ..exceptions import BillingExhaustedError, ContextOverflowError
 from ..rate_limit_handler import handle_rate_limit, is_retryable_http_status
 
 
@@ -64,6 +65,21 @@ _NON_TRANSIENT_EXCEPTIONS = (
     "litellm.exceptions.BudgetExceededError",
 )
 
+# A depleted wallet is fatal for the whole run, not for one chunk: the chunk
+# fallback would keep the untranslated source text as if it were translated.
+_BILLING_EXCEPTIONS = (
+    "litellm.exceptions.BudgetExceededError",
+)
+_BILLING_ERROR_KEYWORDS = (
+    "insufficient balance",
+    "billing hard limit",
+    "prepayment",
+    "credit balance is too low",
+    "payment required",
+    "error code: 402",
+    "insufficient_quota",
+)
+
 
 class LiteLLMProvider(LLMProvider):
     """
@@ -100,6 +116,12 @@ class LiteLLMProvider(LLMProvider):
         """
         super().__init__(model, api_keys=api_key, provider_name="litellm")
         self.api_base = api_base
+        # Optional hard spend cap (LLM_MAX_COST_USD); None when not configured.
+        vendor, _, bare_model = model.partition("/")
+        self._cost_guard = CostGuard.from_env(
+            provider=vendor if bare_model else "litellm",
+            model=bare_model or model,
+        )
 
     def _build_kwargs(self, api_key: Optional[str] = None) -> dict:
         """Assemble the keyword arguments forwarded to litellm.acompletion.
@@ -155,6 +177,8 @@ class LiteLLMProvider(LLMProvider):
         attempt = 0
         rate_limit_events = 0
         while attempt < MAX_TRANSLATION_ATTEMPTS:
+            if self._cost_guard:
+                self._cost_guard.check()
             current_key = await self._key_pool.acquire() if self._key_pool else None
             try:
                 response = await litellm.acompletion(
@@ -170,6 +194,8 @@ class LiteLLMProvider(LLMProvider):
                 usage = getattr(response, "usage", None)
                 prompt_tokens = getattr(usage, "prompt_tokens", 0) if usage else 0
                 completion_tokens = getattr(usage, "completion_tokens", 0) if usage else 0
+                if self._cost_guard:
+                    self._cost_guard.record(prompt_tokens, completion_tokens)
 
                 # Plain ASCII: an emoji here crashes on Windows cp1252 consoles,
                 # and a failing print would be caught below as a request error.
@@ -192,6 +218,15 @@ class LiteLLMProvider(LLMProvider):
                 if (_CONTEXT_WINDOW_EXCEPTION in qualnames
                         or any(kw in error_str for kw in _CONTEXT_OVERFLOW_KEYWORDS)):
                     raise ContextOverflowError(f"LiteLLM context overflow: {e}") from e
+
+                # Depleted wallet: abort the run instead of silently failing
+                # every chunk and saving the source text as if it were translated.
+                if _is_billing_error(qualnames, error_str, getattr(e, "status_code", None)):
+                    print(f"[LiteLLM] Billing/credit exhausted on {self.model}: {e}")
+                    raise BillingExhaustedError(
+                        f"LiteLLM billing/credit exhausted on {self.model}: {e}",
+                        provider="litellm",
+                    ) from e
 
                 qualname = qualnames[0]
 
@@ -230,6 +265,17 @@ class LiteLLMProvider(LLMProvider):
                     await asyncio.sleep(2)
 
         return None
+
+
+def _is_billing_error(
+    qualnames: List[str], error_str: str, status_code: Optional[int] = None
+) -> bool:
+    """True when the exception, its status or its message says the wallet is empty."""
+    return (
+        status_code == 402
+        or any(qualname in _BILLING_EXCEPTIONS for qualname in qualnames)
+        or any(keyword in error_str for keyword in _BILLING_ERROR_KEYWORDS)
+    )
 
 
 def _qualnames(exc: Exception) -> List[str]:

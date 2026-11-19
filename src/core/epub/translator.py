@@ -391,9 +391,9 @@ async def translate_epub_file(
                              f"✅ EPUB translation complete: {results['completed_files']} files translated, {results['failed_files']} failed")
 
         except Exception as e_epub:
-            # Re-raise RateLimitError to trigger auto-pause
-            from src.core.llm.exceptions import RateLimitError
-            if isinstance(e_epub, RateLimitError):
+            # Re-raise fatal errors that must stop the run instead of degrading it.
+            from src.core.llm.exceptions import BillingExhaustedError, RateLimitError
+            if isinstance(e_epub, (BillingExhaustedError, RateLimitError)):
                 raise
             err_msg = f"MAJOR ERROR processing EPUB '{input_filepath}': {e_epub}"
             if log_callback:
@@ -784,9 +784,10 @@ async def _translate_single_xhtml_file(
             log_callback("epub_xml_error", f"XML error in '{content_href}': {e}")
         return None, False, None
     except Exception as e:
-        # Re-raise RateLimitError to trigger auto-pause
-        from src.core.llm.exceptions import RateLimitError
-        if isinstance(e, RateLimitError):
+        # Re-raise fatal errors that must stop the run instead of degrading it:
+        # a rate limit auto-pauses, an empty wallet has nothing to retry with.
+        from src.core.llm.exceptions import BillingExhaustedError, RateLimitError
+        if isinstance(e, (BillingExhaustedError, RateLimitError)):
             raise
         if log_callback:
             log_callback("epub_file_error", f"Error processing '{content_href}': {e}")

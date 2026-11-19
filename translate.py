@@ -25,6 +25,7 @@ from src.core import auto_prep
 from src.core.auto_prep import build_auto_prompt_options
 from src.core.llm_client import create_llm_client
 from src.utils.notifier import notify, EVENT_SUCCESS, EVENT_FAILURE
+from src.core.llm.exceptions import BILLING_EXHAUSTED_EXIT_CODE, BillingExhaustedError
 import time
 import uuid
 
@@ -577,6 +578,26 @@ if __name__ == "__main__":
                 logger.error(f"TTS generation failed: {message}", LogType.ERROR_DETAIL, {
                     'details': message
                 })
+
+    except BillingExhaustedError as e:
+        # The provider wallet is empty. Exit non-zero (distinct code) so the queue
+        # runner pauses instead of finalizing a half-translated book; the
+        # checkpoint keeps every chunk translated so far, so a resume continues
+        # from the chunk that failed once credit is back.
+        logger.error(f"Translation aborted, provider credit exhausted: {str(e)}", LogType.ERROR_DETAIL, {
+            'details': str(e),
+            'input_file': args.input
+        })
+
+        notify(EVENT_FAILURE, {
+            'file': args.input,
+            'output': args.output,
+            'duration_seconds': time.time() - start_time,
+            'provider': args.provider,
+            'model': args.model,
+            'error': str(e),
+        })
+        raise SystemExit(BILLING_EXHAUSTED_EXIT_CODE)
 
     except Exception as e:
         logger.error(f"Translation failed: {str(e)}", LogType.ERROR_DETAIL, {

@@ -68,6 +68,10 @@ RUN_DIR = ROOT / "data" / "queue-runs"
 # Hy-MT2's practical context in the queue. 4096 measured a higher decode rate
 # but much worse end-to-end latency (model reloads), so the queue pins 8192.
 QUEUE_CONTEXT_WINDOW = 8192
+# Exit code translate.py returns when a run aborts because the provider wallet
+# is empty (src.core.llm.exceptions.BILLING_EXHAUSTED_EXIT_CODE; the runner is
+# launched from the host and does not import src.core).
+BILLING_EXHAUSTED_EXIT_CODE = 3
 EPUBCHECK_DIR = ROOT / "data" / "tools" / "epubcheck-5.4.0"
 
 MODEL_ALIASES = {
@@ -916,6 +920,49 @@ def run_queue_book(
             finally:
                 store.close()
 
+        _report_path(book.title).write_text(
+            json.dumps(report, ensure_ascii=False, indent=2),
+            encoding="utf-8",
+        )
+        return report
+
+    if returncode == BILLING_EXHAUSTED_EXIT_CODE:
+        # The provider wallet is empty. Do not repair or finalize the partial
+        # output: pause the book on its checkpoint and stop the queue, so a
+        # resume after the top-up continues from the chunk that failed.
+        message = "provider credit exhausted (HTTP 402): top up the wallet, then resume"
+        store = QueueStore(db_path)
+        try:
+            try:
+                store.set_job_state(job_id, "paused", message)
+            except ValueError:
+                pass
+            try:
+                store.set_book_state(book.id, "paused", message)
+            except ValueError:
+                pass
+            store.add_event(
+                "queue runner paused: provider credit exhausted",
+                book_id=book.id,
+                job_id=job_id,
+                level="error",
+            )
+        finally:
+            store.close()
+        set_pause_now(db_path, True)
+        honor_pause_now(db_path, {"id": book.id, "title": book.title})
+        report = {
+            "book": book.to_dict(),
+            "job_id": job_id,
+            "translation_id": translation_id,
+            "returncode": returncode,
+            "paused": True,
+            "billing_exhausted": True,
+            "queue_state": "paused",
+            "error": message,
+            "duration_s": round(time.time() - started, 1),
+            "output": str(output_host) if output_host.exists() else "",
+        }
         _report_path(book.title).write_text(
             json.dumps(report, ensure_ascii=False, indent=2),
             encoding="utf-8",
