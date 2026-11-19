@@ -89,6 +89,10 @@ def test_standardized_title_disambiguates_only_untranslated_and_is_idempotent():
     assert standardized_title(book, "Lonesome Dove") == "Lonesome Dove (PT-BR)"
     assert standardized_title(book, "Lonesome Dove (PT-BR)") == "Lonesome Dove (PT-BR)"
     assert standardized_title(SimpleNamespace(title="Howling Dark"), "Escuridão Uivante") == "Escuridão Uivante"
+    assert (
+        standardized_title(SimpleNamespace(title="Fool's Errand", author="Robin Hobb"), "Missão Sem Esperança")
+        == "A Missão do Bobo"
+    )
 
 
 def test_standardized_description_preserves_ptbr_synopsis_and_curated_fallback(tmp_path: Path):
@@ -108,7 +112,8 @@ def test_standardized_description_preserves_ptbr_synopsis_and_curated_fallback(t
     assert "Devorador de Sóis" not in cleaned
     assert "Sun Eater" in cleaned
     assert "Translated using Scriptorium" not in cleaned
-    assert "Tradução em português brasileiro via Scriptorium." in cleaned
+    assert "https://github.com/bellussi1/Scriptorium" in cleaned
+    assert "Gemini 3.8 Flash" in cleaned
 
     # Calling again is idempotent.
     update_opf_metadata(str(html_epub), str(html_epub), description=cleaned)
@@ -116,7 +121,7 @@ def test_standardized_description_preserves_ptbr_synopsis_and_curated_fallback(t
         SimpleNamespace(title="Howling Dark", author="Christopher Ruocchio", series="The Sun Eater"),
         str(html_epub),
     )
-    assert cleaned_twice.count("Tradução em português brasileiro via Scriptorium.") == 1
+    assert cleaned_twice.count("https://github.com/bellussi1/Scriptorium") == 1
 
     # Curated synopsis restores Disquiet Gods when only footer remained.
     disquiet = make_epub(tmp_path / "disquiet.epub", title="Deuses Inquietos", language="pt-BR")
@@ -131,7 +136,7 @@ def test_standardized_description_preserves_ptbr_synopsis_and_curated_fallback(t
     )
     assert "Quase duzentos anos" in restored
     assert "Vigilantes" in restored
-    assert "Tradução em português brasileiro via Scriptorium." in restored
+    assert "https://github.com/bellussi1/Scriptorium" in restored
 
 
 def test_standardize_completed_outputs_rewrites_refined_and_kindle_and_syncs_ncx(tmp_path: Path):
@@ -197,7 +202,7 @@ def test_standardize_completed_outputs_rewrites_refined_and_kindle_and_syncs_ncx
     assert subjects == ["Fiction", "Classic", "Historical Fiction", "Western", "PT-BR", "Scriptorium"]
     assert "<text>Lonesome Dove (PT-BR)</text>" in ncx_text
     assert "RESUMO: Um clássico do Oeste." in opf_text
-    assert "Tradução em português brasileiro via Scriptorium." in opf_text
+    assert "https://github.com/bellussi1/Scriptorium" in opf_text
     assert "Caubóis" not in opf_text
 
     kindle_epub = kindle_root / "Larry McMurtry" / "Standalone" / "01 - Lonesome Dove (pt-BR).epub"

@@ -22,7 +22,12 @@ from .validation import validate_epub_pair
 
 SCRIPTORIUM_TAG = "Scriptorium"
 LANGUAGE_TAG = "PT-BR"
-_SCRIPTORIUM_NOTE = "Tradução em português brasileiro via Scriptorium."
+SCRIPTORIUM_REPO_URL = "https://github.com/bellussi1/Scriptorium"
+_SCRIPTORIUM_NOTE = (
+    "Tradução para o português brasileiro realizada de forma automatizada e revisada "
+    "para leitura pessoal, utilizando o modelo Gemini 3.8 Flash por meio do pipeline "
+    f"Scriptorium ({SCRIPTORIUM_REPO_URL})."
+)
 
 _NOISE_TAG_KEYS = {
     "en",
@@ -63,6 +68,9 @@ _CURATED_DESCRIPTIONS_PTBR: Dict[str, str] = {
 }
 
 _FOOTER_PATTERNS = (
+    re.compile(r"\s*<p>\s*<i>\s*Tradução para o português brasileiro realizada de forma automatizada.+?Scriptorium(?:\s*\([^)]+\))?\.?\s*</i>\s*</p>\s*$", re.I | re.S),
+    re.compile(r"(?:\s*<br\s*/?>)+\s*<i>\s*Tradução para o português brasileiro realizada de forma automatizada.+?Scriptorium(?:\s*\([^)]+\))?\.?\s*</i>\s*$", re.I | re.S),
+    re.compile(r"\s*Tradução para o português brasileiro realizada de forma automatizada.+?Scriptorium(?:\s*\([^)]+\))?\.?\s*$", re.I | re.S),
     re.compile(r"\s*<p>\s*<i>\s*Tradução em português brasileiro via Scriptorium\.?\s*</i>\s*</p>\s*$", re.I),
     re.compile(r"(?:\s*<br\s*/?>)+\s*<i>\s*Tradução em português brasileiro via Scriptorium\.?\s*</i>\s*$", re.I),
     re.compile(r"\s*Translated using Scriptorium(?:\s+https?://\S+)?\s*$", re.I),
@@ -213,8 +221,11 @@ def standardized_title(book: Any, current_title: str = "") -> str:
     source_title = str(getattr(book, "title", "") or "").strip()
     author = str(getattr(book, "author", "") or "").casefold()
     candidate = (current_title or "").strip()
-    if "hobb" in author and candidate:
-        candidate = re.sub(r"\bbufão\b", "bobo", re.sub(r"\bBufão\b", "Bobo", candidate))
+    if "hobb" in author:
+        if source_title.casefold() == "fool's errand":
+            return "A Missão do Bobo"
+        if candidate:
+            candidate = re.sub(r"\bbufão\b", "bobo", re.sub(r"\bBufão\b", "Bobo", candidate))
     if candidate and candidate.casefold().endswith("(pt-br)"):
         return candidate
     if not candidate or (source_title and candidate.casefold() == source_title.casefold()):
