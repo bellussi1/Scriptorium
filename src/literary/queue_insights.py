@@ -846,11 +846,14 @@ def read_book_quality_summaries(
             if isinstance(report_data.get("reader_repair"), dict)
             else {}
         )
-        splits = (
-            (reader.get("artifact_changes") or {}).get("split_dialogue_paragraphs")
+        artefact_changes = (
+            reader.get("artefact_changes")
+            if isinstance(reader.get("artefact_changes"), dict)
+            else reader.get("artifact_changes")
             if isinstance(reader.get("artifact_changes"), dict)
-            else None
+            else {}
         )
+        splits = artefact_changes.get("split_dialogue_paragraphs")
 
         summaries[str(book_id)] = {
             "epubcheck_ok": epubcheck_ok,

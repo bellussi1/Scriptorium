@@ -334,3 +334,65 @@ def test_reading_repair_preserves_bantam_ceps_epigraph_attribution():
     assert quotes == 0
     assert '<p class="ceps">— <small class="calibre5">“A CONSPIRAÇÃO DOS MALHADOS”, DE ROWELL</small></p>' in quoted_html
     assert '<p class="cotx">A guarda havia mudado.</p>' in quoted_html
+
+
+def test_hygiene_fixes_html_extension_mismatch_and_missing_css_font_face(tmp_path):
+    import zipfile
+
+    from src.literary.repair import repair_epubcheck_hygiene_in_epub
+
+    src_epub = tmp_path / "broken.epub"
+    out_epub = tmp_path / "fixed.epub"
+    with zipfile.ZipFile(src_epub, "w") as zf:
+        zf.writestr("mimetype", "application/epub+zip", compress_type=zipfile.ZIP_STORED)
+        zf.writestr("OEBPS/Text/titlepage.xhtml", '<html xmlns="http://www.w3.org/1999/xhtml"><body/></html>')
+        zf.writestr(
+            "OEBPS/Text/part0007.html",
+            '<html xmlns="http://www.w3.org/1999/xhtml"><body><a href="../Text/titlepage.html">Capa</a></body></html>',
+        )
+        zf.writestr("OEBPS/Fonts/00001.ttf", b"fakefont")
+        zf.writestr(
+            "OEBPS/Styles/page_styles.css",
+            "@font-face { font-family: 'Charis'; src: url(styles/XXXXXXXXXXXXXXXX); }\n"
+            "@font-face { font-family: 'Charis'; src: url(../Fonts/00001.ttf); }\n",
+        )
+
+    res = repair_epubcheck_hygiene_in_epub(str(src_epub), str(out_epub))
+    assert res["total_changes"] == 2
+    with zipfile.ZipFile(out_epub, "r") as zf:
+        part7 = zf.read("OEBPS/Text/part0007.html").decode("utf-8")
+        css = zf.read("OEBPS/Styles/page_styles.css").decode("utf-8")
+    assert '../Text/titlepage.xhtml' in part7
+    assert "XXXXXXXXXXXXXXXX" not in css
+    assert "../Fonts/00001.ttf" in css
+
+
+def test_read_book_quality_summaries_reads_artefact_changes_splits(tmp_path):
+    import json
+
+    from src.literary.queue_insights import read_book_quality_summaries
+
+    run_dir = tmp_path / "runs"
+    run_dir.mkdir()
+    (run_dir / "fool-s-assassin.report.json").write_text(
+        json.dumps(
+            {
+                "gate_passed": True,
+                "epubcheck": {"fatals": 0, "errors": 0, "warnings": 0},
+                "reader_repair": {
+                    "merged": 72,
+                    "artefact_changes": {"split_dialogue_paragraphs": 529},
+                },
+            }
+        ),
+        encoding="utf-8",
+    )
+    summaries = read_book_quality_summaries(
+        [{"id": 16, "title": "Fool's Assassin", "status": "completed"}],
+        run_dir=run_dir,
+        pilot_dir=tmp_path / "pilot",
+        audits_dir=tmp_path / "audits",
+        kindle_dir=tmp_path / "kindle",
+    )
+    assert summaries["16"]["reader_merged"] == 72
+    assert summaries["16"]["reader_splits"] == 529

@@ -315,3 +315,22 @@ def test_global_text_fixes_can_skip_sun_eater_terms():
     assert "Chantry" in skipped
     applied = global_text_fixes(raw, apply_terms=True)
     assert "Chantria" in applied
+
+
+def test_merge_split_paragraphs_never_merges_across_div_or_del_rey_epigraph():
+    raw = (
+        '<div class="epigraph">\n'
+        '<p class="ept">Trecho de diário não assinado</p>\n'
+        '</div>\n\n'
+        '<p class="pf">Não dei mais de um passo.</p>'
+    )
+    repaired, merged = merge_split_paragraphs(raw)
+    assert merged == 0
+    assert "</div>" in repaired
+    assert repaired.count("<p") == 2
+
+    # Even for generic body classes, a closing/opening tag between paragraphs must block merge
+    raw_div = '<div class="box"><p class="calibre4">Sem ponto final</p></div><p class="calibre4">continuação.</p>'
+    repaired_div, merged_div = merge_split_paragraphs(raw_div)
+    assert merged_div == 0
+    assert "</div>" in repaired_div

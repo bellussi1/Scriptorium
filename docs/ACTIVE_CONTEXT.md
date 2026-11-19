@@ -1,11 +1,25 @@
 # Active context
 
 Handoff between sessions. Read this first; update it before you stop. It must
-describe the real repository, not a plan. Status as of 2026-11-18 (19:49 local):
+describe the real repository, not a plan. Status as of 2026-11-19 (11:28 local):
 revalidate with `git status` and `git log` before acting. Older
 handoffs are in git history (this file was compacted on 2026-11-12).
 
 ## Now
+
+- **`#16 Fool's Assassin` & `#17 Fool's Quest` finalized (`EPUBCheck 0/0/0`) & exported; `#18 Assassin's Fate` actively translating (`2026-11-19 11:28 local`; no Docker restart):**
+  - **Completed & exported (`8` books total, `$26.20` spent / `$13.80` remaining of `$40.00` monthly GCP cap):**
+    - `#5 Fool's Fate` (`job #46`): fixed single remaining `DE TILTH -> DE LAVRA` in Chapter 22 epigraph (`0` forbidden, `100%` global glossary, `EPUBCheck 0/0/0`) and updated Kindle copy.
+    - `#16 Fool's Assassin` (`job #47`, `cli_2b6f8331`, `actual_cost: $2.90`): patched `4` chunks (`8` paragraphs) blocked by Gemini's `PROHIBITED_CONTENT` filter, fixed `titlepage.html -> titlepage.xhtml` & broken `@font-face` CSS, fixed `merge_split_paragraphs` epigraph `</div>` swallow bug, verified `EPUBCheck 0/0/0` (`98.18%` global / `92.52%` per-file glossary, `0` forbidden, `0.01%` English leakage), approved, archived intermediates, and exported to `translated_files/kindle/Robin Hobb/The Fitz and the Fool Trilogy/01 - Fool's Assassin (pt-BR).epub`.
+    - `#17 Fool's Quest` (`job #48`, `cli_ebdae089`, `actual_cost: $3.30`): finished `1031/1031` chunks overnight; patched `1` filtered chunk (`rhi-foolsquest-0027.xhtml`) and `1` bare paragraph `RSC-005` (`rhi-foolsquest-0022.xhtml`), verified `EPUBCheck 0/0/0` (`100%` global / `90.79%` per-file glossary, `0` forbidden, `0.01%` English leakage), approved, archived intermediates, and exported to `translated_files/kindle/Robin Hobb/The Fitz and the Fool Trilogy/02 - Fool's Quest (pt-BR).epub`.
+  - **Code fixes (`src/literary/repair.py`, `src/literary/reading_repair.py`, `src/literary/queue_insights.py`):**
+    - `repair_epubcheck_hygiene_in_epub()`: added `_fix_html_href_extensions()` (rewrites `.html`/`.htm`/`.xhtml` href mismatches when the target stem exists with another HTML suffix) and `_hygiene_drop_missing_font_faces()` (drops broken `@font-face` rules referencing missing relative files in `.css`).
+    - `merge_split_paragraphs()`: blocked merging across non-whitespace markup (`prefix.strip()`) so `</div>` tags are never swallowed, and added Del Rey epigraph classes (`ep`, `epf`, `ept`) to `_NON_PROSE_EXACT_CLASSES`.
+    - `read_book_quality_summaries()`: fixed `artefact_changes` vs `artifact_changes` key lookup so UI displays real `reader_splits` dialogue counts.
+    - Updated `glossary_scope = 'realm-of-the-elderlings'` on books `#16`, `#17`, `#18` in `data/literary_queue.db`.
+  - **Live run active (`#18 Assassin's Fate`, `job #49`, `cli_8ad564f6`):** Actively translating on `gemini / gemini-3.8-flash` (`834+/1,254` chunks, `0` failures, `0` unfinished units); `queue_runner_agent.py`, `auto_queue.py`, and `watch_translation.py` online. Do **not** restart `translatebook-literary-dev` while running.
+  - **Verification:** `venv\Scripts\python.exe -m pytest -q tests/literary/test_reading_repair.py tests/literary/test_queue_insights.py tests/literary/test_queue_runner.py` (`52 passed`); `venv\Scripts\python.exe -m ruff check src/literary/repair.py src/literary/queue_insights.py tests/literary/test_reading_repair.py tests/literary/test_queue_insights.py` (`0` errors).
+
 
 - **`unslop-ui --surface` Web UI pass applied & skill installed globally (`2026-11-18 19:49 local`; no Docker restart):**
   - Installed `unslop-ui` (`felipebasurto/unslop-ui`) globally under `C:\Users\Bellussi\.gemini\config\skills\unslop-ui\`.
