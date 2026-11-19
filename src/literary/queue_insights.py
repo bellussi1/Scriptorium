@@ -830,6 +830,7 @@ def read_book_quality_summaries(
             epubcheck_ok = int(errors or 0) == 0 and int(fatals or 0) == 0
 
         glossary = audit_data.get("glossary") if isinstance(audit_data.get("glossary"), dict) else {}
+        terms_block = audit_data.get("terms") if isinstance(audit_data.get("terms"), dict) else {}
         per_file_totals = (
             (audit_data.get("per_file") or {}).get("totals")
             if isinstance(audit_data.get("per_file"), dict)
@@ -838,6 +839,7 @@ def read_book_quality_summaries(
         cov = glossary.get("coverage")
         if cov is None and isinstance(per_file_totals, dict):
             cov = per_file_totals.get("glossary_coverage")
+        terms_cov = terms_block.get("coverage")
         forbidden_raw = glossary.get("forbidden_hits")
         forbidden_hits = len(forbidden_raw) if isinstance(forbidden_raw, list) else forbidden_raw
 
@@ -861,6 +863,7 @@ def read_book_quality_summaries(
             "epubcheck_warnings": int(warnings) if warnings is not None else None,
             "gate_passed": report_data.get("gate_passed"),
             "glossary_coverage": float(cov) if cov is not None else None,
+            "glossary_coverage_terms": float(terms_cov) if terms_cov is not None else None,
             "forbidden_hits": int(forbidden_hits) if forbidden_hits is not None else None,
             "reader_merged": reader.get("merged"),
             "reader_splits": splits,

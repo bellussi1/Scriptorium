@@ -1,34 +1,62 @@
-"""Split a well-structured omnibus EPUB into one EPUB per top-level book.
+"""Split a well-structured omnibus EPUB into one EPUB per contained book.
 
-The source must expose its books as top-level NCX entries such as
-``BOOK 1: GARDENS OF THE MOON``. The splitter reuses the source spine, copies
-the shared CSS/image assets, and writes a fresh EPUB 2 package per book. It
-never writes into the source library; pass an explicit ``--out-dir``.
+Two boundary modes are supported:
 
-Usage:
+* **NCX mode (legacy)** — top-level NCX entries labelled ``BOOK 1: ...``.
+* **Spine-prefix mode** — consecutive spine documents whose file name matches a
+  regex with a named ``n`` group, e.g. ``_Book(?P<n>\\d+)_``. This handles
+  omnibus editions that expose each novel as a ``BookN_*`` run of files instead
+  of a ``BOOK N:`` label.
+
+The splitter reuses the source spine, copies only the assets the selected
+documents need (optional), wires a per-volume cover, and writes a fresh EPUB 2
+package per book. It never writes into the source library; pass an explicit
+``--out-dir``.
+
+Usage (legacy):
     python scripts/split_omnibus.py \
-        --source "C:/.../The Complete Malazan Book ....epub" \
+        --source "...The Complete Malazan Book....epub" \
         --out-dir data/calibre/malazan-split \
         --series "Malazan Book of the Fallen" \
         --author "Steven Erikson"
+
+Usage (spine-prefix, per-volume metadata and cover):
+    python scripts/split_omnibus.py \
+        --source data/calibre/prepared/the-rain-wild-chronicles.epub \
+        --out-dir translated_files \
+        --spine-prefix-regex "_Book(?P<n>\\d+)_" \
+        --titles-json data/calibre/rain-wild-pt-titles.json \
+        --language pt-BR \
+        --description-mode translation \
+        --subjects "Realm of the Elderlings,Fiction,Speculative Fiction,Fantasy,Epic Fantasy,High Fantasy" \
+        --filename-template "{title} (pt-BR).refined.epub" \
+        --prune-assets \
+        --cover-image-regex "_Book{n}_cover\\." \
+        --cover-page-regex "_Book{n}_Cover\\." \
+        --epubcheck
 """
 from __future__ import annotations
 
 import argparse
+import html
 import json
 import mimetypes
+import os
 import posixpath
 import re
 import sys
+import tempfile
+import uuid
 import zipfile
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Callable, Dict, List, Optional, Tuple
 from xml.etree import ElementTree as ET
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-from src.literary.epub import validate_epub_structure  # noqa: E402
+from src.literary.epub import update_opf_metadata, validate_epub_structure  # noqa: E402
+from src.literary.metadata import author_sort, translation_description  # noqa: E402
 
 OPF_NS = "http://www.idpf.org/2007/opf"
 DC_NS = "http://purl.org/dc/elements/1.1/"
@@ -37,6 +65,12 @@ CONTAINER_NS = "urn:oasis:names:tc:opendocument:xmlns:container"
 
 BOOK_TITLE_RE = re.compile(r"^BOOK\s+(\d+)\s*:\s*(.+)$", re.IGNORECASE)
 SMALL_TITLE_WORDS = {"of", "the", "and", "in", "a", "an", "to", "for", "on", "at", "by", "with", "from"}
+
+_REFERENCE_RE = re.compile(
+    r"""(?:src|href)\s*=\s*["']([^"']+)["']|url\(\s*['"]?([^'")]+)""",
+    re.IGNORECASE,
+)
+_SKIP_REFERENCE_PREFIXES = ("#", "data:", "http:", "https:", "mailto:", "tel:", "javascript:")
 
 
 def _display_title(raw: str) -> str:
@@ -120,8 +154,152 @@ def _resolve_zip_path(opf_dir: str, href: str) -> str:
 
 
 def _new_identifier(source_identifier: str, index: int) -> str:
-    base = source_identifier.strip() or "urn:uuid:malazan-omnibus"
-    return f"{base}#book-{index}"
+    base = source_identifier.strip() or "urn:uuid:omnibus"
+    return f"urn:uuid:{uuid.uuid5(uuid.NAMESPACE_URL, f'{base}#book-{index}')}"
+
+
+_HTML_TAG_RE = re.compile(r"<html\b[^>]*>", re.IGNORECASE)
+_TITLE_RE = re.compile(r"<title\b[^>]*>.*?</title>", re.IGNORECASE | re.DOTALL)
+
+
+def _localize_document(data: bytes, *, language: str, title: str) -> bytes:
+    """Align the document language and title with the split volume."""
+    text = data.decode("utf-8")
+
+    def fix_html_tag(match: re.Match[str]) -> str:
+        tag = match.group(0)
+        for attribute in ("xml:lang", "lang"):
+            pattern = re.compile(
+                rf"""(?<=\s){re.escape(attribute)}\s*=\s*["'][^"']*["']""",
+                re.IGNORECASE,
+            )
+            if pattern.search(tag):
+                tag = pattern.sub(f'{attribute}="{language}"', tag, count=1)
+            else:
+                tag = tag[:-1] + f' {attribute}="{language}">'
+        return tag
+
+    text = _HTML_TAG_RE.sub(fix_html_tag, text, count=1)
+    text = _TITLE_RE.sub(lambda match: f"<title>{html.escape(title)}</title>", text, count=1)
+    return text.encode("utf-8")
+
+
+def _books_from_ncx(
+    points: List[Dict[str, Any]], href_to_index: Dict[str, int]
+) -> Tuple[List[Dict[str, Any]], int]:
+    """Legacy boundary detection: NCX labels shaped as ``BOOK N: Title``."""
+    books: List[Dict[str, Any]] = []
+    for point in points:
+        match = BOOK_TITLE_RE.match(point["title"])
+        if not match:
+            continue
+        index = int(match.group(1))
+        title = _display_title(match.group(2).strip())
+        start = href_to_index.get(point["src"])
+        if start is None:
+            raise ValueError(f"book title page not in spine: {point['src']}")
+        books.append({"index": index, "title": title, "source_title": title, "start": start})
+    if not books:
+        raise ValueError("no top-level BOOK N: title entries found")
+    books.sort(key=lambda item: item["index"])
+
+    after_last = [
+        href_to_index[p["src"]]
+        for p in points
+        if p["depth"] == 0
+        and p["src"] in href_to_index
+        and href_to_index[p["src"]] > books[-1]["start"]
+    ]
+    tail_start = min(after_last) if after_last else len(href_to_index)
+    return books, tail_start
+
+
+def _books_from_spine(
+    spine: List[Dict[str, str]],
+    pattern: str,
+    labels_by_href: Dict[str, str],
+    titles: Dict[int, str],
+) -> List[Dict[str, Any]]:
+    """Detect volumes as consecutive spine runs matching ``pattern``."""
+    compiled = re.compile(pattern)
+    runs: List[Dict[str, Any]] = []
+    current: Optional[Dict[str, Any]] = None
+    for position, item in enumerate(spine):
+        match = compiled.search(item["href"])
+        if not match:
+            current = None
+            continue
+        raw_index = match.groupdict().get("n")
+        if raw_index is None:
+            raise ValueError("spine-prefix regex must expose a named group 'n'")
+        index = int(raw_index)
+        if current is None or current["index"] != index:
+            current = {"index": index, "start": position, "end": position + 1}
+            runs.append(current)
+        else:
+            current["end"] = position + 1
+
+    seen: set[int] = set()
+    books: List[Dict[str, Any]] = []
+    for run in runs:
+        index = run["index"]
+        if index in seen:
+            raise ValueError(f"volume {index} appears in more than one spine run")
+        seen.add(index)
+        first_href = spine[run["start"]]["href"]
+        source_title = labels_by_href.get(first_href, "")
+        title = titles.get(index) or source_title or f"Book {index}"
+        books.append(
+            {
+                "index": index,
+                "title": title,
+                "source_title": source_title,
+                "start": run["start"],
+                "end": run["end"],
+            }
+        )
+    if not books:
+        raise ValueError(f"no spine documents match {pattern!r}")
+    books.sort(key=lambda item: item["index"])
+    return books
+
+
+def _extract_references(markup: str) -> List[str]:
+    references: List[str] = []
+    for match in _REFERENCE_RE.finditer(markup):
+        reference = (match.group(1) or match.group(2) or "").strip()
+        if not reference or reference.lower().startswith(_SKIP_REFERENCE_PREFIXES):
+            continue
+        references.append(reference.split("#", 1)[0].split("?", 1)[0])
+    return references
+
+
+def _referenced_asset_paths(
+    archive: zipfile.ZipFile,
+    document_paths: List[str],
+    asset_paths: List[str],
+) -> set[str]:
+    """Transitively collect the assets referenced by the selected documents."""
+    available = set(asset_paths)
+    kept: set[str] = set()
+    pending = list(document_paths)
+    seen: set[str] = set()
+    while pending:
+        current = pending.pop()
+        if current in seen:
+            continue
+        seen.add(current)
+        try:
+            data = archive.read(current).decode("utf-8", "replace")
+        except KeyError:
+            continue
+        base = posixpath.dirname(current)
+        for reference in _extract_references(data):
+            target = posixpath.normpath(posixpath.join(base, reference))
+            if target in available and target not in kept:
+                kept.add(target)
+                pending.append(target)
+    return kept
 
 
 def _build_opf(
@@ -136,7 +314,11 @@ def _build_opf(
     rights: str,
     docs: List[Dict[str, str]],
     assets: List[Dict[str, str]],
-    opf_dir: str,
+    cover_id: str = "",
+    cover_href: str = "",
+    toc_href: str = "",
+    text_href: str = "",
+    ncx_href: str = "toc.ncx",
 ) -> bytes:
     ET.register_namespace("", OPF_NS)
     ET.register_namespace("dc", DC_NS)
@@ -161,6 +343,11 @@ def _build_opf(
         "name": "calibre:series_index",
         "content": str(index),
     })
+    if cover_id:
+        ET.SubElement(metadata, f"{{{OPF_NS}}}meta", {
+            "name": "cover",
+            "content": cover_id,
+        })
 
     manifest = ET.SubElement(package, f"{{{OPF_NS}}}manifest")
     doc_ids = []
@@ -180,7 +367,7 @@ def _build_opf(
         })
     ET.SubElement(manifest, f"{{{OPF_NS}}}item", {
         "id": "ncx",
-        "href": "toc.ncx",
+        "href": ncx_href,
         "media-type": "application/x-dtbncx+xml",
     })
 
@@ -190,10 +377,22 @@ def _build_opf(
 
     if docs:
         guide = ET.SubElement(package, f"{{{OPF_NS}}}guide")
+        if cover_href:
+            ET.SubElement(guide, f"{{{OPF_NS}}}reference", {
+                "type": "cover",
+                "title": "Cover",
+                "href": cover_href,
+            })
+        if toc_href:
+            ET.SubElement(guide, f"{{{OPF_NS}}}reference", {
+                "type": "toc",
+                "title": "Contents",
+                "href": toc_href,
+            })
         ET.SubElement(guide, f"{{{OPF_NS}}}reference", {
             "type": "text",
             "title": "Start",
-            "href": docs[0]["href"],
+            "href": text_href or docs[0]["href"],
         })
 
     return ET.tostring(package, encoding="utf-8", xml_declaration=True)
@@ -226,11 +425,30 @@ def _build_ncx(
     return ET.tostring(ncx, encoding="utf-8", xml_declaration=True)
 
 
+def _matches(pattern: str, index: int, value: str) -> bool:
+    if not pattern:
+        return False
+    return bool(re.search(pattern.replace("{n}", str(index)), value))
+
+
 def split_omnibus(
     source: Path,
     out_dir: Path,
     series: str,
     author: str,
+    *,
+    spine_prefix_regex: str = "",
+    titles: Optional[Dict[int, str]] = None,
+    language: str = "",
+    description_template: str = "",
+    subjects: Optional[List[str]] = None,
+    translator: str = "",
+    filename_template: str = "{index:02d} - {title}.epub",
+    prune_assets: bool = False,
+    cover_image_regex: str = "",
+    cover_page_regex: str = "",
+    strict_ncx_labels: bool = False,
+    epubcheck_fn: Optional[Callable[[Path], Dict[str, Any]]] = None,
 ) -> List[Dict[str, Any]]:
     out_dir.mkdir(parents=True, exist_ok=True)
     results: List[Dict[str, Any]] = []
@@ -241,9 +459,8 @@ def split_omnibus(
         metadata = opf.find(f"{{{OPF_NS}}}metadata")
         if metadata is None:
             raise ValueError("OPF has no metadata")
-        source_title = _metadata_value(metadata, "title")
         source_author = _metadata_value(metadata, "creator") or author
-        language = _metadata_value(metadata, "language") or "en"
+        source_language = _metadata_value(metadata, "language") or "en"
         publisher = _metadata_value(metadata, "publisher")
         rights = _metadata_value(metadata, "rights")
         source_identifier = _metadata_value(metadata, "identifier")
@@ -269,31 +486,13 @@ def split_omnibus(
             if point["src"] and point["src"] not in labels_by_href:
                 labels_by_href[point["src"]] = point["title"]
 
-        books: List[Dict[str, Any]] = []
-        for point in points:
-            match = BOOK_TITLE_RE.match(point["title"])
-            if not match:
-                continue
-            index = int(match.group(1))
-            title = _display_title(match.group(2).strip())
-            start = href_to_index.get(point["src"])
-            if start is None:
-                raise ValueError(f"book title page not in spine: {point['src']}")
-            books.append({"index": index, "title": title, "start": start})
-        if not books:
-            raise ValueError("no top-level BOOK N: title entries found")
-        books.sort(key=lambda item: item["index"])
+        if spine_prefix_regex:
+            books = _books_from_spine(spine, spine_prefix_regex, labels_by_href, titles or {})
+            tail_start = len(spine)
+        else:
+            books, tail_start = _books_from_ncx(points, href_to_index)
 
-        after_last = [
-            href_to_index[p["src"]]
-            for p in points
-            if p["depth"] == 0
-            and p["src"] in href_to_index
-            and href_to_index[p["src"]] > books[-1]["start"]
-        ]
-        tail_start = min(after_last) if after_last else len(spine)
-
-        assets = []
+        all_assets: List[Dict[str, Any]] = []
         for name in archive.namelist():
             lower = name.lower()
             if name == "mimetype" or name.startswith("META-INF/"):
@@ -303,7 +502,7 @@ def split_omnibus(
             if lower.endswith((".xhtml", ".html", ".htm", ".opf", ".ncx")):
                 continue
             href = posixpath.relpath(name, opf_dir)
-            assets.append({"href": href, "path": name, "media-type": _guess_media_type(href)})
+            all_assets.append({"href": href, "path": name, "media-type": _guess_media_type(href)})
 
         container_xml = (
             '<?xml version="1.0" encoding="UTF-8"?>\n'
@@ -316,7 +515,9 @@ def split_omnibus(
 
         for position, book in enumerate(books):
             start = book["start"]
-            end = books[position + 1]["start"] if position + 1 < len(books) else tail_start
+            end = book.get("end") or (
+                books[position + 1]["start"] if position + 1 < len(books) else tail_start
+            )
             selected = [
                 item for item in spine[start:end]
                 if item.get("media-type") in ("application/xhtml+xml", "text/html")
@@ -324,27 +525,90 @@ def split_omnibus(
             if not selected:
                 continue
             identifier = _new_identifier(source_identifier, book["index"])
+            document_paths = [_resolve_zip_path(opf_dir, item["href"]) for item in selected]
+
+            if prune_assets:
+                kept_paths = _referenced_asset_paths(
+                    archive, document_paths, [asset["path"] for asset in all_assets]
+                )
+                assets = [asset for asset in all_assets if asset["path"] in kept_paths]
+            else:
+                assets = list(all_assets)
+
+            cover_asset = next(
+                (
+                    asset for asset in assets
+                    if _matches(cover_image_regex, book["index"], asset["path"])
+                ),
+                None,
+            )
+            cover_href = ""
+            cover_page_href = ""
+            if cover_page_regex:
+                cover_page = next(
+                    (
+                        item for item in selected
+                        if _matches(cover_page_regex, book["index"], item["href"])
+                    ),
+                    None,
+                )
+                if cover_page is not None:
+                    cover_page_href = cover_page["href"]
+
+            toc_href = ""
+            for item in selected:
+                if re.search(r"contents", posixpath.basename(item["href"]), re.IGNORECASE):
+                    toc_href = item["href"]
+                    break
+
+            text_href = ""
+            cover_position = next(
+                (offset for offset, item in enumerate(selected) if item["href"] == cover_page_href),
+                -1,
+            )
+            for offset, item in enumerate(selected):
+                if offset != cover_position:
+                    text_href = item["href"]
+                    break
+
             doc_entries: List[Tuple[str, str]] = []
             for offset, item in enumerate(selected):
                 label = labels_by_href.get(item["href"])
                 if offset == 0:
-                    label = f"BOOK {book['index']}: {book['title']}"
+                    label = (
+                        book["title"]
+                        if spine_prefix_regex
+                        else f"BOOK {book['index']}: {book['title']}"
+                    )
                 if not label:
+                    if strict_ncx_labels:
+                        continue
                     label = f"Chapter {offset + 1}"
                 doc_entries.append((label, item["href"]))
+
+            cover_id = ""
+            if cover_asset is not None:
+                cover_id = f"asset{assets.index(cover_asset):04d}"
+                cover_href = cover_page_href or cover_asset["href"]
 
             opf_bytes = _build_opf(
                 title=book["title"],
                 series=series,
                 index=book["index"],
                 author=source_author,
-                language=language,
+                language=language or source_language,
                 identifier=identifier,
                 publisher=publisher,
                 rights=rights,
                 docs=selected,
                 assets=assets,
-                opf_dir=opf_dir,
+                cover_id=cover_id,
+                cover_href=cover_href,
+                toc_href=toc_href,
+                text_href=text_href,
+                ncx_href=posixpath.relpath(
+                    _resolve_zip_path(opf_dir, ncx_href), opf_dir
+                ),
             )
             ncx_bytes = _build_ncx(
                 title=book["title"],
@@ -353,7 +617,12 @@ def split_omnibus(
             )
 
             safe_title = re.sub(r'[<>:"/\\|?*]', "", book["title"]).strip().strip(".")
-            filename = f"{book['index']:02d} - {safe_title}.epub"
+            safe_source_title = re.sub(
+                r'[<>:"/\\|?*]', "", book.get("source_title") or book["title"]
+            ).strip().strip(".")
+            filename = filename_template.format(
+                index=book["index"], title=safe_title, source_title=safe_source_title
+            )
             target = out_dir / filename
             with zipfile.ZipFile(target, "w") as out:
                 out.writestr("mimetype", "application/epub+zip", compress_type=zipfile.ZIP_STORED)
@@ -362,12 +631,49 @@ def split_omnibus(
                 out.writestr(_resolve_zip_path(opf_dir, ncx_href), ncx_bytes, compress_type=zipfile.ZIP_DEFLATED)
                 for item in selected:
                     name = _resolve_zip_path(opf_dir, item["href"])
-                    out.writestr(name, archive.read(name), compress_type=zipfile.ZIP_DEFLATED)
+                    payload = archive.read(name)
+                    if language:
+                        payload = _localize_document(
+                            payload, language=language, title=book["title"]
+                        )
+                    out.writestr(name, payload, compress_type=zipfile.ZIP_DEFLATED)
                 for asset in assets:
                     out.writestr(asset["path"], archive.read(asset["path"]), compress_type=zipfile.ZIP_DEFLATED)
 
+            if description_template or subjects or translator or language:
+                description = ""
+                if description_template:
+                    description = description_template.replace("{title}", book["title"])
+                fd, tmp_name = tempfile.mkstemp(prefix=".split-meta-", suffix=".epub", dir=str(out_dir))
+                os.close(fd)
+                staged = Path(tmp_name)
+                try:
+                    update_opf_metadata(
+                        str(target),
+                        str(staged),
+                        title=book["title"],
+                        language=language or None,
+                        identifier=identifier,
+                        series=series or None,
+                        series_index=book["index"],
+                        subjects=subjects or None,
+                        description=description or None,
+                        translator=translator or "",
+                        title_sort=book["title"],
+                        author_sort=author_sort(source_author),
+                    )
+                    os.replace(staged, target)
+                finally:
+                    if staged.exists():
+                        staged.unlink()
+
             issues = validate_epub_structure(str(target))
             errors = [issue.to_dict() for issue in issues if issue.severity.value in ("error", "critical")]
+            epubcheck: Dict[str, Any] = {}
+            if epubcheck_fn is not None:
+                epubcheck = epubcheck_fn(target.resolve())
+                if (epubcheck.get("errors") or 0) or epubcheck.get("returncode"):
+                    errors.append({"code": "epubcheck", **epubcheck})
             result = {
                 "index": book["index"],
                 "title": book["title"],
@@ -375,12 +681,26 @@ def split_omnibus(
                 "path": str(target),
                 "bytes": target.stat().st_size,
                 "documents": len(selected),
+                "assets": len(assets),
+                "cover": cover_href,
                 "validation_errors": errors,
+                "epubcheck": epubcheck,
             }
             results.append(result)
-            print(f"[{book['index']:02d}] {book['title']}: {len(selected)} docs, {target.stat().st_size:,} bytes, "
+            print(f"[{book['index']:02d}] {book['title']}: {len(selected)} docs, "
+                  f"{len(assets)} assets, {target.stat().st_size:,} bytes, "
                   f"{'OK' if not errors else f'{len(errors)} structural errors'}", flush=True)
     return results
+
+
+def _load_titles(raw: str) -> Dict[int, str]:
+    if not raw:
+        return {}
+    path = Path(raw)
+    if not path.is_file():
+        raise SystemExit(f"titles file not found: {path}")
+    data = json.loads(path.read_text(encoding="utf-8"))
+    return {int(key): str(value) for key, value in data.items()}
 
 
 def main() -> int:
@@ -390,12 +710,60 @@ def main() -> int:
     parser.add_argument("--series", default="Malazan Book of the Fallen")
     parser.add_argument("--author", default="Steven Erikson")
     parser.add_argument("--manifest", default="")
+    parser.add_argument("--spine-prefix-regex", default="", help="e.g. '_Book(?P<n>\\d+)_'")
+    parser.add_argument("--titles-json", default="", help="JSON object {index: title}")
+    parser.add_argument("--language", default="", help="Target dc:language (default: source language)")
+    parser.add_argument(
+        "--description-mode",
+        choices=("none", "translation"),
+        default="none",
+        help="'translation' writes the Scriptorium edition notice for each volume",
+    )
+    parser.add_argument("--subjects", default="", help="Comma-separated dc:subject values")
+    parser.add_argument("--translator", default="")
+    parser.add_argument("--filename-template", default="{index:02d} - {title}.epub")
+    parser.add_argument("--prune-assets", action="store_true")
+    parser.add_argument("--cover-image-regex", default="")
+    parser.add_argument("--cover-page-regex", default="")
+    parser.add_argument("--strict-ncx-labels", action="store_true")
+    parser.add_argument("--epubcheck", action="store_true")
     args = parser.parse_args()
+
     source = Path(args.source)
     if not source.exists():
         print(f"source not found: {source}", file=sys.stderr)
         return 1
-    results = split_omnibus(source, Path(args.out_dir), args.series, args.author)
+
+    description_template = ""
+    if args.description_mode == "translation":
+        description_template = translation_description("{title}")
+
+    epubcheck_fn = None
+    if args.epubcheck:
+        from src.literary.queue_runner import _epubcheck
+
+        epubcheck_fn = _epubcheck
+
+    subjects = [item.strip() for item in args.subjects.split(",") if item.strip()]
+
+    results = split_omnibus(
+        source,
+        Path(args.out_dir),
+        args.series,
+        args.author,
+        spine_prefix_regex=args.spine_prefix_regex,
+        titles=_load_titles(args.titles_json),
+        language=args.language,
+        description_template=description_template,
+        subjects=subjects,
+        translator=args.translator,
+        filename_template=args.filename_template,
+        prune_assets=args.prune_assets,
+        cover_image_regex=args.cover_image_regex,
+        cover_page_regex=args.cover_page_regex,
+        strict_ncx_labels=args.strict_ncx_labels,
+        epubcheck_fn=epubcheck_fn,
+    )
     manifest_path = Path(args.manifest) if args.manifest else Path(args.out_dir) / "split-manifest.json"
     manifest_path.write_text(json.dumps(results, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     print(f"manifest: {manifest_path}", flush=True)

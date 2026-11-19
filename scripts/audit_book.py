@@ -26,6 +26,7 @@ import math
 import os
 import re
 import sys
+import tempfile
 import zipfile
 from datetime import datetime, timezone
 from pathlib import Path
@@ -47,7 +48,7 @@ from src.literary.per_file_audit import (  # noqa: E402
 from src.literary.queue import QueueStore  # noqa: E402
 from src.literary.resources import compile_for_book, load_tree  # noqa: E402
 from src.literary.run_plan import build_run_plan  # noqa: E402
-from src.literary.validation import glossary_target_present  # noqa: E402
+from src.literary.validation import glossary_target_present, validate_epub_pair  # noqa: E402
 
 LEDGER = ROOT / "data" / "cost_ledger.jsonl"
 AUDIT_ROOT = ROOT / "data" / "audits"
@@ -351,6 +352,61 @@ def _resolve_terms(
     }
 
 
+def _glossary_snapshot_path(report: Dict[str, Any], book: Any) -> Optional[Path]:
+    """Resolve the glossary file the run actually used.
+
+    The queue report records it under ``assets.glossary_host``. Reports written
+    by the container post-processing path used to omit ``assets``; for those,
+    fall back to the compiled glossary the runner writes for this book, which
+    is the same frozen file (unless it was recompiled after the run, in which
+    case the hash sidecar still records the mismatch).
+    """
+    raw = str((report.get("assets") or {}).get("glossary_host") or "").strip()
+    if raw:
+        candidate = Path(raw)
+        if candidate.exists():
+            return candidate
+    fallback = ROOT / "data" / "compiled" / f"{_slug(book.title)}-glossary.json"
+    return fallback if fallback.exists() else None
+
+
+def _write_json_atomic(path: Path, payload: Dict[str, Any]) -> None:
+    """Replace ``path`` atomically so a polling UI never reads a partial file."""
+    fd, temporary = tempfile.mkstemp(prefix=f".{path.stem}.", suffix=".tmp", dir=str(path.parent))
+    os.close(fd)
+    staged = Path(temporary)
+    try:
+        staged.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
+        os.replace(staged, path)
+    finally:
+        if staged.exists():
+            staged.unlink()
+
+
+def _report_validation(
+    report: Dict[str, Any],
+    source: Path,
+    target: Path,
+) -> Tuple[Dict[str, Any], bool]:
+    """Return the report's pair validation, deriving and storing it when absent.
+
+    The container post-processing path that finalised a few books wrote a
+    minimal report without ``validation``. Recomputing the pair validation is
+    cheap and keeps the audit (and the review drawer) faithful to the artifact.
+    """
+    current = report.get("validation")
+    if isinstance(current, dict) and current:
+        return current, False
+    try:
+        derived = validate_epub_pair(str(source), str(target), expected_language="pt-BR")
+    except Exception:
+        return {}, False
+    if not isinstance(derived, dict) or not derived:
+        return {}, False
+    report["validation"] = derived
+    return derived, True
+
+
 def _term_audit(
     book: Any,
     source_text: str,
@@ -393,18 +449,17 @@ def _term_audit(
                         "reason": "removed from the current glossary",
                     }
                 )
-                continue
-            current_target, current_forbidden = current
-            if current_target != term.target or set(current_forbidden) != set(term.forbidden):
-                drift.append(
-                    {
-                        "source": term.source,
-                        "snapshot_target": term.target,
-                        "current_target": current_target,
-                        "reason": "glossary changed after the run",
-                    }
-                )
-                continue
+            else:
+                current_target, current_forbidden = current
+                if current_target != term.target or set(current_forbidden) != set(term.forbidden):
+                    drift.append(
+                        {
+                            "source": term.source,
+                            "snapshot_target": term.target,
+                            "current_target": current_target,
+                            "reason": "glossary changed after the run",
+                        }
+                    )
         forms = [term.source] + list(getattr(term, "aliases", []) or [])
         if not any(form.casefold() in source_cf for form in forms if form):
             continue
@@ -905,34 +960,36 @@ def main() -> int:
     source_text, source_files = _epub_text(source)
     target_text, target_files = _epub_text(target)
     samples = _sample_pairs(source_files, target_files, limit=max(3, args.samples))
-    glossary_path = str((report.get("assets") or {}).get("glossary_host") or "").strip()
-    resolved = _resolve_terms(
-        book,
-        Path(glossary_path) if glossary_path else None,
-    )
+    glossary_path = _glossary_snapshot_path(report, book)
+    resolved = _resolve_terms(book, glossary_path)
     terms = _term_audit(
         book,
         source_text,
         target_text,
-        glossary_path=Path(glossary_path) if glossary_path else None,
+        glossary_path=glossary_path,
         resolved=resolved,
     )
     per_file = scan_book(source, target, resolved["terms"])
     metrics = _text_metrics(source_text, target_text)
     glossary_hash = None
     glossary_hash_mismatch = False
-    if glossary_path and Path(glossary_path).exists():
-        glossary_file = Path(glossary_path)
-        sidecar = glossary_file.with_suffix(".sha256")
-        glossary_hash = hashlib.sha256(glossary_file.read_bytes()).hexdigest()
+    if glossary_path and glossary_path.exists():
+        sidecar = glossary_path.with_suffix(".sha256")
+        glossary_hash = hashlib.sha256(glossary_path.read_bytes()).hexdigest()
         if sidecar.exists():
             expected = sidecar.read_text(encoding="utf-8").strip()
             glossary_hash_mismatch = bool(expected and expected != glossary_hash)
 
-    validation = report.get("validation") or {}
-    epubcheck = report.get("epubcheck") or {}
+    validation, validation_backfilled = _report_validation(report, source, target)
+    if validation_backfilled and args.report and args.report.exists():
+        _write_json_atomic(args.report, report)
+    epubcheck = report.get("refined_epubcheck") or report.get("epubcheck") or {}
     gate_ok = bool(report.get("gate_passed"))
-    epub_ok = bool(validation.get("passed")) and int(epubcheck.get("errors") or 0) == 0
+    errors = int(epubcheck.get("errors") or 0)
+    if validation:
+        epub_ok = bool(validation.get("passed")) and errors == 0
+    else:
+        epub_ok = gate_ok and errors == 0
     if not report:
         gate_ok = False
         epub_ok = False
@@ -952,8 +1009,6 @@ def main() -> int:
         reasons.append(f"glossary coverage {terms.get('coverage')} < 0.90")
     if terms.get("forbidden_hits"):
         reasons.append(f"{len(terms['forbidden_hits'])} forbidden rendering(s) found")
-    if terms.get("drift"):
-        reasons.append(f"{len(terms['drift'])} glossary term(s) drifted after the run")
     if glossary_hash_mismatch:
         reasons.append("compiled glossary snapshot changed after the run")
     if metrics.get("pt_pt_per_100k", 0) > 50:
@@ -980,6 +1035,17 @@ def main() -> int:
         else:
             reasons.append(f"cloud audit failed: {cloud.get('error', 'unknown')}")
 
+    warnings: List[str] = list(cloud.get("warnings") or [])
+    if terms.get("drift"):
+        warnings.append(
+            f"{len(terms['drift'])} glossary term(s) drifted after the run; "
+            "coverage uses the run snapshot"
+        )
+    if glossary_path and not str((report.get("assets") or {}).get("glossary_host") or "").strip():
+        warnings.append(f"report had no glossary snapshot; used {glossary_path}")
+    if validation_backfilled:
+        warnings.append("report had no pair validation; derived and stored by the audit")
+
     passed = not reasons
     audit = {
         "created_at": _utc(),
@@ -993,11 +1059,13 @@ def main() -> int:
         "report": str(args.report) if args.report else "",
         "passed": passed,
         "reasons": reasons,
-        "warnings": cloud.get("warnings") or [],
+        "warnings": warnings,
         "gate": {
             "queue_gate": gate_ok,
-            "epubcheck_errors": int(epubcheck.get("errors") or 0),
+            "epubcheck_errors": errors,
+            "validation_passed": validation.get("passed"),
             "validation_blocking": validation.get("blocking"),
+            "validation_derived": validation_backfilled,
         },
         "terms": terms,
         "metrics": metrics,
@@ -1052,7 +1120,6 @@ def main() -> int:
         lines.extend(f"- {reason}" for reason in reasons)
     else:
         lines.append("- All gates passed.")
-    warnings = cloud.get("warnings") or []
     if warnings:
         lines.extend(["", "## Warnings", ""])
         lines.extend(f"- {warning}" for warning in warnings)

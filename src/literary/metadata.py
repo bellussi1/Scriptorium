@@ -273,6 +273,11 @@ def _fix_blurb_terms(body: str, book: Any) -> str:
     return body
 
 
+def translation_description(title: str) -> str:
+    """Return the standard PT-BR edition notice used when no synopsis exists."""
+    return f"Edição em português brasileiro de {title}.\n\n{_SCRIPTORIUM_NOTE}"
+
+
 def _append_scriptorium_note(body: str) -> str:
     if _SCRIPTORIUM_NOTE.casefold() in body.casefold():
         return body
@@ -298,7 +303,7 @@ def standardized_description(book: Any, source_epub: str) -> str:
     if not body:
         body = _CURATED_DESCRIPTIONS_PTBR.get(source_title.casefold(), "")
     if not body:
-        body = f"Edição em português brasileiro de {source_title or 'obra literária'}."
+        return translation_description(source_title or "obra literária")
     return _append_scriptorium_note(body)
 
 

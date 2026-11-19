@@ -20,7 +20,7 @@ translating.
 | 9 | Plan has no issues | `queue plan`, `issues` | none (after `622fa92`) | none |
 | 10 | Chapter-title map for the post-pass | `literary-resources/.../chapter-titles/<slug>.yaml` | present (51 chapters) | **missing** |
 | 11 | Reader-repair headings | `literary-resources/.../reader-repairs.yaml`, `headings` | not needed | not needed |
-| 12 | Gates defined | `scripts/audit_book.py` thresholds: pair and EPUBCheck 0 errors, forbidden 0, glossary coverage ≥ 0.9 overall and ≥ 0.8 per file, length ratio 0.8–1.2 | defined | defined |
+| 12 | Gates defined | `scripts/audit_book.py` thresholds: pair and EPUBCheck 0 errors, forbidden 0, glossary coverage ≥ 0.9 by unique term against the run snapshot and ≥ 0.8 per file by occurrence, length ratio 0.8–1.2 | defined | defined |
 | 13 | Audit sample with a cloud judge | `--max-cloud-usd` cap | not run (no approved cap) | not run |
 | 14 | Acceptance criteria written | the audit reasons and the review checklist above | defined | defined |
 

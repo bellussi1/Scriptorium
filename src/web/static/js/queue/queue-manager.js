@@ -1183,9 +1183,20 @@ function renderRowQualityBadges(book) {
     } else if (qs.epubcheck_ok === false) {
         pills.push(`<span class="queue-row-pill is-warn">${escapeHtml(t('queue:badge_epubcheck_err', { errors: qs.epubcheck_errors ?? '?' }))}</span>`);
     }
-    if (qs.glossary_coverage != null) {
-        const pct = Math.round(Number(qs.glossary_coverage) * 100);
-        pills.push(`<span class="queue-row-pill${pct >= 90 ? ' is-ok' : ''}">${escapeHtml(t('queue:badge_glossary', { pct }))}</span>`);
+    const glossaryHelp = escapeHtml(t('queue:badge_glossary_help'));
+    const termsPct = qs.glossary_coverage_terms != null
+        ? Math.round(Number(qs.glossary_coverage_terms) * 100)
+        : null;
+    const occurrencePct = qs.glossary_coverage != null
+        ? Math.round(Number(qs.glossary_coverage) * 100)
+        : null;
+    const termsOk = Number(qs.glossary_coverage_terms) >= 0.9;
+    const occurrenceOk = Number(qs.glossary_coverage) >= 0.9;
+    if (termsPct != null) {
+        pills.push(`<span class="queue-row-pill${termsOk ? ' is-ok' : ''}" title="${glossaryHelp}">${escapeHtml(t('queue:badge_glossary_terms', { pct: termsPct }))}</span>`);
+    }
+    if (occurrencePct != null) {
+        pills.push(`<span class="queue-row-pill${occurrenceOk ? ' is-ok' : ''}" title="${glossaryHelp}">${escapeHtml(t('queue:badge_glossary_occurrence', { pct: occurrencePct }))}</span>`);
     }
     if (qs.kindle_exported) {
         pills.push(`<span class="queue-row-pill is-ok">${escapeHtml(t('queue:badge_kindle'))}</span>`);

@@ -236,7 +236,9 @@
   "budget_cap": "Cap ${{cap}} · Free est. ${{left}}",
   "badge_epubcheck_ok": "EPUBCheck 0/0",
   "badge_epubcheck_err": "EPUBCheck {{errors}} err",
-  "badge_glossary": "Glossary {{pct}}%",
+  "badge_glossary_terms": "Terms {{pct}}%",
+  "badge_glossary_occurrence": "Occur. {{pct}}%",
+  "badge_glossary_help": "Terms: unique-term coverage. Occur.: per-file occurrence coverage.",
   "badge_kindle": "Kindle ✓",
   "badge_repairs": "{{merged}} merged · {{splits}} splits"
 }

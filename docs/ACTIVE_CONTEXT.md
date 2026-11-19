@@ -1,11 +1,29 @@
 # Active context
 
 Handoff between sessions. Read this first; update it before you stop. It must
-describe the real repository, not a plan. Status as of 2026-11-19 (11:28 local):
+describe the real repository, not a plan. Status as of 2026-11-19 (14:15 local):
 revalidate with `git status` and `git log` before acting. Older
 handoffs are in git history (this file was compacted on 2026-11-12).
 
 ## Now
+
+- **Audit/UI quality metrics fixed; `#33` reached the review gate with Book 4 untranslated (`2026-11-19 15:55 local`):**
+  - `scripts/audit_book.py` now uses the glossary snapshot the run actually used: `report.assets.glossary_host`, falling back to `data/compiled/<slug>-glossary.json` when the post-processing report omitted `assets`. Drifted terms are still evaluated against the snapshot target; drift is a warning, not a failure reason.
+  - A missing `validation` block is derived with `validate_epub_pair` and written back into the report. `#17` and `#18` now have `validation.passed: true, blocking: 0`.
+  - `read_book_quality_summaries` exposes both coverage numbers (`glossary_coverage_terms` and `glossary_coverage`); the queue row shows `Termos` and `Ocorr.` pills, with a tooltip explaining the difference, and the green threshold uses the raw value (not the rounded percentage).
+  - Re-ran `scripts/audit_book.py --no-cloud` for the 9 completed books. Snapshot-based results: `#18` `98.35%` unique / `93.17%` occurrence (was `97.62%` / `83.36%`), `#17` `100%` / `95.51%`, `#5` `98.92%` / `94.22%`. `#3`, `#5`, `#6` and `#17` now pass; `#4` still flags 2 forbidden renderings, `#2` has 89.64% occurrence, `#1` flags `SHE`, and `#16`/`#18` have per-file coverage below 0.8 in 2 files.
+  - `#33` finished `needs_review`, not completed. Gemini prepayment credits ran out (`HTTP 402`) at Book 4 chapter 8; the translator fell back to the source text for 423 chunks, leaving Book 4 chapters 8-22 and the epilogue in English (`english_leakage 0.0616`, 16 files above 0.02). `EPUBCheck` also reports one structural error in `Also_By.xhtml` (`A Herança` text outside `<p>`), and `refined_output` is empty, so there is no artifact to split yet.
+  - Next: top up the Gemini wallet, make HTTP 402 abort the run instead of falling back, retranslate the affected Book 4 files, fix `Also_By.xhtml`, re-audit, then split into the four volumes.
+
+- **`#33 The Rain Wild Chronicles` resumed after the host worker died; split tooling ready (`2026-11-19 14:15 local`):**
+  - `#18 Assassin's Fate` finished (`completed`, `actual_cost: $4.02`, `translated_files/Assassin's Fate (pt-BR).refined.epub`).
+  - The `#33` worker (`PID 7460`) and supervisor (`5700`) died at `16:05 UTC` with `478/2,492` chunks done. Ran `queue reset`, requeued the book to `pending`, and started `scripts/auto_queue.py --max-books 1 --max-cloud-usd 0 --trust-runner-gate`; it resumed checkpoint `cli_7193a4e9` and reached `1,181/2,492 (47.4%)`, heartbeat healthy. DB `actual_cost` is `$30.22` of the `$40.00` monthly cap; this book is estimated at `$7.26`.
+  - `scripts/split_omnibus.py` generalized, backward compatible: spine-prefix boundaries (`--spine-prefix-regex`), per-volume cover (`--cover-image-regex`, `--cover-page-regex`, `meta name="cover"` plus `guide`), transitive asset pruning, `--titles-json`, `--language`, `--description-mode translation`, `--subjects`, `--translator`, `--filename-template`, `--epubcheck`. Legacy `BOOK N:` mode unchanged.
+  - `src/literary/metadata.py`: added `translation_description(title)` (edition notice + Scriptorium note); `standardized_description` now reuses it.
+  - `scripts/register_split_volumes.py`: registers each split volume as a `completed` queue book from the PT and EN split manifests (dry-run by default).
+  - `tests/literary/test_split_omnibus.py`: 2 tests (spine-prefix and legacy modes), passing.
+  - Rain Wild decisions: titles `Guardiões dos Dragões`, `Refúgio dos Dragões`, `Cidade dos Dragões`, `Sangue de Dragões` (map in `literary-resources/robin-hobb/realm-of-the-elderlings/rain-wild-chronicles/titles-ptbr.json`); series `As Crônicas de Rain Wild`; keep the four source covers; description is the `Edição em português brasileiro de <title>.` notice, not a synopsis. Artifact filenames keep the source title (library convention, `best_artifact` matches them) while the OPF carries the PT title. EN slices in `data/calibre/rain-wild-split-en/`, PT dry run in `data/tmp/rain-wild-pt-test/`; all four test volumes `EPUBCheck 0/0/0` and `validate_epub_pair` `passed: true`.
+  - When `#33` finishes: split `The Rain Wild Chronicles (pt-BR).refined.epub` into `translated_files/<source title> (pt-BR).refined.epub` with `--spine-prefix-regex '_Book(?P<n>\d+)_' --titles-json literary-resources/robin-hobb/realm-of-the-elderlings/rain-wild-chronicles/titles-ptbr.json --language pt-BR --description-mode translation --prune-assets --epubcheck --filename-template "{source_title} (pt-BR).refined.epub"`, register the four rows with `scripts/register_split_volumes.py --apply` (queue title = source title, OPF title = PT title), export Kindle, and archive the omnibus artifact.
 
 - **`#16 Fool's Assassin` & `#17 Fool's Quest` finalized (`EPUBCheck 0/0/0`) & exported; `#18 Assassin's Fate` actively translating (`2026-11-19 11:28 local`; no Docker restart):**
   - **Completed & exported (`8` books total, `$26.20` spent / `$13.80` remaining of `$40.00` monthly GCP cap):**
@@ -54,7 +72,7 @@ handoffs are in git history (this file was compacted on 2026-11-12).
     2. Live process status strip (`Supervisor`, `Worker` phase/heartbeat, `Runner Agent`, checkpoint age, queue DB integrity) via `read_process_telemetry`.
     3. 5-stage pipeline stepper (`Prep -> Translation -> Typography -> EPUBCheck -> Audit & Kindle`) in both `#translateQueueNow` and `#queueNow`.
     4. Cleaned/filtered/color-coded activity & quality log viewer (`clean_log_lines`, All/Checkpoints/Repairs & Audit/Warnings & Errors filters, auto-scroll toggle, and preserved `<details>` open state across 10s polls).
-    5. Clickable series/trilogy progress cards (`read_book_quality_summaries`), Gemini credit budget forecast (`read_budget_summary`), and inline table quality pills (`EPUBCheck 0/0`, glossary coverage %, `Kindle ✓`, `reader_repair` counts).
+    5. Clickable series/trilogy progress cards (`read_book_quality_summaries`), Gemini credit budget forecast (`read_budget_summary`), and inline table quality pills (`EPUBCheck 0/0`, `Termos`/`Ocorr.` glossary coverage, `Kindle ✓`, `reader_repair` counts).
   - **Verification:** `npm.cmd run build:css`, `npm.cmd run typecheck`, `npm.cmd run test:js` (`7/7 passed`), `pytest -q tests/test_frontend_i18n.py tests/unit/test_literary_queue_routes.py tests/literary/test_queue_insights.py` (`66 passed`), `ruff check` (`0` issues), and live HTTP `200` checks on `http://localhost:5000` serving updated static JS/CSS/locales + live `health` telemetry (Jinja template in container keeps cached HTML until next restart; JS dynamically ensures new containers via `ensureQueueContainer()`).
 
 - **Continuous overnight queue active on `#2 Ship of Magic` after `#4 Fool's Errand` completed & exported (2026-11-18 09:27 local):**
@@ -396,10 +414,13 @@ documents). Do not re-run it on finals; see
 
 ## Gates and tooling
 
-- Deterministic audit (`scripts/audit_book.py`): glossary coverage ≥ 0.90 overall
-  and ≥ 0.80 per file, forbidden renderings 0, pt-PT ≤ 50/100k, English leakage
+- Deterministic audit (`scripts/audit_book.py`): glossary coverage ≥ 0.90 by unique
+  term against the run snapshot (`report.assets.glossary_host`, or the compiled
+  `data/compiled/<slug>-glossary.json` when the report has no assets) and ≥ 0.80
+  per file by occurrence, forbidden renderings 0, pt-PT ≤ 50/100k, English leakage
   ≤ 0.01, repetition ≤ 0.05, length ratio 0.80–1.20. Glossary matching ignores
-  case (2026-11-12).
+  case (2026-11-12). Drift between the snapshot and the current glossary is a
+  warning, not a failure.
 - Cloud audit needs an approved cap (`--max-cloud-usd`). No cloud spend now.
 - Glossary eligibility (`per_file_audit._form_present`, 2026-11-12): single words match as whole
   words at any length. Before, `Raine` matched `drained` and `Scholiast` matched `scholiasts`, which
